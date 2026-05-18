@@ -21,6 +21,8 @@ function isBadSecret(s: string | undefined | null): boolean {
  */
 export function assertProdSecrets() {
   if (process.env.NODE_ENV !== "production") return;
+  // Enforce at request/runtime; allow `next build` static generation when env is wired in Vercel dashboard.
+  if (process.env.NEXT_PHASE === "phase-production-build") return;
 
   const authSecret = (process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET ?? "").trim();
   if (isBadSecret(authSecret)) {

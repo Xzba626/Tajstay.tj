@@ -6,6 +6,7 @@ import { searchApprovedHotels } from "@/lib/services/search";
 import { HotelCard } from "@/components/HotelCard";
 import { getSiteContent } from "@/lib/site-content";
 import { prisma } from "@/lib/prisma";
+import { safeDbQuery } from "@/lib/db/safeDb";
 import { HeroThreeBackground } from "@/components/effects/HeroThreeBackground";
 import { Hero3DSceneGate } from "@/components/effects/Hero3DSceneGate";
 import { AIRecommendationLab } from "@/components/ai/AIRecommendationLab";
@@ -32,11 +33,16 @@ export default async function HomePage() {
     { title: m(locale, "home.trust3Title"), text: m(locale, "home.trust3Text"), icon: "💬" as const }
   ];
 
-  const latestReviews = await prisma.review.findMany({
-    include: { booking: { include: { user: true, room: { include: { hotel: true } } } } },
-    orderBy: { createdAt: "desc" },
-    take: 6
-  });
+  const latestReviews = await safeDbQuery(
+    "home.latestReviews",
+    () =>
+      prisma.review.findMany({
+        include: { booking: { include: { user: true, room: { include: { hotel: true } } } } },
+        orderBy: { createdAt: "desc" },
+        take: 6
+      }),
+    []
+  );
 
   const aiHotels = featured.map((hotel) => ({
     id: hotel.id,
@@ -128,6 +134,12 @@ export default async function HomePage() {
             {featured.slice(0, 6).map((hotel) => (
               <HotelCard key={hotel.id} hotel={hotel} locale={locale} />
             ))}
+            {!featured.length && (
+              <div className="glass-panel lg:col-span-3 rounded-2xl border border-dashed border-slate-700 px-6 py-10 text-center text-slate-300">
+                {m(locale, "admin.emptyResults")}
+                <p className="mt-2 text-sm text-slate-400">{m(locale, "admin.emptyResultsHint")}</p>
+              </div>
+            )}
           </div>
         </div>
       </section>

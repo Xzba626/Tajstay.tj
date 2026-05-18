@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { safeDbQuery } from "@/lib/db/safeDb";
 import { scoreHotelByIntent } from "@/lib/services/searchIntent";
 
 export type PropertyTypeFilter = "ANY" | "HOTEL" | "HOSTEL" | "GUEST_HOUSE" | "APARTMENT" | "ECO_HOUSE";
@@ -19,6 +20,10 @@ type SearchInput = {
 };
 
 export async function searchApprovedHotels(input: SearchInput) {
+  return safeDbQuery("searchApprovedHotels", () => searchApprovedHotelsQuery(input), []);
+}
+
+async function searchApprovedHotelsQuery(input: SearchInput) {
   const amenitiesAnd: Prisma.RoomWhereInput[] = [];
   if (input.wifi) amenitiesAnd.push({ amenities: { contains: '"wifi"' } });
   if (input.breakfast) amenitiesAnd.push({ amenities: { contains: '"breakfast"' } });
