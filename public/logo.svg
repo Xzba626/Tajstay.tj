@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 120" fill="none">
+  <defs>
+    <linearGradient id="markBg" x1="12" y1="12" x2="108" y2="108" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0B6D5E"/>
+      <stop offset="1" stop-color="#174E3B"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="38" y1="22" x2="84" y2="88" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E0C27B"/>
+      <stop offset="1" stop-color="#B48A3A"/>
+    </linearGradient>
+    <linearGradient id="word" x1="138" y1="38" x2="336" y2="98" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0B6D5E"/>
+      <stop offset="1" stop-color="#C39A4B"/>
+    </linearGradient>
+  </defs>
+  <rect x="10" y="10" width="100" height="100" rx="28" fill="url(#markBg)"/>
+  <path d="M26 70L44 42L56 56L70 34L92 70" stroke="url(#gold)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M36 70V62L56 48L76 62V70" stroke="#F6F3EA" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="51" y="61" width="10" height="9" rx="2" fill="#F6F3EA"/>
+  <path d="M132 88V42H147V88H132Z" fill="url(#word)"/>
+  <path d="M156 54H171V88H156V54ZM156 42H171V50H156V42Z" fill="url(#word)"/>
+  <path d="M177 54H192V58C196 54 202 52 208 52C222 52 230 60 230 74V88H215V75C215 67 211 64 205 64C198 64 192 68 192 76V88H177V54Z" fill="url(#word)"/>
+  <path d="M236 54H252L262 76L272 54H288L267 99C263 107 258 110 248 110H240V98H245C250 98 252 97 254 92L236 54Z" fill="url(#word)"/>
+  <path d="M294 42H309V88H294V42Z" fill="url(#word)"/>
+  <path d="M314 54H329V60C333 55 338 52 346 52V66H342C334 66 329 70 329 79V88H314V54Z" fill="url(#word)"/>
+</svg>

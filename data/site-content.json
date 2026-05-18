@@ -1,0 +1,37 @@
+{
+  "homeBanner": {
+    "enabled": true,
+    "title": "Tajstay",
+    "subtitle": "Спецпредложения и лучшие объекты недели по Таджикистану.",
+    "ctaText": "Смотреть предложения",
+    "ctaHref": "https://Tajstay.site"
+  },
+  "brand": {
+    "siteName": "TajStay",
+    "logoMainUrl": "/tajstay-logo-main.png",
+    "logoMarkUrl": "/tajstay-logo-navbar.png",
+    "faviconUrl": "/tajstay-favicon.png"
+  },
+  "paymentCatalog": {
+    "methods": [
+      "Visa",
+      "Mastercard",
+      "Humo",
+      "Dushanbe City Wallet",
+      "Alif Mobi"
+    ]
+  },
+  "support": {
+    "supportTitle": "TajStay Support",
+    "email": "xzba626@gmail.com",
+    "phone": "+992901317727",
+    "whatsapp": "",
+    "telegram": "",
+    "instagram": "",
+    "workingHours": "Ежедневно 09:00–21:00"
+  },
+  "legal": {
+    "privacyText": "Политика конфиденциальности будет добавлена администратором.",
+    "termsText": "Пользовательское соглашение будет добавлено администратором."
+  }
+}
