@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Hotel, Room } from "@prisma/client";
 import { t, type Locale } from "@/lib/i18n/dictionaries";
 import { ViewTransitionLink } from "@/components/effects/ViewTransitionLink";
@@ -72,9 +73,12 @@ export function HotelCard({ hotel, locale = "ru", variant = "accent", hrefQuery 
           style={{ viewTransitionName: `hotel-hero-${hotel.id}` } as any}
         >
           {hotel.coverImageUrl ? (
-            <img
+            <Image
               src={hotel.coverImageUrl}
               alt={hotel.name}
+              fill
+              unoptimized
+              sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
               className="absolute inset-0 h-full w-full object-cover"
             />
           ) : (

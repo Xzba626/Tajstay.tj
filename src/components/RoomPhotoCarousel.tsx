@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useRef, useState } from "react";
 
 type Props = {
@@ -59,7 +60,7 @@ export function RoomPhotoCarousel({ urls, title, variant = "light" }: Props) {
       }}
     >
       <div className="relative aspect-[16/10] w-full touch-pan-y">
-        <img src={list[i]} alt="" className="h-full w-full object-cover" />
+        <Image src={list[i]} alt="" fill unoptimized sizes="(min-width: 640px) 320px, 100vw" className="object-cover" />
         {list.length > 1 && (
           <>
             <button

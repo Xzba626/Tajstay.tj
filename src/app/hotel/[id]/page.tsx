@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/requireAuth";
@@ -150,7 +151,14 @@ export default async function HotelDetailPage({
           style={{ viewTransitionName: `hotel-hero-${hotel.id}` } as any}
         >
           {hotel.coverImageUrl ? (
-            <img src={hotel.coverImageUrl} alt="" className="absolute inset-0 h-full w-full object-cover transition duration-700 hover:scale-105" />
+            <Image
+              src={hotel.coverImageUrl}
+              alt=""
+              fill
+              unoptimized
+              sizes="(min-width: 1024px) 66vw, 100vw"
+              className="object-cover transition duration-700 hover:scale-105"
+            />
           ) : null}
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
         </div>
@@ -282,7 +290,14 @@ export default async function HotelDetailPage({
                     <div className="mt-3 whitespace-pre-wrap text-sm text-brand-200">{r.comment}</div>
                     {r.imageUrl && (
                       <div className="mt-3">
-                        <img src={r.imageUrl} alt="review" className="max-h-48 w-auto rounded-xl border border-brand-700" />
+                        <Image
+                          src={r.imageUrl}
+                          alt="review"
+                          width={640}
+                          height={480}
+                          unoptimized
+                          className="h-auto max-h-48 w-auto rounded-xl border border-brand-700 object-contain"
+                        />
                       </div>
                     )}
                   </div>

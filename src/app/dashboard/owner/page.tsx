@@ -1,4 +1,5 @@
 import { addDays, subDays } from "date-fns";
+import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { requireOwner } from "@/lib/auth/requireOwner";
 import { OwnerEmptyState } from "@/components/dashboard/OwnerEmptyState";
@@ -509,8 +510,8 @@ export default async function OwnerDashboardPage({
                   className="glass-panel rounded-2xl p-6 shadow-2xl shadow-emerald-950/15 ring-1 ring-white/10 transition-shadow hover:shadow-emerald-950/25"
                 >
                   {h.coverImageUrl ? (
-                    <div className="mb-4 aspect-video w-full overflow-hidden rounded-2xl bg-slate-900/40 ring-1 ring-white/10">
-                      <img src={h.coverImageUrl} alt="" className="h-full w-full object-cover" />
+                    <div className="relative mb-4 aspect-video w-full overflow-hidden rounded-2xl bg-slate-900/40 ring-1 ring-white/10">
+                      <Image src={h.coverImageUrl} alt="" fill unoptimized sizes="(min-width: 1024px) 768px, 100vw" className="object-cover" />
                     </div>
                   ) : null}
                   <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
@@ -737,7 +738,7 @@ export default async function OwnerDashboardPage({
                             method="post"
                             className="relative h-16 w-16 overflow-hidden rounded-lg border border-slate-200"
                           >
-                            <img src={p.url} alt="" className="h-full w-full object-cover" />
+                            <Image src={p.url} alt="" fill unoptimized sizes="64px" className="object-cover" />
                             <input type="hidden" name="intent" value="delete_photo" />
                             <input type="hidden" name="photoId" value={p.id} />
                             <button
