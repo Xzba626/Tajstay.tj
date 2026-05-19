@@ -48,12 +48,22 @@ async function saveToVercelBlob(buffer: Buffer, storagePath: string, ext: string
       "BLOB_READ_WRITE_TOKEN is not set. Add Vercel Blob storage to the project."
     );
   }
-  const { put } = await import("@vercel/blob");
-  const normalized = storagePath.replace(/\\/g, "/").replace(/^\/+/, "");
-  const name = `${normalized}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`;
-  const blob = await put(name, buffer, { access: "public", contentType: mime });
-  agentLog("saveUpload.ts:blob", "blob upload ok", { storagePath: normalized, urlHost: new URL(blob.url).host }, "H1");
-  return blob.url;
+  try {
+    const { put } = await import("@vercel/blob");
+    const normalized = storagePath.replace(/\\/g, "/").replace(/^\/+/, "");
+    const name = `${normalized}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`;
+    const blob = await put(name, buffer, { access: "public", contentType: mime });
+    agentLog("saveUpload.ts:blob", "blob upload ok", { storagePath: normalized, urlHost: new URL(blob.url).host }, "H1");
+    console.error(
+      JSON.stringify({ tag: "tajstay-upload", ok: true, storagePath: normalized, host: new URL(blob.url).host })
+    );
+    return blob.url;
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(JSON.stringify({ tag: "tajstay-upload", ok: false, storagePath, error: msg.slice(0, 200) }));
+    agentLog("saveUpload.ts:blob", "blob put failed", { storagePath, msg: msg.slice(0, 120) }, "H1");
+    throw new ImageUploadError("store_failed", `Blob upload failed: ${msg.slice(0, 80)}`);
+  }
 }
 
 /**

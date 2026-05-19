@@ -7,6 +7,9 @@ import { publicUrl } from "@/lib/http/publicOrigin";
 import { savePublicImageFile } from "@/lib/uploads/savePublicImage";
 import { ImageUploadError } from "@/lib/uploads/imageUploadError";
 import { agentLog } from "@/lib/debug/agentLog";
+import { getPublicOriginFromRequest } from "@/lib/http/publicOrigin";
+
+export const runtime = "nodejs";
 
 const PROPERTY_TYPES = new Set(["HOTEL", "HOSTEL", "GUESTHOUSE", "APARTMENT", "ECO"]);
 const DEFAULT_LAT = 38.5598;
@@ -20,11 +23,24 @@ function parseCoord(input: FormDataEntryValue | null): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-function redirectBack(req: NextRequest, error?: string) {
-  const u = publicUrl(req, "/dashboard/owner");
+function redirectBack(req: NextRequest, error?: string): NextResponse {
+  let u: URL;
+  try {
+    u = publicUrl(req, "/dashboard/owner");
+  } catch {
+    const fallback =
+      process.env.AUTH_URL?.trim() ||
+      process.env.NEXTAUTH_URL?.trim() ||
+      getPublicOriginFromRequest(req);
+    u = new URL("/dashboard/owner", fallback.endsWith("/") ? fallback : `${fallback}/`);
+  }
   u.searchParams.set("section", "properties");
   if (error) u.searchParams.set("error", error);
-  return NextResponse.redirect(u);
+  return NextResponse.redirect(u, 303);
+}
+
+function vercelLog(event: string, data: Record<string, unknown>) {
+  console.error(JSON.stringify({ tag: "owner-hotels", event, ...data }));
 }
 
 function uploadErrorCode(err: ImageUploadError): string {
@@ -84,11 +100,13 @@ export async function POST(req: NextRequest) {
       try {
         coverImageUrl = await savePublicImageFile(coverFile, "hotel-covers");
       } catch (err) {
-        console.error("[api/owner/hotels] cover upload", err);
-        if (err instanceof ImageUploadError) {
-          return redirectBack(req, uploadErrorCode(err));
-        }
-        return redirectBack(req, "hotel_cover_upload");
+        const code = err instanceof ImageUploadError ? uploadErrorCode(err) : "hotel_cover_upload";
+        vercelLog("cover_upload_failed", {
+          code,
+          errName: err instanceof Error ? err.name : "unknown",
+          msg: err instanceof Error ? err.message.slice(0, 120) : ""
+        });
+        return redirectBack(req, code);
       }
     }
 
@@ -122,22 +140,26 @@ export async function POST(req: NextRequest) {
 
     return redirectBack(req);
   } catch (err) {
-    console.error("[api/owner/hotels] POST failed", err);
+    const prismaCode = err instanceof Prisma.PrismaClientKnownRequestError ? err.code : null;
+    vercelLog("fatal", {
+      errName: err instanceof Error ? err.name : "unknown",
+      msg: err instanceof Error ? err.message.slice(0, 200) : "",
+      prismaCode
+    });
     // #region agent log
     agentLog(
       "owner/hotels/route.ts:POST",
       "hotel create failed",
-      {
-        errName: err instanceof Error ? err.name : "unknown",
-        prismaCode: err instanceof Prisma.PrismaClientKnownRequestError ? err.code : null
-      },
+      { errName: err instanceof Error ? err.name : "unknown", prismaCode },
       "H5"
     );
     // #endregion
-    if (err instanceof Prisma.PrismaClientKnownRequestError) {
-      if (err.code === "P2002") return redirectBack(req, "hotel_unique");
-      if (err.code === "P2003") return redirectBack(req, "hotel_owner");
+    try {
+      if (prismaCode === "P2002") return redirectBack(req, "hotel_unique");
+      if (prismaCode === "P2003") return redirectBack(req, "hotel_owner");
+      return redirectBack(req, "hotel_server");
+    } catch {
+      return NextResponse.json({ error: "hotel_server", prismaCode }, { status: 500 });
     }
-    return redirectBack(req, "hotel_server");
   }
 }
