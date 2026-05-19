@@ -105,7 +105,9 @@ export function SearchBar({ locale = "ru" }: Props) {
 
           {/* Submit */}
           <div className="flex flex-col gap-1 sm:col-span-2 md:col-span-1">
-            <span className="text-[0.65rem] font-semibold uppercase tracking-widest text-transparent pl-1 select-none">.</span>
+            <span className="invisible pl-1 text-[0.65rem] font-semibold uppercase tracking-widest select-none" aria-hidden>
+              {m(locale, "search.button")}
+            </span>
             <button
               type="submit"
               className="h-12 w-full rounded-xl bg-[var(--brand-green)] text-sm font-bold tracking-wide text-[#0D1610] shadow-[0_0_24px_rgba(34,197,94,0.3)] transition hover:bg-[var(--brand-green-dark)] flex items-center justify-center gap-2"
