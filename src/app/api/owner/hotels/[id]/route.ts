@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { Hotel } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getOwnerUser } from "@/lib/auth/requireOwner";
 import { forbiddenJson } from "@/lib/auth/apiResponses";
@@ -21,14 +22,27 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const id = Number(params.id);
   if (!id) return NextResponse.json({ error: "Invalid id" }, { status: 400 });
 
-  const hotel = await prisma.hotel.findFirst({ where: { id, ownerId: owner.id } });
-  if (!hotel) return forbiddenJson();
-
   const errUrl = publicUrl(req, "/dashboard/owner");
   errUrl.searchParams.set("section", "properties");
   errUrl.searchParams.set("error", "hotel");
 
-  const form = await req.formData();
+  let hotel: Hotel | null;
+  try {
+    hotel = await prisma.hotel.findFirst({ where: { id, ownerId: owner.id } });
+  } catch (error) {
+    console.error("[owner.hotel.find]", error);
+    errUrl.searchParams.set("error", "hotel_db");
+    return NextResponse.redirect(errUrl);
+  }
+  if (!hotel) return forbiddenJson();
+
+  let form: FormData;
+  try {
+    form = await req.formData();
+  } catch (error) {
+    console.error("[owner.hotel.formData]", error);
+    return NextResponse.redirect(errUrl);
+  }
   const name = String(form.get("name") ?? "").trim();
   const city = String(form.get("city") ?? "").trim();
   const address = String(form.get("address") ?? "").trim();

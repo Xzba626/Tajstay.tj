@@ -29,12 +29,24 @@ export async function POST(req: NextRequest) {
   const owner = await getOwnerUser();
   if (!owner) return forbiddenJson();
 
-  const existingCount = await prisma.hotel.count({ where: { ownerId: owner.id } });
+  let existingCount = 0;
+  try {
+    existingCount = await prisma.hotel.count({ where: { ownerId: owner.id } });
+  } catch (error) {
+    console.error("[owner.hotel.count]", error);
+    return redirectBack(req, "hotel_db");
+  }
   if (existingCount >= 1) {
     return redirectBack(req, "hotel_limit");
   }
 
-  const form = await req.formData();
+  let form: FormData;
+  try {
+    form = await req.formData();
+  } catch (error) {
+    console.error("[owner.hotel.formData]", error);
+    return redirectBack(req, "hotel");
+  }
   const name = String(form.get("name") ?? "").trim();
   const city = String(form.get("city") ?? "").trim();
   const address = String(form.get("address") ?? "").trim();
