@@ -9,6 +9,7 @@ import { m } from "@/lib/i18n/messages";
 import { getOwnerPaymentMethods } from "@/lib/owner-payment-methods";
 import { Card } from "@/shared/ui";
 import { RoomPhotoCarousel } from "@/components/RoomPhotoCarousel";
+import { getBookingGuestLabel } from "@/lib/domain/booking";
 
 function buildAiReviewSummary(comments: string[]) {
   const topicKeywords: Record<string, string[]> = {
@@ -278,7 +279,7 @@ export default async function HotelDetailPage({
                     <div className="font-semibold text-white">
                       {m(locale, "profile.rating")}: {r.rating}/5
                     </div>
-                    <div className="text-sm text-brand-200">{r.booking.user.name}</div>
+                    <div className="text-sm text-brand-200">{getBookingGuestLabel(r.booking)}</div>
                     <div className="mt-3 whitespace-pre-wrap text-sm text-brand-200">{r.comment}</div>
                     {r.imageUrl && (
                       <div className="mt-3">

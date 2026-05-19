@@ -64,14 +64,17 @@ export async function POST(req: NextRequest) {
       where: { id: { in: reviewIds } },
       data: { status: BOOKING_STATUS.REJECTED, paymentStatus: "FAILED", proofReviewedAt: now }
     });
-    await prisma.notification.createMany({
-      data: reviewTimedOut.map((b) => ({
+    const guestNotifications = reviewTimedOut
+      .filter((b): b is typeof b & { userId: number } => b.userId != null)
+      .map((b) => ({
         userId: b.userId,
         bookingId: b.id,
         type: "PAYMENT_REJECTED",
         isRead: false
-      }))
-    });
+      }));
+    if (guestNotifications.length) {
+      await prisma.notification.createMany({ data: guestNotifications });
+    }
   }
 
   const paymentIds = [...expired.map((b) => b.payment?.id), ...reviewTimedOut.map((b) => b.payment?.id)]

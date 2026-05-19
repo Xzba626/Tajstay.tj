@@ -21,18 +21,26 @@ import { Card } from "@/shared/ui";
 import { buildOwnerPricingInsights } from "@/lib/services/ownerInsights";
 import { BookingChatLauncher } from "@/components/chat/BookingChatPanel";
 import { RoomPhotoCarousel } from "@/components/RoomPhotoCarousel";
+import { OwnerDashboardKpis } from "@/components/owner/OwnerDashboardKpis";
+import { OfflineBookingForm } from "@/components/owner/OfflineBookingForm";
+import { OfflineBookingsList } from "@/components/owner/OfflineBookingsList";
+import { OwnerCalendar } from "@/components/owner/OwnerCalendar";
+import { getOwnerDashboardKpis } from "@/lib/services/ownerDashboardKpis";
+import { getOwnerCalendarData } from "@/lib/services/ownerCalendar";
+import { BOOKING_SOURCE, getBookingGuestLabel } from "@/lib/domain/booking";
 
 export const dynamic = "force-dynamic";
 
 const PROPERTY_TYPES = ["HOTEL", "HOSTEL", "GUESTHOUSE", "APARTMENT", "ECO"] as const;
 
-type OwnerSection = "overview" | "properties" | "rooms" | "bookings" | "calendar" | "notifications";
+type OwnerSection = "overview" | "properties" | "rooms" | "bookings" | "offline-bookings" | "calendar" | "notifications";
 
 const VALID_OWNER_SECTIONS = new Set<OwnerSection>([
   "overview",
   "properties",
   "rooms",
   "bookings",
+  "offline-bookings",
   "calendar",
   "notifications"
 ]);
@@ -80,6 +88,8 @@ export default async function OwnerDashboardPage({
         availability?: string;
         hotelId?: string;
         error?: string;
+        created?: string;
+        updated?: string;
       }>
     | {
         section?: string;
@@ -90,6 +100,8 @@ export default async function OwnerDashboardPage({
         availability?: string;
         hotelId?: string;
         error?: string;
+        created?: string;
+        updated?: string;
       };
 }) {
   const user = await requireOwner();
@@ -107,6 +119,8 @@ export default async function OwnerDashboardPage({
   const availability = (params?.availability ?? "").trim();
   const hotelId = Number(params?.hotelId ?? "") || 0;
   const ownerError = (params?.error ?? "").trim();
+  const offlineCreated = (params?.created ?? "").trim() === "1";
+  const offlineUpdated = (params?.updated ?? "").trim() === "1";
 
   const since30 = subDays(new Date(), 30);
   const content = await getSiteContent();
@@ -118,6 +132,9 @@ export default async function OwnerDashboardPage({
   let notes: any[] = [];
   let overrides: any[] = [];
   let calendarBookings: any[] = [];
+  let offlineBookings: any[] = [];
+  let calendarCells: Record<string, import("@/lib/services/ownerCalendar").CalendarCellKind> = {};
+  let dashboardKpis: Awaited<ReturnType<typeof getOwnerDashboardKpis>> | null = null;
   let unreadCount = 0;
   let pendingCount = 0;
   let recentBookings: any[] = [];
@@ -127,7 +144,7 @@ export default async function OwnerDashboardPage({
   let totalPages = 1;
 
   if (activeSection === "overview") {
-    [hotels, pendingCount, revenueAgg, recentBookings] = await Promise.all([
+    [hotels, pendingCount, revenueAgg, recentBookings, dashboardKpis] = await Promise.all([
       prisma.hotel.findMany({ where: { ownerId: user.id }, include: { rooms: true } }),
       prisma.booking.count({ where: { room: { hotel: { ownerId: user.id } }, status: "PENDING_OWNER" } }),
       prisma.booking.aggregate({
@@ -144,7 +161,8 @@ export default async function OwnerDashboardPage({
         select: { roomId: true, status: true, createdAt: true },
         orderBy: { createdAt: "desc" },
         take: 200
-      })
+      }),
+      getOwnerDashboardKpis(user.id)
     ]);
   } else if (activeSection === "properties") {
     hotels = await prisma.hotel.findMany({ where: { ownerId: user.id }, include: { rooms: true }, orderBy: { createdAt: "desc" } });
@@ -181,6 +199,22 @@ export default async function OwnerDashboardPage({
       skip: (page - 1) * pageSize,
       take: pageSize
     });
+  } else if (activeSection === "offline-bookings") {
+    hotels = await prisma.hotel.findMany({ where: { ownerId: user.id }, include: { rooms: true }, orderBy: { createdAt: "desc" } });
+    rooms = await prisma.room.findMany({ where: { hotel: { ownerId: user.id } }, include: { hotel: true }, orderBy: { id: "desc" } });
+    const where = {
+      source: BOOKING_SOURCE.OWNER_MANUAL,
+      room: { hotel: { ownerId: user.id } }
+    };
+    totalRows = await prisma.booking.count({ where });
+    totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
+    offlineBookings = await prisma.booking.findMany({
+      where,
+      include: { room: { include: { hotel: true } }, user: true },
+      orderBy: { checkIn: "desc" },
+      skip: (page - 1) * pageSize,
+      take: pageSize
+    });
   } else if (activeSection === "notifications") {
     unreadCount = await prisma.notification.count({
       where: {
@@ -200,9 +234,11 @@ export default async function OwnerDashboardPage({
       take: pageSize
     });
   } else if (activeSection === "calendar") {
+    const cal = await getOwnerCalendarData(user.id, 30);
     hotels = await prisma.hotel.findMany({ where: { ownerId: user.id }, orderBy: { createdAt: "desc" } });
-    const roomList = await prisma.room.findMany({ where: { hotel: { ownerId: user.id } }, include: { hotel: true } });
-    rooms = roomList;
+    rooms = cal.rooms;
+    calendarCells = cal.cells;
+    calendarBookings = cal.bookings ?? [];
     const where = {
       room: { hotel: { ownerId: user.id } },
       date: { gte: new Date(), lt: addDays(new Date(), 30) }
@@ -215,18 +251,6 @@ export default async function OwnerDashboardPage({
       orderBy: { date: "asc" },
       skip: (page - 1) * pageSize,
       take: pageSize
-    });
-
-    // Occupied dates from real bookings (prevents double booking).
-    calendarBookings = await prisma.booking.findMany({
-      where: {
-        room: { hotel: { ownerId: user.id } },
-        status: { in: ["WAIT_PROOF", "ON_REVIEW", "PENDING_OWNER", "CONFIRMED", "COMPLETED"] },
-        checkOut: { gte: new Date() }
-      },
-      include: { room: { include: { hotel: true } }, user: true },
-      orderBy: { checkIn: "asc" },
-      take: 80
     });
   }
 
@@ -245,25 +269,11 @@ export default async function OwnerDashboardPage({
           return { key: dayKey(d), day: d.getUTCDate(), month: d.getUTCMonth() + 1 };
         })
       : [];
-  const blockedByOwner = new Set<string>();
-  for (const o of overrides) {
-    if (o?.isBlocked && o?.roomId && o?.date) {
-      blockedByOwner.add(`${o.roomId}|${dayKey(new Date(o.date))}`);
-    }
-  }
-  const bookingByDay = new Map<string, "pending" | "occupied">();
-  for (const b of calendarBookings) {
-    const start = toUtcDayStart(new Date(b.checkIn));
-    const end = toUtcDayStart(new Date(b.checkOut));
-    for (let d = new Date(start); d < end; d = addDays(d, 1)) {
-      const k = `${b.roomId}|${dayKey(d)}`;
-      const pending =
-        b.status === "WAIT_PROOF" || b.status === "ON_REVIEW" || b.status === "PENDING_OWNER";
-      const existing = bookingByDay.get(k);
-      if (existing === "occupied") continue;
-      bookingByDay.set(k, pending ? "pending" : "occupied");
-    }
-  }
+  const roomOptions = rooms.map((r: { id: number; title: string; hotel: { name: string } }) => ({
+    id: r.id,
+    title: r.title,
+    hotel: { name: r.hotel.name }
+  }));
 
   const createHotelFormInner = (
     <form action="/api/owner/hotels" method="post" encType="multipart/form-data" className="space-y-6">
@@ -419,22 +429,18 @@ export default async function OwnerDashboardPage({
               <span className="h-8 w-1 rounded-full bg-amber-400" aria-hidden />
               <h2 className="text-lg font-bold text-slate-100">{m(locale, "owner.overview")}</h2>
             </div>
-            <div className="surface-1 rounded-3xl p-6 sm:p-7">
-              <div className="grid gap-4 sm:grid-cols-3">
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-4 shadow-sm backdrop-blur-sm">
-                  <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">{m(locale, "owner.objects")}</div>
-                  <div className="mt-1 text-2xl font-semibold tabular-nums text-slate-100">{hotels.length}</div>
-                </div>
-                <div className="rounded-2xl border border-amber-400/20 bg-amber-500/10 p-4 shadow-sm backdrop-blur-sm">
-                  <div className="text-xs font-semibold uppercase tracking-wide text-amber-200/70">{m(locale, "owner.pending")}</div>
-                  <div className="mt-1 text-2xl font-semibold tabular-nums text-amber-200">{pendingCount}</div>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-4 shadow-sm backdrop-blur-sm">
-                  <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">{m(locale, "owner.revenue30")}</div>
-                  <div className="mt-1 text-2xl font-semibold tabular-nums text-slate-100">
-                    {Number(revenueAgg._sum.totalPrice ?? 0)} TJS
-                  </div>
-                </div>
+            <div className="surface-1 rounded-3xl p-6 sm:p-7 space-y-4">
+              {dashboardKpis ? <OwnerDashboardKpis locale={locale} kpis={dashboardKpis} /> : null}
+              <div className="flex flex-wrap gap-2 text-sm">
+                <a href="/dashboard/owner?section=offline-bookings" className="rounded-xl bg-emerald-700 px-4 py-2 font-semibold text-white hover:bg-emerald-600">
+                  {m(locale, "owner.quick.offlineBooking")}
+                </a>
+                <a href="/dashboard/owner?section=calendar" className="rounded-xl border border-white/15 px-4 py-2 text-slate-100 hover:bg-white/5">
+                  {m(locale, "owner.quick.calendar")}
+                </a>
+                <a href="/dashboard/owner?section=bookings" className="rounded-xl border border-white/15 px-4 py-2 text-slate-100 hover:bg-white/5">
+                  {m(locale, "owner.quick.messages")}
+                </a>
               </div>
             </div>
             <div className="grid gap-4 lg:grid-cols-2">
@@ -970,7 +976,12 @@ export default async function OwnerDashboardPage({
             {bookings.map((b) => (
               <div key={b.id} className="rounded-2xl border border-slate-200/80 bg-white p-5 text-sm shadow-sm ring-1 ring-slate-100">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-semibold text-slate-900">{b.user.name}</span>
+                  <span className="font-semibold text-slate-900">{getBookingGuestLabel(b)}</span>
+                  <StatusBadge variant={b.source === BOOKING_SOURCE.OWNER_MANUAL ? "neutral" : bookingStatusVariant(b.status)}>
+                    {b.source === BOOKING_SOURCE.OWNER_MANUAL
+                      ? m(locale, "owner.bookingBadge.offline")
+                      : m(locale, "owner.bookingBadge.online")}
+                  </StatusBadge>
                   <StatusBadge variant={bookingStatusVariant(b.status)}>{tStatus(locale, b.status)}</StatusBadge>
                   <StatusBadge variant={paymentStatusVariant(b.paymentStatus)}>{tStatus(locale, b.paymentStatus)}</StatusBadge>
                 </div>
@@ -1073,6 +1084,28 @@ export default async function OwnerDashboardPage({
             ))}
           </div>
           {!bookings.length && <EmptyState title={m(locale, "owner.bookingsEmpty")} />}
+          <Pagination page={page} totalPages={totalPages} />
+        </section>
+      )}
+
+      {activeSection === "offline-bookings" && (
+        <section id="offline-bookings" className="scroll-mt-28 space-y-4">
+          <div className="flex items-center gap-2">
+            <span className="h-8 w-1 rounded-full bg-orange-500" aria-hidden />
+            <h2 className="text-xl font-bold text-slate-100">{m(locale, "owner.offline.title")}</h2>
+          </div>
+          <p className="text-sm text-slate-300">{m(locale, "owner.offline.hint")}</p>
+          {offlineUpdated ? (
+            <div className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-100" role="status">
+              {m(locale, "owner.offline.updated")}
+            </div>
+          ) : null}
+          <OfflineBookingForm locale={locale} rooms={roomOptions} error={ownerError} created={offlineCreated} />
+          {offlineBookings.length ? (
+            <OfflineBookingsList locale={locale} bookings={offlineBookings} />
+          ) : (
+            <EmptyState title={m(locale, "owner.offline.empty")} description={m(locale, "owner.offline.emptyHint")} />
+          )}
           <Pagination page={page} totalPages={totalPages} />
         </section>
       )}
@@ -1181,7 +1214,7 @@ export default async function OwnerDashboardPage({
                         <div>
                           <div className="font-semibold">{b.room.hotel.name}</div>
                           <div className="text-slate-500">{b.room.title}</div>
-                          <div className="mt-1 text-xs text-slate-500">{b.user?.name ?? "Guest"} · {b.phone}</div>
+                          <div className="mt-1 text-xs text-slate-500">{getBookingGuestLabel(b)} · {b.phone}</div>
                         </div>
                         <div className="text-right">
                           <div>
@@ -1197,65 +1230,7 @@ export default async function OwnerDashboardPage({
                 </div>
               </div>
 
-              <div className="rounded-2xl border bg-white p-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="text-sm font-semibold">Календарная сетка (30 дней × комнаты)</div>
-                  <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-600">
-                    <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded bg-slate-200" />Свободно</span>
-                    <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded bg-amber-300" />Ожидает подтверждения</span>
-                    <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded bg-emerald-400" />Занято</span>
-                    <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded bg-slate-500" />Заблокировано владельцем</span>
-                  </div>
-                </div>
-                <div className="mt-3 overflow-x-auto rounded-xl border">
-                  <table className="min-w-[980px] border-collapse text-xs">
-                    <thead>
-                      <tr className="bg-slate-50">
-                        <th className="sticky left-0 z-10 border-b border-r bg-slate-50 px-3 py-2 text-left text-slate-700">Комната</th>
-                        {calendarDays.map((d) => (
-                          <th key={d.key} className="border-b border-r px-2 py-2 text-slate-600">
-                            {d.day}.{String(d.month).padStart(2, "0")}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {rooms.map((r) => (
-                        <tr key={r.id}>
-                          <td className="sticky left-0 z-10 border-b border-r bg-white px-3 py-2">
-                            <div className="font-semibold text-slate-800">{r.title}</div>
-                            <div className="text-[11px] text-slate-500">{r.hotel.name}</div>
-                          </td>
-                          {calendarDays.map((d) => {
-                            const key = `${r.id}|${d.key}`;
-                            const blocked = blockedByOwner.has(key);
-                            const booked = bookingByDay.get(key);
-                            const cls = blocked
-                              ? "bg-slate-500"
-                              : booked === "occupied"
-                                ? "bg-emerald-400"
-                                : booked === "pending"
-                                  ? "bg-amber-300"
-                                  : "bg-slate-200";
-                            const title = blocked
-                              ? "Заблокировано владельцем"
-                              : booked === "occupied"
-                                ? "Подтверждено/занято"
-                                : booked === "pending"
-                                  ? "Ожидает подтверждения"
-                                  : "Свободно";
-                            return (
-                              <td key={key} className="border-b border-r px-1 py-1.5">
-                                <div className={`mx-auto h-5 w-5 rounded ${cls}`} title={title} />
-                              </td>
-                            );
-                          })}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+              <OwnerCalendar locale={locale} rooms={rooms} days={calendarDays} cells={calendarCells} />
               <Pagination page={page} totalPages={totalPages} />
             </>
           )}

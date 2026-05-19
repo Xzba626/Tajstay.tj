@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth/requireAuth";
 import { prisma } from "@/lib/prisma";
 import { getAdminBookingChatTimeline, getBookingChatMessages } from "@/lib/chat/bookingChat";
+import { markBookingChatMessagesRead } from "@/lib/chat/markMessagesRead";
 import { BOOKING_STATUS } from "@/lib/domain/booking";
 import { saveChatAttachmentFile } from "@/lib/uploads/saveChatAttachment";
 
@@ -70,6 +71,8 @@ export async function GET(_: NextRequest, { params }: { params: { bookingId: str
       { status: 200 }
     );
   }
+
+  await markBookingChatMessagesRead(bookingId, user.id);
 
   let messages =
     user.role === "ADMIN" && (archivedFlag || locked)

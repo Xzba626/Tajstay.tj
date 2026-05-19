@@ -15,6 +15,13 @@ export async function POST(req: Request) {
     .map((v) => v.trim())
     .filter(Boolean);
 
-  await saveOwnerPaymentMethods(owner.id, methods);
+  try {
+    await saveOwnerPaymentMethods(owner.id, methods);
+  } catch (err) {
+    console.error("[owner/payment-methods]", err);
+    const url = publicUrl(req, "/dashboard/owner?section=overview");
+    url.searchParams.set("error", "payment-methods-save");
+    return NextResponse.redirect(url);
+  }
   return NextResponse.redirect(publicUrl(req, "/dashboard/owner?section=overview"));
 }

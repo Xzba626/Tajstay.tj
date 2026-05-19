@@ -32,14 +32,16 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     }
   });
 
-  await prisma.notification.create({
-    data: {
-      userId: booking.userId,
-      bookingId: id,
-      type: "BOOKING_CONFIRMED",
-      isRead: false
-    }
-  });
+  if (booking.userId != null) {
+    await prisma.notification.create({
+      data: {
+        userId: booking.userId,
+        bookingId: id,
+        type: "BOOKING_CONFIRMED",
+        isRead: false
+      }
+    });
+  }
 
   return NextResponse.redirect(publicUrl(req, `/chat/booking/${id}`));
 }

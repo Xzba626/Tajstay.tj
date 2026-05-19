@@ -25,6 +25,7 @@ model User {
 
   hotels              Hotel[]             @relation("OwnerHotels")
   bookings            Booking[]           @relation("BookingUser")
+  offlineBookingsCreated Booking[]          @relation("BookingsCreatedByOwner")
   reviewedBookings    Booking[]           @relation("BookingProofReviewedBy")
   notes               Notification[]      @relation("UserNotifications")
   sessions            Session[]
@@ -36,6 +37,7 @@ model User {
   reviewedOwnerApps   OwnerApplication[]  @relation("OwnerApplicationReviewedBy")
 
   hostProfile         HostProfile?
+  paymentMethodsEntry OwnerPaymentMethod?
   payments            Payment[]
   payouts             Payout[]            @relation("UserPayouts")
   disputesOpened      Dispute[]           @relation("DisputesOpened")
@@ -146,8 +148,22 @@ model Booking {
   id            Int      @id @default(autoincrement())
   /// Public short code, e.g. TJ-7704 (shown to user for transfer comment)
   publicCode    String?  @unique
-  user          User     @relation("BookingUser", fields: [userId], references: [id])
-  userId        Int
+  /// PLATFORM = guest checkout; OWNER_MANUAL = offline booking by host
+  source        String   @default("PLATFORM")
+  user          User?    @relation("BookingUser", fields: [userId], references: [id])
+  userId        Int?
+  createdByOwner   User?  @relation("BookingsCreatedByOwner", fields: [createdByOwnerId], references: [id])
+  createdByOwnerId Int?
+  guestName     String?
+  guestPhone    String?
+  guestEmail    String?
+  guestCount    Int      @default(1)
+  offlineNote   String?
+  /// OWNER_MANUAL lifecycle: PENDING | CONFIRMED | CHECKED_IN | CHECKED_OUT | CANCELLED
+  offlineStatus String?
+  prepayment       Decimal?
+  remainingAmount  Decimal?
+  offlinePaymentType String?
   room          Room     @relation(fields: [roomId], references: [id])
   roomId        Int
   checkIn       DateTime
@@ -195,7 +211,9 @@ model Booking {
 
   @@index([userId])
   @@index([roomId, checkIn, checkOut])
+  @@index([roomId, checkIn, checkOut, status])
   @@index([status])
+  @@index([source])
   @@index([expiresAt])
 }
 
@@ -216,6 +234,9 @@ model ChatMessage {
   deletedAt   DateTime?
   /// Автоархив (политика хранения): не в основной ленте, доступно в выгрузке / истории.
   isArchived  Boolean  @default(false)
+  /// SENT | DELIVERED | READ
+  status      String   @default("SENT")
+  readAt      DateTime?
 
   @@index([bookingId])
   @@index([bookingId, createdAt])
@@ -381,6 +402,10 @@ model Review {
 model Notification {
   id        Int      @id @default(autoincrement())
   type      String
+  title     String?
+  message   String?
+  link      String?
+  meta      String?
   user      User     @relation("UserNotifications", fields: [userId], references: [id])
   userId    Int
   booking   Booking? @relation(fields: [bookingId], references: [id])
@@ -458,4 +483,19 @@ model AdminSecurityState {
   id             Int      @id @default(1)
   secretWordHash String?
   updatedAt      DateTime @updatedAt
+}
+
+/// Singleton (id=1): editable site content (banner, brand, legal, support, payment catalog).
+model SiteContentState {
+  id        Int      @id @default(1)
+  content   Json
+  updatedAt DateTime @updatedAt
+}
+
+/// Per-owner payment requisites shown to guests during checkout / booking room.
+model OwnerPaymentMethod {
+  ownerId   Int      @id
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  methods   String[] @default([])
+  updatedAt DateTime @updatedAt
 }

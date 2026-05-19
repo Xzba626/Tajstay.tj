@@ -49,3 +49,32 @@ export const OWNER_APPLICATION_STATUS = {
   APPROVED: "APPROVED",
   REJECTED: "REJECTED"
 } as const;
+
+export const BOOKING_SOURCE = {
+  PLATFORM: "PLATFORM",
+  OWNER_MANUAL: "OWNER_MANUAL"
+} as const;
+
+export type BookingSource = (typeof BOOKING_SOURCE)[keyof typeof BOOKING_SOURCE];
+
+export const OFFLINE_STATUS = {
+  PENDING: "PENDING",
+  CONFIRMED: "CONFIRMED",
+  CHECKED_IN: "CHECKED_IN",
+  CHECKED_OUT: "CHECKED_OUT",
+  CANCELLED: "CANCELLED"
+} as const;
+
+export type OfflineStatus = (typeof OFFLINE_STATUS)[keyof typeof OFFLINE_STATUS];
+
+export function getBookingGuestLabel(booking: {
+  guestName?: string | null;
+  guestPhone?: string | null;
+  user?: { name?: string | null; phone?: string | null } | null;
+}): string {
+  if (booking.guestName?.trim()) return booking.guestName.trim();
+  if (booking.user?.name?.trim()) return booking.user.name.trim();
+  if (booking.guestPhone?.trim()) return booking.guestPhone.trim();
+  if (booking.user?.phone?.trim()) return booking.user.phone.trim();
+  return "—";
+}

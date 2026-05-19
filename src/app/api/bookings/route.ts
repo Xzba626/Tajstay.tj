@@ -211,7 +211,8 @@ export async function POST(req: NextRequest) {
           bookingId: booking.id,
           publicCode,
           status: booking.status,
-          expiresAt: booking.expiresAt?.toISOString() ?? null
+          expiresAt: booking.expiresAt?.toISOString() ?? null,
+          chatUrl: `/chat/booking/${booking.id}`
         },
         { status: 200 }
       );
@@ -222,7 +223,7 @@ export async function POST(req: NextRequest) {
       return jsonRes;
     }
 
-    const response = NextResponse.redirect(publicUrl(req, `/payment/${encodeURIComponent(publicCode)}`));
+    const response = NextResponse.redirect(publicUrl(req, `/chat/booking/${booking.id}`));
     if (!sessionUser) {
       await createSessionCookie(userId, response);
     }

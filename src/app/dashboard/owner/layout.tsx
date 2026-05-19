@@ -15,6 +15,7 @@ export default function OwnerDashboardLayout({ children }: { children: ReactNode
       properties: m(locale, "owner.navProperties"),
       rooms: m(locale, "owner.navRooms"),
       bookings: m(locale, "owner.navBookings"),
+      offlineBookings: m(locale, "owner.navOfflineBookings"),
       calendar: m(locale, "owner.navCalendar"),
       notifications: m(locale, "owner.navNotifications")
     }

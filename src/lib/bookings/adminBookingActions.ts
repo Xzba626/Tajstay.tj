@@ -47,10 +47,64 @@ export async function confirmBookingPaymentAdmin(bookingId: number, adminId: num
     message: "🛡️ Система: Бронирование подтверждено! Ждем вас."
   });
 
-  await prisma.notification.create({
-    data: { userId: booking.userId, bookingId, type: "PAYMENT_APPROVED", isRead: false }
-  });
+  if (booking.userId != null) {
+    await prisma.notification.create({
+      data: { userId: booking.userId, bookingId, type: "PAYMENT_APPROVED", isRead: false }
+    });
+  }
   await prisma.notification.create({
     data: { userId: booking.room.hotel.ownerId, bookingId, type: "PAYMENT_APPROVED", isRead: false }
+  });
+}
+
+export async function rejectBookingPaymentAdmin(
+  bookingId: number,
+  adminId: number,
+  reason: string
+): Promise<void> {
+  const booking = await prisma.booking.findUnique({
+    where: { id: bookingId },
+    include: { room: { include: { hotel: true } } }
+  });
+  if (!booking) throw new Error("NOT_FOUND");
+  if (booking.status !== BOOKING_STATUS.ON_REVIEW) throw new Error("NOT_ON_REVIEW");
+
+  const trimmedReason = reason.trim() || "Причина не указана";
+  const payment = await prisma.payment.findUnique({ where: { bookingId } });
+
+  await prisma.booking.update({
+    where: { id: bookingId },
+    data: {
+      status: BOOKING_STATUS.REJECTED,
+      paymentStatus: "FAILED",
+      proofReviewedAt: new Date(),
+      proofReviewedById: adminId
+    }
+  });
+
+  if (payment) {
+    await prisma.payment.update({ where: { id: payment.id }, data: { status: "FAILED" } });
+  }
+
+  await prisma.transactionLog.create({
+    data: {
+      bookingId,
+      type: "PAYMENT_PROOF_REJECTED",
+      payload: JSON.stringify({ reason: trimmedReason, adminId, at: new Date().toISOString() })
+    }
+  });
+
+  await addBookingSystemMessage({
+    bookingId,
+    message: `🛡️ Система: Оплата отклонена. ${trimmedReason}`
+  });
+
+  if (booking.userId != null) {
+    await prisma.notification.create({
+      data: { userId: booking.userId, bookingId, type: "PAYMENT_REJECTED", isRead: false }
+    });
+  }
+  await prisma.notification.create({
+    data: { userId: booking.room.hotel.ownerId, bookingId, type: "PAYMENT_REJECTED", isRead: false }
   });
 }

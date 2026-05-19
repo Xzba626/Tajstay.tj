@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { assertDatesAvailable, DatesUnavailableError } from "@/lib/booking/availability";
 import { calculateCheckoutBreakdown } from "@/lib/services/checkoutFinance";
 
 function normalizeDateOnly(d: Date): Date {
@@ -50,17 +51,12 @@ export async function computeRoomTotalPrice(params: {
   if (room.hotel.status !== "APPROVED") throw new Error("Hotel not available");
   if (!room.availability) throw new Error("Room not available");
 
-  // Block overlaps with active/held bookings (including temporary proof-wait window).
-  const overlap = await prisma.booking.findFirst({
-    where: {
-      roomId,
-      status: { in: ["WAIT_PROOF", "ON_REVIEW", "PENDING_OWNER", "CONFIRMED", "COMPLETED"] },
-      checkIn: { lt: checkOut },
-      checkOut: { gt: checkIn }
-    },
-    select: { id: true }
-  });
-  if (overlap) throw new Error("Requested dates are unavailable");
+  try {
+    await assertDatesAvailable({ roomId, checkIn, checkOut });
+  } catch (e) {
+    if (e instanceof DatesUnavailableError) throw new Error("Requested dates are unavailable");
+    throw e;
+  }
 
   const minDate = nights[0];
   const maxExclusive = nights[nights.length - 1];

@@ -1,5 +1,7 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { Prisma } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 
 export type HomeBanner = {
   enabled: boolean;
@@ -43,8 +45,8 @@ type SiteContent = {
   legal: LegalPages;
 };
 
-const DATA_DIR = path.join(process.cwd(), "data");
-const DATA_FILE = path.join(DATA_DIR, "site-content.json");
+const SITE_CONTENT_ID = 1;
+const LEGACY_FILE = path.join(process.cwd(), "data", "site-content.json");
 
 const defaultContent: SiteContent = {
   homeBanner: {
@@ -78,43 +80,78 @@ const defaultContent: SiteContent = {
   }
 };
 
-export async function getSiteContent(): Promise<SiteContent> {
+function mergeWithDefaults(parsed: Partial<SiteContent> | null | undefined): SiteContent {
+  return {
+    homeBanner: {
+      ...defaultContent.homeBanner,
+      ...parsed?.homeBanner
+    },
+    brand: {
+      ...defaultContent.brand,
+      ...parsed?.brand
+    },
+    paymentCatalog: {
+      methods: Array.isArray(parsed?.paymentCatalog?.methods)
+        ? parsed.paymentCatalog.methods.filter((v): v is string => typeof v === "string" && v.trim().length > 0)
+        : defaultContent.paymentCatalog.methods
+    },
+    support: {
+      ...defaultContent.support,
+      ...(parsed?.support ?? {})
+    },
+    legal: {
+      ...defaultContent.legal,
+      ...(parsed?.legal ?? {})
+    }
+  };
+}
+
+async function readLegacyFile(): Promise<SiteContent | null> {
   try {
-    const raw = await readFile(DATA_FILE, "utf8");
-    const parsed = JSON.parse(raw) as Partial<SiteContent>;
-    return {
-      homeBanner: {
-        ...defaultContent.homeBanner,
-        ...parsed.homeBanner
-      },
-      brand: {
-        ...defaultContent.brand,
-        ...parsed.brand
-      },
-      paymentCatalog: {
-        methods: Array.isArray(parsed.paymentCatalog?.methods)
-          ? parsed.paymentCatalog?.methods.filter((v): v is string => typeof v === "string" && v.trim().length > 0)
-          : defaultContent.paymentCatalog.methods
-      },
-      support: {
-        ...defaultContent.support,
-        ...(parsed.support ?? {})
-      },
-      legal: {
-        ...defaultContent.legal,
-        ...(parsed.legal ?? {})
-      }
-    };
+    const raw = await readFile(LEGACY_FILE, "utf8");
+    return mergeWithDefaults(JSON.parse(raw) as Partial<SiteContent>);
   } catch {
-    return defaultContent;
+    return null;
   }
 }
 
-export async function saveHomeBanner(input: HomeBanner): Promise<void> {
-  await mkdir(DATA_DIR, { recursive: true });
+async function persist(content: SiteContent): Promise<void> {
+  await prisma.siteContentState.upsert({
+    where: { id: SITE_CONTENT_ID },
+    create: { id: SITE_CONTENT_ID, content: content as unknown as Prisma.InputJsonValue },
+    update: { content: content as unknown as Prisma.InputJsonValue }
+  });
+}
+
+async function ensureSiteContentRow(): Promise<SiteContent> {
+  const row = await prisma.siteContentState.findUnique({ where: { id: SITE_CONTENT_ID } });
+  if (row?.content) {
+    return mergeWithDefaults(row.content as Partial<SiteContent>);
+  }
+
+  const legacy = await readLegacyFile();
+  const initial = legacy ?? defaultContent;
+  await persist(initial);
+  return initial;
+}
+
+export async function getSiteContent(): Promise<SiteContent> {
+  try {
+    return await ensureSiteContentRow();
+  } catch {
+    const legacy = await readLegacyFile();
+    return legacy ?? defaultContent;
+  }
+}
+
+async function updateSection(patch: Partial<SiteContent>): Promise<void> {
   const current = await getSiteContent();
-  const next: SiteContent = {
-    ...current,
+  const next = mergeWithDefaults({ ...current, ...patch });
+  await persist(next);
+}
+
+export async function saveHomeBanner(input: HomeBanner): Promise<void> {
+  await updateSection({
     homeBanner: {
       enabled: input.enabled,
       title: input.title.trim(),
@@ -122,42 +159,30 @@ export async function saveHomeBanner(input: HomeBanner): Promise<void> {
       ctaText: input.ctaText.trim(),
       ctaHref: input.ctaHref.trim() || "/search"
     }
-  };
-  await writeFile(DATA_FILE, JSON.stringify(next, null, 2), "utf8");
+  });
 }
 
 export async function saveBrandSettings(input: BrandSettings): Promise<void> {
-  await mkdir(DATA_DIR, { recursive: true });
-  const current = await getSiteContent();
-  const next: SiteContent = {
-    ...current,
+  await updateSection({
     brand: {
       siteName: input.siteName.trim() || defaultContent.brand.siteName,
       logoMainUrl: input.logoMainUrl.trim() || defaultContent.brand.logoMainUrl,
       logoMarkUrl: input.logoMarkUrl.trim() || defaultContent.brand.logoMarkUrl,
       faviconUrl: input.faviconUrl.trim() || defaultContent.brand.faviconUrl
     }
-  };
-  await writeFile(DATA_FILE, JSON.stringify(next, null, 2), "utf8");
+  });
 }
 
 export async function savePaymentCatalog(input: PaymentCatalog): Promise<void> {
-  await mkdir(DATA_DIR, { recursive: true });
-  const current = await getSiteContent();
-  const next: SiteContent = {
-    ...current,
+  await updateSection({
     paymentCatalog: {
       methods: input.methods.map((m) => m.trim()).filter(Boolean)
     }
-  };
-  await writeFile(DATA_FILE, JSON.stringify(next, null, 2), "utf8");
+  });
 }
 
 export async function saveSupportContacts(input: SupportContacts): Promise<void> {
-  await mkdir(DATA_DIR, { recursive: true });
-  const current = await getSiteContent();
-  const next: SiteContent = {
-    ...current,
+  await updateSection({
     support: {
       supportTitle: input.supportTitle.trim() || defaultContent.support.supportTitle,
       email: input.email.trim(),
@@ -167,19 +192,14 @@ export async function saveSupportContacts(input: SupportContacts): Promise<void>
       instagram: input.instagram.trim(),
       workingHours: input.workingHours.trim()
     }
-  };
-  await writeFile(DATA_FILE, JSON.stringify(next, null, 2), "utf8");
+  });
 }
 
 export async function saveLegalPages(input: LegalPages): Promise<void> {
-  await mkdir(DATA_DIR, { recursive: true });
-  const current = await getSiteContent();
-  const next: SiteContent = {
-    ...current,
+  await updateSection({
     legal: {
       privacyText: input.privacyText.trim() || defaultContent.legal.privacyText,
       termsText: input.termsText.trim() || defaultContent.legal.termsText
     }
-  };
-  await writeFile(DATA_FILE, JSON.stringify(next, null, 2), "utf8");
+  });
 }

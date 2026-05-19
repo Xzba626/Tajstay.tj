@@ -1,0 +1,21 @@
+import { NextRequest, NextResponse } from "next/server";
+import { requireUser } from "@/lib/auth/requireAuth";
+import { getInboxConversations, type InboxFilter } from "@/lib/chat/inbox";
+
+const FILTERS = new Set<InboxFilter>(["all", "unread", "payment_pending", "on_review", "confirmed"]);
+
+export async function GET(req: NextRequest) {
+  const user = await requireUser(["GUEST", "OWNER", "ADMIN"]);
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const raw = (req.nextUrl.searchParams.get("filter") ?? "all").trim() as InboxFilter;
+  const filter = FILTERS.has(raw) ? raw : "all";
+
+  const items = await getInboxConversations({
+    userId: user.id,
+    role: user.role,
+    filter
+  });
+
+  return NextResponse.json({ ok: true, filter, items });
+}

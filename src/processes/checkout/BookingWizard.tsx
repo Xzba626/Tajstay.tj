@@ -135,8 +135,8 @@ export function BookingWizard({ labels, defaults, pricePerNight, finance, dcRetu
         throw new Error(mapBookingApiError(errRaw));
       }
 
-      const pc = (json as { publicCode?: string }).publicCode?.trim();
-      const dest = pc ? `/payment/${encodeURIComponent(pc)}?after=1` : `/chat/booking/${json.bookingId}`;
+      const chatUrl = (json as { chatUrl?: string }).chatUrl?.trim();
+      const dest = chatUrl || `/chat/booking/${json.bookingId}`;
       window.location.assign(dest);
     } catch (err: unknown) {
       const aborted =

@@ -13,6 +13,7 @@ import { AIRecommendationLab } from "@/components/ai/AIRecommendationLab";
 import { ViewTransitionLink } from "@/components/effects/ViewTransitionLink";
 import { HomeScrollEnhancer } from "./HomeScrollEnhancer";
 import { SearchBar } from "@/components/SearchBar";
+import { getBookingGuestLabel } from "@/lib/domain/booking";
 import { HomeHeroLuxury } from "@/components/home/HomeHeroLuxury";
 
 export default async function HomePage() {
@@ -230,7 +231,7 @@ export default async function HomePage() {
                 </div>
                 <p className="mt-4 text-sm leading-relaxed text-slate-200">&ldquo;{r.comment}&rdquo;</p>
                 <footer className="mt-4 border-t border-slate-700/70 pt-4 text-sm">
-                  <span className="font-semibold text-slate-100">{r.booking.user.name}</span>
+                  <span className="font-semibold text-slate-100">{getBookingGuestLabel(r.booking)}</span>
                   <span className="text-slate-400"> · {r.booking.room.hotel.city}</span>
                 </footer>
               </blockquote>

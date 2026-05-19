@@ -47,14 +47,16 @@ export async function POST(_: NextRequest, { params }: { params: { id: string } 
     message: "🛡️ Система: Бронирование отменено администратором."
   }).catch(() => undefined);
 
-  await prisma.notification.create({
-    data: {
-      userId: booking.userId,
-      bookingId: id,
-      type: "BOOKING_REJECTED",
-      isRead: false
-    }
-  });
+  if (booking.userId != null) {
+    await prisma.notification.create({
+      data: {
+        userId: booking.userId,
+        bookingId: id,
+        type: "BOOKING_REJECTED",
+        isRead: false
+      }
+    });
+  }
 
   return NextResponse.json({ ok: true }, { status: 200 });
 }

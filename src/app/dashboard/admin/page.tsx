@@ -104,15 +104,21 @@ export default async function AdminDashboardPage({
                       ? "Укажите новый secret word (минимум 4 символа)."
                       : securityError === "security-reset-failed"
                         ? "Не удалось выполнить emergency reset."
-                        : securityError
-                          ? `Security update failed: ${securityError}`
-                          : "";
+                        : securityError === "content-save"
+                          ? "Не удалось сохранить контент сайта. Проверьте DATABASE_URL и выполните prisma migrate deploy на Vercel."
+                          : securityError === "content-required"
+                            ? "Заполните обязательные поля баннера."
+                            : securityError
+                              ? `Security update failed: ${securityError}`
+                              : "";
   const securityOkMessage =
     securityOk === "security-reset"
       ? "Emergency reset выполнен. Войдите снова с новым паролем и secret word."
       : securityOk === "security-updated"
         ? "Security updated successfully."
-        : "";
+        : securityOk === "content-saved"
+          ? "Контент сайта сохранён."
+          : "";
 
   // We keep list item typing flexible because each section uses different Prisma includes.
   let hotels: any[] = [];

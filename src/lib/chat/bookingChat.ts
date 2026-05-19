@@ -12,6 +12,8 @@ export type BookingChatMessage = {
   senderName: string;
   message: string;
   imageUrl: string | null;
+  status: string;
+  readAt: string | null;
   createdAt: string;
 };
 
@@ -57,7 +59,20 @@ function parseChatPayload(payload: string | null): {
   }
 }
 
-function rowToDto(bookingId: number, row: { id: number; body: string; imageUrl: string | null; createdAt: Date; senderId: number; senderRole: string; senderName: string }): BookingChatMessage {
+function rowToDto(
+  bookingId: number,
+  row: {
+    id: number;
+    body: string;
+    imageUrl: string | null;
+    createdAt: Date;
+    senderId: number;
+    senderRole: string;
+    senderName: string;
+    status: string;
+    readAt: Date | null;
+  }
+): BookingChatMessage {
   return {
     id: row.id,
     bookingId,
@@ -66,6 +81,8 @@ function rowToDto(bookingId: number, row: { id: number; body: string; imageUrl: 
     senderName: row.senderName,
     message: row.body,
     imageUrl: row.imageUrl,
+    status: row.status,
+    readAt: row.readAt?.toISOString() ?? null,
     createdAt: row.createdAt.toISOString()
   };
 }
@@ -136,6 +153,8 @@ export async function getAdminBookingChatTimeline(bookingId: number, take = 500)
     senderName: r.senderName,
     message: r.body,
     imageUrl: r.imageUrl,
+    status: "READ",
+    readAt: r.archivedAt.toISOString(),
     createdAt: r.originalCreatedAt.toISOString()
   }));
 

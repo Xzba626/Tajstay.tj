@@ -36,9 +36,11 @@ export async function POST(_: NextRequest, { params }: { params: { id: string } 
     message: "🛡️ Система: Владелец подтвердил заселение. Средства заморожены до завершения."
   });
 
-  await prisma.notification.create({
-    data: { userId: booking.userId, bookingId: id, type: "BOOKING_CHECKED_IN", isRead: false }
-  });
+  if (booking.userId != null) {
+    await prisma.notification.create({
+      data: { userId: booking.userId, bookingId: id, type: "BOOKING_CHECKED_IN", isRead: false }
+    });
+  }
 
   return NextResponse.json({ ok: true }, { status: 200 });
 }

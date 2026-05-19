@@ -106,6 +106,9 @@ export default async function ProfilePage() {
         <Link href="/dashboard/guest" className="text-emerald-300 hover:underline">
           {m(locale, "profile.navBookings")}
         </Link>
+        <Link href="/dashboard/messages" className="text-emerald-300 hover:underline">
+          {m(locale, "profile.navMessages")}
+        </Link>
         <Link href="/favorites" className="text-emerald-300 hover:underline">
           {m(locale, "profile.navFavorites")}
         </Link>

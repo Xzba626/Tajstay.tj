@@ -5,6 +5,7 @@ import { requireUser } from "@/lib/auth/requireAuth";
 import { BookingChatLauncher } from "@/components/chat/BookingChatPanel";
 import type { Locale } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/get-locale";
+import { m } from "@/lib/i18n/messages";
 
 export const dynamic = "force-dynamic";
 
@@ -26,21 +27,7 @@ function statusDotClass(status: string) {
   return "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)]";
 }
 
-function bookingRowHref(
-  role: string,
-  b: { id: number; status: string; publicCode: string | null }
-): string {
-  if (role !== "GUEST") return `/chat/booking/${b.id}`;
-  const code = b.publicCode?.trim();
-  if (
-    code &&
-    (b.status === "WAITING_PAYMENT" ||
-      b.status === "WAIT_PROOF" ||
-      b.status === "ON_REVIEW" ||
-      b.status === "REJECTED")
-  ) {
-    return `/payment/${encodeURIComponent(code)}?after=1`;
-  }
+function bookingRowHref(_role: string, b: { id: number }): string {
   return `/chat/booking/${b.id}`;
 }
 
@@ -165,14 +152,22 @@ export default async function MyBookingsPage() {
             {user.role === "ADMIN" ? "Диалоги по всем броням" : "Как в мессенджере: превью и статус"}
           </p>
         </div>
-        {user.role === "ADMIN" ? (
+        <div className="flex flex-wrap gap-2">
           <Link
-            href="/dashboard/admin/chat-archive"
-            className="rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-100 backdrop-blur-md transition hover:bg-emerald-500/20"
+            href="/dashboard/messages"
+            className="rounded-2xl border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-200 backdrop-blur-md transition hover:bg-white/10"
           >
-            Архив чатов
+            {m(locale, "inbox.title")}
           </Link>
-        ) : null}
+          {user.role === "ADMIN" ? (
+            <Link
+              href="/dashboard/admin/chat-archive"
+              className="rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-100 backdrop-blur-md transition hover:bg-emerald-500/20"
+            >
+              Архив чатов
+            </Link>
+          ) : null}
+        </div>
       </div>
 
       <div className="space-y-8">

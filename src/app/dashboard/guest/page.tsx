@@ -232,21 +232,12 @@ export default async function GuestDashboardPage({
                 roomTitle={booking.room.title}
                 openLabel="Открыть чат"
               />
-              {(() => {
-                const code = booking.publicCode?.trim();
-                const deal =
-                  code &&
-                  ["WAITING_PAYMENT", "WAIT_PROOF", "ON_REVIEW", "REJECTED"].includes(booking.status);
-                const dealHref = deal ? `/payment/${encodeURIComponent(code)}?after=1` : `/chat/booking/${booking.id}`;
-                return (
               <Link
-                href={dealHref}
+                href={`/chat/booking/${booking.id}`}
                 className="rounded-2xl border border-white/15 px-4 py-2.5 text-sm font-semibold text-slate-200 transition hover:bg-white/5"
               >
-                {deal ? "Оплата и чат" : "Полный экран"}
+                Комната бронирования
               </Link>
-                );
-              })()}
             </div>
 
             {/* Owner contacts after confirmation */}

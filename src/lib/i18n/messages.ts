@@ -327,6 +327,7 @@ const ru: Tree = {
     account: "Аккаунт TajStay",
     profile: "Профиль",
     bookings: "Мои бронирования",
+    messages: "Сообщения",
     favorites: "Избранное",
     inFavorites: "В избранном",
     becomeOwner: "Стать владельцем",
@@ -352,6 +353,8 @@ const ru: Tree = {
     PAYMENT_PROOF_SUBMITTED: "Чек отправлен владельцу",
     GUEST_DOCUMENT_SUBMITTED: "Документ отправлен владельцу",
     NEW_BOOKING: "Новая бронь",
+    OWNER_OFFLINE_BOOKING_CREATED: "Офлайн-бронь создана",
+    BOOKING_CHECKED_IN: "Гость заселён",
     BOOKING_CHAT_NEW: "Новое сообщение в чате",
     OWNER_APPLICATION_NEW: "Новая заявка владельца",
     OWNER_APPLICATION_APPROVED: "Заявка владельца одобрена",
@@ -378,6 +381,7 @@ const ru: Tree = {
     becomeOwner: "Стать владельцем",
     navTitle: "Разделы",
     navBookings: "Мои бронирования",
+    navMessages: "Сообщения",
     navFavorites: "Избранное",
     navOwner: "Панель владельца",
     navAdmin: "Админ-панель",
@@ -435,6 +439,71 @@ const ru: Tree = {
     REFUNDED: "Возврат",
     OPEN: "Открыто",
     RESOLVED: "Решено"
+  },
+  bookingRoom: {
+    back: "Назад",
+    allMessages: "Все сообщения",
+    titleGuest: "Чат с владельцем",
+    titleOwner: "Чат с гостем",
+    titleAdmin: "Админ · чат брони",
+    counterpartGuest: "Владелец · поддержка TajStay",
+    counterpartOwner: "Гость",
+    ownerQuiet: {
+      title: "Новый запрос",
+      body: "Идёт проверка данных гостя. Детали чата станут доступны после статуса ON_REVIEW."
+    },
+    header: {
+      dates: "Даты",
+      guests: "Гости",
+      payment: "Оплата"
+    },
+    payment: {
+      title: "Способы оплаты",
+      hint: "Переведите сумму одним из способов ниже, затем нажмите «Я оплатил» и прикрепите чек.",
+      copy: "Скопировать",
+      copied: "Скопировано",
+      empty: "Владелец ещё не указал реквизиты. Напишите в чат — он пришлёт данные."
+    },
+    proof: {
+      cta: "Я оплатил",
+      title: "Отправить чек",
+      cancel: "Отмена",
+      file: "Выберите скрин или фото чека",
+      amount: "Сумма перевода",
+      comment: "Комментарий (необязательно)",
+      submit: "Отправить на проверку",
+      errFailed: "Не удалось отправить чек. Попробуйте снова.",
+      sentBanner: "Чек отправлен. Ожидается проверка владельца и администратором."
+    },
+    timeline: {
+      title: "Ход брони",
+      created: "Бронь создана",
+      paymentPending: "Ожидается оплата",
+      proofSubmitted: "Чек отправлен",
+      onReview: "На проверке",
+      confirmed: "Подтверждено",
+      rejected: "Отклонено",
+      checkedIn: "Заселение",
+      completed: "Завершено",
+      cancelled: "Отменено",
+      expired: "Истекло",
+      system: "Система"
+    }
+  },
+  inbox: {
+    title: "Сообщения",
+    subtitle: "Диалоги по бронированиям",
+    back: "В кабинет",
+    loading: "Загрузка…",
+    empty: "Нет диалогов по выбранному фильтру",
+    noPreview: "Нет сообщений",
+    filter: {
+      all: "Все",
+      unread: "Непрочитанные",
+      payment_pending: "Ожидает оплаты",
+      on_review: "На проверке",
+      confirmed: "Подтверждено"
+    }
   },
   admin: {
     pageTitle: "Админ-панель",
@@ -642,7 +711,67 @@ const ru: Tree = {
     viewsProxy: "Просмотры (proxy)",
     clicksProxy: "Клики (proxy)",
     pendingBookings: "Брони в ожидании",
-    conversionProxy: "Конверсия (proxy)"
+    conversionProxy: "Конверсия (proxy)",
+    navOfflineBookings: "Офлайн-брони",
+    bookingBadge: { online: "Онлайн", offline: "Офлайн" },
+    kpi: {
+      bookingsToday: "Брони сегодня",
+      checkInsToday: "Заезды сегодня",
+      checkOutsToday: "Выезды сегодня",
+      revenueMonth: "Доход за месяц",
+      unreadMessages: "Непрочитанные сообщения",
+      hotelsModeration: "На модерации"
+    },
+    quick: {
+      offlineBooking: "Добавить офлайн-бронь",
+      calendar: "Календарь",
+      messages: "Бронирования и чат"
+    },
+    offline: {
+      title: "Офлайн-бронирования",
+      hint: "Брони, созданные вручную. Даты проверяются автоматически и блокируют календарь.",
+      empty: "Офлайн-броней пока нет",
+      emptyHint: "Добавьте первую бронь формой выше — гостю не нужен аккаунт TajStay.",
+      created: "Офлайн-бронь сохранена",
+      updated: "Изменения сохранены",
+      errDates: "Выбранные даты заняты или заблокированы",
+      errFailed: "Не удалось сохранить бронь. Проверьте поля.",
+      room: "Комната",
+      guestName: "Имя гостя",
+      guestPhone: "Телефон",
+      guestEmail: "Email (необязательно)",
+      guestCount: "Гостей",
+      checkIn: "Заезд",
+      checkOut: "Выезд",
+      total: "Сумма (TJS)",
+      prepayment: "Предоплата",
+      remaining: "Остаток",
+      paymentType: "Способ оплаты",
+      paymentTypePh: "Наличные, карта, перевод…",
+      statusLabel: "Статус",
+      note: "Комментарий",
+      submit: "Создать офлайн-бронь",
+      saveStatus: "Сохранить статус",
+      status: {
+        PENDING: "Ожидает",
+        CONFIRMED: "Подтверждена",
+        CHECKED_IN: "Заселён",
+        CHECKED_OUT: "Выехал",
+        CANCELLED: "Отменена"
+      }
+    },
+    calendar: {
+      gridTitle: "Календарь (30 дней × комнаты)",
+      roomCol: "Комната",
+      legend: {
+        available: "Свободно",
+        online: "Онлайн-бронь",
+        offline: "Офлайн-бронь",
+        pending: "Ожидает подтверждения",
+        blocked: "Заблокировано",
+        customPrice: "Особая цена"
+      }
+    }
   },
   chat: {
     welcomePayment:
@@ -979,6 +1108,7 @@ const tg: Tree = {
     account: "Ҳисоби TajStay",
     profile: "Профил",
     bookings: "Бронҳои ман",
+    messages: "Паёмҳо",
     favorites: "Дӯстдоштаҳо",
     inFavorites: "Дар дӯстдоштаҳо",
     becomeOwner: "Соҳиб шудан",
@@ -1004,6 +1134,8 @@ const tg: Tree = {
     PAYMENT_PROOF_SUBMITTED: "Чек ба соҳиби объект фиристода шуд",
     GUEST_DOCUMENT_SUBMITTED: "Ҳуҷҷат ба соҳиби объект фиристода шуд",
     NEW_BOOKING: "Брони нав",
+    OWNER_OFFLINE_BOOKING_CREATED: "Брони офлайн эҷод шуд",
+    BOOKING_CHECKED_IN: "Меҳмон ҷойгир шуд",
     BOOKING_CHAT_NEW: "Паёми нав дар чат",
     OWNER_APPLICATION_NEW: "Дархости нави соҳиб",
     OWNER_APPLICATION_APPROVED: "Дархости соҳиб қабул шуд",
@@ -1030,6 +1162,7 @@ const tg: Tree = {
     becomeOwner: "Соҳиб шудан",
     navTitle: "Бахшҳо",
     navBookings: "Бронҳои ман",
+    navMessages: "Паёмҳо",
     navFavorites: "Дӯстдоштаҳо",
     navOwner: "Панели соҳиб",
     navAdmin: "Панели админ",
@@ -1083,6 +1216,71 @@ const tg: Tree = {
     REFUNDED: "Бозгашт",
     OPEN: "Кушода",
     RESOLVED: "Ҳал шуда"
+  },
+  bookingRoom: {
+    back: "Бозгашт",
+    allMessages: "Ҳамаи паёмҳо",
+    titleGuest: "Чат бо соҳиб",
+    titleOwner: "Чат бо меҳмон",
+    titleAdmin: "Админ · чати брон",
+    counterpartGuest: "Соҳиб · дастгирии TajStay",
+    counterpartOwner: "Меҳмон",
+    ownerQuiet: {
+      title: "Дархости нав",
+      body: "Маълумоти меҳмон санҷида мешавад. Чат пас аз ҳолати ON_REVIEW дастрас мешавад."
+    },
+    header: {
+      dates: "Санаҳо",
+      guests: "Меҳмонон",
+      payment: "Пардохт"
+    },
+    payment: {
+      title: "Усулҳои пардохт",
+      hint: "Маблағро бо яке аз усулҳои зерин интиқол диҳед, сипас «Пардохт кардам» ва чекро замима кунед.",
+      copy: "Нусха",
+      copied: "Нусха шуд",
+      empty: "Соҳиб ҳанӯз реквизитҳоро нишон надодааст. Дар чат нависед."
+    },
+    proof: {
+      cta: "Пардохт кардам",
+      title: "Фиристодани чек",
+      cancel: "Бекор",
+      file: "Скрин ё суратро интихоб кунед",
+      amount: "Маблағи интиқол",
+      comment: "Шарҳ (ихтиёрӣ)",
+      submit: "Барои санҷиш фиристодан",
+      errFailed: "Чек фиристода нашуд. Боз кӯшиш кунед.",
+      sentBanner: "Чек фиристода шуд. Интизори санҷиши соҳиб ва админ."
+    },
+    timeline: {
+      title: "Марҳилаҳои брон",
+      created: "Брон эҷод шуд",
+      paymentPending: "Интизори пардохт",
+      proofSubmitted: "Чек фиристода шуд",
+      onReview: "Дар санҷиш",
+      confirmed: "Тасдиқ шуда",
+      rejected: "Рад шуда",
+      checkedIn: "Қабул",
+      completed: "Анҷомёфта",
+      cancelled: "Бекор",
+      expired: "Муҳлат гузашт",
+      system: "Система"
+    }
+  },
+  inbox: {
+    title: "Паёмҳо",
+    subtitle: "Муколамаҳо дар бораи бронҳо",
+    back: "Ба кабинет",
+    loading: "Бор мешавад…",
+    empty: "Диалогҳо нест",
+    noPreview: "Паём нест",
+    filter: {
+      all: "Ҳама",
+      unread: "Нохонда",
+      payment_pending: "Интизори пардохт",
+      on_review: "Дар санҷиш",
+      confirmed: "Тасдиқшуда"
+    }
   },
   admin: {
     pageTitle: "Панели админ",
@@ -1289,7 +1487,67 @@ const tg: Tree = {
     viewsProxy: "Боздидҳо (proxy)",
     clicksProxy: "Кликҳо (proxy)",
     pendingBookings: "Бронҳои интизорӣ",
-    conversionProxy: "Конверсия (proxy)"
+    conversionProxy: "Конверсия (proxy)",
+    navOfflineBookings: "Бронҳои офлайн",
+    bookingBadge: { online: "Онлайн", offline: "Офлайн" },
+    kpi: {
+      bookingsToday: "Бронҳои имрӯз",
+      checkInsToday: "Вурудҳои имрӯз",
+      checkOutsToday: "Хуруҷҳои имрӯз",
+      revenueMonth: "Даромади моҳ",
+      unreadMessages: "Паёмҳои нахонда",
+      hotelsModeration: "Дар модератсия"
+    },
+    quick: {
+      offlineBooking: "Брони офлайн илова кунед",
+      calendar: "Тақвим",
+      messages: "Бронҳо ва чат"
+    },
+    offline: {
+      title: "Бронҳои офлайн",
+      hint: "Бронҳои дастӣ. Санаҳо автоматӣ санҷида мешаванд ва тақвимро мебанданд.",
+      empty: "Брони офлайн нест",
+      emptyHint: "Брони аввалро дар шакли боло илова кунед — барои меҳмон ҳисоби TajStay лозим нест.",
+      created: "Брони офлайн нигоҳ дошта шуд",
+      updated: "Тағйирот нигоҳ дошта шуд",
+      errDates: "Санаҳо банд ё ишғол шудаанд",
+      errFailed: "Нигоҳ доштан муваффақ нашуд",
+      room: "Хона",
+      guestName: "Номи меҳмон",
+      guestPhone: "Телефон",
+      guestEmail: "Email (ихтиёрӣ)",
+      guestCount: "Меҳмонон",
+      checkIn: "Вуруд",
+      checkOut: "Хуруҷ",
+      total: "Маблағ (TJS)",
+      prepayment: "Пешпардохт",
+      remaining: "Боқимонда",
+      paymentType: "Усули пардохт",
+      paymentTypePh: "Нақд, корт, интиқол…",
+      statusLabel: "Ҳолат",
+      note: "Шарҳ",
+      submit: "Эҷоди брони офлайн",
+      saveStatus: "Нигоҳ доштан",
+      status: {
+        PENDING: "Интизор",
+        CONFIRMED: "Тасдиқшуда",
+        CHECKED_IN: "Ҷойгиршуда",
+        CHECKED_OUT: "Хуруҷ",
+        CANCELLED: "Бекоршуда"
+      }
+    },
+    calendar: {
+      gridTitle: "Тақвим (30 рӯз × хонаҳо)",
+      roomCol: "Хона",
+      legend: {
+        available: "Озод",
+        online: "Брони онлайн",
+        offline: "Брони офлайн",
+        pending: "Интизори тасдиқ",
+        blocked: "Баста",
+        customPrice: "Нархи махсус"
+      }
+    }
   },
   chat: {
     welcomePayment:
@@ -1623,6 +1881,7 @@ const en: Tree = {
     account: "TajStay account",
     profile: "Profile",
     bookings: "My bookings",
+    messages: "Messages",
     favorites: "Favorites",
     inFavorites: "In favorites",
     becomeOwner: "Become a host",
@@ -1648,6 +1907,8 @@ const en: Tree = {
     PAYMENT_PROOF_SUBMITTED: "Receipt submitted to host",
     GUEST_DOCUMENT_SUBMITTED: "Document submitted to host",
     NEW_BOOKING: "New booking",
+    OWNER_OFFLINE_BOOKING_CREATED: "Offline booking created",
+    BOOKING_CHECKED_IN: "Guest checked in",
     BOOKING_CHAT_NEW: "New chat message",
     OWNER_APPLICATION_NEW: "New host application",
     OWNER_APPLICATION_APPROVED: "Host application approved",
@@ -1674,6 +1935,7 @@ const en: Tree = {
     becomeOwner: "Become a host",
     navTitle: "Sections",
     navBookings: "My bookings",
+    navMessages: "Messages",
     navFavorites: "Favorites",
     navOwner: "Owner dashboard",
     navAdmin: "Admin panel",
@@ -1727,6 +1989,71 @@ const en: Tree = {
     REFUNDED: "Refunded",
     OPEN: "Open",
     RESOLVED: "Resolved"
+  },
+  bookingRoom: {
+    back: "Back",
+    allMessages: "All messages",
+    titleGuest: "Chat with host",
+    titleOwner: "Chat with guest",
+    titleAdmin: "Admin · booking chat",
+    counterpartGuest: "Host · TajStay support",
+    counterpartOwner: "Guest",
+    ownerQuiet: {
+      title: "New request",
+      body: "Guest details are being verified. Chat opens after ON_REVIEW status."
+    },
+    header: {
+      dates: "Dates",
+      guests: "Guests",
+      payment: "Payment"
+    },
+    payment: {
+      title: "Payment methods",
+      hint: "Transfer the amount using one of the methods below, then tap “I paid” and attach your receipt.",
+      copy: "Copy",
+      copied: "Copied",
+      empty: "The host has not added payment details yet. Ask in chat."
+    },
+    proof: {
+      cta: "I paid",
+      title: "Submit receipt",
+      cancel: "Cancel",
+      file: "Choose screenshot or photo",
+      amount: "Amount transferred",
+      comment: "Comment (optional)",
+      submit: "Submit for review",
+      errFailed: "Could not submit receipt. Try again.",
+      sentBanner: "Receipt submitted. Awaiting host and admin review."
+    },
+    timeline: {
+      title: "Booking progress",
+      created: "Booking created",
+      paymentPending: "Awaiting payment",
+      proofSubmitted: "Receipt submitted",
+      onReview: "Under review",
+      confirmed: "Confirmed",
+      rejected: "Declined",
+      checkedIn: "Checked in",
+      completed: "Completed",
+      cancelled: "Cancelled",
+      expired: "Expired",
+      system: "System"
+    }
+  },
+  inbox: {
+    title: "Messages",
+    subtitle: "Conversations by booking",
+    back: "Back to dashboard",
+    loading: "Loading…",
+    empty: "No conversations for this filter",
+    noPreview: "No messages yet",
+    filter: {
+      all: "All",
+      unread: "Unread",
+      payment_pending: "Awaiting payment",
+      on_review: "Under review",
+      confirmed: "Confirmed"
+    }
   },
   admin: {
     pageTitle: "Admin panel",
@@ -1933,7 +2260,67 @@ const en: Tree = {
     viewsProxy: "Views (proxy)",
     clicksProxy: "Clicks (proxy)",
     pendingBookings: "Pending bookings",
-    conversionProxy: "Conversion (proxy)"
+    conversionProxy: "Conversion (proxy)",
+    navOfflineBookings: "Offline bookings",
+    bookingBadge: { online: "Online", offline: "Offline" },
+    kpi: {
+      bookingsToday: "Bookings today",
+      checkInsToday: "Check-ins today",
+      checkOutsToday: "Check-outs today",
+      revenueMonth: "Revenue this month",
+      unreadMessages: "Unread messages",
+      hotelsModeration: "Pending moderation"
+    },
+    quick: {
+      offlineBooking: "Add offline booking",
+      calendar: "Calendar",
+      messages: "Bookings & chat"
+    },
+    offline: {
+      title: "Offline bookings",
+      hint: "Manual bookings. Dates are validated and block the calendar.",
+      empty: "No offline bookings yet",
+      emptyHint: "Create the first booking above — the guest does not need a TajStay account.",
+      created: "Offline booking saved",
+      updated: "Changes saved",
+      errDates: "Selected dates are unavailable or blocked",
+      errFailed: "Could not save the booking. Check the fields.",
+      room: "Room",
+      guestName: "Guest name",
+      guestPhone: "Phone",
+      guestEmail: "Email (optional)",
+      guestCount: "Guests",
+      checkIn: "Check-in",
+      checkOut: "Check-out",
+      total: "Total (TJS)",
+      prepayment: "Prepayment",
+      remaining: "Remaining",
+      paymentType: "Payment method",
+      paymentTypePh: "Cash, card, transfer…",
+      statusLabel: "Status",
+      note: "Note",
+      submit: "Create offline booking",
+      saveStatus: "Save status",
+      status: {
+        PENDING: "Pending",
+        CONFIRMED: "Confirmed",
+        CHECKED_IN: "Checked in",
+        CHECKED_OUT: "Checked out",
+        CANCELLED: "Cancelled"
+      }
+    },
+    calendar: {
+      gridTitle: "Calendar (30 days × rooms)",
+      roomCol: "Room",
+      legend: {
+        available: "Available",
+        online: "Online booking",
+        offline: "Offline booking",
+        pending: "Awaiting confirmation",
+        blocked: "Blocked",
+        customPrice: "Custom price"
+      }
+    }
   },
   chat: {
     welcomePayment:

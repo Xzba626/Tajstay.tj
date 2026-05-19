@@ -7,8 +7,9 @@ import { BOOKING_STATUS } from "@/lib/domain/booking";
 import { publicUrl } from "@/lib/http/publicOrigin";
 import { clientIp, rateLimit } from "@/lib/security/rateLimit";
 import { isSafePublicHttpsUrl } from "@/lib/security/safeUrl";
+import { addBookingSystemMessage } from "@/lib/chat/bookingChat";
 
-const MAX_FILE_BYTES = 4 * 1024 * 1024; // 4MB
+const MAX_FILE_BYTES = 4 * 1024 * 1024;
 
 function isSafeProofUrl(raw: string): boolean {
   const s = raw.trim();
@@ -34,6 +35,10 @@ export async function POST(req: NextRequest) {
   const user = await requireUser(["GUEST", "OWNER", "ADMIN"]);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const wantsJson =
+    (req.headers.get("accept") ?? "").toLowerCase().includes("application/json") ||
+    req.nextUrl.searchParams.get("json") === "1";
+
   const ip = clientIp(req);
   const ipRl = rateLimit(`post:payment-proof:ip:${ip}`, 15, 60_000);
   if (!ipRl.ok) {
@@ -50,7 +55,11 @@ export async function POST(req: NextRequest) {
 
   const form = await req.formData();
   const code = String(form.get("code") ?? "").trim();
+  const bookingIdRaw = Number(form.get("bookingId") ?? "");
   const proofUrlInput = String(form.get("proofUrl") ?? "").trim();
+  const proofComment = String(form.get("proofComment") ?? "").trim();
+  const proofAmountRaw = String(form.get("proofAmount") ?? "").trim();
+  const proofAmount = proofAmountRaw ? Number(proofAmountRaw) : null;
   const proofFile = form.get("proofFile");
 
   let proofUrl = "";
@@ -60,15 +69,28 @@ export async function POST(req: NextRequest) {
     if (uploaded) proofUrl = uploaded;
   }
 
-  if (!code || !proofUrl) {
-    return NextResponse.redirect(publicUrl(req, `/payment/${encodeURIComponent(code || "")}`));
+  let booking = null;
+  if (bookingIdRaw > 0) {
+    booking = await prisma.booking.findUnique({
+      where: { id: bookingIdRaw },
+      include: { room: { include: { hotel: true } } }
+    });
+  } else if (code) {
+    booking = await prisma.booking.findUnique({
+      where: { publicCode: code },
+      include: { room: { include: { hotel: true } } }
+    });
   }
 
-  const booking = await prisma.booking.findUnique({
-    where: { publicCode: code },
-    include: { room: { include: { hotel: true } } }
-  });
-  if (!booking || booking.userId !== user.id) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!booking || booking.userId !== user.id) {
+    if (wantsJson) return NextResponse.json({ error: "not_found" }, { status: 404 });
+    return NextResponse.redirect(publicUrl(req, `/dashboard/bookings`));
+  }
+
+  if (!proofUrl) {
+    if (wantsJson) return NextResponse.json({ error: "invalid" }, { status: 400 });
+    return NextResponse.redirect(publicUrl(req, `/chat/booking/${booking.id}?proofErr=1`));
+  }
 
   const payWindowExpired =
     !booking.paymentTimerPaused &&
@@ -76,21 +98,22 @@ export async function POST(req: NextRequest) {
     booking.expiresAt.getTime() < Date.now();
   if (payWindowExpired) {
     await prisma.booking.update({ where: { id: booking.id }, data: { status: BOOKING_STATUS.EXPIRED } }).catch(() => undefined);
-    return NextResponse.redirect(publicUrl(req, `/payment/${encodeURIComponent(code)}`));
+    if (wantsJson) return NextResponse.json({ error: "expired" }, { status: 400 });
+    return NextResponse.redirect(publicUrl(req, `/chat/booking/${booking.id}?expired=1`));
   }
 
+  const proofReviewDeadlineAt = new Date(Date.now() + 5 * 60 * 1000);
   const transitioned = await prisma.booking.updateMany({
     where: {
       id: booking.id,
       userId: user.id,
-      publicCode: code,
       status: { in: [BOOKING_STATUS.WAITING_PAYMENT, BOOKING_STATUS.WAIT_PROOF] }
     },
     data: {
       status: BOOKING_STATUS.ON_REVIEW,
       paymentProofUrl: proofUrl,
       proofSubmittedAt: new Date(),
-      proofReviewDeadlineAt: new Date(Date.now() + 5 * 60 * 1000),
+      proofReviewDeadlineAt,
       paymentTimerPaused: true,
       expiresAt: null
     }
@@ -105,7 +128,30 @@ export async function POST(req: NextRequest) {
         isRead: false
       }
     });
+
+    await prisma.transactionLog.create({
+      data: {
+        bookingId: booking.id,
+        type: "PAYMENT_PROOF_SUBMITTED",
+        payload: JSON.stringify({
+          proofUrl,
+          proofAmount: Number.isFinite(proofAmount) ? proofAmount : null,
+          proofComment: proofComment || null
+        })
+      }
+    });
+
+    await addBookingSystemMessage({
+      bookingId: booking.id,
+      message: "🛡️ Система: Чек отправлен. Ожидается проверка владельца и администратором."
+    });
   }
 
-  return NextResponse.redirect(publicUrl(req, `/payment/${encodeURIComponent(code)}`));
+  if (wantsJson) {
+    return NextResponse.json({ ok: true, bookingId: booking.id, status: BOOKING_STATUS.ON_REVIEW });
+  }
+
+  const redirectTo = publicUrl(req, `/chat/booking/${booking.id}`);
+  redirectTo.searchParams.set("proofSent", "1");
+  return NextResponse.redirect(redirectTo);
 }
