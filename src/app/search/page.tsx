@@ -46,7 +46,7 @@ export default async function SearchPage({ searchParams }: Props) {
   const hotels = await searchApprovedHotels({
     q: searchParams.q,
     city: searchParams.city,
-    guests: Number(searchParams.guests || 1),
+    guests: searchParams.guests ? Number(searchParams.guests) : undefined,
     minPrice: searchParams.minPrice ? Number(searchParams.minPrice) : undefined,
     maxPrice: searchParams.maxPrice ? Number(searchParams.maxPrice) : undefined,
     propertyType: searchParams.propertyType ?? "ANY",

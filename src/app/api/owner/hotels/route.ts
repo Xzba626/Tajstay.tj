@@ -4,8 +4,8 @@ import { getOwnerUser } from "@/lib/auth/requireOwner";
 import { forbiddenJson } from "@/lib/auth/apiResponses";
 import { publicUrl } from "@/lib/http/publicOrigin";
 import { savePublicImageFile } from "@/lib/uploads/savePublicImage";
+import { normalizePropertyType } from "@/lib/domain/propertyTypes";
 
-const PROPERTY_TYPES = new Set(["HOTEL", "HOSTEL", "GUESTHOUSE", "APARTMENT", "ECO"]);
 const DEFAULT_LAT = 38.5598;
 const DEFAULT_LNG = 68.787;
 
@@ -41,37 +41,40 @@ export async function POST(req: NextRequest) {
   const description = String(form.get("description") ?? "").trim();
   const latitude = parseCoord(form.get("latitude")) ?? DEFAULT_LAT;
   const longitude = parseCoord(form.get("longitude")) ?? DEFAULT_LNG;
-  const propertyType = String(form.get("propertyType") ?? "HOTEL");
+  const propertyType = normalizePropertyType(form.get("propertyType")) ?? "HOTEL";
   const coverFile = form.get("coverFile");
   let coverImageUrl: string | null = null;
   if (coverFile instanceof File && coverFile.size > 0) {
-    coverImageUrl = await savePublicImageFile(coverFile, "hotel-covers");
+    try {
+      coverImageUrl = await savePublicImageFile(coverFile, "hotel-covers");
+    } catch (error) {
+      console.error("[owner.hotel.cover]", error);
+    }
   }
 
   if (!name || !city || !address || !description) {
     return redirectBack(req, "hotel");
   }
-  if (!PROPERTY_TYPES.has(propertyType)) {
-    return redirectBack(req, "hotel");
-  }
-  if (!coverImageUrl) {
-    return redirectBack(req, "hotel_cover");
-  }
 
-  await prisma.hotel.create({
-    data: {
-      ownerId: owner.id,
-      name,
-      city,
-      address,
-      description,
-      latitude,
-      longitude,
-      propertyType,
-      coverImageUrl,
-      status: "APPROVED"
-    }
-  });
+  try {
+    await prisma.hotel.create({
+      data: {
+        ownerId: owner.id,
+        name,
+        city,
+        address,
+        description,
+        latitude,
+        longitude,
+        propertyType,
+        coverImageUrl,
+        status: "APPROVED"
+      }
+    });
+  } catch (error) {
+    console.error("[owner.hotel.create]", error);
+    return redirectBack(req, "hotel_db");
+  }
 
   return redirectBack(req);
 }

@@ -5,7 +5,7 @@ export async function GET(req: NextRequest) {
   const url = req.nextUrl;
   const q = url.searchParams.get("q") ?? undefined;
   const city = url.searchParams.get("city") ?? undefined;
-  const guests = Number(url.searchParams.get("guests") ?? "1");
+  const guests = Number(url.searchParams.get("guests") ?? "");
   const minPrice = Number(url.searchParams.get("minPrice") ?? "");
   const maxPrice = Number(url.searchParams.get("maxPrice") ?? "");
   const checkIn = url.searchParams.get("checkIn") ?? undefined;
@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
   const hotels = await searchApprovedHotels({
     q,
     city,
-    guests: Number.isFinite(guests) && guests > 0 ? guests : 1,
+    guests: Number.isFinite(guests) && guests > 0 ? guests : undefined,
     minPrice: Number.isFinite(minPrice) ? minPrice : undefined,
     maxPrice: Number.isFinite(maxPrice) ? maxPrice : undefined,
     wifi: url.searchParams.get("wifi") === "true",

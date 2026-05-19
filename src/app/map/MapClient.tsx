@@ -20,7 +20,7 @@ export type MapHotel = {
   city: string;
   latitude: number;
   longitude: number;
-  fromPrice: number;
+  fromPrice: number | null;
 };
 
 export default function MapClient({
@@ -80,7 +80,10 @@ export default function MapClient({
                   </div>
                   <div className="text-slate-600">{h.city}</div>
                   <div>
-                    {labels.fromPrice} <span className="font-semibold">{h.fromPrice} TJS</span>
+                    {labels.fromPrice}{" "}
+                    <span className="font-semibold">
+                      {h.fromPrice != null ? `${h.fromPrice} TJS` : "—"}
+                    </span>
                   </div>
                   <Link className="text-emerald-700 hover:underline" href={`/hotel/${h.id}`}>
                     {labels.details}

@@ -91,7 +91,7 @@ export function SearchExperience({ initialHotels, initialFilters, locale }: Prop
         city: hotel.city,
         latitude: hotel.latitude,
         longitude: hotel.longitude,
-        fromPrice: hotel.rooms?.length ? Math.min(...hotel.rooms.map((r: any) => Number(r.price))) : 0
+        fromPrice: hotel.rooms?.length ? Math.min(...hotel.rooms.map((r: any) => Number(r.price))) : null
       })),
     [hotels]
   );

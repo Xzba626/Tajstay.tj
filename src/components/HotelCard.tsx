@@ -51,7 +51,8 @@ const AMENITY_ICONS: Record<string, string> = {
 };
 
 export function HotelCard({ hotel, locale = "ru", variant = "accent", hrefQuery }: Props) {
-  const minPrice = hotel.rooms.length ? Math.min(...hotel.rooms.map((r) => Number(r.price))) : 0;
+  const hasPublishedRooms = hotel.rooms.length > 0;
+  const minPrice = hasPublishedRooms ? Math.min(...hotel.rooms.map((r) => Number(r.price))) : 0;
   const query = buildQueryString(hrefQuery);
   const availableRooms = hotel.rooms.filter((r) => r.availability).length;
   const cityMap: Record<string, string> = {
@@ -146,8 +147,10 @@ export function HotelCard({ hotel, locale = "ru", variant = "accent", hrefQuery 
         <div className="mt-3 flex items-center justify-between gap-3 border-t border-white/[0.06] pt-3">
           <div className="flex items-baseline gap-2">
             <span className="text-sm text-brand-200">{t(locale, "fromPrice")}</span>
-            <span className="text-xl font-extrabold tracking-tight text-white">{minPrice.toLocaleString()}</span>
-            <span className="text-xs font-semibold text-brand-200">TJS</span>
+            <span className="text-xl font-extrabold tracking-tight text-white">
+              {hasPublishedRooms ? minPrice.toLocaleString() : "—"}
+            </span>
+            {hasPublishedRooms && <span className="text-xs font-semibold text-brand-200">TJS</span>}
           </div>
 
           <Link

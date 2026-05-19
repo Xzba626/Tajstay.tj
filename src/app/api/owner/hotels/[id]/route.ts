@@ -4,8 +4,7 @@ import { getOwnerUser } from "@/lib/auth/requireOwner";
 import { forbiddenJson } from "@/lib/auth/apiResponses";
 import { publicUrl } from "@/lib/http/publicOrigin";
 import { savePublicImageFile } from "@/lib/uploads/savePublicImage";
-
-const PROPERTY_TYPES = new Set(["HOTEL", "HOSTEL", "GUESTHOUSE", "APARTMENT", "ECO"]);
+import { normalizePropertyType } from "@/lib/domain/propertyTypes";
 
 function parseCoord(input: FormDataEntryValue | null): number | null {
   const raw = String(input ?? "").trim();
@@ -36,35 +35,42 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const description = String(form.get("description") ?? "").trim();
   const latitude = parseCoord(form.get("latitude"));
   const longitude = parseCoord(form.get("longitude"));
-  const propertyType = String(form.get("propertyType") ?? "HOTEL");
+  const propertyType = normalizePropertyType(form.get("propertyType")) ?? hotel.propertyType;
   const coverFile = form.get("coverFile");
   let coverImageUrl: string | null = hotel.coverImageUrl;
   if (coverFile instanceof File && coverFile.size > 0) {
-    const saved = await savePublicImageFile(coverFile, "hotel-covers");
-    if (saved) coverImageUrl = saved;
+    try {
+      const saved = await savePublicImageFile(coverFile, "hotel-covers");
+      if (saved) coverImageUrl = saved;
+    } catch (error) {
+      console.error("[owner.hotel.cover]", error);
+    }
   }
 
   if (!name || !city || !address || !description) {
     return NextResponse.redirect(errUrl);
   }
-  if (!PROPERTY_TYPES.has(propertyType)) {
+
+  try {
+    await prisma.hotel.update({
+      where: { id },
+      data: {
+        name,
+        city,
+        address,
+        description,
+        latitude: latitude ?? hotel.latitude,
+        longitude: longitude ?? hotel.longitude,
+        propertyType,
+        coverImageUrl,
+        status: hotel.status
+      }
+    });
+  } catch (error) {
+    console.error("[owner.hotel.update]", error);
+    errUrl.searchParams.set("error", "hotel_db");
     return NextResponse.redirect(errUrl);
   }
-
-  await prisma.hotel.update({
-    where: { id },
-    data: {
-      name,
-      city,
-      address,
-      description,
-      latitude: latitude ?? hotel.latitude,
-      longitude: longitude ?? hotel.longitude,
-      propertyType,
-      coverImageUrl,
-      status: hotel.status
-    }
-  });
 
   return NextResponse.redirect(publicUrl(req, "/dashboard/owner?section=properties"));
 }
