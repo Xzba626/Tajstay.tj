@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { HotelCard } from "@/components/HotelCard";
 import { useDebounce } from "@/shared/hooks/useDebounce";
 import { useSearchFilters } from "@/features/search-hotels/model/useSearchFilters";
@@ -91,7 +92,7 @@ export function SearchExperience({ initialHotels, initialFilters, locale }: Prop
         city: hotel.city,
         latitude: hotel.latitude,
         longitude: hotel.longitude,
-        fromPrice: hotel.rooms?.length ? Math.min(...hotel.rooms.map((r: any) => Number(r.price))) : 0
+        fromPrice: hotel.rooms?.length ? Math.min(...hotel.rooms.map((r: any) => Number(r.price))) : null
       })),
     [hotels]
   );
@@ -321,12 +322,14 @@ export function SearchExperience({ initialHotels, initialFilters, locale }: Prop
         {previewHotel ? (
           <div className="space-y-4">
             {previewHotel.coverImageUrl ? (
-              <div className="overflow-hidden rounded-2xl border border-brand-500/70">
-                <img
+              <div className="relative h-44 w-full overflow-hidden rounded-2xl border border-brand-500/70">
+                <Image
                   src={previewHotel.coverImageUrl}
                   alt={`Фото отеля ${previewHotel.name}`}
-                  className="h-44 w-full object-cover"
-                  loading="lazy"
+                  fill
+                  unoptimized
+                  sizes="(min-width: 1024px) 640px, 100vw"
+                  className="object-cover"
                 />
               </div>
             ) : null}

@@ -1,4 +1,5 @@
 import { addDays, subDays } from "date-fns";
+import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { requireOwner } from "@/lib/auth/requireOwner";
 import { OwnerEmptyState } from "@/components/dashboard/OwnerEmptyState";
@@ -21,10 +22,9 @@ import { Card } from "@/shared/ui";
 import { buildOwnerPricingInsights } from "@/lib/services/ownerInsights";
 import { BookingChatLauncher } from "@/components/chat/BookingChatPanel";
 import { RoomPhotoCarousel } from "@/components/RoomPhotoCarousel";
+import { PROPERTY_TYPES } from "@/lib/domain/propertyTypes";
 
 export const dynamic = "force-dynamic";
-
-const PROPERTY_TYPES = ["HOTEL", "HOSTEL", "GUESTHOUSE", "APARTMENT", "ECO"] as const;
 
 type OwnerSection = "overview" | "properties" | "rooms" | "bookings" | "calendar" | "notifications";
 
@@ -282,7 +282,6 @@ export default async function OwnerDashboardPage({
             <input
               name="coverFile"
               type="file"
-              required
               accept="image/jpeg,image/png,image/webp"
               capture="environment"
               className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-green-800 file:px-3 file:py-1.5 file:text-white"
@@ -489,6 +488,11 @@ export default async function OwnerDashboardPage({
               {m(locale, "owner.errHotel")}
             </div>
           )}
+          {ownerError === "hotel_db" && (
+            <div className="rounded-xl border border-red-400/40 bg-red-500/15 px-4 py-3 text-sm text-red-100" role="alert">
+              {m(locale, "owner.errHotelDb")}
+            </div>
+          )}
 
           {hasHotels && (
             <div className="rounded-xl border border-emerald-400/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100" role="status">
@@ -506,8 +510,8 @@ export default async function OwnerDashboardPage({
                   className="glass-panel rounded-2xl p-6 shadow-2xl shadow-emerald-950/15 ring-1 ring-white/10 transition-shadow hover:shadow-emerald-950/25"
                 >
                   {h.coverImageUrl ? (
-                    <div className="mb-4 aspect-video w-full overflow-hidden rounded-2xl bg-slate-900/40 ring-1 ring-white/10">
-                      <img src={h.coverImageUrl} alt="" className="h-full w-full object-cover" />
+                    <div className="relative mb-4 aspect-video w-full overflow-hidden rounded-2xl bg-slate-900/40 ring-1 ring-white/10">
+                      <Image src={h.coverImageUrl} alt="" fill unoptimized sizes="(min-width: 1024px) 768px, 100vw" className="object-cover" />
                     </div>
                   ) : null}
                   <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
@@ -734,7 +738,7 @@ export default async function OwnerDashboardPage({
                             method="post"
                             className="relative h-16 w-16 overflow-hidden rounded-lg border border-slate-200"
                           >
-                            <img src={p.url} alt="" className="h-full w-full object-cover" />
+                            <Image src={p.url} alt="" fill unoptimized sizes="64px" className="object-cover" />
                             <input type="hidden" name="intent" value="delete_photo" />
                             <input type="hidden" name="photoId" value={p.id} />
                             <button

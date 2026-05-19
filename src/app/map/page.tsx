@@ -21,7 +21,7 @@ export default async function MapPage() {
   );
 
   const mapHotels = hotels.map((hotel) => {
-    const fromPrice = hotel.rooms.length ? Math.min(...hotel.rooms.map((r) => Number(r.price))) : 0;
+    const fromPrice = hotel.rooms.length ? Math.min(...hotel.rooms.map((r) => Number(r.price))) : null;
     return {
       id: hotel.id,
       name: hotel.name,

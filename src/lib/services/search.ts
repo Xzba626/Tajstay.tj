@@ -2,8 +2,9 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { safeDbQuery } from "@/lib/db/safeDb";
 import { scoreHotelByIntent } from "@/lib/services/searchIntent";
+import { normalizePropertyType, type PropertyTypeFilter } from "@/lib/domain/propertyTypes";
 
-export type PropertyTypeFilter = "ANY" | "HOTEL" | "HOSTEL" | "GUEST_HOUSE" | "APARTMENT" | "ECO_HOUSE";
+export type { PropertyTypeFilter } from "@/lib/domain/propertyTypes";
 
 type SearchInput = {
   q?: string;
@@ -29,21 +30,34 @@ async function searchApprovedHotelsQuery(input: SearchInput) {
   if (input.breakfast) amenitiesAnd.push({ amenities: { contains: '"breakfast"' } });
   if (input.parking) amenitiesAnd.push({ amenities: { contains: '"parking"' } });
 
-  const where: Prisma.HotelWhereInput = {
-    status: "APPROVED",
-    city: input.city ? { contains: input.city } : undefined,
-    propertyType: input.propertyType && input.propertyType !== "ANY" ? input.propertyType : undefined,
-    rating: input.ratingMin != null ? { gte: input.ratingMin } : undefined,
-    rooms: {
-      some: {
-        capacity: input.guests ? { gte: input.guests } : undefined,
-        price: {
+  const hasRoomCriteria = Boolean(
+    (input.guests != null && input.guests > 1) ||
+      input.minPrice != null ||
+      input.maxPrice != null ||
+      amenitiesAnd.length
+  );
+  const priceFilter: Prisma.DecimalFilter | undefined =
+    input.minPrice != null || input.maxPrice != null
+      ? {
           gte: input.minPrice ?? undefined,
           lte: input.maxPrice ?? undefined
-        },
-        ...(amenitiesAnd.length ? { AND: amenitiesAnd } : {})
-      }
-    }
+        }
+      : undefined;
+  const roomWhere: Prisma.RoomWhereInput = {
+    availability: true,
+    capacity: input.guests && input.guests > 1 ? { gte: input.guests } : undefined,
+    price: priceFilter,
+    ...(amenitiesAnd.length ? { AND: amenitiesAnd } : {})
+  };
+  const propertyType =
+    input.propertyType && input.propertyType !== "ANY" ? normalizePropertyType(input.propertyType) : null;
+
+  const where: Prisma.HotelWhereInput = {
+    status: "APPROVED",
+    city: input.city ? { contains: input.city, mode: "insensitive" } : undefined,
+    propertyType: propertyType ?? undefined,
+    rating: input.ratingMin != null ? { gte: input.ratingMin } : undefined,
+    rooms: hasRoomCriteria ? { some: roomWhere } : undefined
   };
 
   const orderBy: Prisma.HotelOrderByWithRelationInput[] =
@@ -54,7 +68,7 @@ async function searchApprovedHotelsQuery(input: SearchInput) {
   const hotels = await prisma.hotel.findMany({
     where,
     include: {
-      rooms: true
+      rooms: { where: { availability: true } }
     },
     orderBy
   });
