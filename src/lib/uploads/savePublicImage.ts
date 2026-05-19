@@ -1,29 +1,10 @@
-import { mkdir, writeFile } from "node:fs/promises";
-import path from "node:path";
-import crypto from "node:crypto";
+import { saveUploadFile } from "@/lib/uploads/saveUpload";
 
-const MAX_BYTES = 5 * 1024 * 1024; // 5MB per image
-const MIME_TO_EXT: Record<string, string> = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp"
-};
+const MAX_BYTES = 5 * 1024 * 1024;
 
 export type UploadSubdir = "hotel-covers" | "room-photos";
 
-/**
- * Сохраняет изображение в public/uploads/{subdir}/ и возвращает путь вида /uploads/...
- */
-export async function savePublicImageFile(file: File, subdir: UploadSubdir): Promise<string | null> {
-  if (!file || file.size <= 0 || file.size > MAX_BYTES) return null;
-  const ext = MIME_TO_EXT[file.type] ?? "";
-  if (!ext) return null;
-
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const dir = path.join(process.cwd(), "public", "uploads", subdir);
-  await mkdir(dir, { recursive: true });
-  const name = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`;
-  const abs = path.join(dir, name);
-  await writeFile(abs, buffer);
-  return `/uploads/${subdir}/${name}`;
+/** Saves hotel/room images for public URLs. */
+export async function savePublicImageFile(file: File, subdir: UploadSubdir): Promise<string> {
+  return saveUploadFile(file, subdir, MAX_BYTES);
 }

@@ -20,3 +20,6 @@ prisma/*.db-journal
 
 # Local tunnel binary (do not deploy)
 cloudflared.exe
+
+# Legacy admin secret word file (migrated to AdminSecurityState in DB)
+data/admin-security.json

@@ -73,16 +73,6 @@ export async function POST(req: NextRequest) {
       if (e.code === "P2002") code = "security-update-unique";
       // Record not found (shouldn't happen because we have admin from session)
       if (e.code === "P2025") code = "security-update-notfound";
-    } else if (e instanceof Error) {
-      const msg = e.message.toLowerCase();
-      // setAdminSecretWord writes data/admin-security.json; common failures are permissions/path issues
-      if (msg.includes("eacces") || msg.includes("eperm") || msg.includes("permission")) {
-        code = "security-update-store-perm";
-      } else if (msg.includes("enoent") || msg.includes("no such file") || msg.includes("cannot find")) {
-        code = "security-update-store-missing";
-      } else if (msg.includes("admin-security.json")) {
-        code = "security-update-store";
-      }
     }
     redirectUrl.searchParams.set("error", code);
     return NextResponse.redirect(redirectUrl);

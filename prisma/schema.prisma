@@ -452,3 +452,10 @@ model Favorite {
 
   @@unique([userId, hotelId])
 }
+
+// Singleton (id=1): admin secret word hash for security form (not the login password).
+model AdminSecurityState {
+  id             Int      @id @default(1)
+  secretWordHash String?
+  updatedAt      DateTime @updatedAt
+}

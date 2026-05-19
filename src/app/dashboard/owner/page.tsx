@@ -484,6 +484,22 @@ export default async function OwnerDashboardPage({
               {m(locale, "owner.errHotelCover")}
             </div>
           )}
+          {ownerError === "hotel_cover_storage" && (
+            <div className="rounded-xl border border-amber-400/40 bg-amber-500/15 px-4 py-3 text-sm text-amber-100" role="alert">
+              Не удалось сохранить фото на сервере. В Vercel подключите Storage → Blob и добавьте{" "}
+              <code className="rounded bg-black/20 px-1">BLOB_READ_WRITE_TOKEN</code>, затем redeploy.
+            </div>
+          )}
+          {ownerError === "hotel_cover_upload" && (
+            <div className="rounded-xl border border-amber-400/40 bg-amber-500/15 px-4 py-3 text-sm text-amber-100" role="alert">
+              Ошибка загрузки обложки. Попробуйте JPG/PNG/WebP до 5 МБ.
+            </div>
+          )}
+          {ownerError === "hotel_server" && (
+            <div className="rounded-xl border border-red-400/40 bg-red-500/15 px-4 py-3 text-sm text-red-100" role="alert">
+              Ошибка сервера при сохранении объекта. Проверьте Vercel Logs для /api/owner/hotels.
+            </div>
+          )}
           {ownerError === "hotel" && (
             <div className="rounded-xl border border-amber-400/40 bg-amber-500/15 px-4 py-3 text-sm text-amber-100" role="alert">
               {m(locale, "owner.errHotel")}

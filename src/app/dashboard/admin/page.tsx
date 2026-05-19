@@ -22,6 +22,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { scoreHotelRisk } from "@/lib/services/riskScoring";
 import { deriveEscrowState } from "@/lib/domain/booking";
 import { notificationText } from "@/lib/notifications/text";
+import { isAdminSecurityResetConfigured } from "@/lib/admin-security";
 
 export const dynamic = "force-dynamic";
 
@@ -81,6 +82,7 @@ export default async function AdminDashboardPage({
   const securityError = (params?.error ?? "").trim();
   const securityOk = (params?.ok ?? "").trim();
   const isDev = process.env.NODE_ENV !== "production";
+  const adminSecurityResetAvailable = isAdminSecurityResetConfigured();
   const securityMessage =
     securityError === "security-required"
       ? "Введите текущий пароль и secret word."
@@ -94,15 +96,23 @@ export default async function AdminDashboardPage({
               ? "Не удалось сохранить: телефон или email уже используется другим пользователем."
               : securityError === "security-update-notfound"
                 ? "Не удалось сохранить: администратор не найден."
-                : securityError === "security-update-store-perm"
-                  ? "Не удалось сохранить secret word: сервер не имеет прав на запись в папку `data/`."
-                  : securityError === "security-update-store-missing"
-                    ? "Не удалось сохранить secret word: не найден путь для `data/`."
-                    : securityError === "security-update-store"
-                      ? "Не удалось сохранить secret word на сервере."
-            : securityError
-              ? `Security update failed: ${securityError}`
-              : "";
+                : securityError === "security-reset-denied"
+                  ? "Неверный reset secret. Проверьте ADMIN_SECURITY_RESET_SECRET в Vercel."
+                  : securityError === "security-reset-password"
+                    ? "Укажите новый пароль (минимум 6 символов)."
+                    : securityError === "security-reset-secret"
+                      ? "Укажите новый secret word (минимум 4 символа)."
+                      : securityError === "security-reset-failed"
+                        ? "Не удалось выполнить emergency reset."
+                        : securityError
+                          ? `Security update failed: ${securityError}`
+                          : "";
+  const securityOkMessage =
+    securityOk === "security-reset"
+      ? "Emergency reset выполнен. Войдите снова с новым паролем и secret word."
+      : securityOk === "security-updated"
+        ? "Security updated successfully."
+        : "";
 
   // We keep list item typing flexible because each section uses different Prisma includes.
   let hotels: any[] = [];
@@ -523,16 +533,20 @@ export default async function AdminDashboardPage({
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="text-sm font-semibold text-slate-900">Admin security (login and password)</div>
           <p className="mt-1 text-sm text-slate-600">
-            Change admin login (phone/email), password, and secret word. Passwords and secret word are stored hashed.
+            Change admin login (phone/email), password, and secret word. Passwords and secret word are stored hashed in the database.
+          </p>
+          <p className="mt-2 text-xs text-slate-500">
+            Current password — тот же пароль, которым вы вошли в админку. Secret word — отдельное слово (по умолчанию{" "}
+            <code className="rounded bg-slate-100 px-1">tajstay-secret</code>, если ещё не меняли).
           </p>
           {securityError && (
             <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
               {securityMessage}
             </div>
           )}
-          {securityOk && (
+          {securityOk && securityOkMessage && (
             <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-              Security updated successfully.
+              {securityOkMessage}
             </div>
           )}
           <form action="/api/admin/security/update" method="post" className="mt-4 grid gap-3 md:grid-cols-2">
@@ -565,6 +579,44 @@ export default async function AdminDashboardPage({
               Save admin security
             </button>
           </form>
+
+          {adminSecurityResetAvailable && (
+            <div className="mt-8 border-t border-slate-200 pt-6">
+              <div className="text-sm font-semibold text-slate-900">Emergency reset (production recovery)</div>
+              <p className="mt-1 text-xs text-slate-500">
+                Если забыли текущий пароль или secret word. Нужен{" "}
+                <code className="rounded bg-slate-100 px-1">ADMIN_SECURITY_RESET_SECRET</code> из Vercel.
+              </p>
+              <form action="/api/admin/security/reset" method="post" className="mt-4 grid gap-3 md:grid-cols-2">
+                <label className="text-sm text-slate-700 md:col-span-2">
+                  Reset secret (from Vercel env)
+                  <input name="resetSecret" type="password" required className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5" />
+                </label>
+                <label className="text-sm text-slate-700">
+                  New phone login
+                  <input name="phone" defaultValue={admin.phone} className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5" />
+                </label>
+                <label className="text-sm text-slate-700">
+                  New email login
+                  <input name="email" type="email" defaultValue={admin.email ?? ""} className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5" />
+                </label>
+                <label className="text-sm text-slate-700">
+                  New password (required)
+                  <input name="newPassword" type="password" required minLength={6} className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5" />
+                </label>
+                <label className="text-sm text-slate-700">
+                  New secret word (required)
+                  <input name="newSecretWord" type="password" required minLength={4} className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5" />
+                </label>
+                <button
+                  type="submit"
+                  className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm font-semibold text-amber-900 transition hover:bg-amber-100 md:col-span-2"
+                >
+                  Emergency reset admin security
+                </button>
+              </form>
+            </div>
+          )}
         </div>
       </section>}
 

@@ -1,31 +1,20 @@
-import { mkdir, writeFile } from "node:fs/promises";
-import path from "node:path";
-import crypto from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
+import { saveUploadFile } from "@/lib/uploads/saveUpload";
+import { ImageUploadError } from "@/lib/uploads/imageUploadError";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/requireAuth";
 import { publicUrl } from "@/lib/http/publicOrigin";
 import { clientIp, rateLimit } from "@/lib/security/rateLimit";
 
 const MAX_FILE_BYTES = 6 * 1024 * 1024; // 6MB
-const MIME_TO_EXT: Record<string, string> = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp"
-};
 
 async function saveGuestDocFile(file: File): Promise<string | null> {
-  if (!file || file.size <= 0 || file.size > MAX_FILE_BYTES) return null;
-  const ext = MIME_TO_EXT[file.type] ?? "";
-  if (!ext) return null;
-
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const dir = path.join(process.cwd(), "public", "uploads", "guest-docs");
-  await mkdir(dir, { recursive: true });
-  const name = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`;
-  const abs = path.join(dir, name);
-  await writeFile(abs, buffer);
-  return `/uploads/guest-docs/${name}`;
+  try {
+    return await saveUploadFile(file, "guest-docs", MAX_FILE_BYTES);
+  } catch (err) {
+    if (err instanceof ImageUploadError) return null;
+    throw err;
+  }
 }
 
 export async function POST(req: NextRequest) {

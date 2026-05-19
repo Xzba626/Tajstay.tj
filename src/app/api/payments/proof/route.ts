@@ -1,7 +1,6 @@
-import { mkdir, writeFile } from "node:fs/promises";
-import path from "node:path";
-import crypto from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
+import { saveUploadFile } from "@/lib/uploads/saveUpload";
+import { ImageUploadError } from "@/lib/uploads/imageUploadError";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/requireAuth";
 import { BOOKING_STATUS } from "@/lib/domain/booking";
@@ -10,11 +9,6 @@ import { clientIp, rateLimit } from "@/lib/security/rateLimit";
 import { isSafePublicHttpsUrl } from "@/lib/security/safeUrl";
 
 const MAX_FILE_BYTES = 4 * 1024 * 1024; // 4MB
-const MIME_TO_EXT: Record<string, string> = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp"
-};
 
 function isSafeProofUrl(raw: string): boolean {
   const s = raw.trim();
@@ -28,17 +22,12 @@ function isSafeProofUrl(raw: string): boolean {
 }
 
 async function saveProofFile(file: File): Promise<string | null> {
-  if (!file || file.size <= 0 || file.size > MAX_FILE_BYTES) return null;
-  const ext = MIME_TO_EXT[file.type] ?? "";
-  if (!ext) return null;
-
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const dir = path.join(process.cwd(), "public", "uploads", "payment-proofs");
-  await mkdir(dir, { recursive: true });
-  const name = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`;
-  const abs = path.join(dir, name);
-  await writeFile(abs, buffer);
-  return `/uploads/payment-proofs/${name}`;
+  try {
+    return await saveUploadFile(file, "payment-proofs", MAX_FILE_BYTES);
+  } catch (err) {
+    if (err instanceof ImageUploadError) return null;
+    throw err;
+  }
 }
 
 export async function POST(req: NextRequest) {
