@@ -7,6 +7,7 @@ import { useDebounce } from "@/shared/hooks/useDebounce";
 import { useSearchFilters } from "@/features/search-hotels/model/useSearchFilters";
 import dynamic from "next/dynamic";
 import { Modal } from "@/components/ui/Modal";
+import { AppImage } from "@/components/ui/AppImage";
 
 const MapClient = dynamic(() => import("@/app/map/MapClient"), { ssr: false });
 
@@ -321,12 +322,13 @@ export function SearchExperience({ initialHotels, initialFilters, locale }: Prop
         {previewHotel ? (
           <div className="space-y-4">
             {previewHotel.coverImageUrl ? (
-              <div className="overflow-hidden rounded-2xl border border-brand-500/70">
-                <img
+              <div className="relative h-44 w-full overflow-hidden rounded-2xl border border-brand-500/70">
+                <AppImage
                   src={previewHotel.coverImageUrl}
                   alt={`Фото отеля ${previewHotel.name}`}
-                  className="h-44 w-full object-cover"
-                  loading="lazy"
+                  fill
+                  className="object-cover"
+                  sizes="400px"
                 />
               </div>
             ) : null}

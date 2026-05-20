@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AppImage } from "@/components/ui/AppImage";
 import { Hotel, Room } from "@prisma/client";
 import { t, type Locale } from "@/lib/i18n/dictionaries";
 import { ViewTransitionLink } from "@/components/effects/ViewTransitionLink";
@@ -71,11 +72,7 @@ export function HotelCard({ hotel, locale = "ru", variant = "accent", hrefQuery 
           style={{ viewTransitionName: `hotel-hero-${hotel.id}` } as any}
         >
           {hotel.coverImageUrl ? (
-            <img
-              src={hotel.coverImageUrl}
-              alt={hotel.name}
-              className="absolute inset-0 h-full w-full object-cover"
-            />
+            <AppImage src={hotel.coverImageUrl} alt={hotel.name} fill className="object-cover" sizes="(max-width:640px) 100vw, 400px" />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-brand-900 via-brand-800 to-brand-700">
               <div className="text-5xl opacity-20">🏨</div>

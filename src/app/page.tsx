@@ -8,13 +8,13 @@ import { getSiteContent } from "@/lib/site-content";
 import { prisma } from "@/lib/prisma";
 import { safeDbQuery } from "@/lib/db/safeDb";
 import { HeroThreeBackground } from "@/components/effects/HeroThreeBackground";
-import { Hero3DSceneGate } from "@/components/effects/Hero3DSceneGate";
 import { AIRecommendationLab } from "@/components/ai/AIRecommendationLab";
 import { ViewTransitionLink } from "@/components/effects/ViewTransitionLink";
 import { HomeScrollEnhancer } from "./HomeScrollEnhancer";
+import { GuestHomeExtras } from "@/components/guest/GuestHomeExtras";
 import { SearchBar } from "@/components/SearchBar";
 import { getBookingGuestLabel } from "@/lib/domain/booking";
-import { HomeHeroLuxury } from "@/components/home/HomeHeroLuxury";
+import { TajstayHero3D } from "@/components/landing/TajstayHero3D";
 
 export default async function HomePage() {
   const locale = getLocale();
@@ -59,8 +59,7 @@ export default async function HomePage() {
 
       <section className="home-chapter home-chapter--band-hero home-chapter--snap noise-overlay relative flex min-h-[min(78svh,760px)] flex-col overflow-hidden pb-4 pt-4 sm:min-h-[min(100dvh,960px)] sm:pb-10 sm:pt-10">
         <HeroThreeBackground />
-        <Hero3DSceneGate className="pointer-events-none absolute inset-0 -z-10" />
-        <HomeHeroLuxury
+        <TajstayHero3D
           heroBadge={m(locale, "home.heroBadge")}
           heroTitle={t(locale, "heroTitle")}
           heroSubtitle={t(locale, "heroSubtitle")}
@@ -68,10 +67,12 @@ export default async function HomePage() {
           ctaOwners={m(locale, "home.ctaOwners")}
         >
           <SearchBar locale={locale} />
-        </HomeHeroLuxury>
+        </TajstayHero3D>
       </section>
 
       <div className="home-chapter-divider" aria-hidden />
+
+      <GuestHomeExtras locale={locale} />
 
       {content.homeBanner.enabled && (
         <>

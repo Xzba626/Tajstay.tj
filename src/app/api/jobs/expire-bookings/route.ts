@@ -101,6 +101,14 @@ export async function POST(req: NextRequest) {
         payload: JSON.stringify({ at: now.toISOString() })
       }))
     });
+    await Promise.all(
+      reviewIds.map((id) =>
+        addBookingSystemMessage({
+          bookingId: id,
+          message: "🛡️ Система: Время проверки чека истекло. Оплата отклонена."
+        }).catch(() => undefined)
+      )
+    );
   }
 
   return NextResponse.json({ ok: true, expired: ids.length, reviewTimedOut: reviewIds.length });

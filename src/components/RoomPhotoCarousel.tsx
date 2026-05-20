@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
+import { AppImage } from "@/components/ui/AppImage";
 
 type Props = {
   urls: string[];
@@ -59,7 +60,7 @@ export function RoomPhotoCarousel({ urls, title, variant = "light" }: Props) {
       }}
     >
       <div className="relative aspect-[16/10] w-full touch-pan-y">
-        <img src={list[i]} alt="" className="h-full w-full object-cover" />
+        <AppImage src={list[i]} alt={title} fill className="object-cover" sizes="(max-width:768px) 100vw, 50vw" />
         {list.length > 1 && (
           <>
             <button

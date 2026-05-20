@@ -5,6 +5,7 @@ import { getAdminBookingChatTimeline, getBookingChatMessages } from "@/lib/chat/
 import { markBookingChatMessagesRead } from "@/lib/chat/markMessagesRead";
 import { BOOKING_STATUS } from "@/lib/domain/booking";
 import { saveChatAttachmentFile } from "@/lib/uploads/saveChatAttachment";
+import { canAccessBookingChat } from "@/lib/chat/bookingAccess";
 
 const TERMINAL_NO_NEW_MESSAGES = new Set<string>([
   BOOKING_STATUS.EXPIRED,
@@ -43,10 +44,8 @@ async function ensureAccess(bookingId: number, userId: number) {
     include: { room: { include: { hotel: true } }, user: true }
   });
   if (!booking) return null;
-  const isGuest = booking.userId === userId;
-  const isOwner = booking.room.hotel.ownerId === userId;
-  const isAdmin = (await prisma.user.findUnique({ where: { id: userId }, select: { role: true } }))?.role === "ADMIN";
-  if (!isGuest && !isOwner && !isAdmin) return null;
+  const roleRow = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
+  if (!roleRow || !canAccessBookingChat(booking, { id: userId, role: roleRow.role })) return null;
   return booking;
 }
 
@@ -105,10 +104,10 @@ export async function POST(req: NextRequest, { params }: { params: { bookingId: 
   });
   if (!booking) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const isGuest = booking.userId === user.id;
+  if (!canAccessBookingChat(booking, user)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const isGuest = booking.userId != null && booking.userId === user.id;
   const isOwner = booking.room.hotel.ownerId === user.id;
   const isAdmin = user.role === "ADMIN";
-  if (!isGuest && !isOwner && !isAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   if (isBookingChatLocked(booking)) {
     return NextResponse.json({ error: "Чат закрыт для новых сообщений" }, { status: 403 });

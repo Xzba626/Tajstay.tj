@@ -100,6 +100,30 @@ export async function getBookingTimeline(bookingId: number): Promise<BookingTime
             : "bookingRoom.timeline.proofSubmitted"
       });
     }
+    if (log.type === "PAYMENT_CONFIRMED") {
+      pushUnique(events, {
+        id: `log-${log.id}`,
+        kind: "CONFIRMED",
+        at: log.createdAt.toISOString(),
+        labelKey: "bookingRoom.timeline.confirmed"
+      });
+    }
+    if (log.type === "PAYMENT_PROOF_REJECTED") {
+      let detail: string | undefined;
+      try {
+        const p = JSON.parse(log.payload ?? "{}") as { reason?: string };
+        if (p.reason?.trim()) detail = p.reason.trim();
+      } catch {
+        /* ignore */
+      }
+      pushUnique(events, {
+        id: `log-${log.id}`,
+        kind: "REJECTED",
+        at: log.createdAt.toISOString(),
+        labelKey: "bookingRoom.timeline.rejected",
+        detail
+      });
+    }
   }
 
   if (booking.proofSubmittedAt) {

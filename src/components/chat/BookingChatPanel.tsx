@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { isSyntheticArchiveChatMessageId } from "@/lib/chat/archiveMessageIds";
+import { groupChatMessages } from "@/lib/chat/groupMessages";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
 import { PaymentCountdown } from "@/app/payment/[code]/PaymentCountdown";
@@ -38,8 +39,13 @@ type ChatMessage = {
   senderName: string;
   message: string;
   imageUrl?: string | null;
+  status?: string;
+  readAt?: string | null;
   createdAt: string;
 };
+
+const HOST_QUICK_KEYS = ["1", "2", "3", "4", "5"] as const;
+const ADMIN_QUICK_KEYS = ["1", "2", "3", "4"] as const;
 
 export type LiveBookingSnap = {
   status: string;
@@ -70,6 +76,10 @@ export type BookingChatPanelProps = {
   density?: "default" | "compact";
   /** На странице оплаты скрыть ссылку «Загрузить чек» */
   suppressPaymentDeepLink?: boolean;
+  /** Действия проверки оплаты вынесены в PaymentReviewCard (sidebar) */
+  suppressReviewActions?: boolean;
+  /** Внутри BookingRoom: без дублирующего header, на всю высоту колонки */
+  embeddedInRoom?: boolean;
 };
 
 function timeLabel(iso: string): string {
@@ -154,7 +164,9 @@ export function BookingChatPanel({
   roomTitle,
   counterpartPreview,
   density = "default",
-  suppressPaymentDeepLink = false
+  suppressPaymentDeepLink = false,
+  suppressReviewActions = false,
+  embeddedInRoom = false
 }: BookingChatPanelProps) {
   const [items, setItems] = useState<ChatMessage[]>([]);
   const [text, setText] = useState("");
@@ -490,6 +502,8 @@ export function BookingChatPanel({
     );
   }, [isAdmin, effectiveStatus]);
 
+  const groupedItems = useMemo(() => groupChatMessages(items, locale), [items, locale]);
+
   async function callAction(opts: { nextStatus: string; url: string; errorPrefix: string }) {
     if (actionBusy) return;
     setActionBusy(true);
@@ -544,6 +558,21 @@ export function BookingChatPanel({
         </button>
       ) : null}
 
+      {embeddedInRoom ? (
+        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-white/[0.08] bg-slate-950/80 px-3 py-2 backdrop-blur-md">
+          <div className="min-w-0">
+            <div className="truncate text-xs font-semibold text-slate-200">{title}</div>
+            {headerSubtitle ? (
+              <div className="truncate text-[10px] text-slate-500">{headerSubtitle}</div>
+            ) : null}
+          </div>
+          <span
+            className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide ring-1 ring-inset ${statusPillClass(statusForPill)}`}
+          >
+            {statusLabelLocalized(statusForPill, locale)}
+          </span>
+        </div>
+      ) : (
       <header className="sticky top-0 z-20 flex shrink-0 items-center gap-3 border-b border-white/[0.08] bg-slate-950/90 px-4 py-3 shadow-[0_8px_24px_rgba(0,0,0,0.35)] backdrop-blur-xl supports-[backdrop-filter]:bg-slate-950/75">
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500/30 to-teal-600/20 text-lg font-bold text-emerald-100 ring-1 ring-white/10">
           {avatarLetter(title)}
@@ -640,6 +669,7 @@ export function BookingChatPanel({
           </button>
         ) : null}
       </header>
+      )}
 
       <div
         ref={scrollRef}
@@ -661,23 +691,40 @@ export function BookingChatPanel({
           </div>
         ) : (
           <div className="flex flex-col gap-2 pb-2">
-            {items.map((msg) => {
+            {groupedItems.map((row) => {
+              if (row.kind === "date") {
+                return (
+                  <div key={row.key} className="my-2 flex justify-center">
+                    <span className="rounded-full border border-white/10 bg-white/5 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                      {row.label}
+                    </span>
+                  </div>
+                );
+              }
+              const msg = row.msg;
               const mine = msg.senderId === currentUserId;
               const system = msg.senderRole === "SYSTEM";
               const fromGuest = msg.senderRole === "GUEST";
               if (system) {
                 return (
-                  <div key={msg.id} className="mx-auto max-w-[90%] px-2 py-1 text-center">
-                    <div className="text-[10px] leading-snug text-slate-500/90">
-                      <span aria-hidden>🛡️ </span>
-                      {msg.message.replace(/^🛡️\s*/, "")}
+                  <div key={row.key} className="mx-auto my-1 max-w-[92%]">
+                    <div className="rounded-xl border border-violet-400/20 bg-violet-500/10 px-3 py-2 text-center">
+                      <p className="text-[11px] leading-snug text-violet-100/90">
+                        <span aria-hidden className="mr-1">
+                          🛡️
+                        </span>
+                        {msg.message.replace(/^🛡️\s*/, "")}
+                      </p>
+                      <p className="mt-1 text-[9px] text-violet-300/50">{timeLabel(msg.createdAt)}</p>
                     </div>
-                    <div className="mt-0.5 text-[9px] text-slate-600">{timeLabel(msg.createdAt)}</div>
                   </div>
                 );
               }
               return (
-                <div key={msg.id} className={`group flex w-full ${fromGuest ? "justify-end" : "justify-start"}`}>
+                <div
+                  key={row.key}
+                  className={`group flex w-full ${fromGuest ? "justify-end" : "justify-start"} ${row.showMeta ? "mt-2" : "mt-0.5"}`}
+                >
                   <div
                     className={`relative max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm shadow-md ${
                       fromGuest
@@ -695,12 +742,30 @@ export function BookingChatPanel({
                         ×
                       </button>
                     ) : null}
-                    <div
-                      className={`mb-1 flex items-center justify-between gap-2 text-[10px] ${fromGuest ? "text-emerald-100/90" : "text-slate-400"}`}
-                    >
-                      <span className="font-medium">{mine ? "Вы" : msg.senderName}</span>
-                      <span>{timeLabel(msg.createdAt)}</span>
-                    </div>
+                    {row.showMeta ? (
+                      <div
+                        className={`mb-1 flex items-center justify-between gap-2 text-[10px] ${fromGuest ? "text-emerald-100/90" : "text-slate-400"}`}
+                      >
+                        <span className="font-medium">{mine ? m(locale, "chat.you") : msg.senderName}</span>
+                        <span>
+                          {timeLabel(msg.createdAt)}
+                          {mine && msg.readAt ? (
+                            <span className="ml-1 text-emerald-200/70" title={m(locale, "chat.readReceipt")}>
+                              ✓✓
+                            </span>
+                          ) : null}
+                        </span>
+                      </div>
+                    ) : (
+                      <div className={`text-right text-[9px] ${fromGuest ? "text-emerald-100/60" : "text-slate-500"}`}>
+                        {timeLabel(msg.createdAt)}
+                        {mine && msg.readAt ? (
+                          <span className="ml-1 text-emerald-200/70" title={m(locale, "chat.readReceipt")}>
+                            ✓✓
+                          </span>
+                        ) : null}
+                      </div>
+                    )}
                     {msg.imageUrl ? (
                       <button
                         type="button"
@@ -712,7 +777,7 @@ export function BookingChatPanel({
                       </button>
                     ) : null}
                     {msg.message && msg.message !== "📎" ? (
-                      <div className="whitespace-pre-wrap break-words pt-1">{msg.message}</div>
+                      <div className={`whitespace-pre-wrap break-words ${row.showMeta ? "pt-1" : ""}`}>{msg.message}</div>
                     ) : null}
                   </div>
                 </div>
@@ -727,7 +792,7 @@ export function BookingChatPanel({
         className="sticky bottom-0 z-10 shrink-0 space-y-2 border-t border-white/[0.08] bg-[rgba(7,10,14,0.96)] px-3 py-3 backdrop-blur-2xl"
         style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom))" }}
       >
-        {isAdmin && effectiveStatus === "ON_REVIEW" ? (
+        {isAdmin && effectiveStatus === "ON_REVIEW" && !suppressReviewActions ? (
           <button
             type="button"
             disabled={actionBusy}
@@ -827,6 +892,46 @@ export function BookingChatPanel({
             >
               {m(locale, "chat.quickAlmostThere")}
             </button>
+          </div>
+        ) : null}
+
+        {isOwner && canSend && !chatArchived ? (
+          <div className="flex flex-wrap gap-2">
+            {HOST_QUICK_KEYS.map((k) => {
+              const label = m(locale, `chat.quickReply.host.${k}`);
+              return (
+                <button
+                  key={k}
+                  type="button"
+                  disabled={sending}
+                  title={label}
+                  onClick={() => void sendQuickReply(label)}
+                  className="max-w-[220px] truncate rounded-full border border-emerald-400/25 bg-emerald-500/10 px-3 py-2 text-[11px] font-semibold text-emerald-100 disabled:opacity-50"
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        ) : null}
+
+        {isAdmin && canSend && !chatArchived ? (
+          <div className="flex flex-wrap gap-2">
+            {ADMIN_QUICK_KEYS.map((k) => {
+              const label = m(locale, `chat.quickReply.admin.${k}`);
+              return (
+                <button
+                  key={k}
+                  type="button"
+                  disabled={sending}
+                  title={label}
+                  onClick={() => void sendQuickReply(label)}
+                  className="max-w-[220px] truncate rounded-full border border-indigo-400/25 bg-indigo-500/10 px-3 py-2 text-[11px] font-semibold text-indigo-100 disabled:opacity-50"
+                >
+                  {label}
+                </button>
+              );
+            })}
           </div>
         ) : null}
 
@@ -959,9 +1064,11 @@ export function BookingChatPanel({
   const shellClass =
     presentation === "overlay"
       ? "fixed inset-0 z-[100] flex flex-col bg-[rgba(7,10,14,0.92)] backdrop-blur-xl sm:inset-4 sm:rounded-2xl sm:border sm:border-white/10"
-      : density === "compact"
-        ? "flex h-[min(52dvh,520px)] min-h-[260px] flex-col overflow-hidden rounded-2xl border border-white/10 bg-[rgba(15,23,42,0.55)] shadow-2xl backdrop-blur-xl"
-        : "flex h-[min(720px,calc(100vh-8rem))] min-h-[420px] flex-col overflow-hidden rounded-2xl border border-white/10 bg-[rgba(15,23,42,0.55)] shadow-2xl backdrop-blur-xl";
+      : embeddedInRoom
+        ? "flex h-full min-h-0 flex-col overflow-hidden"
+        : density === "compact"
+          ? "flex h-[min(52dvh,520px)] min-h-[260px] flex-col overflow-hidden rounded-2xl border border-white/10 bg-[rgba(15,23,42,0.55)] shadow-2xl backdrop-blur-xl"
+          : "flex h-[min(720px,calc(100vh-8rem))] min-h-[420px] flex-col overflow-hidden rounded-2xl border border-white/10 bg-[rgba(15,23,42,0.55)] shadow-2xl backdrop-blur-xl";
 
   return <div className={shellClass}>{inner}</div>;
 }

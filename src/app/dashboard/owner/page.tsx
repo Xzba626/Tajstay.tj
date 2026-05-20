@@ -28,6 +28,7 @@ import { OwnerCalendar } from "@/components/owner/OwnerCalendar";
 import { getOwnerDashboardKpis } from "@/lib/services/ownerDashboardKpis";
 import { getOwnerCalendarData } from "@/lib/services/ownerCalendar";
 import { BOOKING_SOURCE, getBookingGuestLabel } from "@/lib/domain/booking";
+import { AppImage } from "@/components/ui/AppImage";
 
 export const dynamic = "force-dynamic";
 
@@ -528,8 +529,8 @@ export default async function OwnerDashboardPage({
                   className="glass-panel rounded-2xl p-6 shadow-2xl shadow-emerald-950/15 ring-1 ring-white/10 transition-shadow hover:shadow-emerald-950/25"
                 >
                   {h.coverImageUrl ? (
-                    <div className="mb-4 aspect-video w-full overflow-hidden rounded-2xl bg-slate-900/40 ring-1 ring-white/10">
-                      <img src={h.coverImageUrl} alt="" className="h-full w-full object-cover" />
+                    <div className="relative mb-4 aspect-video w-full overflow-hidden rounded-2xl bg-slate-900/40 ring-1 ring-white/10">
+                      <AppImage src={h.coverImageUrl} alt="" fill className="object-cover" sizes="400px" />
                     </div>
                   ) : null}
                   <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
@@ -756,7 +757,7 @@ export default async function OwnerDashboardPage({
                             method="post"
                             className="relative h-16 w-16 overflow-hidden rounded-lg border border-slate-200"
                           >
-                            <img src={p.url} alt="" className="h-full w-full object-cover" />
+                            <AppImage src={p.url} alt="" fill className="object-cover" sizes="64px" />
                             <input type="hidden" name="intent" value="delete_photo" />
                             <input type="hidden" name="photoId" value={p.id} />
                             <button
@@ -1126,7 +1127,7 @@ export default async function OwnerDashboardPage({
               <div key={n.id} className="rounded-xl border bg-white p-4 text-sm">
                 {n.booking ? (
                   <>
-                    {n.booking.user.name} · {n.booking.room.hotel.name} · {n.booking.checkIn.toISOString().slice(0, 10)} —{" "}
+                    {getBookingGuestLabel(n.booking)} · {n.booking.room.hotel.name} · {n.booking.checkIn.toISOString().slice(0, 10)} —{" "}
                     {n.booking.checkOut.toISOString().slice(0, 10)} · {n.booking.phone} · {tStatus(locale, n.booking.paymentStatus)}
                   </>
                 ) : (
@@ -1206,7 +1207,7 @@ export default async function OwnerDashboardPage({
               </div>
 
               <div className="rounded-2xl border bg-white p-4">
-                <div className="text-sm font-semibold">Занято (по броням)</div>
+                <div className="text-sm font-semibold">{m(locale, "owner.calendarOccupiedTitle")}</div>
                 <div className="mt-3 space-y-2">
                   {calendarBookings.length ? (
                     calendarBookings.map((b) => (
@@ -1225,7 +1226,7 @@ export default async function OwnerDashboardPage({
                       </div>
                     ))
                   ) : (
-                    <p className="text-sm text-slate-500">Пока нет занятых дат.</p>
+                    <p className="text-sm text-slate-500">{m(locale, "owner.calendarOccupiedEmpty")}</p>
                   )}
                 </div>
               </div>

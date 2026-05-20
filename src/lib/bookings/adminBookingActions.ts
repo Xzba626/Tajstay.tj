@@ -42,6 +42,15 @@ export async function confirmBookingPaymentAdmin(bookingId: number, adminId: num
   });
   await prisma.payment.update({ where: { id: payment.id }, data: { status: "CAPTURED" } });
 
+  await prisma.transactionLog.create({
+    data: {
+      bookingId,
+      paymentId: payment.id,
+      type: "PAYMENT_CONFIRMED",
+      payload: JSON.stringify({ adminId, at: new Date().toISOString() })
+    }
+  });
+
   await addBookingSystemMessage({
     bookingId,
     message: "🛡️ Система: Бронирование подтверждено! Ждем вас."

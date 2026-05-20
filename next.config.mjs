@@ -3,11 +3,9 @@ const nextConfig = {
   reactStrictMode: true,
   images: {
     remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "tajstay.site",
-        pathname: "/**"
-      }
+      { protocol: "https", hostname: "tajstay.site", pathname: "/**" },
+      { protocol: "https", hostname: "www.tajstay.site", pathname: "/**" },
+      { protocol: "https", hostname: "public.blob.vercel-storage.com", pathname: "/**" }
     ]
   },
   /** Долгий кэш хэшированных чанков (повторные визиты); HTML/RSC по-прежнему без жёсткого вечного кэша. */

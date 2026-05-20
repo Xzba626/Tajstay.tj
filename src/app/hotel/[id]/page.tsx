@@ -9,6 +9,8 @@ import { m } from "@/lib/i18n/messages";
 import { getOwnerPaymentMethods } from "@/lib/owner-payment-methods";
 import { Card } from "@/shared/ui";
 import { RoomPhotoCarousel } from "@/components/RoomPhotoCarousel";
+import { AppImage } from "@/components/ui/AppImage";
+import { HotelViewTracker } from "@/components/guest/HotelViewTracker";
 import { getBookingGuestLabel } from "@/lib/domain/booking";
 
 function buildAiReviewSummary(comments: string[]) {
@@ -145,13 +147,21 @@ export default async function HotelDetailPage({
 
   return (
     <div className="mx-auto max-w-7xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
+      <HotelViewTracker hotelId={hotel.id} name={hotel.name} city={hotel.city} />
       <section className="grid gap-6 lg:grid-cols-3" data-reveal>
         <div
           className="relative h-80 overflow-hidden rounded-2xl bg-brand-800 lg:col-span-2"
           style={{ viewTransitionName: `hotel-hero-${hotel.id}` } as any}
         >
           {hotel.coverImageUrl ? (
-            <img src={hotel.coverImageUrl} alt="" className="absolute inset-0 h-full w-full object-cover transition duration-700 hover:scale-105" />
+            <AppImage
+              src={hotel.coverImageUrl}
+              alt={hotel.name}
+              fill
+              className="object-cover transition duration-700 hover:scale-105"
+              sizes="(max-width:1024px) 100vw, 66vw"
+              priority
+            />
           ) : null}
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
         </div>
@@ -283,7 +293,13 @@ export default async function HotelDetailPage({
                     <div className="mt-3 whitespace-pre-wrap text-sm text-brand-200">{r.comment}</div>
                     {r.imageUrl && (
                       <div className="mt-3">
-                        <img src={r.imageUrl} alt="review" className="max-h-48 w-auto rounded-xl border border-brand-700" />
+                        <AppImage
+                          src={r.imageUrl}
+                          alt="review"
+                          width={320}
+                          height={192}
+                          className="max-h-48 w-auto rounded-xl border border-brand-700 object-cover"
+                        />
                       </div>
                     )}
                   </div>

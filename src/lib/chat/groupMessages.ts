@@ -5,6 +5,8 @@ export type ChatRow = {
   senderName: string;
   message: string;
   imageUrl?: string | null;
+  status?: string;
+  readAt?: string | null;
   createdAt: string;
 };
 

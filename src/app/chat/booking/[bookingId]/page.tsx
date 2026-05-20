@@ -6,6 +6,7 @@ import { getLocale } from "@/lib/i18n/get-locale";
 import { BookingRoom } from "@/components/chat/BookingRoom";
 import { getOwnerPaymentMethods } from "@/lib/owner-payment-methods";
 import { getBookingTimeline } from "@/lib/chat/bookingTimeline";
+import { getProofMetaFromLogs } from "@/lib/chat/proofMeta";
 import { m } from "@/lib/i18n/messages";
 
 export const dynamic = "force-dynamic";
@@ -55,9 +56,10 @@ export default async function BookingChatPage({
         ? m(locale, "bookingRoom.titleGuest")
         : m(locale, "bookingRoom.titleOwner");
 
-  const [paymentMethods, timeline] = await Promise.all([
+  const [paymentMethods, timeline, proofMeta] = await Promise.all([
     getOwnerPaymentMethods(booking.room.hotel.ownerId),
-    getBookingTimeline(bookingId)
+    getBookingTimeline(bookingId),
+    getProofMetaFromLogs(bookingId)
   ]);
 
   const proofSent = searchParams?.proofSent === "1";
@@ -71,6 +73,7 @@ export default async function BookingChatPage({
       isGuest={isGuest}
       backHref={backHref}
       title={title}
+      guestLabel={guestLabel}
       counterpartPreview={
         isAdmin
           ? `${guestLabel} · ${booking.room.hotel.name}`
@@ -92,6 +95,12 @@ export default async function BookingChatPage({
       paymentMethods={paymentMethods}
       timeline={timeline}
       proofSent={proofSent}
+      paymentProofUrl={booking.paymentProofUrl}
+      guestDocumentUrl={booking.guestDocumentUrl}
+      proofSubmittedAt={booking.proofSubmittedAt?.toISOString() ?? null}
+      proofReviewDeadlineAt={booking.proofReviewDeadlineAt?.toISOString() ?? null}
+      proofAmount={proofMeta.proofAmount}
+      proofComment={proofMeta.proofComment}
     />
   );
 }

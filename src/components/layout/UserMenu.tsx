@@ -91,10 +91,8 @@ function prettyNotificationText(n: NotificationItem): string {
   return notificationText(locale, n.type, n.bookingCode);
 }
 
-function allNotificationsLink(role: string): string {
-  if (role === "OWNER") return "/dashboard/owner?section=notifications";
-  if (role === "ADMIN") return "/dashboard/admin?section=notifications";
-  return "/dashboard/guest/notifications";
+function allNotificationsLink(_role: string): string {
+  return "/notifications";
 }
 
 function getClientLocale(): Locale {

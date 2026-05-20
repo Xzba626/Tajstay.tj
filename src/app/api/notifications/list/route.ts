@@ -30,17 +30,20 @@ export async function GET() {
   const items = rows.map((n) => {
     const bookingCode = n.booking?.publicCode ?? null;
     const hotelName = n.booking?.room?.hotel?.name ?? null;
-    const guestName = n.booking?.user?.name ?? null;
+    const guestName =
+      n.booking?.guestName?.trim() || n.booking?.user?.name?.trim() || n.booking?.guestPhone?.trim() || null;
     return {
       id: n.id,
       type: n.type,
+      title: n.title,
+      message: n.message,
       isRead: n.isRead,
       createdAt: n.createdAt.toISOString(),
       bookingId: n.bookingId,
       bookingCode,
       hotelName,
       guestName,
-      link: deriveLink({ bookingId: n.bookingId, type: n.type, userRole: user.role })
+      link: n.link || deriveLink({ bookingId: n.bookingId, type: n.type, userRole: user.role })
     };
   });
 

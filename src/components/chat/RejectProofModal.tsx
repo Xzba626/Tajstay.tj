@@ -41,7 +41,11 @@ export function RejectProofModal({
         className="absolute inset-0 bg-black/75 backdrop-blur-sm"
         aria-label={m(locale, "bookingRoom.review.rejectCancel")}
         onClick={() => {
-          if (!busy) onClose();
+          if (!busy) {
+            setReason("");
+            setError(null);
+            onClose();
+          }
         }}
       />
       <div className="relative w-full max-w-md rounded-2xl border border-white/10 bg-slate-950/95 p-5 shadow-2xl backdrop-blur-xl">
@@ -76,7 +80,11 @@ export function RejectProofModal({
           <button
             type="button"
             disabled={busy}
-            onClick={onClose}
+            onClick={() => {
+              setReason("");
+              setError(null);
+              onClose();
+            }}
             className="rounded-xl border border-white/15 px-4 py-2 text-sm text-slate-200"
           >
             {m(locale, "bookingRoom.review.rejectCancel")}

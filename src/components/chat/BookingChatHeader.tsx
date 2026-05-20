@@ -16,18 +16,19 @@ export type BookingChatHeaderProps = {
   bookingStatus: string;
   paymentStatus: string;
   publicCode?: string | null;
+  sticky?: boolean;
 };
 
 function statusPillClass(status: string): string {
   if (status === "CONFIRMED" || status === "CHECKED_IN" || status === "COMPLETED") {
-    return "bg-emerald-500/20 text-emerald-100 ring-emerald-400/30";
+    return "bg-gradient-to-r from-emerald-500/25 to-teal-500/15 text-emerald-100 ring-emerald-400/30";
   }
-  if (status === "ON_REVIEW") return "bg-indigo-500/20 text-indigo-100 ring-indigo-400/30";
+  if (status === "ON_REVIEW") return "bg-gradient-to-r from-indigo-500/25 to-violet-500/15 text-indigo-100 ring-indigo-400/30";
   if (status === "WAITING_PAYMENT" || status === "WAIT_PROOF" || status === "PENDING_OWNER") {
-    return "bg-amber-500/20 text-amber-100 ring-amber-400/30";
+    return "bg-gradient-to-r from-amber-500/20 to-orange-500/10 text-amber-100 ring-amber-400/30";
   }
   if (status === "REJECTED" || status === "CANCELLED" || status === "EXPIRED") {
-    return "bg-red-500/20 text-red-100 ring-red-400/30";
+    return "bg-gradient-to-r from-red-500/20 to-rose-500/10 text-red-100 ring-red-400/30";
   }
   return "bg-white/10 text-slate-200 ring-white/10";
 }
@@ -50,14 +51,19 @@ export function BookingChatHeader({
   currency,
   bookingStatus,
   paymentStatus,
-  publicCode
+  publicCode,
+  sticky = false
 }: BookingChatHeaderProps) {
   const checkIn = checkInIso.slice(0, 10);
   const checkOut = checkOutIso.slice(0, 10);
   const cover = coverImageUrl || "/logo-mark.svg";
 
   return (
-    <section className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 shadow-lg backdrop-blur-xl">
+    <section
+      className={`rounded-2xl border border-white/10 bg-white/[0.04] p-4 shadow-lg backdrop-blur-xl ${
+        sticky ? "ring-1 ring-white/5 shadow-2xl" : ""
+      }`}
+    >
       <div className="flex gap-4">
         <div className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl ring-1 ring-white/15">
           {/* eslint-disable-next-line @next/next/no-img-element */}

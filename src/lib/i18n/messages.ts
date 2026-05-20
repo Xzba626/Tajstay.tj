@@ -121,6 +121,7 @@ const ru: Tree = {
     heroSubtitle: "Жильё в одном поиске",
     ctaSearch: "Начать поиск",
     ctaOwners: "Для владельцев",
+    recentTitle: "Недавно просмотренные",
     destinationsTitle: "Популярные направления",
     destinationsBadge: "1000+ вариантов жилья",
     trustTitle: "Почему нам доверяют",
@@ -345,6 +346,22 @@ const ru: Tree = {
     markReadAll: "Отметить все прочитанными",
     openAllNotifications: "Открыть все"
   },
+  notificationsPage: {
+    title: "Все уведомления",
+    back: "В кабинет",
+    unreadCount: "Непрочитанные",
+    filterAll: "Все",
+    filterUnread: "Непрочитанные",
+    markRead: "Прочитано",
+    open: "Открыть",
+    empty: "Уведомлений пока нет. Мы сообщим о новых бронях, сообщениях и выплатах.",
+    category: {
+      bookings: "Брони",
+      messages: "Сообщения",
+      finance: "Финансы",
+      moderation: "Модерация"
+    }
+  },
   notifications: {
     BOOKING_CONFIRMED: "Бронь подтверждена",
     BOOKING_REJECTED: "Бронь отклонена",
@@ -474,6 +491,42 @@ const ru: Tree = {
       submit: "Отправить на проверку",
       errFailed: "Не удалось отправить чек. Попробуйте снова.",
       sentBanner: "Чек отправлен. Ожидается проверка владельца и администратором."
+    },
+    review: {
+      bannerGuestTitle: "Чек на проверке",
+      bannerGuestBody: "Мы проверяем ваш перевод. Обычно это занимает несколько минут.",
+      bannerOwnerTitle: "Новая оплата от гостя",
+      bannerOwnerBody: "Гость отправил чек. Подтверждение выполняет команда TajStay.",
+      bannerAdminTitle: "Требуется проверка оплаты",
+      bannerAdminBody: "Сверьте чек с суммой брони и подтвердите или отклоните сделку.",
+      deadline: "До проверки",
+      cardTitle: "Проверка оплаты",
+      guest: "Гость",
+      expected: "К оплате",
+      paidAmount: "В чеке",
+      submittedAt: "Чек отправлен",
+      openReceipt: "Открыть чек",
+      openDocument: "Документ гостя",
+      noReceipt: "Чек не прикреплён",
+      confirm: "Подтвердить оплату",
+      reject: "Отклонить",
+      ownerViewOnly: "Подтверждение выполняет администратор TajStay.",
+      confirmOk: "Оплата подтверждена",
+      confirmFailed: "Не удалось подтвердить",
+      rejectOk: "Оплата отклонена",
+      rejectFailed: "Не удалось отклонить",
+      rejectTitle: "Отклонить оплату",
+      rejectDesc: "Укажите причину — гость увидит её в чате.",
+      rejectPlaceholder: "Причина отклонения…",
+      rejectReasonRequired: "Минимум 3 символа",
+      rejectCancel: "Отмена",
+      rejectConfirm: "Отклонить оплату",
+      preset: {
+        amount_mismatch: "Сумма не совпадает",
+        unclear_receipt: "Чек нечитаемый",
+        wrong_account: "Неверные реквизиты",
+        duplicate: "Дубликат / повтор"
+      }
     },
     timeline: {
       title: "Ход брони",
@@ -760,6 +813,8 @@ const ru: Tree = {
         CANCELLED: "Отменена"
       }
     },
+    calendarOccupiedTitle: "Занято (по броням)",
+    calendarOccupiedEmpty: "Пока нет занятых дат.",
     calendar: {
       gridTitle: "Календарь (30 дней × комнаты)",
       roomCol: "Комната",
@@ -788,12 +843,29 @@ const ru: Tree = {
     resumeTimer: "Снять паузу",
     adminCancelBooking: "Отменить бронь (админ)",
     confirmPayBig: "Подтвердить оплату и бронь",
+    you: "Вы",
     modalBack: "Назад",
     adminCancelTitle: "Отменить бронирование?",
     adminCancelDesc:
       "Бронь будет аннулирована, гость получит уведомление. Это действие необратимо.",
     adminCancelConfirm: "Аннулировать бронь",
-    adminCancelDone: "Бронирование отменено администратором"
+    adminCancelDone: "Бронирование отменено администратором",
+    quickReply: {
+      host: {
+        "1": "Здравствуйте! Да, объект свободен на эти даты.",
+        "2": "Заселение доступно с 14:00.",
+        "3": "Адрес и инструкции отправим после подтверждения брони.",
+        "4": "К сожалению, эти даты уже заняты.",
+        "5": "Можем предложить другой вариант."
+      },
+      admin: {
+        "1": "Мы приняли вашу жалобу в обработку.",
+        "2": "Пожалуйста, отправьте дополнительную информацию.",
+        "3": "Администратор проверяет ситуацию.",
+        "4": "Решение по спору будет отображено в вашем кабинете."
+      }
+    },
+    readReceipt: "Прочитано"
   },
   splash: {
     subtitle: "Жильё по всему Таджикистану"
@@ -902,6 +974,7 @@ const tg: Tree = {
     heroSubtitle: "Ҳама дар як ҷустуҷӯ",
     ctaSearch: "Ҷустуҷӯро оғоз кунед",
     ctaOwners: "Барои соҳибон",
+    recentTitle: "Ба наздикӣ дидашуда",
     destinationsTitle: "Самтҳои машҳур",
     destinationsBadge: "1000+ вариантҳои ҷойгиршавӣ",
     trustTitle: "Чаро ба мо боварӣ мекунанд",
@@ -1126,6 +1199,22 @@ const tg: Tree = {
     markReadAll: "Ҳамаро хондашуда қайд кардан",
     openAllNotifications: "Кушодани ҳама"
   },
+  notificationsPage: {
+    title: "Ҳамаи огоҳиҳо",
+    back: "Ба кабинет",
+    unreadCount: "Нохонда",
+    filterAll: "Ҳама",
+    filterUnread: "Нохонда",
+    markRead: "Хонда шуд",
+    open: "Кушодан",
+    empty: "Ҳоло огоҳиҳо нест. Мо дар бораи бронҳо, паёмҳо ва пардохтҳо хабар медиҳем.",
+    category: {
+      bookings: "Бронҳо",
+      messages: "Паёмҳо",
+      finance: "Молия",
+      moderation: "Модератсия"
+    }
+  },
   notifications: {
     BOOKING_CONFIRMED: "Брон тасдиқ шуд",
     BOOKING_REJECTED: "Брон рад шуд",
@@ -1251,6 +1340,42 @@ const tg: Tree = {
       submit: "Барои санҷиш фиристодан",
       errFailed: "Чек фиристода нашуд. Боз кӯшиш кунед.",
       sentBanner: "Чек фиристода шуд. Интизори санҷиши соҳиб ва админ."
+    },
+    review: {
+      bannerGuestTitle: "Чек дар санҷиш",
+      bannerGuestBody: "Пардохти шумо санҷида мешавад. Одатан чанд дақиқа мегирад.",
+      bannerOwnerTitle: "Пардохти нав аз меҳмон",
+      bannerOwnerBody: "Меҳмон чек фиристод. Тасдиқро дастаи TajStay анҷом медиҳад.",
+      bannerAdminTitle: "Санҷиши пардохт лозим аст",
+      bannerAdminBody: "Чекро бо маблағи брон мувофиқ кунед ва тасдиқ ё рад кунед.",
+      deadline: "То санҷиш",
+      cardTitle: "Санҷиши пардохт",
+      guest: "Меҳмон",
+      expected: "Ба пардохт",
+      paidAmount: "Дар чек",
+      submittedAt: "Чек фиристода шуд",
+      openReceipt: "Кушодани чек",
+      openDocument: "Ҳуҷҷати меҳмон",
+      noReceipt: "Чек замима нашуда",
+      confirm: "Тасдиқи пардохт",
+      reject: "Рад кардан",
+      ownerViewOnly: "Тасдиқро администратори TajStay анҷом медиҳад.",
+      confirmOk: "Пардохт тасдиқ шуд",
+      confirmFailed: "Тасдиқ нашуд",
+      rejectOk: "Пардохт рад шуд",
+      rejectFailed: "Рад нашуд",
+      rejectTitle: "Рад кардани пардохт",
+      rejectDesc: "Сабабро нависед — меҳмон дар чат мебинад.",
+      rejectPlaceholder: "Сабаби рад…",
+      rejectReasonRequired: "Ҳадди ақал 3 ҳарф",
+      rejectCancel: "Бекор",
+      rejectConfirm: "Рад кардан",
+      preset: {
+        amount_mismatch: "Маблағ мувофиқ нест",
+        unclear_receipt: "Чек хонда намешавад",
+        wrong_account: "Реквизит нодуруст",
+        duplicate: "Такрор / дубликат"
+      }
     },
     timeline: {
       title: "Марҳилаҳои брон",
@@ -1564,12 +1689,29 @@ const tg: Tree = {
     resumeTimer: "Таймерро аз нав",
     adminCancelBooking: "Бронро бекор кунед (админ)",
     confirmPayBig: "Пардохт ва бронро тасдиқ кунед",
+    you: "Шумо",
     modalBack: "Бозгашт",
     adminCancelTitle: "Бронро бекор кунем?",
     adminCancelDesc:
       "Брон бекор мешавад, меҳмон огоҳӣ мегирад. Ин амал барқарор нест.",
     adminCancelConfirm: "Бронро бекор кунед",
-    adminCancelDone: "Брон аз ҷониби админ бекор шуд"
+    adminCancelDone: "Брон аз ҷониби админ бекор шуд",
+    quickReply: {
+      host: {
+        "1": "Салом! Бале, объект дар ин санаҳо озод аст.",
+        "2": "Ҷойгиршавӣ аз соати 14:00 дастрас аст.",
+        "3": "Суроға ва дастурҳоро пас аз тасдиқи брон мефиристем.",
+        "4": "Мутаассифона, ин санаҳо аллакай ишғол шудаанд.",
+        "5": "Имкони дигар пешниҳод карда метавонем."
+      },
+      admin: {
+        "1": "Шикояти шуморо қабул кардем.",
+        "2": "Лутфан маълумоти иловагӣ ирсол кунед.",
+        "3": "Админ вазъиятро санҷида истодааст.",
+        "4": "Қарор дар кабинети шумо намоиш дода мешавад."
+      }
+    },
+    readReceipt: "Хонда шуд"
   },
   splash: { subtitle: "Ҷойгиршавӣ дар саросари Тоҷикистон" }
 };
@@ -1675,6 +1817,7 @@ const en: Tree = {
     heroSubtitle: "Stays in one search",
     ctaSearch: "Start search",
     ctaOwners: "For property owners",
+    recentTitle: "Recently viewed",
     destinationsTitle: "Popular destinations",
     destinationsBadge: "1000+ places to stay",
     trustTitle: "Why travellers trust us",
@@ -1899,6 +2042,22 @@ const en: Tree = {
     markReadAll: "Mark all as read",
     openAllNotifications: "Open all"
   },
+  notificationsPage: {
+    title: "All notifications",
+    back: "Back to dashboard",
+    unreadCount: "Unread",
+    filterAll: "All",
+    filterUnread: "Unread",
+    markRead: "Mark read",
+    open: "Open",
+    empty: "No notifications yet. We will notify you about bookings, messages, and payouts.",
+    category: {
+      bookings: "Bookings",
+      messages: "Messages",
+      finance: "Finance",
+      moderation: "Moderation"
+    }
+  },
   notifications: {
     BOOKING_CONFIRMED: "Booking confirmed",
     BOOKING_REJECTED: "Booking declined",
@@ -2024,6 +2183,42 @@ const en: Tree = {
       submit: "Submit for review",
       errFailed: "Could not submit receipt. Try again.",
       sentBanner: "Receipt submitted. Awaiting host and admin review."
+    },
+    review: {
+      bannerGuestTitle: "Receipt under review",
+      bannerGuestBody: "We are verifying your transfer. This usually takes a few minutes.",
+      bannerOwnerTitle: "New guest payment",
+      bannerOwnerBody: "The guest submitted a receipt. TajStay admin confirms the booking.",
+      bannerAdminTitle: "Payment review required",
+      bannerAdminBody: "Match the receipt to the booking total, then confirm or reject.",
+      deadline: "Review by",
+      cardTitle: "Payment review",
+      guest: "Guest",
+      expected: "Due",
+      paidAmount: "On receipt",
+      submittedAt: "Submitted",
+      openReceipt: "Open receipt",
+      openDocument: "Guest document",
+      noReceipt: "No receipt attached",
+      confirm: "Confirm payment",
+      reject: "Reject",
+      ownerViewOnly: "TajStay admin confirms this payment.",
+      confirmOk: "Payment confirmed",
+      confirmFailed: "Could not confirm",
+      rejectOk: "Payment rejected",
+      rejectFailed: "Could not reject",
+      rejectTitle: "Reject payment",
+      rejectDesc: "The guest will see this reason in chat.",
+      rejectPlaceholder: "Reason for rejection…",
+      rejectReasonRequired: "At least 3 characters",
+      rejectCancel: "Cancel",
+      rejectConfirm: "Reject payment",
+      preset: {
+        amount_mismatch: "Amount mismatch",
+        unclear_receipt: "Unreadable receipt",
+        wrong_account: "Wrong account",
+        duplicate: "Duplicate payment"
+      }
     },
     timeline: {
       title: "Booking progress",
@@ -2337,12 +2532,29 @@ const en: Tree = {
     resumeTimer: "Resume timer",
     adminCancelBooking: "Cancel booking (admin)",
     confirmPayBig: "Confirm payment & booking",
+    you: "You",
     modalBack: "Back",
     adminCancelTitle: "Cancel this booking?",
     adminCancelDesc:
       "The booking will be voided and the guest will be notified. This cannot be undone.",
     adminCancelConfirm: "Void booking",
-    adminCancelDone: "Booking cancelled by admin"
+    adminCancelDone: "Booking cancelled by admin",
+    quickReply: {
+      host: {
+        "1": "Hello! Yes, the property is available on those dates.",
+        "2": "Check-in is available from 2:00 PM.",
+        "3": "We will send the address and instructions after booking confirmation.",
+        "4": "Sorry, those dates are already booked.",
+        "5": "We can suggest another option."
+      },
+      admin: {
+        "1": "We have received your complaint.",
+        "2": "Please send additional information.",
+        "3": "An administrator is reviewing the situation.",
+        "4": "The dispute resolution will appear in your dashboard."
+      }
+    },
+    readReceipt: "Read"
   },
   splash: { subtitle: "Stays across Tajikistan" }
 };
