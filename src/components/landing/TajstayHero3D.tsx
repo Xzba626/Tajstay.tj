@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Hero3DSceneGate } from "@/components/effects/Hero3DSceneGate";
+import { HeroTravelBackdrop } from "@/components/landing/HeroTravelBackdrop";
 
 type Props = {
   heroBadge: string;
@@ -54,7 +55,8 @@ export function TajstayHero3D({ heroBadge, heroTitle, heroSubtitle, ctaSearch, c
           className="pointer-events-none absolute inset-0 rounded-[2rem] bg-gradient-to-br from-slate-900/40 via-emerald-900/20 to-cyan-900/30 blur-2xl"
           aria-hidden
         />
-        <Hero3DSceneGate className="absolute inset-0 rounded-[2rem] ring-1 ring-white/10" />
+        <HeroTravelBackdrop />
+        <Hero3DSceneGate className="absolute inset-0 rounded-[2rem] ring-1 ring-white/10 mix-blend-screen opacity-80" />
         <FloatingCard className="absolute left-4 top-6 animate-[float-subtle_6s_ease-in-out_infinite]">
           <div className="text-[10px] uppercase tracking-wide text-emerald-200/80">Dushanbe</div>
           <div className="text-sm font-semibold text-white">4.9 ★ · от 280 TJS</div>

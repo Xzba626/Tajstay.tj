@@ -254,17 +254,33 @@ export function BookingChatPanel({
     pull().catch((e) => {
       if (mounted) setError(e instanceof Error ? e.message : "Не удалось загрузить чат");
     });
+
+    let es: EventSource | null = null;
+    if (typeof EventSource !== "undefined") {
+      es = new EventSource(`/api/chat/booking/${bookingId}/stream`);
+      es.onmessage = () => {
+        if (!mounted) return;
+        pull().catch(() => undefined);
+      };
+      es.onerror = () => {
+        es?.close();
+        es = null;
+      };
+    }
+
     const t = window.setInterval(() => {
       if (!mounted) return;
       pull().catch((e) => {
         if (mounted) setError(e instanceof Error ? e.message : "Не удалось загрузить чат");
       });
-    }, 3500);
+    }, es ? 8000 : 3500);
+
     return () => {
       mounted = false;
       window.clearInterval(t);
+      es?.close();
     };
-  }, [pull]);
+  }, [pull, bookingId]);
 
   useEffect(() => {
     const el = scrollRef.current;

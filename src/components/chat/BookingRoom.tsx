@@ -9,6 +9,7 @@ import { BookingTimeline } from "@/components/chat/BookingTimeline";
 import { ReviewBanner } from "@/components/chat/ReviewBanner";
 import { PaymentReviewCard } from "@/components/chat/PaymentReviewCard";
 import { GuestReviewWaitingCard } from "@/components/chat/GuestReviewWaitingCard";
+import { DisputeActions } from "@/components/chat/DisputeActions";
 import type { BookingTimelineEvent } from "@/lib/chat/bookingTimeline";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
@@ -137,6 +138,8 @@ export function BookingRoom(props: BookingRoomProps) {
           {m(locale, "bookingRoom.proof.sentBanner")}
         </div>
       ) : null}
+
+      <DisputeActions locale={locale} bookingId={bookingId} canOpen={currentUserRole !== "ADMIN"} />
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
         <div className="flex min-h-[min(72dvh,640px)] flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-950/80 shadow-2xl ring-1 ring-white/5">

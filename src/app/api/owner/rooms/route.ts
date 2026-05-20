@@ -21,6 +21,13 @@ export async function POST(req: NextRequest) {
   const hotelId = Number(form.get("hotelId"));
   const title = String(form.get("title") ?? "").trim();
   const price = Number(form.get("price"));
+  const weekendPriceRaw = form.get("weekendPrice");
+  const weekendPrice =
+    weekendPriceRaw != null && String(weekendPriceRaw).trim() !== "" ? Number(weekendPriceRaw) : null;
+  const minNights = Math.max(1, Number(form.get("minNights") ?? 1) || 1);
+  const extraGuestRaw = form.get("extraGuestPrice");
+  const extraGuestPrice =
+    extraGuestRaw != null && String(extraGuestRaw).trim() !== "" ? Number(extraGuestRaw) : null;
   const capacity = Number(form.get("capacity"));
   const amenitiesRaw = String(form.get("amenities") ?? "");
 
@@ -36,6 +43,9 @@ export async function POST(req: NextRequest) {
       hotelId,
       title,
       price,
+      weekendPrice: weekendPrice != null && !Number.isNaN(weekendPrice) ? weekendPrice : null,
+      minNights,
+      extraGuestPrice: extraGuestPrice != null && !Number.isNaN(extraGuestPrice) ? extraGuestPrice : null,
       capacity,
       amenities: amenitiesToJson(amenitiesRaw),
       availability: true

@@ -36,6 +36,7 @@ export type MobileMenuLabels = {
   ownerPending: string;
   ownerRejected: string;
   applyAgain: string;
+  notifications: string;
 };
 
 type Props = {
@@ -49,6 +50,7 @@ type Props = {
   ownerApp: OwnerAppNavState;
   locale: Locale;
   labels: MobileMenuLabels;
+  unreadCount?: number;
 };
 
 type Item = { kind: "link"; href: string; label: string } | { kind: "text"; label: string } | { kind: "divider" };
@@ -147,7 +149,7 @@ function sectionTitle(title: string) {
   );
 }
 
-export function MobileMenu({ user, ownerApp, locale, labels: L }: Props) {
+export function MobileMenu({ user, ownerApp, locale, labels: L, unreadCount = 0 }: Props) {
   const [open, setOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -192,6 +194,11 @@ export function MobileMenu({ user, ownerApp, locale, labels: L }: Props) {
       list.push({ kind: "link", href: "/auth/sign-in", label: L.signUp });
     } else {
       list.push({ kind: "link", href: "/profile", label: L.profile });
+      list.push({
+        kind: "link",
+        href: "/notifications",
+        label: unreadCount > 0 ? `${L.notifications} (${unreadCount})` : L.notifications
+      });
       list.push({ kind: "link", href: "/favorites", label: L.favorites });
       list.push({
         kind: "link",
@@ -219,7 +226,7 @@ export function MobileMenu({ user, ownerApp, locale, labels: L }: Props) {
     list.push({ kind: "link", href: "/faq", label: L.faq });
 
     return list;
-  }, [L, ownerApp.kind, user]);
+  }, [L, ownerApp.kind, user, unreadCount]);
 
   async function logout() {
     setLoggingOut(true);

@@ -12,12 +12,18 @@ export function OfflineBookingForm({
   locale,
   rooms,
   error,
-  created
+  created,
+  defaultRoomId,
+  defaultCheckIn,
+  defaultCheckOut
 }: {
   locale: Locale;
   rooms: RoomOption[];
   error?: string;
   created?: boolean;
+  defaultRoomId?: number;
+  defaultCheckIn?: string;
+  defaultCheckOut?: string;
 }) {
   if (!rooms.length) return null;
 
@@ -45,7 +51,12 @@ export function OfflineBookingForm({
 
       <div className="md:col-span-2">
         <label className="mb-1 block text-sm font-semibold text-slate-800">{m(locale, "owner.offline.room")}</label>
-        <select name="roomId" required className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm">
+        <select
+          name="roomId"
+          required
+          defaultValue={defaultRoomId}
+          className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm"
+        >
           {rooms.map((r) => (
             <option key={r.id} value={r.id}>
               {r.hotel.name} · {r.title}
@@ -73,11 +84,23 @@ export function OfflineBookingForm({
 
       <div>
         <label className="mb-1 block text-sm font-semibold text-slate-800">{m(locale, "owner.offline.checkIn")}</label>
-        <input name="checkIn" type="date" required className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm" />
+        <input
+          name="checkIn"
+          type="date"
+          required
+          defaultValue={defaultCheckIn}
+          className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm"
+        />
       </div>
       <div>
         <label className="mb-1 block text-sm font-semibold text-slate-800">{m(locale, "owner.offline.checkOut")}</label>
-        <input name="checkOut" type="date" required className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm" />
+        <input
+          name="checkOut"
+          type="date"
+          required
+          defaultValue={defaultCheckOut}
+          className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm"
+        />
       </div>
 
       <div>

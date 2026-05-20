@@ -26,10 +26,23 @@ export function dateKey(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
 
+function isWeekendNight(d: Date): boolean {
+  const day = d.getUTCDay();
+  return day === 5 || day === 6;
+}
+
+function nightBasePrice(room: { price: unknown; weekendPrice: unknown | null }, night: Date): number {
+  if (isWeekendNight(night) && room.weekendPrice != null) {
+    return Number(room.weekendPrice);
+  }
+  return Number(room.price);
+}
+
 export async function computeRoomTotalPrice(params: {
   roomId: number;
   checkIn: Date;
   checkOut: Date;
+  guestCount?: number;
 }): Promise<{
   totalPrice: number;
   commission: number;
@@ -39,7 +52,7 @@ export async function computeRoomTotalPrice(params: {
   totalUsd: number;
   ownerPayoutAfterEscrow: number;
 }> {
-  const { roomId, checkIn, checkOut } = params;
+  const { roomId, checkIn, checkOut, guestCount = 1 } = params;
   const nights = getNightDates(checkIn, checkOut);
   if (!nights.length) throw new Error("Invalid dates");
 
@@ -50,6 +63,11 @@ export async function computeRoomTotalPrice(params: {
   if (!room) throw new Error("Room not found");
   if (room.hotel.status !== "APPROVED") throw new Error("Hotel not available");
   if (!room.availability) throw new Error("Room not available");
+
+  const minNights = Math.max(1, room.minNights ?? 1);
+  if (nights.length < minNights) {
+    throw new Error(`Minimum stay is ${minNights} night(s)`);
+  }
 
   try {
     await assertDatesAvailable({ roomId, checkIn, checkOut });
@@ -83,8 +101,13 @@ export async function computeRoomTotalPrice(params: {
     const ov = overridesByKey.get(key);
     if (ov?.isBlocked) throw new Error("Requested dates are unavailable");
 
-    const perNight = ov && ov.customPrice != null ? Number(ov.customPrice) : Number(room.price);
+    const perNight = ov && ov.customPrice != null ? Number(ov.customPrice) : nightBasePrice(room, night);
     total += perNight;
+  }
+
+  const extraGuests = Math.max(0, guestCount - room.capacity);
+  if (extraGuests > 0 && room.extraGuestPrice != null) {
+    total += extraGuests * nights.length * Number(room.extraGuestPrice);
   }
 
   const breakdown = calculateCheckoutBreakdown({ subtotal: total });

@@ -1,7 +1,14 @@
 import { prisma } from "@/lib/prisma";
 import { BOOKING_STATUS } from "@/lib/domain/booking";
 
-export type InboxFilter = "all" | "unread" | "payment_pending" | "on_review" | "confirmed";
+export type InboxFilter =
+  | "all"
+  | "unread"
+  | "payment_pending"
+  | "on_review"
+  | "confirmed"
+  | "complaints"
+  | "admin";
 
 export type InboxConversation = {
   bookingId: number;
@@ -39,9 +46,11 @@ export async function getInboxConversations(params: {
   userId: number;
   role: string;
   filter: InboxFilter;
+  search?: string;
   take?: number;
 }): Promise<InboxConversation[]> {
-  const { userId, role, filter, take = 50 } = params;
+  const { userId, role, filter, search = "", take = 50 } = params;
+  const searchQ = search.trim().toLowerCase();
 
   const where =
     role === "OWNER"
@@ -84,15 +93,50 @@ export async function getInboxConversations(params: {
 
   const unreadByBooking = new Map(unreadRows.map((r) => [r.bookingId, r._count._all]));
 
+  const [complaintBookingIds, adminAttentionIds] = await Promise.all([
+    filter === "complaints" || filter === "admin"
+      ? prisma.complaint
+          .findMany({ select: { bookingId: true }, distinct: ["bookingId"] })
+          .then((rows) => new Set(rows.map((r) => r.bookingId)))
+      : Promise.resolve(new Set<number>()),
+    filter === "admin" && role === "ADMIN"
+      ? Promise.all([
+          prisma.dispute.findMany({ where: { status: "OPEN" }, select: { bookingId: true } }),
+          prisma.complaint.findMany({ where: { status: "PENDING" }, select: { bookingId: true } })
+        ]).then(([disputes, complaints]) => {
+          const ids = new Set<number>();
+          for (const d of disputes) ids.add(d.bookingId);
+          for (const c of complaints) ids.add(c.bookingId);
+          return ids;
+        })
+      : Promise.resolve(new Set<number>())
+  ]);
+
   const rows: InboxConversation[] = [];
 
   for (const b of bookings) {
     if (!statusMatchesFilter(b.status, filter)) continue;
     const unreadCount = unreadByBooking.get(b.id) ?? 0;
     if (filter === "unread" && unreadCount === 0) continue;
+    if (filter === "complaints" && !complaintBookingIds.has(b.id)) continue;
+    if (filter === "admin") {
+      if (role !== "ADMIN") continue;
+      const needsAdmin =
+        adminAttentionIds.has(b.id) ||
+        b.status === BOOKING_STATUS.ON_REVIEW ||
+        b.status === BOOKING_STATUS.WAIT_PROOF;
+      if (!needsAdmin) continue;
+    }
 
     const last = b.chatMessages[0];
     const guestLabel = b.guestName?.trim() || b.user?.name?.trim() || b.guestPhone?.trim() || b.phone || "—";
+
+    if (searchQ) {
+      const hay = [guestLabel, b.room.hotel.name, b.room.title, b.publicCode ?? "", last?.body ?? ""]
+        .join(" ")
+        .toLowerCase();
+      if (!hay.includes(searchQ)) continue;
+    }
 
     rows.push({
       bookingId: b.id,

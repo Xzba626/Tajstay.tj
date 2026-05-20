@@ -11,6 +11,7 @@ import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
 import { getSiteContent } from "@/lib/site-content";
 import { getUnreadNotificationsCount } from "@/lib/notifications/unread";
+import { NotificationBell } from "@/components/layout/NotificationBell";
 
 export async function Header() {
   const user = await getSessionUser();
@@ -66,7 +67,8 @@ export async function Header() {
     loggingOut: m(locale, "userMenu.loggingOut"),
     ownerPending: m(locale, "userMenu.ownerPending"),
     ownerRejected: m(locale, "userMenu.ownerRejected"),
-    applyAgain: m(locale, "userMenu.applyAgain")
+    applyAgain: m(locale, "userMenu.applyAgain"),
+    notifications: m(locale, "userMenu.notificationsTitle")
   };
 
   return (
@@ -115,7 +117,7 @@ export async function Header() {
           <div className="hidden md:block">
             <LocaleSwitcher current={locale} />
           </div>
-          <MobileMenu user={user} ownerApp={ownerApp} locale={locale} labels={mobileLabels} />
+          <MobileMenu user={user} ownerApp={ownerApp} locale={locale} labels={mobileLabels} unreadCount={unreadCount} />
           {!user ? (
             <>
               <ViewTransitionLink
@@ -132,9 +134,23 @@ export async function Header() {
               </ViewTransitionLink>
             </>
           ) : (
-            <div className="hidden md:block">
-              <UserMenu userName={user.name} role={user.role} ownerApp={ownerApp} labels={menuLabels} initialUnreadCount={unreadCount} />
-            </div>
+            <>
+              <div className="hidden md:block">
+                <NotificationBell
+                  initialUnreadCount={unreadCount}
+                  labels={{
+                    ariaLabel: m(locale, "header.notificationsBell"),
+                    title: m(locale, "userMenu.notificationsTitle"),
+                    noNotifications: m(locale, "userMenu.noNotifications"),
+                    markReadAll: m(locale, "userMenu.markReadAll"),
+                    openAll: m(locale, "userMenu.openAllNotifications")
+                  }}
+                />
+              </div>
+              <div className="hidden md:block">
+                <UserMenu userName={user.name} role={user.role} ownerApp={ownerApp} labels={menuLabels} initialUnreadCount={unreadCount} />
+              </div>
+            </>
           )}
         </div>
       </div>

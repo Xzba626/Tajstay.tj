@@ -112,6 +112,9 @@ model Room {
   hotelId      Int
   title        String
   price        Decimal
+  weekendPrice Decimal?
+  minNights    Int      @default(1)
+  extraGuestPrice Decimal?
   capacity     Int
   amenities    String // JSON stringified array
   availability Boolean @default(true)

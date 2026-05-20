@@ -25,6 +25,8 @@ import { OwnerDashboardKpis } from "@/components/owner/OwnerDashboardKpis";
 import { OfflineBookingForm } from "@/components/owner/OfflineBookingForm";
 import { OfflineBookingsList } from "@/components/owner/OfflineBookingsList";
 import { OwnerCalendar } from "@/components/owner/OwnerCalendar";
+import { OwnerHelpTips } from "@/components/owner/OwnerHelpTips";
+import ReviewReplyForm from "@/components/ReviewReplyForm";
 import { getOwnerDashboardKpis } from "@/lib/services/ownerDashboardKpis";
 import { getOwnerCalendarData } from "@/lib/services/ownerCalendar";
 import { BOOKING_SOURCE, getBookingGuestLabel } from "@/lib/domain/booking";
@@ -34,7 +36,18 @@ export const dynamic = "force-dynamic";
 
 const PROPERTY_TYPES = ["HOTEL", "HOSTEL", "GUESTHOUSE", "APARTMENT", "ECO"] as const;
 
-type OwnerSection = "overview" | "properties" | "rooms" | "bookings" | "offline-bookings" | "calendar" | "notifications";
+type OwnerSection =
+  | "overview"
+  | "properties"
+  | "rooms"
+  | "bookings"
+  | "offline-bookings"
+  | "calendar"
+  | "notifications"
+  | "reviews"
+  | "finances"
+  | "statistics"
+  | "help";
 
 const VALID_OWNER_SECTIONS = new Set<OwnerSection>([
   "overview",
@@ -43,7 +56,11 @@ const VALID_OWNER_SECTIONS = new Set<OwnerSection>([
   "bookings",
   "offline-bookings",
   "calendar",
-  "notifications"
+  "notifications",
+  "reviews",
+  "finances",
+  "statistics",
+  "help"
 ]);
 
 function looksLikeTestValue(v: unknown) {
@@ -91,6 +108,9 @@ export default async function OwnerDashboardPage({
         error?: string;
         created?: string;
         updated?: string;
+        roomId?: string;
+        checkIn?: string;
+        checkOut?: string;
       }>
     | {
         section?: string;
@@ -103,6 +123,9 @@ export default async function OwnerDashboardPage({
         error?: string;
         created?: string;
         updated?: string;
+        roomId?: string;
+        checkIn?: string;
+        checkOut?: string;
       };
 }) {
   const user = await requireOwner();
@@ -135,6 +158,10 @@ export default async function OwnerDashboardPage({
   let calendarBookings: any[] = [];
   let offlineBookings: any[] = [];
   let calendarCells: Record<string, import("@/lib/services/ownerCalendar").CalendarCellKind> = {};
+  let calendarCellMeta: Record<string, import("@/lib/services/ownerCalendar").CalendarCellMeta> = {};
+  let calendarDaysFromService: { key: string; day: number; month: number }[] = [];
+  let ownerReviews: any[] = [];
+  let ownerPayouts: any[] = [];
   let dashboardKpis: Awaited<ReturnType<typeof getOwnerDashboardKpis>> | null = null;
   let unreadCount = 0;
   let pendingCount = 0;
@@ -234,11 +261,58 @@ export default async function OwnerDashboardPage({
       skip: (page - 1) * pageSize,
       take: pageSize
     });
+  } else if (activeSection === "reviews") {
+    ownerReviews = await prisma.review.findMany({
+      where: { booking: { room: { hotel: { ownerId: user.id } } } },
+      include: {
+        booking: {
+          include: {
+            user: true,
+            room: { include: { hotel: true } }
+          }
+        }
+      },
+      orderBy: { createdAt: "desc" },
+      take: 50
+    });
+  } else if (activeSection === "finances") {
+    [ownerPayouts, revenueAgg, dashboardKpis] = await Promise.all([
+      prisma.payout.findMany({
+        where: { ownerId: user.id },
+        include: { booking: { include: { room: { include: { hotel: true } } } } },
+        orderBy: { createdAt: "desc" },
+        take: 50
+      }),
+      prisma.booking.aggregate({
+        where: {
+          room: { hotel: { ownerId: user.id } },
+          status: "CONFIRMED",
+          paymentStatus: "PAID",
+          createdAt: { gte: since30 }
+        },
+        _sum: { totalPrice: true, commission: true }
+      }),
+      getOwnerDashboardKpis(user.id)
+    ]);
+  } else if (activeSection === "statistics" || activeSection === "help") {
+    [hotels, dashboardKpis, pendingCount, recentBookings] = await Promise.all([
+      prisma.hotel.findMany({ where: { ownerId: user.id }, include: { rooms: true } }),
+      getOwnerDashboardKpis(user.id),
+      prisma.booking.count({ where: { room: { hotel: { ownerId: user.id } }, status: "PENDING_OWNER" } }),
+      prisma.booking.findMany({
+        where: { room: { hotel: { ownerId: user.id } } },
+        select: { roomId: true, status: true, createdAt: true },
+        orderBy: { createdAt: "desc" },
+        take: 200
+      })
+    ]);
   } else if (activeSection === "calendar") {
     const cal = await getOwnerCalendarData(user.id, 30);
     hotels = await prisma.hotel.findMany({ where: { ownerId: user.id }, orderBy: { createdAt: "desc" } });
     rooms = cal.rooms;
     calendarCells = cal.cells;
+    calendarCellMeta = cal.cellMeta;
+    calendarDaysFromService = cal.days;
     calendarBookings = cal.bookings ?? [];
     const where = {
       room: { hotel: { ownerId: user.id } },
@@ -264,12 +338,14 @@ export default async function OwnerDashboardPage({
       : m(locale, "owner.aiPricingStableDemand");
   const aiHotelRecommendations = buildOwnerPricingInsights(hotels, recentBookings);
   const calendarDays =
-    activeSection === "calendar"
-      ? Array.from({ length: 30 }, (_, i) => {
-          const d = addDays(toUtcDayStart(new Date()), i);
-          return { key: dayKey(d), day: d.getUTCDate(), month: d.getUTCMonth() + 1 };
-        })
-      : [];
+    activeSection === "calendar" && calendarDaysFromService.length
+      ? calendarDaysFromService
+      : activeSection === "calendar"
+        ? Array.from({ length: 30 }, (_, i) => {
+            const d = addDays(toUtcDayStart(new Date()), i);
+            return { key: dayKey(d), day: d.getUTCDate(), month: d.getUTCMonth() + 1 };
+          })
+        : [];
   const roomOptions = rooms.map((r: { id: number; title: string; hotel: { name: string } }) => ({
     id: r.id,
     title: r.title,
@@ -439,8 +515,14 @@ export default async function OwnerDashboardPage({
                 <a href="/dashboard/owner?section=calendar" className="rounded-xl border border-white/15 px-4 py-2 text-slate-100 hover:bg-white/5">
                   {m(locale, "owner.quick.calendar")}
                 </a>
-                <a href="/dashboard/owner?section=bookings" className="rounded-xl border border-white/15 px-4 py-2 text-slate-100 hover:bg-white/5">
+                <a href="/dashboard/messages" className="rounded-xl border border-white/15 px-4 py-2 text-slate-100 hover:bg-white/5">
                   {m(locale, "owner.quick.messages")}
+                </a>
+                <a href="/dashboard/owner?section=calendar" className="rounded-xl border border-white/15 px-4 py-2 text-slate-100 hover:bg-white/5">
+                  {m(locale, "owner.quick.editPrices")}
+                </a>
+                <a href="/dashboard/owner?section=finances" className="rounded-xl border border-white/15 px-4 py-2 text-slate-100 hover:bg-white/5">
+                  {m(locale, "owner.quick.payouts")}
                 </a>
               </div>
             </div>
@@ -805,6 +887,38 @@ export default async function OwnerDashboardPage({
                             className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20"
                           />
                         </div>
+                        <div>
+                          <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.weekendPrice")}</label>
+                          <input
+                            name="weekendPrice"
+                            type="number"
+                            min={0}
+                            step={1}
+                            defaultValue={r.weekendPrice != null ? Number(r.weekendPrice) : undefined}
+                            className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20"
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.minNights")}</label>
+                          <input
+                            name="minNights"
+                            type="number"
+                            min={1}
+                            defaultValue={Math.max(1, Number(r.minNights ?? 1) || 1)}
+                            className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20"
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.extraGuestPrice")}</label>
+                          <input
+                            name="extraGuestPrice"
+                            type="number"
+                            min={0}
+                            step={1}
+                            defaultValue={r.extraGuestPrice != null ? Number(r.extraGuestPrice) : undefined}
+                            className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20"
+                          />
+                        </div>
                         <div className="flex items-end">
                           <label className="flex items-center gap-2 text-sm font-semibold text-slate-800">
                             <input type="checkbox" name="availability" value="1" defaultChecked={r.availability} className="h-4 w-4 rounded border-slate-300 text-green-800" />
@@ -903,6 +1017,18 @@ export default async function OwnerDashboardPage({
                 <div>
                   <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.capacity")}</label>
                   <input name="capacity" type="number" min={1} defaultValue={2} className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20" />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.weekendPrice")}</label>
+                  <input name="weekendPrice" type="number" min={0} step={1} className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm" />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.minNights")}</label>
+                  <input name="minNights" type="number" min={1} defaultValue={1} className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm" />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.extraGuestPrice")}</label>
+                  <input name="extraGuestPrice" type="number" min={0} step={1} className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm" />
                 </div>
                 <div className="md:col-span-2">
                   <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.amenities")}</label>
@@ -1101,7 +1227,15 @@ export default async function OwnerDashboardPage({
               {m(locale, "owner.offline.updated")}
             </div>
           ) : null}
-          <OfflineBookingForm locale={locale} rooms={roomOptions} error={ownerError} created={offlineCreated} />
+          <OfflineBookingForm
+            locale={locale}
+            rooms={roomOptions}
+            error={ownerError}
+            created={offlineCreated}
+            defaultRoomId={Number(params?.roomId ?? "") || undefined}
+            defaultCheckIn={(params?.checkIn ?? "").trim() || undefined}
+            defaultCheckOut={(params?.checkOut ?? "").trim() || undefined}
+          />
           {offlineBookings.length ? (
             <OfflineBookingsList locale={locale} bookings={offlineBookings} />
           ) : (
@@ -1231,10 +1365,135 @@ export default async function OwnerDashboardPage({
                 </div>
               </div>
 
-              <OwnerCalendar locale={locale} rooms={rooms} days={calendarDays} cells={calendarCells} />
+              <OwnerCalendar
+                locale={locale}
+                rooms={rooms}
+                days={calendarDays}
+                cells={calendarCells}
+                cellMeta={calendarCellMeta}
+              />
               <Pagination page={page} totalPages={totalPages} />
             </>
           )}
+        </section>
+      )}
+
+      {activeSection === "reviews" && (
+        <section id="reviews" className="scroll-mt-28 space-y-4">
+          <div className="flex items-center gap-2">
+            <span className="h-8 w-1 rounded-full bg-amber-400" aria-hidden />
+            <h2 className="text-xl font-bold text-slate-900">{m(locale, "owner.reviewsSection.title")}</h2>
+          </div>
+          <p className="text-sm text-slate-600">{m(locale, "owner.reviewsSection.hint")}</p>
+          <div className="space-y-4">
+            {ownerReviews.map((r) => (
+              <div key={r.id} className="rounded-2xl border bg-white p-4 shadow-sm">
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div>
+                    <div className="font-semibold text-slate-900">{r.booking.room.hotel.name}</div>
+                    <div className="text-sm text-slate-500">{r.booking.room.title}</div>
+                  </div>
+                  <div className="text-amber-500" aria-label={m(locale, "home.reviewsStarsAria", { n: r.rating })}>
+                    {"★".repeat(r.rating)}
+                  </div>
+                </div>
+                <p className="mt-3 text-sm text-slate-700">{r.comment}</p>
+                {r.reply ? (
+                  <div className="mt-3 rounded-xl bg-slate-50 p-3 text-sm">
+                    <div className="font-semibold text-slate-800">{m(locale, "guestDash.ownerReply")}</div>
+                    <p className="mt-1 whitespace-pre-wrap text-slate-600">{r.reply}</p>
+                  </div>
+                ) : (
+                  <ReviewReplyForm
+                    reviewId={r.id}
+                    labels={{
+                      title: m(locale, "guestDash.ownerReply"),
+                      placeholder: m(locale, "owner.reviewsSection.replyPlaceholder"),
+                      saving: m(locale, "owner.reviewsSection.saving"),
+                      submit: m(locale, "admin.save"),
+                      error: m(locale, "auth.errorGeneric")
+                    }}
+                  />
+                )}
+              </div>
+            ))}
+            {!ownerReviews.length && <EmptyState title={m(locale, "owner.reviewsSection.empty")} />}
+          </div>
+        </section>
+      )}
+
+      {activeSection === "finances" && (
+        <section id="finances" className="scroll-mt-28 space-y-4">
+          <div className="flex items-center gap-2">
+            <span className="h-8 w-1 rounded-full bg-emerald-500" aria-hidden />
+            <h2 className="text-xl font-bold text-slate-900">{m(locale, "owner.finances.title")}</h2>
+          </div>
+          <p className="text-sm text-slate-600">{m(locale, "owner.finances.hint")}</p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="rounded-2xl border bg-white p-5 shadow-sm">
+              <div className="text-xs font-semibold uppercase text-slate-500">{m(locale, "owner.finances.revenueMonth")}</div>
+              <div className="mt-1 text-2xl font-bold text-slate-900">
+                {dashboardKpis?.revenueMonth ?? Number(revenueAgg._sum?.totalPrice ?? 0)} TJS
+              </div>
+            </div>
+            <div className="rounded-2xl border bg-white p-5 shadow-sm text-sm text-slate-600">
+              {m(locale, "owner.finances.commissionNote")}
+              {revenueAgg._sum?.commission != null ? (
+                <p className="mt-2 text-slate-800">
+                  {m(locale, "owner.finances.commissionTotal")}: {Number(revenueAgg._sum.commission)} TJS
+                </p>
+              ) : null}
+            </div>
+          </div>
+          <div className="rounded-2xl border bg-white p-4 shadow-sm">
+            <h3 className="text-sm font-semibold text-slate-900">{m(locale, "owner.finances.payoutsTitle")}</h3>
+            <div className="mt-3 space-y-2">
+              {ownerPayouts.map((po) => (
+                <div key={po.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border p-3 text-sm">
+                  <div>
+                    <div className="font-semibold">{po.booking.room.hotel.name}</div>
+                    <div className="text-slate-500">{po.booking.room.title}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-semibold">{Number(po.amount)} {po.currency}</div>
+                    <div className="text-xs text-slate-500">{po.status}</div>
+                  </div>
+                </div>
+              ))}
+              {!ownerPayouts.length && <p className="text-sm text-slate-500">{m(locale, "owner.finances.payoutsEmpty")}</p>}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {activeSection === "statistics" && (
+        <section id="statistics" className="scroll-mt-28 space-y-4">
+          <div className="flex items-center gap-2">
+            <span className="h-8 w-1 rounded-full bg-indigo-500" aria-hidden />
+            <h2 className="text-xl font-bold text-slate-900">{m(locale, "owner.statisticsSection.title")}</h2>
+          </div>
+          <p className="text-sm text-slate-600">{m(locale, "owner.statisticsSection.hint")}</p>
+          {dashboardKpis ? <OwnerDashboardKpis locale={locale} kpis={dashboardKpis} /> : null}
+          <Card className="space-y-2">
+            <h3 className="text-base font-semibold text-slate-100">{m(locale, "owner.conversionTitle")}</h3>
+            <ul className="space-y-1 text-sm text-slate-300">
+              <li>{m(locale, "owner.viewsProxy")}: {hotels.length * 24}</li>
+              <li>{m(locale, "owner.clicksProxy")}: {hotels.length * 7}</li>
+              <li>{m(locale, "owner.pendingBookings")}: {pendingCount}</li>
+              <li>{m(locale, "owner.conversionProxy")}: {bookingConversion}%</li>
+            </ul>
+          </Card>
+        </section>
+      )}
+
+      {activeSection === "help" && (
+        <section id="help" className="scroll-mt-28 space-y-4">
+          <div className="flex items-center gap-2">
+            <span className="h-8 w-1 rounded-full bg-teal-500" aria-hidden />
+            <h2 className="text-xl font-bold text-slate-900">{m(locale, "owner.help.title")}</h2>
+          </div>
+          <p className="text-sm text-slate-600">{m(locale, "owner.help.hint")}</p>
+          <OwnerHelpTips locale={locale} />
         </section>
       )}
     </div>

@@ -48,6 +48,9 @@ export async function POST(req: NextRequest) {
   const guestEmail = guestEmailRaw ? guestEmailRaw.toLowerCase() : null;
   const paymentMethodRaw = String(form.get("paymentMethod") || "ALIF").toUpperCase();
   const paymentMethod = paymentMethodRaw === "DC" ? "DC" : "ALIF";
+  const guestCountRaw = Number(form.get("guestCount") ?? form.get("guests") ?? 1);
+  const guestCount =
+    Number.isFinite(guestCountRaw) && guestCountRaw >= 1 ? Math.min(99, Math.floor(guestCountRaw)) : 1;
 
   const ip = clientIp(req);
   const rl = rateLimit(`post:bookings:${ip}`, 30, 60_000);
@@ -102,7 +105,7 @@ export async function POST(req: NextRequest) {
       return bookingFormRedirect(req, { roomId, checkIn: checkInRaw, checkOut: checkOutRaw, code: "failed" });
     }
 
-    const pricing = await computeRoomTotalPrice({ roomId, checkIn, checkOut });
+    const pricing = await computeRoomTotalPrice({ roomId, checkIn, checkOut, guestCount });
     // Guest has 15 minutes to submit payment proof after booking creation.
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
     const publicCode = await generateBookingCode("TJ");

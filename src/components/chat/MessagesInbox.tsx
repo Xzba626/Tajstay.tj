@@ -22,7 +22,7 @@ type InboxItem = {
   unreadCount: number;
 };
 
-const FILTERS: InboxFilter[] = ["all", "unread", "payment_pending", "on_review", "confirmed"];
+const FILTERS: InboxFilter[] = ["all", "unread", "payment_pending", "on_review", "confirmed", "complaints", "admin"];
 
 function filterLabel(locale: Locale, f: InboxFilter): string {
   return m(locale, `inbox.filter.${f}`);
@@ -39,13 +39,18 @@ function statusPill(status: string): string {
 
 export function MessagesInbox({ locale, role }: { locale: Locale; role: string }) {
   const [filter, setFilter] = useState<InboxFilter>("all");
+  const [search, setSearch] = useState("");
   const [items, setItems] = useState<InboxItem[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const visibleFilters = role === "ADMIN" ? FILTERS : FILTERS.filter((f) => f !== "admin");
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/chat/inbox?filter=${encodeURIComponent(filter)}`, {
+      const params = new URLSearchParams({ filter });
+      if (search.trim()) params.set("q", search.trim());
+      const res = await fetch(`/api/chat/inbox?${params.toString()}`, {
         cache: "no-store",
         credentials: "include"
       });
@@ -56,7 +61,7 @@ export function MessagesInbox({ locale, role }: { locale: Locale; role: string }
     } finally {
       setLoading(false);
     }
-  }, [filter]);
+  }, [filter, search]);
 
   useEffect(() => {
     void load();
@@ -71,8 +76,18 @@ export function MessagesInbox({ locale, role }: { locale: Locale; role: string }
         <p className="mt-1 text-sm text-slate-400">{m(locale, "inbox.subtitle")}</p>
       </div>
 
+      <div className="mb-4">
+        <input
+          type="search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder={m(locale, "inbox.searchPlaceholder")}
+          className="h-11 w-full rounded-xl border border-white/10 bg-white/5 px-4 text-sm text-white placeholder:text-slate-500"
+        />
+      </div>
+
       <div className="mb-4 flex flex-wrap gap-2" role="tablist">
-        {FILTERS.map((f) => (
+        {visibleFilters.map((f) => (
           <button
             key={f}
             type="button"

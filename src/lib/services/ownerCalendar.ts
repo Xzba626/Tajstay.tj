@@ -5,6 +5,11 @@ import { BOOKING_SOURCE } from "@/lib/domain/booking";
 
 export type CalendarCellKind = "available" | "blocked" | "customPrice" | "online" | "offline" | "onlinePending";
 
+export type CalendarCellMeta = {
+  bookingId?: number;
+  publicCode?: string | null;
+};
+
 export function toUtcDayStart(input: Date): Date {
   return new Date(Date.UTC(input.getUTCFullYear(), input.getUTCMonth(), input.getUTCDate(), 0, 0, 0));
 }
@@ -25,7 +30,12 @@ export async function getOwnerCalendarData(ownerId: number, days = 30) {
 
   const roomIds = rooms.map((r) => r.id);
   if (!roomIds.length) {
-    return { rooms: [], days: [], cells: {} as Record<string, CalendarCellKind> };
+    return {
+      rooms: [],
+      days: [],
+      cells: {} as Record<string, CalendarCellKind>,
+      cellMeta: {} as Record<string, CalendarCellMeta>
+    };
   }
 
   const [overrides, bookings] = await Promise.all([
@@ -76,6 +86,7 @@ export async function getOwnerCalendarData(ownerId: number, days = 30) {
   }
 
   const cells: Record<string, CalendarCellKind> = {};
+  const cellMeta: Record<string, CalendarCellMeta> = {};
 
   for (const room of rooms) {
     const blocking = blockingBookingsByRoom.get(room.id) ?? [];
@@ -100,6 +111,7 @@ export async function getOwnerCalendarData(ownerId: number, days = 30) {
       });
 
       if (hit) {
+        cellMeta[cellKey] = { bookingId: hit.id, publicCode: hit.publicCode };
         if (hit.source === BOOKING_SOURCE.OWNER_MANUAL) {
           cells[cellKey] = "offline";
         } else if (
@@ -119,5 +131,5 @@ export async function getOwnerCalendarData(ownerId: number, days = 30) {
     }
   }
 
-  return { rooms, days: calendarDays, cells, overrides, bookings };
+  return { rooms, days: calendarDays, cells, cellMeta, overrides, bookings };
 }

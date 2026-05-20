@@ -26,6 +26,7 @@ const ru: Tree = {
     about: "О сервисе",
     signIn: "Войти",
     signUp: "Регистрация",
+    notificationsBell: "Уведомления",
     tagline: ""
   },
   mobileMenu: {
@@ -373,6 +374,23 @@ const ru: Tree = {
     OWNER_OFFLINE_BOOKING_CREATED: "Офлайн-бронь создана",
     BOOKING_CHECKED_IN: "Гость заселён",
     BOOKING_CHAT_NEW: "Новое сообщение в чате",
+    BOOKING_CHAT_CREATED: "Чат по брони создан",
+    BOOKING_CREATED: "Бронь создана",
+    BOOKING_CANCELLED: "Бронь отменена",
+    BOOKING_CANCELLED_BY_GUEST: "Гость отменил бронь",
+    BOOKING_EXPIRED: "Бронь истекла",
+    CHECK_IN_REMINDER: "Скоро заезд",
+    CHECK_OUT_REMINDER: "Скоро выезд",
+    REVIEW_AVAILABLE: "Можно оставить отзыв",
+    PAYMENT_RECEIVED: "Оплата получена",
+    PAYOUT_SENT: "Выплата отправлена",
+    REFUND_PROCESSED: "Возврат обработан",
+    DISPUTE_OPENED: "Открыт спор по брони",
+    HOTEL_APPROVED: "Объект одобрен",
+    HOTEL_REJECTED: "Объект отклонён",
+    HOTEL_NEEDS_CHANGES: "Объект требует доработки",
+    NEW_COMPLAINT: "Новая жалоба",
+    ADMIN_MESSAGE: "Сообщение администратора",
     OWNER_APPLICATION_NEW: "Новая заявка владельца",
     OWNER_APPLICATION_APPROVED: "Заявка владельца одобрена",
     OWNER_APPLICATION_REJECTED: "Заявка владельца отклонена",
@@ -550,12 +568,15 @@ const ru: Tree = {
     loading: "Загрузка…",
     empty: "Нет диалогов по выбранному фильтру",
     noPreview: "Нет сообщений",
+    searchPlaceholder: "Поиск по гостю, отелю, коду брони…",
     filter: {
       all: "Все",
       unread: "Непрочитанные",
       payment_pending: "Ожидает оплаты",
       on_review: "На проверке",
-      confirmed: "Подтверждено"
+      confirmed: "Подтверждено",
+      complaints: "Жалобы",
+      admin: "Админ"
     }
   },
   admin: {
@@ -731,6 +752,11 @@ const ru: Tree = {
     addRoom: "Добавить номер",
     roomTitle: "Название номера",
     priceNight: "Цена за ночь",
+    weekendPrice: "Цена в выходные",
+    weekendPricePh: "Пт–Сб (необязательно)",
+    minNights: "Мин. ночей",
+    extraGuestPrice: "Доп. гость / ночь",
+    extraGuestPricePh: "За каждого гостя сверх вместимости",
     amenities: "Удобства",
     available: "Доступен",
     bookingsTitle: "Бронирования",
@@ -742,6 +768,25 @@ const ru: Tree = {
     calendarTitle: "Календарь: даты и цены",
     calendarHint: "Блокируйте даты и задавайте цены на отдельные дни.",
     calendarEmpty: "Календарь доступен после появления номеров.",
+    calendar: {
+      gridTitle: "Сетка занятости (30 дней)",
+      roomCol: "Номер",
+      clickHint: "Клик — начало диапазона, второй клик в той же строке — конец.",
+      selection: "Выбранный диапазон",
+      clearSelection: "Сбросить",
+      setPrice: "Задать цену",
+      clearOverride: "Снять правку",
+      openBooking: "Открыть бронь",
+      actionError: "Не удалось применить изменение",
+      legend: {
+        available: "Свободно",
+        online: "Онлайн-бронь",
+        offline: "Офлайн-бронь",
+        pending: "Ожидает оплаты",
+        blocked: "Закрыто",
+        customPrice: "Спеццена"
+      }
+    },
     block: "Заблокировать",
     priceIfOpen: "Цена (если не заблокировано)",
     saveOverride: "Сохранить",
@@ -755,6 +800,11 @@ const ru: Tree = {
     navRooms: "Номера",
     navBookings: "Бронирования",
     navCalendar: "Календарь и цены",
+    navMessages: "Сообщения",
+    navReviews: "Отзывы",
+    navFinances: "Финансы",
+    navStatistics: "Статистика",
+    navHelp: "Помощь",
     navNotifications: "Уведомления",
     aiPricing: "AI‑рекомендация по цене",
     aiPricingHint: "Подсказка основана на текущих заявках и активности за последние 30 дней.",
@@ -768,6 +818,8 @@ const ru: Tree = {
     navOfflineBookings: "Офлайн-брони",
     bookingBadge: { online: "Онлайн", offline: "Офлайн" },
     kpi: {
+      activeHotels: "Активные объекты",
+      pendingOnline: "Ожидают подтверждения",
       bookingsToday: "Брони сегодня",
       checkInsToday: "Заезды сегодня",
       checkOutsToday: "Выезды сегодня",
@@ -778,7 +830,39 @@ const ru: Tree = {
     quick: {
       offlineBooking: "Добавить офлайн-бронь",
       calendar: "Календарь",
-      messages: "Бронирования и чат"
+      messages: "Ответить гостям",
+      editPrices: "Редактировать цены",
+      payouts: "Выплаты"
+    },
+    finances: {
+      title: "Финансы",
+      hint: "Доход и выплаты по вашим объектам.",
+      revenueMonth: "Доход за месяц",
+      payoutsTitle: "Выплаты",
+      payoutsEmpty: "Выплат пока нет.",
+      commissionNote: "Комиссия платформы учитывается при расчёте выплат.",
+      commissionTotal: "Комиссия за 30 дней"
+    },
+    reviewsSection: {
+      title: "Отзывы гостей",
+      hint: "Отвечайте на отзывы — это повышает доверие.",
+      empty: "Отзывов пока нет.",
+      replyPlaceholder: "Напишите ответ гостю…",
+      saving: "Сохранение…"
+    },
+    statisticsSection: {
+      title: "Статистика",
+      hint: "Показатели за последние 30 дней (оценочно)."
+    },
+    help: {
+      title: "Советы владельцу",
+      hint: "Короткие рекомендации для роста бронирований.",
+      tips: {
+        photos: { title: "Качественные фото", text: "Добавьте яркие фото номера и фасада — это повышает доверие гостей." },
+        messages: { title: "Быстрые ответы", text: "Отвечайте на сообщения в течение часа — гости чаще завершают бронь." },
+        calendar: { title: "Актуальный календарь", text: "Закрывайте занятые даты и добавляйте офлайн-брони, чтобы избежать двойных броней." },
+        rules: { title: "Правила заселения", text: "Укажите время заезда, парковку и правила — меньше вопросов после брони." }
+      }
     },
     offline: {
       title: "Офлайн-бронирования",
@@ -814,19 +898,7 @@ const ru: Tree = {
       }
     },
     calendarOccupiedTitle: "Занято (по броням)",
-    calendarOccupiedEmpty: "Пока нет занятых дат.",
-    calendar: {
-      gridTitle: "Календарь (30 дней × комнаты)",
-      roomCol: "Комната",
-      legend: {
-        available: "Свободно",
-        online: "Онлайн-бронь",
-        offline: "Офлайн-бронь",
-        pending: "Ожидает подтверждения",
-        blocked: "Заблокировано",
-        customPrice: "Особая цена"
-      }
-    }
+    calendarOccupiedEmpty: "Пока нет занятых дат."
   },
   chat: {
     welcomePayment:
@@ -865,6 +937,14 @@ const ru: Tree = {
         "4": "Решение по спору будет отображено в вашем кабинете."
       }
     },
+    dispute: {
+      title: "Спор по брони",
+      open: "Открыть спор",
+      openStatus: "Спор в обработке",
+      placeholder: "Опишите проблему (минимум 10 символов)",
+      submit: "Отправить",
+      error: "Не удалось открыть спор"
+    },
     readReceipt: "Прочитано"
   },
   splash: {
@@ -879,6 +959,7 @@ const tg: Tree = {
     about: "Дар бораи хизматрасонӣ",
     signIn: "Ворид шудан",
     signUp: "Бақайдгирӣ",
+    notificationsBell: "Огоҳиҳо",
     tagline: ""
   },
   mobileMenu: {
@@ -1226,6 +1307,23 @@ const tg: Tree = {
     OWNER_OFFLINE_BOOKING_CREATED: "Брони офлайн эҷод шуд",
     BOOKING_CHECKED_IN: "Меҳмон ҷойгир шуд",
     BOOKING_CHAT_NEW: "Паёми нав дар чат",
+    BOOKING_CHAT_CREATED: "Чати брон эҷод шуд",
+    BOOKING_CREATED: "Брон эҷод шуд",
+    BOOKING_CANCELLED: "Брон бекор шуд",
+    BOOKING_CANCELLED_BY_GUEST: "Меҳмон бронро бекор кард",
+    BOOKING_EXPIRED: "Брон анҷом ёфт",
+    CHECK_IN_REMINDER: "Ба зудӣ вуруд",
+    CHECK_OUT_REMINDER: "Ба зудӣ хуруҷ",
+    REVIEW_AVAILABLE: "Метавонед назар гузоред",
+    PAYMENT_RECEIVED: "Пардохт гирифта шуд",
+    PAYOUT_SENT: "Пардохт фиристода шуд",
+    REFUND_PROCESSED: "Бозгашт анҷом шуд",
+    DISPUTE_OPENED: "Низоъ кушода шуд",
+    HOTEL_APPROVED: "Объект тасдиқ шуд",
+    HOTEL_REJECTED: "Объект рад шуд",
+    HOTEL_NEEDS_CHANGES: "Объект тағйир лозим аст",
+    NEW_COMPLAINT: "Шикояти нав",
+    ADMIN_MESSAGE: "Паёми админ",
     OWNER_APPLICATION_NEW: "Дархости нави соҳиб",
     OWNER_APPLICATION_APPROVED: "Дархости соҳиб қабул шуд",
     OWNER_APPLICATION_REJECTED: "Дархости соҳиб рад шуд",
@@ -1399,12 +1497,15 @@ const tg: Tree = {
     loading: "Бор мешавад…",
     empty: "Диалогҳо нест",
     noPreview: "Паём нест",
+    searchPlaceholder: "Ҷустуҷӯ бо меҳмон, отел, рамзи брон…",
     filter: {
       all: "Ҳама",
       unread: "Нохонда",
       payment_pending: "Интизори пардохт",
       on_review: "Дар санҷиш",
-      confirmed: "Тасдиқшуда"
+      confirmed: "Тасдиқшуда",
+      complaints: "Шикоятҳо",
+      admin: "Админ"
     }
   },
   admin: {
@@ -1579,6 +1680,11 @@ const tg: Tree = {
     addRoom: "Иловаи хона",
     roomTitle: "Номи хона",
     priceNight: "Нарх / шаб",
+    weekendPrice: "Нархи рӯзҳои истироҳат",
+    weekendPricePh: "Ҷм–Шн (ихтиёрӣ)",
+    minNights: "Шабҳои ҳадди ақал",
+    extraGuestPrice: "Меҳмони иловагӣ / шаб",
+    extraGuestPricePh: "Барои ҳар меҳмон аз зиёдаи ҷой",
     amenities: "Қулайиҳо",
     available: "Дастрас",
     bookingsTitle: "Бронҳо",
@@ -1590,6 +1696,25 @@ const tg: Tree = {
     calendarTitle: "Тақвим: санаҳо ва нархҳо",
     calendarHint: "Санаҳоро баста кунед ё нарх гузоред.",
     calendarEmpty: "Пас аз пайдо шудани хонаҳо дастрас аст.",
+    calendar: {
+      gridTitle: "Шабакаи ишғол (30 рӯз)",
+      roomCol: "Хона",
+      clickHint: "Клик — оғоз, клики дуюм дар ҳамон сатр — анҷом.",
+      selection: "Диапазони интихобшуда",
+      clearSelection: "Тоза кардан",
+      setPrice: "Нарх гузоштан",
+      clearOverride: "Хатм кардани тағйир",
+      openBooking: "Кушодани брон",
+      actionError: "Тағйир анҷом нашуд",
+      legend: {
+        available: "Озод",
+        online: "Брони онлайн",
+        offline: "Брони офлайн",
+        pending: "Интизори пардохт",
+        blocked: "Пӯшида",
+        customPrice: "Нархи махсус"
+      }
+    },
     block: "Бастан",
     priceIfOpen: "Нарх",
     saveOverride: "Нигоҳ доштан",
@@ -1603,6 +1728,11 @@ const tg: Tree = {
     navRooms: "Хонаҳо",
     navBookings: "Бронҳо",
     navCalendar: "Тақвим ва нарх",
+    navMessages: "Паёмҳо",
+    navReviews: "Назарҳо",
+    navFinances: "Молия",
+    navStatistics: "Омор",
+    navHelp: "Кӯмак",
     navNotifications: "Огоҳиҳо",
     aiPricing: "Тавсияи AI барои нарх",
     aiPricingHint: "Ин маслиҳат бар асоси дархостҳои ҷорӣ ва фаъолият дар 30 рӯзи охир аст.",
@@ -1616,6 +1746,8 @@ const tg: Tree = {
     navOfflineBookings: "Бронҳои офлайн",
     bookingBadge: { online: "Онлайн", offline: "Офлайн" },
     kpi: {
+      activeHotels: "Объектҳои фаъол",
+      pendingOnline: "Интизори тасдиқ",
       bookingsToday: "Бронҳои имрӯз",
       checkInsToday: "Вурудҳои имрӯз",
       checkOutsToday: "Хуруҷҳои имрӯз",
@@ -1626,7 +1758,39 @@ const tg: Tree = {
     quick: {
       offlineBooking: "Брони офлайн илова кунед",
       calendar: "Тақвим",
-      messages: "Бронҳо ва чат"
+      messages: "Ба меҳмонон ҷавоб диҳед",
+      editPrices: "Тағйири нарх",
+      payouts: "Пардохтҳо"
+    },
+    finances: {
+      title: "Молия",
+      hint: "Даромад ва пардохтҳо барои объектҳои шумо.",
+      revenueMonth: "Даромади моҳ",
+      payoutsTitle: "Пардохтҳо",
+      payoutsEmpty: "Пардохтҳо ҳанӯз нест.",
+      commissionNote: "Комиссияи платформа ҳангоми пардохт ҳисоб мешавад.",
+      commissionTotal: "Комиссия барои 30 рӯз"
+    },
+    reviewsSection: {
+      title: "Назарҳои меҳмонон",
+      hint: "Ба назарҳо ҷавоб диҳед — ин эътимодро зиёд мекунад.",
+      empty: "Назарҳо ҳанӯз нест.",
+      replyPlaceholder: "Ҷавоб ба меҳмон…",
+      saving: "Нигоҳ дошта мешавад…"
+    },
+    statisticsSection: {
+      title: "Омор",
+      hint: "Нишондиҳандаҳо барои 30 рӯзи охир (тақрибӣ)."
+    },
+    help: {
+      title: "Маслиҳат ба соҳиб",
+      hint: "Тавсияҳои кӯтоҳ барои афзоиши бронҳо.",
+      tips: {
+        photos: { title: "Аксҳои хуб", text: "Аксҳои равшани хона ва фасад илова кунед — эътимод зиёд мешавад." },
+        messages: { title: "Ҷавоби зуд", text: "Дар як соат ҷавоб диҳед — меҳмонон бештар брон мекунанд." },
+        calendar: { title: "Тақвими дақиқ", text: "Санаҳои бандро пӯшед ва брони офлайн илова кунед." },
+        rules: { title: "Қоидаҳои вуруд", text: "Вақти вуруд ва қоидаҳоро нависед — саволҳо камтар мешаванд." }
+      }
     },
     offline: {
       title: "Бронҳои офлайн",
@@ -1661,18 +1825,8 @@ const tg: Tree = {
         CANCELLED: "Бекоршуда"
       }
     },
-    calendar: {
-      gridTitle: "Тақвим (30 рӯз × хонаҳо)",
-      roomCol: "Хона",
-      legend: {
-        available: "Озод",
-        online: "Брони онлайн",
-        offline: "Брони офлайн",
-        pending: "Интизори тасдиқ",
-        blocked: "Баста",
-        customPrice: "Нархи махсус"
-      }
-    }
+    calendarOccupiedTitle: "Ишғол (бо брон)",
+    calendarOccupiedEmpty: "Санаҳои ишғол ҳанӯз нест."
   },
   chat: {
     welcomePayment:
@@ -1711,6 +1865,14 @@ const tg: Tree = {
         "4": "Қарор дар кабинети шумо намоиш дода мешавад."
       }
     },
+    dispute: {
+      title: "Низоъ оид ба брон",
+      open: "Кушодани низоъ",
+      openStatus: "Низоъ дар коркард",
+      placeholder: "Мушкилотро тавсиф кунед (ҳадди ақал 10 аломат)",
+      submit: "Ирсол",
+      error: "Кушода нашуд"
+    },
     readReceipt: "Хонда шуд"
   },
   splash: { subtitle: "Ҷойгиршавӣ дар саросари Тоҷикистон" }
@@ -1723,6 +1885,7 @@ const en: Tree = {
     about: "About",
     signIn: "Sign in",
     signUp: "Sign up",
+    notificationsBell: "Notifications",
     tagline: ""
   },
   mobileMenu: {
@@ -2069,6 +2232,23 @@ const en: Tree = {
     OWNER_OFFLINE_BOOKING_CREATED: "Offline booking created",
     BOOKING_CHECKED_IN: "Guest checked in",
     BOOKING_CHAT_NEW: "New chat message",
+    BOOKING_CHAT_CREATED: "Booking chat created",
+    BOOKING_CREATED: "Booking created",
+    BOOKING_CANCELLED: "Booking cancelled",
+    BOOKING_CANCELLED_BY_GUEST: "Guest cancelled booking",
+    BOOKING_EXPIRED: "Booking expired",
+    CHECK_IN_REMINDER: "Check-in soon",
+    CHECK_OUT_REMINDER: "Check-out soon",
+    REVIEW_AVAILABLE: "You can leave a review",
+    PAYMENT_RECEIVED: "Payment received",
+    PAYOUT_SENT: "Payout sent",
+    REFUND_PROCESSED: "Refund processed",
+    DISPUTE_OPENED: "Booking dispute opened",
+    HOTEL_APPROVED: "Listing approved",
+    HOTEL_REJECTED: "Listing rejected",
+    HOTEL_NEEDS_CHANGES: "Listing needs changes",
+    NEW_COMPLAINT: "New complaint",
+    ADMIN_MESSAGE: "Admin message",
     OWNER_APPLICATION_NEW: "New host application",
     OWNER_APPLICATION_APPROVED: "Host application approved",
     OWNER_APPLICATION_REJECTED: "Host application declined",
@@ -2242,12 +2422,15 @@ const en: Tree = {
     loading: "Loading…",
     empty: "No conversations for this filter",
     noPreview: "No messages yet",
+    searchPlaceholder: "Search guest, hotel, booking code…",
     filter: {
       all: "All",
       unread: "Unread",
       payment_pending: "Awaiting payment",
       on_review: "Under review",
-      confirmed: "Confirmed"
+      confirmed: "Confirmed",
+      complaints: "Complaints",
+      admin: "Admin"
     }
   },
   admin: {
@@ -2422,6 +2605,11 @@ const en: Tree = {
     addRoom: "Add room",
     roomTitle: "Room name",
     priceNight: "Price per night",
+    weekendPrice: "Weekend price",
+    weekendPricePh: "Fri–Sat (optional)",
+    minNights: "Min nights",
+    extraGuestPrice: "Extra guest / night",
+    extraGuestPricePh: "Per guest above capacity",
     amenities: "Amenities",
     available: "Available",
     bookingsTitle: "Bookings",
@@ -2433,6 +2621,25 @@ const en: Tree = {
     calendarTitle: "Calendar: dates & prices",
     calendarHint: "Block dates or set prices for specific days.",
     calendarEmpty: "Available once you have rooms.",
+    calendar: {
+      gridTitle: "Occupancy grid (30 days)",
+      roomCol: "Room",
+      clickHint: "Click to start a range; second click in the same row ends it.",
+      selection: "Selected range",
+      clearSelection: "Clear",
+      setPrice: "Set price",
+      clearOverride: "Remove override",
+      openBooking: "Open booking",
+      actionError: "Could not apply change",
+      legend: {
+        available: "Available",
+        online: "Online booking",
+        offline: "Offline booking",
+        pending: "Awaiting payment",
+        blocked: "Blocked",
+        customPrice: "Custom price"
+      }
+    },
     block: "Block",
     priceIfOpen: "Price (if not blocked)",
     saveOverride: "Save",
@@ -2446,6 +2653,11 @@ const en: Tree = {
     navRooms: "Rooms",
     navBookings: "Bookings",
     navCalendar: "Calendar & prices",
+    navMessages: "Messages",
+    navReviews: "Reviews",
+    navFinances: "Finances",
+    navStatistics: "Statistics",
+    navHelp: "Help",
     navNotifications: "Notifications",
     aiPricing: "AI pricing insight",
     aiPricingHint: "This tip is based on current requests and activity for the last 30 days.",
@@ -2459,6 +2671,8 @@ const en: Tree = {
     navOfflineBookings: "Offline bookings",
     bookingBadge: { online: "Online", offline: "Offline" },
     kpi: {
+      activeHotels: "Active listings",
+      pendingOnline: "Awaiting confirmation",
       bookingsToday: "Bookings today",
       checkInsToday: "Check-ins today",
       checkOutsToday: "Check-outs today",
@@ -2469,7 +2683,39 @@ const en: Tree = {
     quick: {
       offlineBooking: "Add offline booking",
       calendar: "Calendar",
-      messages: "Bookings & chat"
+      messages: "Reply to guests",
+      editPrices: "Edit prices",
+      payouts: "View payouts"
+    },
+    finances: {
+      title: "Finances",
+      hint: "Revenue and payouts for your properties.",
+      revenueMonth: "Revenue this month",
+      payoutsTitle: "Payouts",
+      payoutsEmpty: "No payouts yet.",
+      commissionNote: "Platform commission is applied when payouts are calculated.",
+      commissionTotal: "Commission (30 days)"
+    },
+    reviewsSection: {
+      title: "Guest reviews",
+      hint: "Reply to reviews to build trust.",
+      empty: "No reviews yet.",
+      replyPlaceholder: "Write a reply to the guest…",
+      saving: "Saving…"
+    },
+    statisticsSection: {
+      title: "Statistics",
+      hint: "Metrics for the last 30 days (estimated)."
+    },
+    help: {
+      title: "Owner tips",
+      hint: "Short recommendations to grow bookings.",
+      tips: {
+        photos: { title: "Quality photos", text: "Add bright room and exterior photos — guests trust listings more." },
+        messages: { title: "Fast replies", text: "Reply within an hour — guests complete bookings more often." },
+        calendar: { title: "Accurate calendar", text: "Block busy dates and log offline bookings to avoid double bookings." },
+        rules: { title: "House rules", text: "State check-in time and policies — fewer questions after booking." }
+      }
     },
     offline: {
       title: "Offline bookings",
@@ -2504,18 +2750,8 @@ const en: Tree = {
         CANCELLED: "Cancelled"
       }
     },
-    calendar: {
-      gridTitle: "Calendar (30 days × rooms)",
-      roomCol: "Room",
-      legend: {
-        available: "Available",
-        online: "Online booking",
-        offline: "Offline booking",
-        pending: "Awaiting confirmation",
-        blocked: "Blocked",
-        customPrice: "Custom price"
-      }
-    }
+    calendarOccupiedTitle: "Occupied (from bookings)",
+    calendarOccupiedEmpty: "No occupied dates yet."
   },
   chat: {
     welcomePayment:
@@ -2553,6 +2789,14 @@ const en: Tree = {
         "3": "An administrator is reviewing the situation.",
         "4": "The dispute resolution will appear in your dashboard."
       }
+    },
+    dispute: {
+      title: "Booking dispute",
+      open: "Open dispute",
+      openStatus: "Dispute in progress",
+      placeholder: "Describe the issue (at least 10 characters)",
+      submit: "Submit",
+      error: "Could not open dispute"
     },
     readReceipt: "Read"
   },
