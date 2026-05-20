@@ -117,6 +117,28 @@ export async function Header() {
           <div className="hidden md:block">
             <LocaleSwitcher current={locale} />
           </div>
+          {user ? (
+            <div className="md:hidden">
+              <NotificationBell
+                initialUnreadCount={unreadCount}
+                labels={{
+                  ariaLabel: m(locale, "header.notificationsBell"),
+                  title: m(locale, "userMenu.notificationsTitle"),
+                  noNotifications: m(locale, "userMenu.noNotifications"),
+                  noNotificationsHint: m(locale, "notifications.bell.emptyHint"),
+                  markReadAll: m(locale, "userMenu.markReadAll"),
+                  openAll: m(locale, "userMenu.openAllNotifications"),
+                  soundOn: m(locale, "notifications.bell.soundOn"),
+                  soundOff: m(locale, "notifications.bell.soundOff"),
+                  justNow: m(locale, "notifications.bell.justNow"),
+                  minutesAgo: m(locale, "notifications.bell.minutesAgo"),
+                  hoursAgo: m(locale, "notifications.bell.hoursAgo"),
+                  daysAgo: m(locale, "notifications.bell.daysAgo"),
+                  newToast: m(locale, "notifications.bell.newToast")
+                }}
+              />
+            </div>
+          ) : null}
           <MobileMenu user={user} ownerApp={ownerApp} locale={locale} labels={mobileLabels} unreadCount={unreadCount} />
           {!user ? (
             <>
@@ -142,8 +164,16 @@ export async function Header() {
                     ariaLabel: m(locale, "header.notificationsBell"),
                     title: m(locale, "userMenu.notificationsTitle"),
                     noNotifications: m(locale, "userMenu.noNotifications"),
+                    noNotificationsHint: m(locale, "notifications.bell.emptyHint"),
                     markReadAll: m(locale, "userMenu.markReadAll"),
-                    openAll: m(locale, "userMenu.openAllNotifications")
+                    openAll: m(locale, "userMenu.openAllNotifications"),
+                    soundOn: m(locale, "notifications.bell.soundOn"),
+                    soundOff: m(locale, "notifications.bell.soundOff"),
+                    justNow: m(locale, "notifications.bell.justNow"),
+                    minutesAgo: m(locale, "notifications.bell.minutesAgo"),
+                    hoursAgo: m(locale, "notifications.bell.hoursAgo"),
+                    daysAgo: m(locale, "notifications.bell.daysAgo"),
+                    newToast: m(locale, "notifications.bell.newToast")
                   }}
                 />
               </div>

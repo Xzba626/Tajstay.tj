@@ -363,7 +363,31 @@ const ru: Tree = {
       moderation: "Модерация"
     }
   },
+  pwa: {
+    installTitle: "Установить Tajstay",
+    installBody: "Добавьте на главный экран — быстрый доступ и уведомления как в приложении.",
+    installAction: "Установить",
+    installDismiss: "Позже",
+    pushTitle: "Включить push на телефон?",
+    pushEnable: "Включить",
+    pushLater: "Позже",
+    pushUnsupported: "Push не поддерживается в этом браузере",
+    offlineTitle: "Нет подключения к интернету",
+    offlineBody: "Оболочка приложения доступна офлайн. Бронирование, оплата и чат работают только онлайн.",
+    offlineHint: "Проверьте Wi‑Fi или мобильную сеть и попробуйте снова.",
+    offlineRetry: "Повторить"
+  },
   notifications: {
+    bell: {
+      emptyHint: "Здесь появятся брони, сообщения и выплаты",
+      soundOn: "Звук включён",
+      soundOff: "Звук выключен",
+      justNow: "только что",
+      minutesAgo: "{n} мин назад",
+      hoursAgo: "{n} ч назад",
+      daysAgo: "{n} дн назад",
+      newToast: "Новое уведомление"
+    },
     BOOKING_CONFIRMED: "Бронь подтверждена",
     BOOKING_REJECTED: "Бронь отклонена",
     PAYMENT_APPROVED: "Бронирование успешно подтверждено!",
@@ -1296,7 +1320,31 @@ const tg: Tree = {
       moderation: "Модератсия"
     }
   },
+  pwa: {
+    installTitle: "Насб кардани Tajstay",
+    installBody: "Ба экрани асосӣ илова кунед — дастрасии зуд ва огоҳиҳо мисли барнома.",
+    installAction: "Насб кардан",
+    installDismiss: "Баъдтар",
+    pushTitle: "Push дар телефон фаъол кунем?",
+    pushEnable: "Фаъол кардан",
+    pushLater: "Баъдтар",
+    pushUnsupported: "Push дар ин браузер дастгирӣ намешавад",
+    offlineTitle: "Пайвасти интернет нест",
+    offlineBody: "Қобилиати барнома офлайн дастрас аст. Брон, пардохт ва чат танҳо онлайн кор мекунанд.",
+    offlineHint: "Wi‑Fi ё шабакаро санҷед ва аз нав кӯшиш кунед.",
+    offlineRetry: "Аз нав"
+  },
   notifications: {
+    bell: {
+      emptyHint: "Дар ин ҷо бронҳо, паёмҳо ва пардохтҳо пайдо мешаванд",
+      soundOn: "Садо фаъол",
+      soundOff: "Садо хомӯш",
+      justNow: "ҳозир",
+      minutesAgo: "{n} дақ пеш",
+      hoursAgo: "{n} соат пеш",
+      daysAgo: "{n} рӯз пеш",
+      newToast: "Огоҳии нав"
+    },
     BOOKING_CONFIRMED: "Брон тасдиқ шуд",
     BOOKING_REJECTED: "Брон рад шуд",
     PAYMENT_APPROVED: "Брон шумо бомуваффақият тасдиқ шуд!",
@@ -2221,7 +2269,31 @@ const en: Tree = {
       moderation: "Moderation"
     }
   },
+  pwa: {
+    installTitle: "Install Tajstay",
+    installBody: "Add to your home screen for quick access and app-like notifications.",
+    installAction: "Install",
+    installDismiss: "Later",
+    pushTitle: "Enable push on your phone?",
+    pushEnable: "Enable",
+    pushLater: "Later",
+    pushUnsupported: "Push is not supported in this browser",
+    offlineTitle: "You are offline",
+    offlineBody: "The app shell works offline. Booking, payment, and chat require a connection.",
+    offlineHint: "Check Wi‑Fi or mobile data and try again.",
+    offlineRetry: "Retry"
+  },
   notifications: {
+    bell: {
+      emptyHint: "Bookings, messages, and payouts will show up here",
+      soundOn: "Sound on",
+      soundOff: "Sound off",
+      justNow: "just now",
+      minutesAgo: "{n} min ago",
+      hoursAgo: "{n} h ago",
+      daysAgo: "{n} d ago",
+      newToast: "New notification"
+    },
     BOOKING_CONFIRMED: "Booking confirmed",
     BOOKING_REJECTED: "Booking declined",
     PAYMENT_APPROVED: "Your booking is confirmed!",

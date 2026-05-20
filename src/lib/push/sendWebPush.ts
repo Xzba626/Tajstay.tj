@@ -1,13 +1,17 @@
 import { prisma } from "@/lib/prisma";
 
-/** Sends web push when VAPID keys are configured (optional). */
-export async function sendWebPushToUser(
-  userId: number,
-  payload: { title: string; body: string; url?: string }
-) {
-  const publicKey = process.env.VAPID_PUBLIC_KEY;
-  const privateKey = process.env.VAPID_PRIVATE_KEY;
-  const subject = process.env.VAPID_SUBJECT ?? "mailto:support@tajstay.tj";
+type PushPayload = {
+  title: string;
+  body: string;
+  url?: string;
+  tag?: string;
+};
+
+/** Sends Web Push to user's devices when VAPID_* env vars are set. No-op otherwise. */
+export async function sendWebPushToUser(userId: number, payload: PushPayload): Promise<void> {
+  const publicKey = process.env.VAPID_PUBLIC_KEY?.trim();
+  const privateKey = process.env.VAPID_PRIVATE_KEY?.trim();
+  const subject = process.env.VAPID_SUBJECT?.trim() || "mailto:support@tajstay.tj";
   if (!publicKey || !privateKey) return;
 
   const subs = await prisma.pushSubscription.findMany({ where: { userId } });
@@ -21,14 +25,19 @@ export async function sendWebPushToUser(
   }
 
   webpush.setVapidDetails(subject, publicKey, privateKey);
-  const body = JSON.stringify(payload);
+  const body = JSON.stringify({
+    title: payload.title,
+    body: payload.body,
+    url: payload.url || "/notifications",
+    tag: payload.tag
+  });
 
   await Promise.allSettled(
-    subs.map((s) =>
+    subs.map((sub) =>
       webpush.sendNotification(
         {
-          endpoint: s.endpoint,
-          keys: { p256dh: s.p256dh, auth: s.auth }
+          endpoint: sub.endpoint,
+          keys: { p256dh: sub.p256dh, auth: sub.auth }
         },
         body
       )

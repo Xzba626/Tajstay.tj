@@ -7,6 +7,7 @@ import { m } from "@/lib/i18n/messages";
 import { formatDateTimeShort } from "@/lib/i18n/format";
 import { notificationText } from "@/lib/notifications/text";
 import { matchesCategory, type NotificationCategory } from "@/lib/notifications/categories";
+import { NotificationsLiveRefresh } from "@/components/notifications/NotificationsLiveRefresh";
 
 export const dynamic = "force-dynamic";
 
@@ -49,6 +50,7 @@ export default async function NotificationsPage({
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
+      <NotificationsLiveRefresh />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <Link href={backHref(user.role)} className="text-sm text-slate-500 hover:text-slate-800">

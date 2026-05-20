@@ -42,24 +42,7 @@ function initials(name: string) {
   return name.slice(0, 2).toUpperCase() || "?";
 }
 
-function playNotificationPing() {
-  const Ctx = window.AudioContext || (window as any).webkitAudioContext;
-  if (!Ctx) return;
-  const ctx = new Ctx();
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-
-  osc.type = "sine";
-  osc.frequency.value = 1046;
-  gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.12, ctx.currentTime + 0.01);
-  gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.2);
-
-  osc.connect(gain);
-  gain.connect(ctx.destination);
-  osc.start();
-  osc.stop(ctx.currentTime + 0.22);
-}
+import { NOTIFICATION_NEW_EVENT } from "@/lib/pwa/notificationEvents";
 
 type NotificationItem = {
   id: number;
@@ -115,8 +98,6 @@ export function UserMenu({ userName, role, ownerApp, labels: L, initialUnreadCou
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [markingReadAll, setMarkingReadAll] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const prevUnreadRef = useRef(initialUnreadCount);
-
   useEffect(() => {
     function close(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
@@ -126,45 +107,23 @@ export function UserMenu({ userName, role, ownerApp, labels: L, initialUnreadCou
   }, []);
 
   useEffect(() => {
-    let mounted = true;
-
-    async function pullUnread() {
-      try {
-        const [countRes, listRes] = await Promise.all([
-          fetch("/api/notifications/unread", { credentials: "include", cache: "no-store" }),
-          fetch("/api/notifications/list", { credentials: "include", cache: "no-store" })
-        ]);
-        if (!countRes.ok) return;
-        const countData = (await countRes.json().catch(() => ({}))) as { count?: unknown };
-        const nextCount = typeof countData?.count === "number" ? Math.max(0, countData.count) : 0;
-        const listData = (await listRes.json().catch(() => ({}))) as { items?: unknown };
-        const nextItems = Array.isArray(listData?.items) ? (listData.items as NotificationItem[]) : [];
-        if (!mounted) return;
-        setUnreadCount(nextCount);
-        setItems(nextItems);
-        if (nextCount > prevUnreadRef.current && document.visibilityState === "visible") {
-          try {
-            playNotificationPing();
-          } catch {
-            // browser can block autoplay sound before user gesture
-          }
-        }
-        prevUnreadRef.current = nextCount;
-      } catch {
-        // ignore polling errors
-      }
+    function onNew(e: Event) {
+      const detail = (e as CustomEvent<{ count?: number }>).detail;
+      if (typeof detail?.count === "number") setUnreadCount(detail.count);
     }
-
-    const t = window.setInterval(() => {
-      pullUnread().catch(() => undefined);
-    }, 4000);
-    pullUnread().catch(() => undefined);
-
-    return () => {
-      mounted = false;
-      window.clearInterval(t);
-    };
+    window.addEventListener(NOTIFICATION_NEW_EVENT, onNew);
+    return () => window.removeEventListener(NOTIFICATION_NEW_EVENT, onNew);
   }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    void fetch("/api/notifications/list", { credentials: "include", cache: "no-store" })
+      .then((r) => r.json())
+      .then((data: { items?: NotificationItem[] }) => {
+        setItems(Array.isArray(data.items) ? data.items : []);
+      })
+      .catch(() => undefined);
+  }, [open]);
 
   async function readAllNotifications() {
     if (markingReadAll) return;
@@ -174,7 +133,6 @@ export function UserMenu({ userName, role, ownerApp, labels: L, initialUnreadCou
       if (!res.ok) throw new Error("read-all failed");
       setUnreadCount(0);
       setItems((prev) => prev.map((i) => ({ ...i, isRead: true })));
-      prevUnreadRef.current = 0;
     } catch {
       // keep previous state
     } finally {

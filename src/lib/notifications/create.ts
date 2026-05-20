@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { sendWebPushToUser } from "@/lib/push/sendWebPush";
 
 export type CreateNotificationInput = {
   userId: number;
@@ -11,7 +12,7 @@ export type CreateNotificationInput = {
 };
 
 export async function createNotification(input: CreateNotificationInput) {
-  return prisma.notification.create({
+  const note = await prisma.notification.create({
     data: {
       userId: input.userId,
       type: input.type,
@@ -22,6 +23,13 @@ export async function createNotification(input: CreateNotificationInput) {
       meta: input.meta ? JSON.stringify(input.meta) : undefined
     }
   });
+  void sendWebPushToUser(input.userId, {
+    title: input.title?.trim() || "Tajstay",
+    body: input.message?.trim() || input.type,
+    url: input.link || "/notifications",
+    tag: `n-${note.id}`
+  }).catch(() => undefined);
+  return note;
 }
 
 export async function createNotifications(inputs: CreateNotificationInput[]) {

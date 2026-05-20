@@ -42,6 +42,7 @@ model User {
   payouts             Payout[]            @relation("UserPayouts")
   disputesOpened      Dispute[]           @relation("DisputesOpened")
   disputesAgainst     Dispute[]           @relation("DisputesAgainst")
+  pushSubscriptions   PushSubscription[]
 }
 
 model Account {
@@ -415,6 +416,19 @@ model Notification {
   bookingId Int?
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
+}
+
+/// Web Push subscription for installed PWA (requires VAPID keys on server).
+model PushSubscription {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 model Complaint {
