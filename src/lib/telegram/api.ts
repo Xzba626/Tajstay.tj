@@ -27,23 +27,31 @@ async function callTelegram<T>(method: string, body: Record<string, unknown>): P
   return json.result;
 }
 
+export type TelegramSendMessageResult = { ok: true } | { ok: false; error: string };
+
 export async function sendTelegramMessage(params: {
   chatId: number | string;
   text: string;
   replyMarkup?: ReplyMarkup;
   removeKeyboard?: boolean;
-}): Promise<void> {
+}): Promise<TelegramSendMessageResult> {
   let markup: ReplyMarkup | undefined = params.replyMarkup;
   if (params.removeKeyboard) {
     markup = { remove_keyboard: true };
   }
 
-  await callTelegram("sendMessage", {
-    chat_id: params.chatId,
-    text: params.text,
-    parse_mode: "HTML",
-    reply_markup: markup
-  });
+  try {
+    await callTelegram("sendMessage", {
+      chat_id: params.chatId,
+      text: params.text,
+      parse_mode: "HTML",
+      reply_markup: markup
+    });
+    return { ok: true };
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err.message : String(err);
+    return { ok: false, error };
+  }
 }
 
 export async function getTelegramUserPhotoUrl(userId: number): Promise<string | null> {

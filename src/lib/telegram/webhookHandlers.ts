@@ -28,10 +28,13 @@ type TgMessage = {
 };
 
 export type TelegramUpdate = {
+  update_id?: number;
   message?: TgMessage;
 };
 
 export async function handleTelegramUpdate(update: TelegramUpdate): Promise<void> {
+  console.log("[telegram/webhook] incoming update", JSON.stringify(update));
+
   if (update.message) {
     await handleMessage(update.message);
   }
@@ -47,8 +50,17 @@ async function handleMessage(message: TgMessage): Promise<void> {
   const telegramId = String(from.id);
 
   if (message.contact?.phone_number) {
+    console.log("[telegram/webhook] contact received", {
+      telegramId,
+      phone: message.contact.phone_number
+    });
+
     const open = await findOpenChallengeForTelegram(telegramId);
-    if (!open) return;
+    if (!open) {
+      const sent = await sendTelegramMessage({ chatId, text: L.openSiteToSignIn });
+      console.log("[telegram/webhook] sendMessage result (no challenge)", sent);
+      return;
+    }
 
     const result = await attachPhoneAndSendCode(
       open.token,
@@ -64,13 +76,25 @@ async function handleMessage(message: TgMessage): Promise<void> {
           : result.reason === "expired"
             ? L.expired
             : L.invalid;
-      await sendTelegramMessage({ chatId, text });
+      const sent = await sendTelegramMessage({ chatId, text });
+      console.log("[telegram/webhook] sendMessage result (contact error)", sent, result.reason);
+    } else {
+      console.log("[telegram/webhook] code sent for token", open.token);
     }
     return;
   }
 
-  const startToken = parseLoginStartPayload(message.text?.trim());
-  if (startToken) {
+  const text = message.text?.trim() ?? "";
+  const startToken = parseLoginStartPayload(text);
+  console.log("[telegram/webhook] start payload", { text, startToken });
+
+  if (text.startsWith("/start")) {
+    if (!startToken) {
+      const sent = await sendTelegramMessage({ chatId, text: L.openSiteToSignIn });
+      console.log("[telegram/webhook] sendMessage result (plain start)", sent);
+      return;
+    }
+
     const photoUrl = await getTelegramUserPhotoUrl(from.id);
     const ok = await attachTelegramOnStart(startToken, {
       id: from.id,
@@ -81,11 +105,12 @@ async function handleMessage(message: TgMessage): Promise<void> {
     });
 
     if (!ok) {
-      await sendTelegramMessage({ chatId, text: L.expired });
+      const sent = await sendTelegramMessage({ chatId, text: L.expired });
+      console.log("[telegram/webhook] sendMessage result (expired token)", sent);
       return;
     }
 
-    await sendTelegramMessage({
+    const sent = await sendTelegramMessage({
       chatId,
       text: L.startWelcome,
       replyMarkup: {
@@ -94,7 +119,7 @@ async function handleMessage(message: TgMessage): Promise<void> {
         one_time_keyboard: true
       }
     });
-    return;
+    console.log("[telegram/webhook] sendMessage result (login start)", sent);
   }
 }
 

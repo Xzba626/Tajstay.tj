@@ -19,6 +19,7 @@ const MESSAGES: Record<
     wrongAccount: string;
     cooldown: string;
     phoneRequired: string;
+    openSiteToSignIn: string;
   }
 > = {
   ru: {
@@ -31,7 +32,9 @@ const MESSAGES: Record<
     invalid: "Ссылка для входа недействительна.",
     wrongAccount: "Эта ссылка привязана к другому аккаунту Telegram.",
     cooldown: "Подождите минуту перед повторной отправкой кода.",
-    phoneRequired: "Пожалуйста, нажмите кнопку «Отправить номер телефона»."
+    phoneRequired: "Пожалуйста, нажмите кнопку «Отправить номер телефона».",
+    openSiteToSignIn:
+      "Откройте <b>TajStay</b> и нажмите «Войти через Telegram».\n\n<a href=\"https://www.tajstay.site/auth/sign-in\">tajstay.site/auth/sign-in</a>"
   },
   tg: {
     startWelcome:
@@ -43,7 +46,9 @@ const MESSAGES: Record<
     invalid: "Истиноди вуруд нодуруст аст.",
     wrongAccount: "Ин истинод ба ҳисоби дигари Telegram вобаста аст.",
     cooldown: "Пеш аз фиристодани дубораи рамз 1 дақиқа интизор шавед.",
-    phoneRequired: "Лутфан тугмаи «Фиристодани рақами телефон»-ро пахш кунед."
+    phoneRequired: "Лутфан тугмаи «Фиристодани рақами телефон»-ро пахш кунед.",
+    openSiteToSignIn:
+      "<b>TajStay</b>-ро кушоед ва «Ворид шудан бо Telegram»-ро пахш кунед.\n\n<a href=\"https://www.tajstay.site/auth/sign-in\">tajstay.site/auth/sign-in</a>"
   },
   en: {
     startWelcome:
@@ -55,7 +60,9 @@ const MESSAGES: Record<
     invalid: "This sign-in link is invalid.",
     wrongAccount: "This link is linked to a different Telegram account.",
     cooldown: "Please wait 60 seconds before requesting a new code.",
-    phoneRequired: "Please tap “Share phone number”."
+    phoneRequired: "Please tap “Share phone number”.",
+    openSiteToSignIn:
+      "Open <b>TajStay</b> and tap “Sign in with Telegram”.\n\n<a href=\"https://www.tajstay.site/auth/sign-in\">tajstay.site/auth/sign-in</a>"
   }
 };
 

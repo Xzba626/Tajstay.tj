@@ -36,7 +36,23 @@ function loadEnvFile(filename) {
 loadEnvFile(".env");
 loadEnvFile(".env.local");
 
-const base = process.argv[2]?.replace(/\/$/, "");
+function canonicalWebhookBase(base) {
+  const trimmed = base.replace(/\/$/, "");
+  const withProto = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+  try {
+    const u = new URL(withProto);
+    if (u.hostname === "tajstay.site") {
+      u.hostname = "www.tajstay.site";
+      console.warn("Using www.tajstay.site — apex tajstay.site returns 307 and breaks Telegram webhook.");
+    }
+    return u.origin;
+  } catch {
+    return trimmed;
+  }
+}
+
+const baseArg = process.argv[2]?.replace(/\/$/, "");
+const base = baseArg ? canonicalWebhookBase(baseArg) : "";
 let token = process.env.TELEGRAM_BOT_TOKEN?.trim();
 function sanitizeWebhookSecret(raw) {
   if (!raw?.trim()) return null;
@@ -69,7 +85,7 @@ if (!base || !token) {
   console.error('  TELEGRAM_WEBHOOK_SECRET="optional-random-string"');
   console.error("");
   console.error("Then run:");
-  console.error("  node scripts/telegram-set-webhook.mjs https://tajstay.site");
+  console.error("  node scripts/telegram-set-webhook.mjs https://www.tajstay.site");
   console.error("");
   console.error("PowerShell alternative:");
   console.error(

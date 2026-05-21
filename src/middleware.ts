@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { publicUrl } from "@/lib/http/publicOrigin";
 
 const SESSION_COOKIE = "tajstay_session";
+const TELEGRAM_WEBHOOK_PATH = "/api/telegram/webhook";
 const AUTHJS_COOKIES = [
   "authjs.session-token",
   "__Secure-authjs.session-token",
@@ -15,12 +16,22 @@ function looksLikeLegacySessionToken(v: string): boolean {
   return /^[a-f0-9]{64}$/i.test(v);
 }
 
+function isTelegramWebhookPath(path: string): boolean {
+  return path === TELEGRAM_WEBHOOK_PATH || path.startsWith(`${TELEGRAM_WEBHOOK_PATH}/`);
+}
+
 /**
  * Первый слой: без cookie сессии не пускаем на dashboard admin/owner.
  * Финальная проверка роли остаётся в RSC (requireAdmin / requireOwner).
  */
 export async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
+
+  // Telegram Bot API: must never redirect (307 breaks webhook delivery).
+  if (isTelegramWebhookPath(path)) {
+    return NextResponse.next();
+  }
+
   if (!path.startsWith("/dashboard/admin") && !path.startsWith("/dashboard/owner")) {
     return NextResponse.next();
   }
@@ -36,11 +47,14 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(signIn);
   }
 
-  // Не вызываем /api/auth/me отсюда: лишний round-trip через Edge → Node часто даёт таймауты
-  // (Cloudflare Tunnel, медленный канал). Проверка роли выполняется в RSC (requireAdmin / requireOwner).
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/dashboard/admin/:path*", "/dashboard/owner/:path*"]
+  matcher: [
+    "/api/telegram/webhook",
+    "/api/telegram/webhook/:path*",
+    "/dashboard/admin/:path*",
+    "/dashboard/owner/:path*"
+  ]
 };
