@@ -9,8 +9,10 @@ import { postLoginRedirect, safeReturnPath } from "@/lib/auth/postLoginRedirect"
 import { formatTajikPhoneInput } from "@/lib/validation/phone";
 import {
   confirmFirebasePhoneOtp,
+  destroyRecaptchaVerifier,
+  initFirebaseRecaptcha,
   isFirebaseClientConfigured,
-  resetFirebasePhoneAuth,
+  resetFirebasePhoneConfirmation,
   sendFirebasePhoneOtp
 } from "@/lib/firebase/client";
 import { AuthMethodTabs } from "@/components/auth/AuthMethodTabs";
@@ -189,8 +191,8 @@ export function SignInClient({
     return raw || L.errorGeneric;
   }
 
-  function resetPhoneAuthState() {
-    resetFirebasePhoneAuth();
+  function resetPhoneFlowState() {
+    resetFirebasePhoneConfirmation();
     setSignInFirebaseToken(null);
     setRegFirebaseToken(null);
     setDevOtpHint(null);
@@ -200,7 +202,7 @@ export function SignInClient({
     setOtpSending(true);
     setFormError(null);
     setFormSuccess(null);
-    resetPhoneAuthState();
+    resetFirebasePhoneConfirmation();
     try {
       if (useFirebaseSms) {
         await sendFirebasePhoneOtp(phoneE164);
@@ -249,6 +251,12 @@ export function SignInClient({
   useEffect(() => {
     refreshMe().catch(() => undefined);
   }, []);
+
+  useEffect(() => {
+    if (!useFirebaseSms) return;
+    initFirebaseRecaptcha();
+    return () => destroyRecaptchaVerifier();
+  }, [useFirebaseSms]);
 
   useEffect(() => {
     if (!me) return;
@@ -498,7 +506,9 @@ export function SignInClient({
                     setMainTab(t);
                     setFormError(null);
                     setFormSuccess(null);
-                    resetPhoneAuthState();
+                    resetPhoneFlowState();
+                    setSignInPhoneStep("input");
+                    setRegisterPhoneStep("input");
                   }}
                   className={`rounded-[14px] px-2 py-2 text-xs font-semibold transition sm:px-4 sm:text-sm ${
                     mainTab === t ? "bg-brand-500 text-white shadow-sm" : "text-brand-200 hover:text-white"
@@ -527,7 +537,7 @@ export function SignInClient({
                   setSignInMethod(m);
                   setFormError(null);
                   setSignInPhoneStep("input");
-                  resetPhoneAuthState();
+                  resetPhoneFlowState();
                 }}
                 phoneLabel={L.methodPhone}
                 emailLabel={L.methodEmail}
@@ -578,7 +588,7 @@ export function SignInClient({
                         className="min-h-[48px] rounded-xl border border-white/10 bg-white/5 py-2 text-sm text-white"
                         onClick={() => {
                           setSignInPhoneStep("input");
-                          resetPhoneAuthState();
+                          resetPhoneFlowState();
                           setSignInOtp([...EMPTY_OTP]);
                         }}
                       >
@@ -642,7 +652,7 @@ export function SignInClient({
                   setRegisterMethod(m);
                   setFormError(null);
                   setRegisterPhoneStep("input");
-                  resetPhoneAuthState();
+                  resetPhoneFlowState();
                 }}
                 phoneLabel={L.methodPhone}
                 emailLabel={L.methodEmail}
@@ -663,16 +673,6 @@ export function SignInClient({
                     <div>
                       <label className="mb-1.5 block text-sm font-semibold text-white">{L.phone}</label>
                       <TajikPhoneInput value={regPhone} onChange={setRegPhone} disabled={otpSending} />
-                    </div>
-                    <div>
-                      <label className="mb-1.5 block text-sm font-semibold text-white">{L.email}</label>
-                      <input
-                        value={regEmail}
-                        onChange={(e) => setRegEmail(e.target.value)}
-                        type="email"
-                        placeholder={`${L.email} (${L.methodEmail})`}
-                        className="h-12 w-full rounded-2xl border border-brand-700 bg-brand-900 px-4 text-sm text-white outline-none"
-                      />
                     </div>
                     <TermsCheckbox checked={regAgree} onChange={setRegAgree} label={L.agreeTerms} />
                     <button
@@ -713,7 +713,7 @@ export function SignInClient({
                         className="min-h-[48px] rounded-xl border border-white/10 bg-white/5 py-2 text-sm text-white"
                         onClick={() => {
                           setRegisterPhoneStep("input");
-                          resetPhoneAuthState();
+                          resetPhoneFlowState();
                           setRegOtp([...EMPTY_OTP]);
                         }}
                       >

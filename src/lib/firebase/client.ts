@@ -3,9 +3,17 @@
 import type { Auth, ConfirmationResult, RecaptchaVerifier } from "firebase/auth";
 import { getFirebasePublicConfig } from "@/lib/firebase/config";
 
+const RECAPTCHA_CONTAINER_ID = "firebase-recaptcha";
+
 let authPromise: Promise<Auth | null> | null = null;
-let recaptchaVerifier: RecaptchaVerifier | null = null;
 let pendingConfirmation: ConfirmationResult | null = null;
+let recaptchaInitPromise: Promise<RecaptchaVerifier> | null = null;
+
+declare global {
+  interface Window {
+    __tajstayRecaptchaVerifier?: RecaptchaVerifier;
+  }
+}
 
 async function loadAuth(): Promise<Auth | null> {
   const config = getFirebasePublicConfig();
@@ -30,23 +38,45 @@ export function isFirebaseClientConfigured(): boolean {
   return getFirebasePublicConfig() !== null;
 }
 
-/** Invisible reCAPTCHA for Firebase Phone Auth. Container must exist in DOM. */
-export async function ensureRecaptcha(containerId = "firebase-recaptcha"): Promise<RecaptchaVerifier> {
+function getRecaptchaContainer(containerId: string): HTMLElement {
+  const el = document.getElementById(containerId);
+  if (!el) throw new Error("reCAPTCHA container not found");
+  return el;
+}
+
+/** Create invisible reCAPTCHA once per page; reuse across login/register and tab switches. */
+export async function ensureRecaptcha(containerId = RECAPTCHA_CONTAINER_ID): Promise<RecaptchaVerifier> {
+  if (typeof window === "undefined") throw new Error("reCAPTCHA is only available in the browser");
+
   const auth = await getFirebaseClientAuth();
   if (!auth) throw new Error("Firebase is not configured");
 
-  if (recaptchaVerifier) {
-    try {
-      recaptchaVerifier.clear();
-    } catch {
-      /* ignore */
-    }
-    recaptchaVerifier = null;
+  getRecaptchaContainer(containerId);
+
+  if (window.__tajstayRecaptchaVerifier) {
+    return window.__tajstayRecaptchaVerifier;
   }
 
-  const { RecaptchaVerifier } = await import("firebase/auth");
-  recaptchaVerifier = new RecaptchaVerifier(auth, containerId, { size: "invisible" });
-  return recaptchaVerifier;
+  if (!recaptchaInitPromise) {
+    recaptchaInitPromise = (async () => {
+      const { RecaptchaVerifier } = await import("firebase/auth");
+      const verifier = new RecaptchaVerifier(auth, containerId, { size: "invisible" });
+      await verifier.render();
+      window.__tajstayRecaptchaVerifier = verifier;
+      return verifier;
+    })().finally(() => {
+      recaptchaInitPromise = null;
+    });
+  }
+
+  return recaptchaInitPromise;
+}
+
+/** Warm up reCAPTCHA after the container is mounted (SignIn page). */
+export function initFirebaseRecaptcha(containerId = RECAPTCHA_CONTAINER_ID): void {
+  if (typeof window === "undefined") return;
+  if (!isFirebaseClientConfigured()) return;
+  void ensureRecaptcha(containerId).catch(() => undefined);
 }
 
 export async function sendFirebasePhoneOtp(phoneE164: string): Promise<void> {
@@ -66,14 +96,25 @@ export async function confirmFirebasePhoneOtp(code: string): Promise<string> {
   return idToken;
 }
 
-export function resetFirebasePhoneAuth(): void {
+/** Clears pending SMS confirmation only — keeps reCAPTCHA for resend / tab switch. */
+export function resetFirebasePhoneConfirmation(): void {
   pendingConfirmation = null;
-  if (recaptchaVerifier) {
+}
+
+export function resetFirebasePhoneAuth(): void {
+  resetFirebasePhoneConfirmation();
+}
+
+/** Full teardown when leaving the auth page. */
+export function destroyRecaptchaVerifier(): void {
+  resetFirebasePhoneConfirmation();
+  recaptchaInitPromise = null;
+  if (window.__tajstayRecaptchaVerifier) {
     try {
-      recaptchaVerifier.clear();
+      window.__tajstayRecaptchaVerifier.clear();
     } catch {
       /* ignore */
     }
-    recaptchaVerifier = null;
+    window.__tajstayRecaptchaVerifier = undefined;
   }
 }

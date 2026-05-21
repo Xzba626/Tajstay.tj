@@ -69,3 +69,11 @@ export function formatTajikPhoneInput(raw: string): string {
   return normalizePhone(`+992${national}`) || "";
 }
 
+/** Display mask for Tajik national part: `90 000 00 00` (max 9 digits). */
+export function formatTajikNationalDisplay(raw: string): string {
+  const digits = raw.replace(/\D/g, "").replace(/^992/, "").slice(0, 9);
+  if (!digits) return "";
+  const g = [digits.slice(0, 2), digits.slice(2, 5), digits.slice(5, 7), digits.slice(7, 9)].filter(Boolean);
+  return g.join(" ");
+}
+
