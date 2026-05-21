@@ -1,12 +1,15 @@
 import { isGoogleOAuthConfigured } from "@/lib/auth/googleOAuthEnv";
-import { isFirebasePhoneAuthConfigured } from "@/lib/firebase/config";
-import { isTelegramLoginConfigured } from "@/lib/telegram/config";
+import { getTelegramBotUsername, isTelegramLoginConfigured } from "@/lib/telegram/config";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
 import { SignInClient } from "./SignInClient";
 
 export default function SignInPage({ searchParams }: { searchParams?: { next?: string } }) {
   const locale = getLocale();
+  const telegramLoginEnabled = isTelegramLoginConfigured();
+  const telegramBotUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME?.trim() || getTelegramBotUsername();
+  const showTelegramConfigWarning =
+    process.env.NODE_ENV === "development" && telegramLoginEnabled && !process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME?.trim();
 
   const labels = {
     title: m(locale, "auth.title"),
@@ -18,8 +21,6 @@ export default function SignInPage({ searchParams }: { searchParams?: { next?: s
     leftBenefit3: m(locale, "auth.leftBenefit3"),
     tabsSignIn: m(locale, "auth.tabsSignIn"),
     tabsRegister: m(locale, "auth.tabsRegister"),
-    methodPhone: m(locale, "auth.methodPhone"),
-    methodEmail: m(locale, "auth.methodEmail"),
     signInSubtitle: m(locale, "auth.signInSubtitle"),
     registerSubtitle: m(locale, "auth.registerSubtitle"),
     loginLabel: m(locale, "auth.loginLabel"),
@@ -29,9 +30,7 @@ export default function SignInPage({ searchParams }: { searchParams?: { next?: s
     showPassword: m(locale, "auth.showPassword"),
     hidePassword: m(locale, "auth.hidePassword"),
     signIn: m(locale, "auth.signIn"),
-    registerTitle: m(locale, "auth.registerTitle"),
     fullName: m(locale, "auth.fullName"),
-    phone: m(locale, "auth.phone"),
     email: m(locale, "auth.email"),
     createAccount: m(locale, "auth.createAccount"),
     confirmPassword: m(locale, "auth.confirmPassword"),
@@ -46,26 +45,17 @@ export default function SignInPage({ searchParams }: { searchParams?: { next?: s
     promo3: m(locale, "auth.promo3"),
     resetLinkInPassword: m(locale, "auth.resetLinkInPassword"),
     googleSignIn: m(locale, "auth.googleSignIn"),
+    googleRegister: m(locale, "auth.googleRegister"),
     googleSignInError: m(locale, "auth.googleSignInError"),
     forgotPassword: m(locale, "auth.forgotPassword"),
     errInvalidCredentials: m(locale, "auth.errInvalidCredentials"),
     errTooManyAttempts: m(locale, "auth.errTooManyAttempts"),
-    errPhoneInUse: m(locale, "auth.errPhoneInUse"),
     errEmailInUse: m(locale, "auth.errEmailInUse"),
     errInvalidPayload: m(locale, "auth.errInvalidPayload"),
-    errInvalidOtp: m(locale, "auth.errInvalidOtp"),
-    accountNotFound: m(locale, "auth.accountNotFound"),
-    stepCodeTitle: m(locale, "auth.stepCodeTitle"),
-    sentToLabel: m(locale, "auth.sentToLabel"),
-    getCode: m(locale, "auth.getCode"),
-    enterCode: m(locale, "auth.enterCode"),
-    retryIn: m(locale, "auth.retryIn"),
-    retryNow: m(locale, "auth.retryNow"),
-    createPassword: m(locale, "auth.createPassword"),
-    otpVerified: m(locale, "auth.otpVerified"),
-    orContinueWith: m(locale, "auth.orContinueWith"),
-    back: m(locale, "common.back"),
+    orUseEmail: m(locale, "auth.orUseEmail"),
     telegramSignIn: m(locale, "auth.telegramSignIn"),
+    telegramRegister: m(locale, "auth.telegramRegister"),
+    telegramRegisterHint: m(locale, "auth.telegramRegisterHint"),
     telegramOpenBot: m(locale, "auth.telegramOpenBot"),
     telegramWaitingBot: m(locale, "auth.telegramWaitingBot"),
     telegramAwaitingConfirm: m(locale, "auth.telegramAwaitingConfirm"),
@@ -73,7 +63,8 @@ export default function SignInPage({ searchParams }: { searchParams?: { next?: s
     telegramExpired: m(locale, "auth.telegramExpired"),
     telegramStep1: m(locale, "auth.telegramStep1"),
     telegramStep2: m(locale, "auth.telegramStep2"),
-    telegramExpiresIn: m(locale, "auth.telegramExpiresIn")
+    telegramExpiresIn: m(locale, "auth.telegramExpiresIn"),
+    telegramConfigWarning: m(locale, "auth.telegramConfigWarning")
   };
 
   return (
@@ -82,8 +73,9 @@ export default function SignInPage({ searchParams }: { searchParams?: { next?: s
       labels={labels}
       nextPath={searchParams?.next ?? null}
       googleOAuthEnabled={isGoogleOAuthConfigured()}
-      firebasePhoneAuthEnabled={isFirebasePhoneAuthConfigured()}
-      telegramLoginEnabled={isTelegramLoginConfigured()}
+      telegramLoginEnabled={telegramLoginEnabled}
+      telegramBotUsername={telegramBotUsername}
+      showTelegramConfigWarning={showTelegramConfigWarning}
     />
   );
 }

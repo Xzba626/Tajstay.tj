@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getTelegramWebhookSecret, isTelegramLoginConfigured } from "@/lib/telegram/config";
+import { sanitizeTelegramWebhookSecret } from "@/lib/telegram/webhookSecret";
 import { handleTelegramUpdate, type TelegramUpdate } from "@/lib/telegram/webhookHandlers";
 
 export const dynamic = "force-dynamic";
@@ -10,7 +11,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true });
   }
 
-  const secret = getTelegramWebhookSecret();
+  const secret = sanitizeTelegramWebhookSecret(getTelegramWebhookSecret());
   if (secret) {
     const header = req.headers.get("x-telegram-bot-api-secret-token");
     if (header !== secret) {

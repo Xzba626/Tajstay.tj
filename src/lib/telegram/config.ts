@@ -11,6 +11,12 @@ export function isTelegramLoginConfigured(): boolean {
   return Boolean(getTelegramBotToken());
 }
 
+/** Public bot handle for deep links (NEXT_PUBLIC_* on Vercel). */
+export function getTelegramBotUsernamePublic(): string | null {
+  const u = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME?.trim();
+  return u || null;
+}
+
 export function getTelegramWebhookSecret(): string | null {
   const s = process.env.TELEGRAM_WEBHOOK_SECRET?.trim();
   return s || null;
