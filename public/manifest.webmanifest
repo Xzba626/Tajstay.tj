@@ -1,13 +1,14 @@
 {
-  "name": "Tajstay",
-  "short_name": "Tajstay",
+  "id": "tajstay-pwa",
+  "name": "TajStay",
+  "short_name": "TajStay",
   "description": "Национальная платформа бронирования жилья в Таджикистане",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#020617",
-  "theme_color": "#059669",
+  "background_color": "#041a12",
+  "theme_color": "#0b6d5e",
   "lang": "ru",
   "categories": ["travel", "lifestyle"],
   "icons": [
@@ -24,28 +25,30 @@
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-maskable-512.png",
-      "sizes": "512x512",
+      "src": "/icons/icon-maskable-192.png",
+      "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/logo-mark.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "shortcuts": [
     {
       "name": "Поиск",
+      "short_name": "Поиск",
       "url": "/search",
-      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "Бронирования",
+      "short_name": "Брони",
       "url": "/dashboard/bookings",
-      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ]
 }

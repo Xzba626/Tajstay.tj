@@ -18,14 +18,15 @@ export function HeroThreeBackground({ className }: Props) {
     if (!ctx) return;
     const isMobile = window.matchMedia("(max-width: 767px)").matches;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduced && isMobile) return;
+    if (reduced) return;
 
-    const pointer = { x: 0, y: 0 };
-    const nodes = Array.from({ length: isMobile ? 12 : 32 }).map(() => ({
+    const pointer = { x: 0.5, y: 0.5 };
+    const nodeCount = isMobile ? 8 : 22;
+    const nodes = Array.from({ length: nodeCount }).map(() => ({
       x: Math.random(),
       y: Math.random(),
-      size: Math.random() * 3 + 1,
-      speed: Math.random() * 0.0012 + 0.0005
+      size: Math.random() * 2.2 + 0.8,
+      speed: Math.random() * 0.00045 + 0.00025
     }));
 
     const onMouseMove = (event: MouseEvent) => {
@@ -35,14 +36,11 @@ export function HeroThreeBackground({ className }: Props) {
     };
     if (!isMobile) {
       window.addEventListener("mousemove", onMouseMove);
-    } else {
-      pointer.x = 0.5;
-      pointer.y = 0.5;
     }
 
     const onResize = () => {
       const rect = canvas.getBoundingClientRect();
-      const ratio = Math.min(window.devicePixelRatio, isMobile ? 1 : 1.5);
+      const ratio = Math.min(window.devicePixelRatio, isMobile ? 1 : 1.25);
       canvas.width = Math.max(1, Math.floor(rect.width * ratio));
       canvas.height = Math.max(1, Math.floor(rect.height * ratio));
       ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
@@ -61,8 +59,8 @@ export function HeroThreeBackground({ className }: Props) {
       ctx.clearRect(0, 0, w, h);
 
       const grad = ctx.createRadialGradient(w * pointer.x, h * pointer.y, 20, w * 0.5, h * 0.5, Math.max(w, h));
-      grad.addColorStop(0, "rgba(34,197,94,0.34)");
-      grad.addColorStop(0.45, "rgba(74,222,128,0.24)");
+      grad.addColorStop(0, "rgba(34,197,94,0.18)");
+      grad.addColorStop(0.45, "rgba(74,222,128,0.1)");
       grad.addColorStop(1, "rgba(2,6,23,0)");
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, w, h);
@@ -70,15 +68,15 @@ export function HeroThreeBackground({ className }: Props) {
       nodes.forEach((node, i) => {
         node.y += node.speed;
         if (node.y > 1.05) node.y = -0.05;
-        const x = node.x * w + Math.sin((t + i * 17) * 0.01) * 12;
+        const x = node.x * w + Math.sin((t + i * 17) * 0.006) * 8;
         const y = node.y * h;
-        const glow = 12 + node.size * 4;
+        const glow = 8 + node.size * 3;
         ctx.beginPath();
-        ctx.fillStyle = "rgba(74,222,128,0.82)";
+        ctx.fillStyle = "rgba(74,222,128,0.45)";
         ctx.arc(x, y, node.size, 0, Math.PI * 2);
         ctx.fill();
         ctx.beginPath();
-        ctx.fillStyle = "rgba(34,197,94,0.24)";
+        ctx.fillStyle = "rgba(34,197,94,0.12)";
         ctx.arc(x, y, glow, 0, Math.PI * 2);
         ctx.fill();
       });
@@ -94,7 +92,7 @@ export function HeroThreeBackground({ className }: Props) {
 
   return (
     <canvas
-      className={cn("pointer-events-none absolute inset-0 -z-10 h-full w-full opacity-80", className)}
+      className={cn("pointer-events-none absolute inset-0 -z-10 h-full w-full opacity-45 sm:opacity-50", className)}
       ref={canvasRef}
       aria-hidden
     />

@@ -12,6 +12,7 @@ import { m } from "@/lib/i18n/messages";
 import { getSiteContent } from "@/lib/site-content";
 import { getUnreadNotificationsCount } from "@/lib/notifications/unread";
 import { NotificationBell } from "@/components/layout/NotificationBell";
+import { HeaderNav } from "@/components/layout/HeaderNav";
 import { getUserTrustBadges } from "@/lib/auth/trustBadges";
 
 export async function Header() {
@@ -74,8 +75,8 @@ export async function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-[100] border-b border-white/12 bg-slate-950/55 shadow-[0_8px_32px_rgba(2,6,23,0.45)] backdrop-blur-2xl backdrop-saturate-150 ring-1 ring-white/[0.06] transition-[box-shadow,background-color] duration-300 supports-[backdrop-filter]:bg-slate-950/40 hover:shadow-[0_12px_40px_rgba(16,185,129,0.12)]">
-      <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between gap-2 px-3 sm:h-[84px] sm:gap-3 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-[100] border-b border-white/10 bg-slate-950/70 shadow-[0_8px_32px_rgba(2,6,23,0.4)] backdrop-blur-xl backdrop-saturate-150 ring-1 ring-white/[0.06] transition-[box-shadow,background-color] duration-300 supports-[backdrop-filter]:bg-slate-950/50">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-2 px-3 sm:h-[76px] sm:gap-3 sm:px-6 lg:px-8">
         <ViewTransitionLink
           href="/"
           className="flex min-w-0 max-w-[74vw] shrink items-center gap-2 rounded-xl outline-none ring-emerald-300/0 transition hover:opacity-90 focus-visible:ring-2 sm:max-w-none sm:gap-3"
@@ -87,27 +88,23 @@ export async function Header() {
               alt={content.brand.siteName}
               width={64}
               height={64}
-              className="h-10 w-10 shrink-0 rounded-xl bg-white/5 p-1.5 shadow-lg shadow-emerald-900/30 ring-1 ring-white/10 sm:h-12 sm:w-12 sm:rounded-2xl"
+              className="h-11 w-11 shrink-0 rounded-xl bg-white/5 p-1.5 shadow-lg shadow-emerald-900/30 ring-1 ring-white/10 sm:h-12 sm:w-12 sm:rounded-2xl"
               priority
               unoptimized
             />
             <div className="min-w-0 leading-tight">
-              <div className="brand-wordmark truncate text-sm font-extrabold tracking-tight sm:text-xl">{content.brand.siteName}</div>
+              <div className="brand-wordmark truncate text-base font-extrabold tracking-tight sm:text-xl">{content.brand.siteName}</div>
             </div>
           </div>
         </ViewTransitionLink>
 
-        <nav className="order-3 hidden w-full items-center justify-center gap-6 border-t border-white/10 py-2 text-sm font-medium text-[var(--brand-muted)] md:order-none md:flex md:w-auto md:border-0 md:py-0 lg:gap-8">
-          <ViewTransitionLink href="/" className="rounded-lg px-1 transition-colors duration-200 hover:text-[var(--brand-green)]">
-            {m(locale, "header.home")}
-          </ViewTransitionLink>
-          <ViewTransitionLink href="/search" className="rounded-lg px-1 transition-colors duration-200 hover:text-[var(--brand-green)]">
-            {m(locale, "header.search")}
-          </ViewTransitionLink>
-          <ViewTransitionLink href="/about" className="rounded-lg px-1 transition-colors duration-200 hover:text-[var(--brand-green)]">
-            {m(locale, "header.about")}
-          </ViewTransitionLink>
-        </nav>
+        <HeaderNav
+          items={[
+            { href: "/", label: m(locale, "header.home") },
+            { href: "/search", label: m(locale, "header.search") },
+            { href: "/about", label: m(locale, "header.about") }
+          ]}
+        />
 
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
           <div className="md:hidden">
@@ -144,16 +141,10 @@ export async function Header() {
           <MobileMenu user={user} ownerApp={ownerApp} locale={locale} labels={mobileLabels} unreadCount={unreadCount} />
           {!user ? (
             <>
-              <ViewTransitionLink
-                href="/auth/sign-in"
-                className="hidden rounded-xl px-3 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-800 md:inline-flex"
-              >
+              <ViewTransitionLink href="/auth/sign-in" className="header-auth-signin">
                 {m(locale, "header.signIn")}
               </ViewTransitionLink>
-              <ViewTransitionLink
-                href="/auth/sign-in"
-                className="hidden ds-primary-btn md:inline-flex md:px-4"
-              >
+              <ViewTransitionLink href="/auth/sign-in" className="header-auth-signup">
                 {m(locale, "header.signUp")}
               </ViewTransitionLink>
             </>

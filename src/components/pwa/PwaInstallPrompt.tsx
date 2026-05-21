@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 
 type BeforeInstallPromptEvent = Event & {
@@ -14,13 +15,16 @@ export type PwaInstallLabels = {
   dismiss: string;
 };
 
+const DISMISS_KEY = "tajstay:pwa-install-dismissed";
+const INSTALLED_KEY = "tajstay:pwa-installed";
+
 export function PwaInstallPrompt({ labels }: { labels: PwaInstallLabels }) {
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
   const [hidden, setHidden] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (localStorage.getItem("tajstay:pwa-install-dismissed") === "1") {
+    if (localStorage.getItem(DISMISS_KEY) === "1" || localStorage.getItem(INSTALLED_KEY) === "1") {
       setHidden(true);
       return;
     }
@@ -29,12 +33,23 @@ export function PwaInstallPrompt({ labels }: { labels: PwaInstallLabels }) {
       return;
     }
 
+    function onInstalled() {
+      localStorage.setItem(INSTALLED_KEY, "1");
+      setHidden(true);
+      setDeferred(null);
+    }
+
     function onBip(e: Event) {
       e.preventDefault();
       setDeferred(e as BeforeInstallPromptEvent);
     }
+
     window.addEventListener("beforeinstallprompt", onBip);
-    return () => window.removeEventListener("beforeinstallprompt", onBip);
+    window.addEventListener("appinstalled", onInstalled);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", onBip);
+      window.removeEventListener("appinstalled", onInstalled);
+    };
   }, []);
 
   if (hidden || !deferred) return null;
@@ -42,33 +57,57 @@ export function PwaInstallPrompt({ labels }: { labels: PwaInstallLabels }) {
   async function install() {
     if (!deferred) return;
     await deferred.prompt();
-    await deferred.userChoice;
+    const choice = await deferred.userChoice;
     setDeferred(null);
+    if (choice.outcome === "accepted") {
+      localStorage.setItem(INSTALLED_KEY, "1");
+    }
     setHidden(true);
   }
 
   function dismiss() {
-    localStorage.setItem("tajstay:pwa-install-dismissed", "1");
+    localStorage.setItem(DISMISS_KEY, "1");
     setHidden(true);
     setDeferred(null);
   }
 
   return (
-    <div className="fixed bottom-4 left-1/2 z-[110] w-[min(100vw-2rem,24rem)] -translate-x-1/2 rounded-2xl border border-emerald-500/30 bg-slate-900/95 p-4 shadow-2xl backdrop-blur-md">
-      <p className="text-sm font-semibold text-white">{labels.title}</p>
-      <p className="mt-1 text-xs text-slate-300">{labels.body}</p>
+    <div
+      className="pwa-install-banner"
+      role="dialog"
+      aria-labelledby="pwa-install-title"
+      aria-describedby="pwa-install-body"
+    >
+      <div className="flex gap-3">
+        <Image
+          src="/icons/icon-192.png"
+          alt=""
+          width={48}
+          height={48}
+          className="h-12 w-12 shrink-0 rounded-xl shadow-lg ring-1 ring-white/15"
+          unoptimized
+        />
+        <div className="min-w-0 flex-1">
+          <p id="pwa-install-title" className="text-sm font-bold text-white">
+            {labels.title}
+          </p>
+          <p id="pwa-install-body" className="mt-1 text-xs leading-relaxed text-slate-300">
+            {labels.body}
+          </p>
+        </div>
+      </div>
       <div className="mt-3 flex gap-2">
         <button
           type="button"
           onClick={() => void install()}
-          className="flex-1 rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-500"
+          className="home-hero-cta-primary min-h-0 flex-1 px-3 py-2.5 text-xs"
         >
           {labels.install}
         </button>
         <button
           type="button"
           onClick={dismiss}
-          className="rounded-xl border border-white/15 px-3 py-2 text-xs font-medium text-slate-300 hover:bg-white/5"
+          className="rounded-xl border border-white/15 px-3 py-2.5 text-xs font-semibold text-slate-300 transition hover:bg-white/8 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50"
         >
           {labels.dismiss}
         </button>

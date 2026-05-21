@@ -7,47 +7,53 @@ import { getSiteContent } from "@/lib/site-content";
 export async function Footer() {
   const locale = getLocale();
   const content = await getSiteContent();
+  const year = new Date().getFullYear();
+
+  const links = [
+    { href: "/about", label: m(locale, "footer.about") },
+    { href: "/contacts", label: m(locale, "footer.contacts") },
+    { href: "/faq", label: m(locale, "footer.faq") },
+    { href: "/terms", label: m(locale, "footer.terms") },
+    { href: "/policy", label: m(locale, "footer.policy") }
+  ];
 
   return (
-    <footer className="mt-auto border-t border-brand-500/70 bg-brand-900">
-      <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-8 text-sm text-brand-200 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-        <div className="flex items-center gap-3">
-          <Link
-            href="/"
-            className="flex items-center gap-2 rounded-lg text-brand-100 transition hover:text-white"
-          >
-            <Image
-              src={content.brand.logoMarkUrl}
-              alt=""
-              width={44}
-              height={44}
-              className="h-9 w-9 rounded-xl bg-brand-800 p-1 ring-1 ring-brand-500/70 transition-transform duration-300 hover:scale-105"
-              unoptimized
-            />
-            <span className="hidden font-semibold sm:inline brand-wordmark">{content.brand.siteName}</span>
-          </Link>
-          <span className="hidden sm:inline">·</span>
-          <span>
-            © {new Date().getFullYear()} {m(locale, "footer.rights")}
-          </span>
+    <footer className="mt-auto border-t border-emerald-900/40 bg-[#041a12]">
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-center gap-3">
+            <Link
+              href="/"
+              className="flex items-center gap-2.5 rounded-lg text-brand-100 transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60"
+            >
+              <Image
+                src={content.brand.logoMarkUrl}
+                alt=""
+                width={40}
+                height={40}
+                className="h-10 w-10 rounded-xl bg-emerald-950/80 p-1 ring-1 ring-emerald-700/50"
+                unoptimized
+              />
+              <span className="brand-wordmark text-sm font-bold sm:text-base">{content.brand.siteName}</span>
+            </Link>
+          </div>
+
+          <nav className="footer-trust-grid text-sm" aria-label="Footer">
+            {links.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="text-emerald-100/75 transition hover:text-white hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#041a12]"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
         </div>
-        <div className="flex flex-wrap gap-x-6 gap-y-2">
-          <Link href="/about" className="text-brand-200 transition hover:text-white hover:underline">
-            {m(locale, "footer.about")}
-          </Link>
-          <Link href="/contacts" className="text-brand-200 transition hover:text-white hover:underline">
-            {m(locale, "footer.contacts")}
-          </Link>
-          <Link href="/policy" className="text-brand-200 transition hover:text-white hover:underline">
-            {m(locale, "footer.policy")}
-          </Link>
-          <Link href="/terms" className="text-brand-200 transition hover:text-white hover:underline">
-            {m(locale, "footer.terms")}
-          </Link>
-          <Link href="/faq" className="text-brand-200 transition hover:text-white hover:underline">
-            {m(locale, "footer.faq")}
-          </Link>
-        </div>
+
+        <p className="mt-5 border-t border-white/8 pt-4 text-center text-xs text-emerald-200/60 sm:text-left">
+          © {year} {m(locale, "footer.rights")}
+        </p>
       </div>
     </footer>
   );

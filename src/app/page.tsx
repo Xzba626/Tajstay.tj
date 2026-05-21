@@ -65,6 +65,7 @@ export default async function HomePage() {
           heroSubtitle={t(locale, "heroSubtitle")}
           ctaSearch={m(locale, "home.ctaSearch")}
           ctaOwners={m(locale, "home.ctaOwners")}
+          searchSectionLabel={m(locale, "search.search")}
         >
           <SearchBar locale={locale} />
         </TajstayHero3D>

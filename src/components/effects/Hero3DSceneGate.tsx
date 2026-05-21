@@ -5,7 +5,15 @@ import { useEffect, useState } from "react";
 
 const Hero3DLazy = dynamic(
   () => import("./Hero3DScene").then((mod) => ({ default: mod.Hero3DScene })),
-  { ssr: false, loading: () => null }
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        className="absolute inset-0 animate-pulse rounded-[2rem] bg-gradient-to-br from-emerald-950/30 via-slate-900/20 to-cyan-950/25"
+        aria-hidden
+      />
+    )
+  }
 );
 
 type Props = { className?: string };

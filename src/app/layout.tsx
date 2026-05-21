@@ -25,7 +25,13 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: `${content.brand.siteName} — Tajikistan stays`,
     description: "Национальная платформа бронирования жилья в Таджикистане",
-    icons: { icon: content.brand.faviconUrl || "/logo-mark.svg" },
+    icons: {
+      icon: [
+        { url: "/favicon.png", sizes: "32x32", type: "image/png" },
+        { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }
+      ],
+      apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }]
+    },
     manifest: "/manifest.webmanifest",
     appleWebApp: {
       capable: true,
@@ -39,7 +45,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#059669"
+  themeColor: "#0b6d5e"
 };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
@@ -51,7 +57,10 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     <html lang={locale} className="scroll-smooth" data-theme="light">
       <head>
         <link rel="manifest" href="/manifest.webmanifest" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+        <link rel="icon" href="/favicon.png" type="image/png" sizes="32x32" />
         <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-title" content="TajStay" />
       </head>
       <body className="min-h-screen bg-[var(--brand-bg)] text-slate-100 antialiased font-sans">
         <AuthProvider>
