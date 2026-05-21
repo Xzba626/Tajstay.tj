@@ -12,6 +12,7 @@ import { m } from "@/lib/i18n/messages";
 import { getSiteContent } from "@/lib/site-content";
 import { getUnreadNotificationsCount } from "@/lib/notifications/unread";
 import { NotificationBell } from "@/components/layout/NotificationBell";
+import { getUserTrustBadges } from "@/lib/auth/trustBadges";
 
 export async function Header() {
   const user = await getSessionUser();
@@ -19,6 +20,7 @@ export async function Header() {
   const locale = getLocale();
   const content = await getSiteContent();
   const unreadCount = user ? await getUnreadNotificationsCount(user.id) : 0;
+  const trustBadges = user ? getUserTrustBadges(user) : [];
 
   const menuLabels: UserMenuLabels = {
     account: m(locale, "userMenu.account"),
@@ -178,7 +180,15 @@ export async function Header() {
                 />
               </div>
               <div className="hidden md:block">
-                <UserMenu userName={user.name} role={user.role} ownerApp={ownerApp} labels={menuLabels} initialUnreadCount={unreadCount} />
+                <UserMenu
+                  userName={user.name}
+                  role={user.role}
+                  ownerApp={ownerApp}
+                  labels={menuLabels}
+                  initialUnreadCount={unreadCount}
+                  locale={locale}
+                  trustBadges={trustBadges}
+                />
               </div>
             </>
           )}

@@ -323,6 +323,9 @@ const ru: Tree = {
     createPassword: "Придумайте пароль",
     continueBtn: "Продолжить"
   },
+  authSync: {
+    ownerPromoted: "Вы стали владельцем — открываем кабинет…"
+  },
   about: {
     block1Title: "О нас",
     block1Text:
@@ -429,6 +432,12 @@ const ru: Tree = {
     OWNER_APPLICATION_REJECTED: "Заявка владельца отклонена",
     ownerApprovedBody: "Поздравляем! Откройте кабинет владельца и добавьте первый объект.",
     ownerRejectedBody: "Причина отказа",
+    AUTH_NEW_LOGIN: "Новый вход в аккаунт",
+    authNewLoginBody: "Вы вошли в TajStay с нового устройства или браузера.",
+    AUTH_SUSPICIOUS_LOGIN: "Подозрительный вход",
+    authSuspiciousBody: "Вход с незнакомого IP. Проверьте активность в профиле.",
+    AUTH_PHONE_VERIFIED: "Телефон подтверждён",
+    authPhoneVerifiedBody: "Номер телефона успешно подтверждён.",
     PAYMENT_STATUS_UPDATED: "Статус оплаты обновлён",
     unknown: "Уведомление"
   },
@@ -1334,6 +1343,9 @@ const tg: Tree = {
     createPassword: "Рамз созед",
     continueBtn: "Идома"
   },
+  authSync: {
+    ownerPromoted: "Шумо соҳиб шудед — панелро мекушоем…"
+  },
   about: {
     block1Title: "Дар бораи мо",
     block1Text:
@@ -1440,6 +1452,12 @@ const tg: Tree = {
     OWNER_APPLICATION_REJECTED: "Дархости соҳиб рад шуд",
     ownerApprovedBody: "Табрик! Панели соҳибро кушоед ва аввалин объектро илова кунед.",
     ownerRejectedBody: "Сабаби рад",
+    AUTH_NEW_LOGIN: "Вуруди нав ба ҳисоб",
+    authNewLoginBody: "Шумо аз дастгоҳ ё браузери нав ба TajStay ворид шудед.",
+    AUTH_SUSPICIOUS_LOGIN: "Вуруди шубҳанок",
+    authSuspiciousBody: "Вуруд аз IP-и номаълум. Фаъолиятро дар профил санҷед.",
+    AUTH_PHONE_VERIFIED: "Телефон тасдиқ шуд",
+    authPhoneVerifiedBody: "Рақами телефон бомуваффақият тасдиқ шуд.",
     PAYMENT_STATUS_UPDATED: "Ҳолати пардохт нав шуд",
     unknown: "Огоҳӣ"
   },
@@ -2337,6 +2355,9 @@ const en: Tree = {
     createPassword: "Create a password",
     continueBtn: "Continue"
   },
+  authSync: {
+    ownerPromoted: "You're now a host — opening your dashboard…"
+  },
   about: {
     block1Title: "About us",
     block1Text:
@@ -2443,6 +2464,12 @@ const en: Tree = {
     OWNER_APPLICATION_REJECTED: "Host application declined",
     ownerApprovedBody: "Congratulations! Open your owner dashboard and add your first listing.",
     ownerRejectedBody: "Reason",
+    AUTH_NEW_LOGIN: "New sign-in",
+    authNewLoginBody: "You signed in to TajStay from a new device or browser.",
+    AUTH_SUSPICIOUS_LOGIN: "Suspicious sign-in",
+    authSuspiciousBody: "Sign-in from an unfamiliar IP. Review activity in your profile.",
+    AUTH_PHONE_VERIFIED: "Phone verified",
+    authPhoneVerifiedBody: "Your phone number was verified successfully.",
     PAYMENT_STATUS_UPDATED: "Payment status updated",
     unknown: "Notification"
   },

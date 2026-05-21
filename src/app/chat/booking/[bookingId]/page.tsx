@@ -8,6 +8,7 @@ import { getOwnerPaymentMethods } from "@/lib/owner-payment-methods";
 import { getBookingTimeline } from "@/lib/chat/bookingTimeline";
 import { getProofMetaFromLogs } from "@/lib/chat/proofMeta";
 import { m } from "@/lib/i18n/messages";
+import { getUserTrustBadges } from "@/lib/auth/trustBadges";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +28,11 @@ export default async function BookingChatPage({
 
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
-    include: { room: { include: { hotel: true } }, payment: true, user: true }
+    include: {
+      room: { include: { hotel: { include: { owner: true } } } },
+      payment: true,
+      user: true
+    }
   });
   if (!booking) notFound();
 
@@ -63,6 +68,9 @@ export default async function BookingChatPage({
   ]);
 
   const proofSent = searchParams?.proofSent === "1";
+
+  const counterpartUser = isGuest ? booking.room.hotel.owner : booking.user;
+  const counterpartTrustBadges = counterpartUser ? getUserTrustBadges(counterpartUser) : [];
 
   return (
     <BookingRoom
@@ -101,6 +109,7 @@ export default async function BookingChatPage({
       proofReviewDeadlineAt={booking.proofReviewDeadlineAt?.toISOString() ?? null}
       proofAmount={proofMeta.proofAmount}
       proofComment={proofMeta.proofComment}
+      counterpartTrustBadges={counterpartTrustBadges}
     />
   );
 }

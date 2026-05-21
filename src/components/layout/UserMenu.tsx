@@ -6,6 +6,8 @@ import type { OwnerAppNavState } from "@/lib/navigation/getNavContext";
 import { cn } from "@/lib/cn";
 import { normalizeLocale, type Locale, LOCALE_COOKIE } from "@/lib/i18n/locale";
 import { notificationText } from "@/lib/notifications/text";
+import { TrustBadges } from "@/components/auth/TrustBadges";
+import type { TrustBadge } from "@/lib/auth/trustBadges";
 
 export type UserMenuLabels = {
   account: string;
@@ -34,6 +36,8 @@ type Props = {
   ownerApp: OwnerAppNavState;
   labels: UserMenuLabels;
   initialUnreadCount?: number;
+  locale?: Locale;
+  trustBadges?: TrustBadge[];
 };
 
 function initials(name: string) {
@@ -91,7 +95,16 @@ function getClientLocale(): Locale {
   }
 }
 
-export function UserMenu({ userName, role, ownerApp, labels: L, initialUnreadCount = 0 }: Props) {
+export function UserMenu({
+  userName,
+  role,
+  ownerApp,
+  labels: L,
+  initialUnreadCount = 0,
+  locale: localeProp,
+  trustBadges = []
+}: Props) {
+  const menuLocale = localeProp ?? getClientLocale();
   const [open, setOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const [unreadCount, setUnreadCount] = useState(initialUnreadCount);
@@ -205,6 +218,7 @@ export function UserMenu({ userName, role, ownerApp, labels: L, initialUnreadCou
         <div className="border-b border-slate-100 px-4 py-3">
           <div className="truncate font-semibold text-slate-900">{userName}</div>
           <div className="text-xs text-slate-500">{L.account}</div>
+          <TrustBadges locale={menuLocale} badges={trustBadges} size="sm" className="mt-2" />
         </div>
         <nav className="flex max-h-[min(70vh,420px)] flex-col overflow-y-auto py-1 text-sm">
           <div className="mx-2 mb-2 rounded-xl border border-slate-200 bg-slate-50 p-2.5">

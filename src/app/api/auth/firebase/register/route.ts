@@ -9,6 +9,7 @@ import { clientIp, rateLimit } from "@/lib/security/rateLimit";
 import { normalizePhone } from "@/lib/validation/phone";
 import { verifyPhoneOtp } from "@/lib/auth/otp";
 import { logAuthEvent } from "@/lib/auth/auditLog";
+import { notifyPhoneVerified } from "@/lib/auth/authNotifications";
 import crypto from "crypto";
 import { hashPassword } from "@/lib/auth/password";
 import { prisma } from "@/lib/prisma";
@@ -102,6 +103,7 @@ export async function POST(req: Request) {
     userAgent: req.headers.get("user-agent") ?? undefined,
     meta: { phone: normalizedPhone, firebase: Boolean(parsed.data.firebaseIdToken) }
   });
+  void notifyPhoneVerified(user.id);
 
   const res = NextResponse.json({ ok: true });
   await createSessionCookie(user.id, res);

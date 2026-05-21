@@ -5,6 +5,21 @@ import { useEffect, useRef } from "react";
 import { AUTH_ROLE_CHANGED_EVENT, dispatchAuthRoleChanged } from "@/lib/auth/authEvents";
 import { NOTIFICATION_NEW_EVENT } from "@/lib/pwa/notificationEvents";
 import { dispatchNotificationToast } from "@/lib/pwa/notificationEvents";
+import { LOCALE_COOKIE, normalizeLocale, type Locale } from "@/lib/i18n/locale";
+import { m } from "@/lib/i18n/messages";
+
+function clientLocale(): Locale {
+  try {
+    const raw = document.cookie
+      .split(";")
+      .map((p) => p.trim())
+      .find((p) => p.startsWith(`${LOCALE_COOKIE}=`));
+    const v = raw ? decodeURIComponent(raw.split("=").slice(1).join("=")) : "";
+    return normalizeLocale(v);
+  } catch {
+    return "ru";
+  }
+}
 
 type MeResponse = { user: { role: string } | null };
 
@@ -36,7 +51,8 @@ export function AuthStateSync() {
           refreshing.current = true;
           dispatchAuthRoleChanged({ role, previousRole: prev });
           if (role === "OWNER") {
-            dispatchNotificationToast("Вы стали владельцем — открываем кабинет…");
+            const locale = clientLocale();
+            dispatchNotificationToast(m(locale, "authSync.ownerPromoted"));
             router.push("/dashboard/owner?onboarding=1");
           } else {
             router.refresh();

@@ -7,6 +7,7 @@ import { loginUserFromFirebasePhone, verifyFirebaseIdToken } from "@/lib/auth/fi
 import { isFirebasePhoneAuthConfigured } from "@/lib/firebase/config";
 import { clientIp, rateLimit } from "@/lib/security/rateLimit";
 import { logAuthEvent } from "@/lib/auth/auditLog";
+import { notifyAuthLogin } from "@/lib/auth/authNotifications";
 
 const schema = z.object({
   idToken: z.string().min(20)
@@ -40,6 +41,7 @@ export async function POST(req: Request) {
       userAgent: req.headers.get("user-agent") ?? undefined,
       meta: { phone }
     });
+    void notifyAuthLogin({ userId: user.id, ip });
     const res = NextResponse.json({ ok: true });
     await createSessionCookie(user.id, res);
     return res;

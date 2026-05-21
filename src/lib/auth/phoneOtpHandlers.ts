@@ -8,6 +8,7 @@ import { createPhoneOtp, verifyPhoneOtp } from "@/lib/auth/otp";
 import { clientIp, rateLimit } from "@/lib/security/rateLimit";
 import { normalizePhone } from "@/lib/validation/phone";
 import { logAuthEvent } from "@/lib/auth/auditLog";
+import { notifyAuthLogin, notifyPhoneVerified } from "@/lib/auth/authNotifications";
 
 const requestSchema = z.object({
   phone: z.string().min(6)
@@ -130,7 +131,8 @@ export async function handlePhoneOtpVerify(req: Request) {
         phone: normalizedPhone,
         password: passwordHash,
         role: "GUEST",
-        verified: true
+        verified: true,
+        phoneVerified: true
       }
     });
   } else {
@@ -138,18 +140,27 @@ export async function handlePhoneOtpVerify(req: Request) {
       where: { id: existing.id },
       data: {
         verified: true,
+        phoneVerified: true,
         name: normalizedName || existing.name
       }
     });
   }
 
+  const wasNew = !existing;
   await logAuthEvent({
-    event: existing ? "login_phone" : "register_phone",
+    event: wasNew ? "register_phone" : "login_phone",
     userId: user.id,
     ip,
     userAgent: req.headers.get("user-agent") ?? undefined,
     meta: { phone: normalizedPhone }
   });
+
+  if (wasNew) {
+    void notifyPhoneVerified(user.id);
+  } else {
+    void notifyAuthLogin({ userId: user.id, ip, isNewAccount: false });
+    if (!existing?.phoneVerified) void notifyPhoneVerified(user.id);
+  }
 
   const res = NextResponse.json({ ok: true });
   await createSessionCookie(user.id, res);

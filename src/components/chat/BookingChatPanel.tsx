@@ -7,6 +7,8 @@ import { groupChatMessages } from "@/lib/chat/groupMessages";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
 import { PaymentCountdown } from "@/app/payment/[code]/PaymentCountdown";
+import { TrustBadges } from "@/components/auth/TrustBadges";
+import type { TrustBadge } from "@/lib/auth/trustBadges";
 
 function mapChatApiError(raw: string | undefined): string {
   const v = (raw || "").trim();
@@ -72,6 +74,7 @@ export type BookingChatPanelProps = {
   hotelName?: string;
   roomTitle?: string;
   counterpartPreview?: string;
+  counterpartTrustBadges?: TrustBadge[];
   /** Компактная высота для экрана «Сделка» */
   density?: "default" | "compact";
   /** На странице оплаты скрыть ссылку «Загрузить чек» */
@@ -163,6 +166,7 @@ export function BookingChatPanel({
   hotelName,
   roomTitle,
   counterpartPreview,
+  counterpartTrustBadges = [],
   density = "default",
   suppressPaymentDeepLink = false,
   suppressReviewActions = false,
@@ -581,6 +585,9 @@ export function BookingChatPanel({
             {headerSubtitle ? (
               <div className="truncate text-[10px] text-slate-500">{headerSubtitle}</div>
             ) : null}
+            {counterpartTrustBadges.length ? (
+              <TrustBadges locale={locale} badges={counterpartTrustBadges} size="sm" className="mt-1.5" />
+            ) : null}
           </div>
           <span
             className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide ring-1 ring-inset ${statusPillClass(statusForPill)}`}
@@ -596,6 +603,9 @@ export function BookingChatPanel({
         <div className="min-w-0 flex-1">
           <div className="truncate text-[15px] font-semibold tracking-tight text-white">{title}</div>
           <div className="truncate text-xs text-slate-400">{headerSubtitle}</div>
+          {counterpartTrustBadges.length ? (
+            <TrustBadges locale={locale} badges={counterpartTrustBadges} size="sm" className="mt-1.5" />
+          ) : null}
           <div className="mt-1.5 flex flex-wrap items-center gap-2">
             <span
               className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ring-1 ring-inset ${statusPillClass(statusForPill)}`}

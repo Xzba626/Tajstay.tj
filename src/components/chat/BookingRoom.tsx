@@ -13,6 +13,7 @@ import { DisputeActions } from "@/components/chat/DisputeActions";
 import type { BookingTimelineEvent } from "@/lib/chat/bookingTimeline";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
+import type { TrustBadge } from "@/lib/auth/trustBadges";
 import { BOOKING_STATUS } from "@/lib/domain/booking";
 
 export type BookingRoomProps = {
@@ -24,6 +25,7 @@ export type BookingRoomProps = {
   backHref: string;
   title: string;
   counterpartPreview: string;
+  counterpartTrustBadges?: TrustBadge[];
   guestLabel: string;
   hotelName: string;
   roomTitle: string;
@@ -57,6 +59,7 @@ export function BookingRoom(props: BookingRoomProps) {
     backHref,
     title,
     counterpartPreview,
+    counterpartTrustBadges = [],
     guestLabel,
     hotelName,
     roomTitle,
@@ -157,6 +160,7 @@ export function BookingRoom(props: BookingRoomProps) {
             hotelName={hotelName}
             roomTitle={roomTitle}
             counterpartPreview={counterpartPreview}
+            counterpartTrustBadges={counterpartTrustBadges}
             suppressPaymentDeepLink={showPaymentFlow || isOnReview}
             suppressReviewActions={showReviewCard}
             embeddedInRoom
