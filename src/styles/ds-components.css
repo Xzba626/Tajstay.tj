@@ -1,0 +1,241 @@
+/**
+ * TajStay DS — component primitives (override global button rules safely)
+ */
+
+.taj-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: var(--taj-control-h);
+  padding: 0 1.25rem;
+  border-radius: var(--taj-radius-xl);
+  font-family: var(--taj-font-ui);
+  font-size: var(--taj-text-sm);
+  font-weight: 600;
+  line-height: 1;
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease,
+    color 0.2s ease;
+  cursor: pointer;
+  text-decoration: none;
+  border: 1px solid transparent;
+}
+
+.taj-btn:disabled {
+  opacity: 0.55;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.taj-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--taj-shadow-focus);
+}
+
+.taj-btn--sm {
+  min-height: var(--taj-control-h-sm);
+  padding: 0 1rem;
+  font-size: var(--taj-text-xs);
+  border-radius: var(--taj-radius-lg);
+}
+
+.taj-btn--lg {
+  min-height: var(--taj-control-h-lg);
+  padding: 0 1.5rem;
+  font-size: var(--taj-text-base);
+}
+
+.taj-btn--full {
+  width: 100%;
+}
+
+button.taj-btn--primary,
+a.taj-btn--primary {
+  background: linear-gradient(180deg, #4ade80, #16a34a) !important;
+  color: #052e16 !important;
+  border-color: rgba(187, 247, 208, 0.35) !important;
+  box-shadow: var(--taj-shadow-card), var(--taj-shadow-glow) !important;
+}
+
+button.taj-btn--primary:hover:not(:disabled),
+a.taj-btn--primary:hover {
+  filter: brightness(1.06);
+}
+
+button.taj-btn--secondary,
+a.taj-btn--secondary {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: var(--taj-color-text) !important;
+  border-color: var(--taj-color-border-strong) !important;
+  box-shadow: none !important;
+}
+
+button.taj-btn--secondary:hover:not(:disabled),
+a.taj-btn--secondary:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+button.taj-btn--ghost,
+a.taj-btn--ghost {
+  background: transparent !important;
+  color: var(--taj-color-text-secondary) !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+button.taj-btn--ghost:hover:not(:disabled),
+a.taj-btn--ghost:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: var(--taj-color-text) !important;
+}
+
+button.taj-btn--glass,
+a.taj-btn--glass {
+  background: var(--taj-public-surface) !important;
+  color: var(--taj-color-text) !important;
+  border-color: var(--taj-color-border) !important;
+  backdrop-filter: blur(12px);
+  box-shadow: var(--taj-shadow-sm) !important;
+}
+
+button.taj-btn--danger,
+a.taj-btn--danger {
+  background: rgba(239, 68, 68, 0.18) !important;
+  color: #fecaca !important;
+  border-color: rgba(248, 113, 113, 0.35) !important;
+  box-shadow: none !important;
+}
+
+button.taj-btn--success,
+a.taj-btn--success {
+  background: rgba(20, 92, 67, 0.35) !important;
+  color: #d1fae5 !important;
+  border-color: rgba(52, 211, 153, 0.35) !important;
+  box-shadow: none !important;
+}
+
+button.taj-btn--icon,
+a.taj-btn--icon {
+  min-width: var(--taj-control-h);
+  padding: 0;
+}
+
+.taj-input {
+  display: flex;
+  min-height: var(--taj-control-h);
+  width: 100%;
+  border-radius: var(--taj-radius-lg);
+  border: 1px solid var(--taj-color-border-strong);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 0 var(--taj-control-px);
+  font-family: var(--taj-font-ui);
+  font-size: var(--taj-text-sm);
+  color: var(--taj-color-text);
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.taj-input::placeholder {
+  color: var(--taj-color-text-muted);
+}
+
+.taj-input:focus {
+  outline: none;
+  border-color: rgba(52, 211, 153, 0.55);
+  background: rgba(255, 255, 255, 0.09);
+  box-shadow: var(--taj-shadow-focus);
+}
+
+.taj-input--error {
+  border-color: rgba(248, 113, 113, 0.55);
+}
+
+.taj-input--public {
+  background: rgba(255, 255, 255, 0.92);
+  color: #0f172a;
+  border-color: rgba(15, 23, 42, 0.12);
+}
+
+/* Legacy class alias */
+.ds-input {
+  display: flex;
+  min-height: var(--taj-control-h);
+  width: 100%;
+  border-radius: var(--taj-radius-lg);
+  border: 1px solid var(--taj-color-border-strong);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 0 var(--taj-control-px);
+  font-family: var(--taj-font-ui);
+  font-size: var(--taj-text-sm);
+  color: var(--taj-color-text);
+}
+
+.ds-input:focus {
+  outline: none;
+  border-color: rgba(52, 211, 153, 0.55);
+  box-shadow: var(--taj-shadow-focus);
+}
+
+.ds-primary-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--taj-control-h);
+  padding: 0 1.25rem;
+  border-radius: var(--taj-radius-xl);
+  font-weight: 600;
+  font-size: var(--taj-text-sm);
+}
+
+.taj-card {
+  border-radius: var(--taj-radius-card-lg);
+  border: 1px solid var(--taj-color-border);
+  background: var(--taj-color-bg-card);
+  box-shadow: var(--taj-shadow-sm);
+}
+
+.taj-card--elevated {
+  background: var(--taj-color-bg-card-solid);
+  box-shadow: var(--taj-shadow-md);
+}
+
+.taj-card--public {
+  background: var(--taj-public-surface);
+  backdrop-filter: blur(16px);
+}
+
+.taj-card--outline {
+  background: transparent;
+  border-style: dashed;
+}
+
+.taj-card--padding-sm {
+  padding: var(--taj-space-4);
+}
+
+.taj-card--padding-md {
+  padding: var(--taj-space-6);
+}
+
+.taj-card--padding-lg {
+  padding: var(--taj-space-8);
+}
+
+.taj-sticky-actions {
+  position: sticky;
+  bottom: var(--taj-space-4);
+  z-index: 30;
+  display: flex;
+  gap: var(--taj-space-3);
+  padding: var(--taj-space-3);
+  border-radius: var(--taj-radius-2xl);
+  border: 1px solid var(--taj-color-border);
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(12px);
+  box-shadow: var(--taj-shadow-lg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .taj-sticky-actions {
+    position: static;
+  }
+}

@@ -1,1 +1,1 @@
-export { Input } from "@/components/ui/Input";
+export { Input } from "@/components/ds/Input";

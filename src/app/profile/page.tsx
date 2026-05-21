@@ -9,6 +9,7 @@ import { isPlaceholderAccountPhone } from "@/lib/auth/accountPhone";
 import { ProfileBecomeOwnerCard } from "@/components/profile/ProfileBecomeOwnerCard";
 import { TrustBadges } from "@/components/auth/TrustBadges";
 import { getUserTrustBadges } from "@/lib/auth/trustBadges";
+import { PageContainer } from "@/components/ds";
 
 export const dynamic = "force-dynamic";
 
@@ -17,13 +18,13 @@ export default async function ProfilePage() {
   const user = await requireUser(["GUEST", "OWNER", "ADMIN"]);
   if (!user) {
     return (
-      <div className="mx-auto max-w-2xl space-y-3 px-4 py-8">
+      <PageContainer width="narrow" className="space-y-3">
         <h1 className="text-2xl font-semibold text-slate-100">{m(locale, "profile.title")}</h1>
         <p className="text-slate-300">{m(locale, "profile.signInPrompt")}</p>
-        <a className="ds-primary-btn inline-flex items-center" href="/auth/sign-in">
+        <a className="taj-btn taj-btn--primary" href="/auth/sign-in">
           {m(locale, "profile.signInCta")}
         </a>
-      </div>
+      </PageContainer>
     );
   }
 
@@ -48,7 +49,7 @@ export default async function ProfilePage() {
   });
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 px-4 py-6 sm:px-6 sm:py-8">
+    <PageContainer width="narrow" className="space-y-6">
       <h1 className="text-2xl font-semibold text-slate-100">{m(locale, "profile.title")}</h1>
 
       <div className="liquid-glass rounded-2xl border border-white/10 p-5 shadow-sm sm:p-6">
@@ -121,6 +122,6 @@ export default async function ProfilePage() {
       </section>
 
       <LogoutButton />
-    </div>
+    </PageContainer>
   );
 }

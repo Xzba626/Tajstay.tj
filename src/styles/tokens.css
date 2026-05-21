@@ -1,0 +1,126 @@
+/**
+ * TajStay Design System — PR-1 tokens
+ * Public: Airbnb/Apple-like clarity | Dashboard: Stripe/Linear/Booking extranet
+ */
+
+:root {
+  /* ---- Layout widths ---- */
+  --taj-page-max: 80rem; /* 1280px — marketing / public */
+  --taj-page-max-narrow: 42rem; /* 672px — auth, profile account */
+  --taj-dashboard-max: 90rem; /* 1440px — owner/admin shell */
+  --taj-section-max: 72rem; /* 1152px — inner sections */
+
+  /* ---- Horizontal padding (mobile-first) ---- */
+  --taj-page-px: 1rem;
+  --taj-page-px-sm: 1.5rem;
+  --taj-page-px-lg: 2rem;
+  --taj-page-px-xl: 2.5rem;
+
+  /* ---- Vertical section rhythm ---- */
+  --taj-section-gap: 2rem;
+  --taj-section-gap-lg: 3rem;
+  --taj-stack-sm: 0.75rem;
+  --taj-stack-md: 1rem;
+  --taj-stack-lg: 1.5rem;
+  --taj-stack-xl: 2rem;
+
+  /* ---- Spacing scale ---- */
+  --taj-space-1: 0.25rem;
+  --taj-space-2: 0.5rem;
+  --taj-space-3: 0.75rem;
+  --taj-space-4: 1rem;
+  --taj-space-5: 1.25rem;
+  --taj-space-6: 1.5rem;
+  --taj-space-8: 2rem;
+  --taj-space-10: 2.5rem;
+  --taj-space-12: 3rem;
+
+  /* ---- Radius ---- */
+  --taj-radius-sm: 0.5rem;
+  --taj-radius-md: 0.75rem;
+  --taj-radius-lg: 1rem;
+  --taj-radius-xl: 1.25rem;
+  --taj-radius-2xl: 1.5rem;
+  --taj-radius-card: 1rem;
+  --taj-radius-card-lg: 1.25rem;
+
+  /* ---- Shadows ---- */
+  --taj-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.12);
+  --taj-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.22);
+  --taj-shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.32);
+  --taj-shadow-card: 0 10px 28px rgba(0, 0, 0, 0.28);
+  --taj-shadow-glow: 0 0 24px rgba(52, 211, 153, 0.12);
+  --taj-shadow-focus: 0 0 0 3px rgba(52, 211, 153, 0.28);
+
+  /* ---- Typography ---- */
+  --taj-font-ui: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --taj-font-display: "Playfair Display", Georgia, serif;
+  --taj-text-xs: 0.75rem;
+  --taj-text-sm: 0.875rem;
+  --taj-text-base: 1rem;
+  --taj-text-lg: 1.125rem;
+  --taj-text-xl: 1.25rem;
+  --taj-text-2xl: 1.5rem;
+  --taj-text-3xl: clamp(1.65rem, 4vw, 2.25rem);
+  --taj-leading-tight: 1.2;
+  --taj-leading-normal: 1.5;
+  --taj-leading-relaxed: 1.65;
+
+  /* ---- Control sizes (touch-friendly) ---- */
+  --taj-control-h: 2.75rem; /* 44px */
+  --taj-control-h-sm: 2.5rem; /* 40px */
+  --taj-control-h-lg: 3rem; /* 48px */
+  --taj-control-px: 0.875rem;
+
+  /* ---- Colors — dashboard (dark extranet) ---- */
+  --taj-color-bg: #0b0f0e;
+  --taj-color-bg-elevated: #0f1f1a;
+  --taj-color-bg-card: rgba(255, 255, 255, 0.05);
+  --taj-color-bg-card-solid: #121f14;
+  --taj-color-border: rgba(255, 255, 255, 0.1);
+  --taj-color-border-strong: rgba(255, 255, 255, 0.16);
+  --taj-color-text: #f8fafc;
+  --taj-color-text-secondary: #b5c9c3;
+  --taj-color-text-muted: #6f8f86;
+  --taj-color-primary: #145c43;
+  --taj-color-primary-hover: #1a7354;
+  --taj-color-accent: #34d399;
+  --taj-color-danger: #f87171;
+  --taj-color-success: #4ade80;
+  --taj-color-warning: #fbbf24;
+
+  /* ---- Colors — public (light-on-dark marketing) ---- */
+  --taj-public-surface: rgba(255, 255, 255, 0.06);
+  --taj-public-surface-strong: rgba(255, 255, 255, 0.1);
+
+  /* ---- Legacy aliases (keep existing pages working) ---- */
+  --ds-primary: var(--taj-color-primary);
+  --ds-secondary: var(--taj-color-primary);
+  --ds-bg-main: var(--taj-color-bg);
+  --ds-bg-section: var(--taj-color-bg-elevated);
+  --ds-text-primary: var(--taj-color-text);
+  --ds-text-secondary: var(--taj-color-text-secondary);
+  --ds-text-muted: var(--taj-color-text-muted);
+  --ds-border: #2a4a40;
+  --ds-shadow-soft: var(--taj-shadow-card);
+  --ds-radius: var(--taj-radius-xl);
+  --ds-glow: rgba(0, 255, 150, 0.15);
+}
+
+@media (min-width: 640px) {
+  :root {
+    --taj-page-px: var(--taj-page-px-sm);
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --taj-page-px: var(--taj-page-px-lg);
+  }
+}
+
+@media (min-width: 1280px) {
+  :root {
+    --taj-page-px: var(--taj-page-px-xl);
+  }
+}

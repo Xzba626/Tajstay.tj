@@ -29,7 +29,17 @@ module.exports = {
       },
       borderRadius: {
         xl2: "1.25rem",
-        xl3: "1.75rem"
+        xl3: "1.75rem",
+        taj: "var(--taj-radius-xl)",
+        "taj-card": "var(--taj-radius-card-lg)"
+      },
+      maxWidth: {
+        taj: "var(--taj-page-max)",
+        "taj-narrow": "var(--taj-page-max-narrow)",
+        "taj-dashboard": "var(--taj-dashboard-max)"
+      },
+      spacing: {
+        "taj-page": "var(--taj-page-px)"
       },
       backgroundImage: {
         "brand-gradient": "linear-gradient(135deg, #145c43 0%, #0f3d2e 100%)",

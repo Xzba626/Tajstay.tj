@@ -1,23 +1,19 @@
 import type { PropsWithChildren } from "react";
-import clsx from "classnames";
+import { AppCard } from "@/components/ds/AppCard";
+import type { TajCardVariant } from "@/components/ds/types";
+import { cn } from "@/lib/cn";
 
 type CardProps = PropsWithChildren<{
   className?: string;
   variant?: "default" | "glass";
 }>;
 
+/** Backward-compatible Card — maps legacy `glass` to DS `public` variant. */
 export function Card({ children, className, variant = "glass" }: CardProps) {
+  const dsVariant: TajCardVariant = variant === "glass" ? "public" : "default";
   return (
-    <div
-      className={clsx(
-        "rounded-2xl p-4",
-        variant === "glass"
-          ? "surface-1 shadow-glass"
-          : "border border-[var(--ds-border)] bg-[var(--ds-bg-section)] shadow-lg shadow-black/30 backdrop-blur-md",
-        className
-      )}
-    >
+    <AppCard variant={dsVariant} padding="md" className={cn(className)}>
       {children}
-    </div>
+    </AppCard>
   );
 }

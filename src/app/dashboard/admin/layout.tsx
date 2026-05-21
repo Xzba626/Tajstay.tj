@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { AdminMobileNav, AdminSidebar, type AdminSidebarLabels } from "@/components/dashboard/AdminSidebar";
+import { DashboardShell } from "@/components/ds";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
 
@@ -25,14 +26,8 @@ export default function AdminDashboardLayout({ children }: { children: ReactNode
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-brand-900">
-      <div className="mx-auto flex max-w-[1600px]">
-        <AdminSidebar labels={labels} />
-        <div className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-10 lg:py-10" data-reveal data-stagger="60">
-          <AdminMobileNav labels={labels} />
-          {children}
-        </div>
-      </div>
-    </div>
+    <DashboardShell sidebar={<AdminSidebar labels={labels} />} mobileNav={<AdminMobileNav labels={labels} />}>
+      {children}
+    </DashboardShell>
   );
 }
