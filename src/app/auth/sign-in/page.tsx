@@ -1,5 +1,6 @@
 import { isGoogleOAuthConfigured } from "@/lib/auth/googleOAuthEnv";
 import { isFirebasePhoneAuthConfigured } from "@/lib/firebase/config";
+import { isTelegramLoginConfigured } from "@/lib/telegram/config";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
 import { SignInClient } from "./SignInClient";
@@ -63,7 +64,16 @@ export default function SignInPage({ searchParams }: { searchParams?: { next?: s
     createPassword: m(locale, "auth.createPassword"),
     otpVerified: m(locale, "auth.otpVerified"),
     orContinueWith: m(locale, "auth.orContinueWith"),
-    back: m(locale, "common.back")
+    back: m(locale, "common.back"),
+    telegramSignIn: m(locale, "auth.telegramSignIn"),
+    telegramOpenBot: m(locale, "auth.telegramOpenBot"),
+    telegramWaitingBot: m(locale, "auth.telegramWaitingBot"),
+    telegramAwaitingConfirm: m(locale, "auth.telegramAwaitingConfirm"),
+    telegramConfirmed: m(locale, "auth.telegramConfirmed"),
+    telegramExpired: m(locale, "auth.telegramExpired"),
+    telegramStep1: m(locale, "auth.telegramStep1"),
+    telegramStep2: m(locale, "auth.telegramStep2"),
+    telegramExpiresIn: m(locale, "auth.telegramExpiresIn")
   };
 
   return (
@@ -73,6 +83,7 @@ export default function SignInPage({ searchParams }: { searchParams?: { next?: s
       nextPath={searchParams?.next ?? null}
       googleOAuthEnabled={isGoogleOAuthConfigured()}
       firebasePhoneAuthEnabled={isFirebasePhoneAuthConfigured()}
+      telegramLoginEnabled={isTelegramLoginConfigured()}
     />
   );
 }

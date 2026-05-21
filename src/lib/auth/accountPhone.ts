@@ -4,7 +4,7 @@
  */
 export function isPlaceholderAccountPhone(phone: string | null | undefined): boolean {
   const t = phone?.trim();
-  return !!t && (t.startsWith("google_") || t.startsWith("email_"));
+  return !!t && (t.startsWith("google_") || t.startsWith("email_") || t.startsWith("telegram_"));
 }
 
 /** Уникальный плейсхолдер для User.phone, когда реальный номер не задан (email/Google). */

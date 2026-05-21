@@ -21,6 +21,10 @@ model User {
   firebaseUid   String?  @unique
   /// True when phone was verified via Firebase Phone Auth (or legacy OTP).
   phoneVerified Boolean  @default(false)
+  /// Telegram user id (string for large ids).
+  telegramId        String?  @unique
+  telegramUsername  String?
+  telegramPhotoUrl  String?
   role      String   @default("GUEST")
   verified  Boolean  @default(false)
   isBanned  Boolean   @default(false)
@@ -514,6 +518,23 @@ model SiteContentState {
 }
 
 /// Auth security / audit events (OTP, login, suspicious activity).
+/// One-time login via @TajstayBot (/start login_<token>).
+model TelegramLoginChallenge {
+  id               Int       @id @default(autoincrement())
+  token            String    @unique
+  codeHash         String
+  telegramId       String?
+  telegramUsername String?
+  telegramPhotoUrl String?
+  expiresAt        DateTime
+  confirmedAt      DateTime?
+  usedAt           DateTime?
+  createdAt        DateTime  @default(now())
+
+  @@index([expiresAt])
+  @@index([telegramId])
+}
+
 model AuthAuditLog {
   id        Int      @id @default(autoincrement())
   userId    Int?

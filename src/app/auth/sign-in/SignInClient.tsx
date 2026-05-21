@@ -18,6 +18,7 @@ import {
 import { AuthMethodTabs } from "@/components/auth/AuthMethodTabs";
 import { OtpVerificationPanel } from "@/components/auth/OtpVerificationPanel";
 import { TajikPhoneInput } from "@/components/auth/TajikPhoneInput";
+import { TelegramLoginPanel } from "@/components/auth/TelegramLoginPanel";
 
 type ApiUser = { id: number; role: string; name: string; phone: string; email?: string | null };
 
@@ -78,6 +79,15 @@ export type SignInLabels = {
   otpVerified: string;
   orContinueWith: string;
   back: string;
+  telegramSignIn: string;
+  telegramOpenBot: string;
+  telegramWaitingBot: string;
+  telegramAwaitingConfirm: string;
+  telegramConfirmed: string;
+  telegramExpired: string;
+  telegramStep1: string;
+  telegramStep2: string;
+  telegramExpiresIn: string;
 };
 
 const EMPTY_OTP = ["", "", "", "", "", ""];
@@ -122,6 +132,7 @@ type Props = {
   nextPath?: string | null;
   googleOAuthEnabled?: boolean;
   firebasePhoneAuthEnabled?: boolean;
+  telegramLoginEnabled?: boolean;
 };
 
 type MainTab = "signIn" | "register";
@@ -133,7 +144,8 @@ export function SignInClient({
   labels: L,
   nextPath = null,
   googleOAuthEnabled = false,
-  firebasePhoneAuthEnabled = false
+  firebasePhoneAuthEnabled = false,
+  telegramLoginEnabled = false
 }: Props) {
   const useFirebaseSms = firebasePhoneAuthEnabled && isFirebaseClientConfigured();
 
@@ -437,8 +449,8 @@ export function SignInClient({
     }
   }
 
-  function GoogleButton() {
-    if (!googleOAuthEnabled) return null;
+  function SocialAuthBlock() {
+    if (!googleOAuthEnabled && !telegramLoginEnabled) return null;
     return (
       <>
         <div className="flex items-center gap-3 py-1 text-xs text-brand-300">
@@ -446,13 +458,34 @@ export function SignInClient({
           <span>{L.orContinueWith}</span>
           <span className="h-px flex-1 bg-brand-700" />
         </div>
-        <button
-          type="button"
-          onClick={() => handleGoogleSignIn().catch(() => setFormError(L.googleSignInError))}
-          className="h-12 w-full rounded-2xl border border-brand-700 bg-brand-800 px-4 text-sm font-semibold text-white transition hover:bg-brand-700"
-        >
-          {L.googleSignIn}
-        </button>
+        {telegramLoginEnabled ? (
+          <TelegramLoginPanel
+            locale={_locale}
+            labels={{
+              signIn: L.telegramSignIn,
+              openBot: L.telegramOpenBot,
+              waitingBot: L.telegramWaitingBot,
+              awaitingConfirm: L.telegramAwaitingConfirm,
+              confirmed: L.telegramConfirmed,
+              expired: L.telegramExpired,
+              errorGeneric: L.errorGeneric,
+              expiresIn: L.telegramExpiresIn,
+              step1: L.telegramStep1,
+              step2: L.telegramStep2
+            }}
+            onSuccess={() => refreshMe()}
+            onError={(msg) => setFormError(mapApiErrorMessage(msg))}
+          />
+        ) : null}
+        {googleOAuthEnabled ? (
+          <button
+            type="button"
+            onClick={() => handleGoogleSignIn().catch(() => setFormError(L.googleSignInError))}
+            className="h-12 w-full rounded-2xl border border-brand-700 bg-brand-800 px-4 text-sm font-semibold text-white transition hover:bg-brand-700"
+          >
+            {L.googleSignIn}
+          </button>
+        ) : null}
       </>
     );
   }
@@ -642,7 +675,7 @@ export function SignInClient({
                 </form>
               )}
 
-              <GoogleButton />
+              <SocialAuthBlock />
             </div>
           ) : (
             <div className="mt-6 space-y-4">
@@ -785,7 +818,7 @@ export function SignInClient({
                 </form>
               )}
 
-              <GoogleButton />
+              <SocialAuthBlock />
             </div>
           )}
         </section>

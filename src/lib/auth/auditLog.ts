@@ -7,6 +7,7 @@ export type AuthAuditEvent =
   | "login_password"
   | "login_phone"
   | "login_firebase"
+  | "login_telegram"
   | "register_phone"
   | "register_email"
   | "new_session"
