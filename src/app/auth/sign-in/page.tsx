@@ -1,15 +1,21 @@
 import { isGoogleOAuthConfigured } from "@/lib/auth/googleOAuthEnv";
-import { getTelegramBotUsername, isTelegramLoginConfigured } from "@/lib/telegram/config";
+import {
+  getTelegramBotUsername,
+  isTelegramLoginConfigured,
+  isTelegramLoginUiEnabled
+} from "@/lib/telegram/config";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
 import { SignInClient } from "./SignInClient";
 
 export default function SignInPage({ searchParams }: { searchParams?: { next?: string } }) {
   const locale = getLocale();
-  const telegramLoginEnabled = isTelegramLoginConfigured();
+  const telegramLoginEnabled = isTelegramLoginUiEnabled();
+  const telegramApiReady = isTelegramLoginConfigured();
   const telegramBotUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME?.trim() || getTelegramBotUsername();
   const showTelegramConfigWarning =
-    process.env.NODE_ENV === "development" && telegramLoginEnabled && !process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME?.trim();
+    telegramLoginEnabled &&
+    (!telegramApiReady || !process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME?.trim());
 
   const labels = {
     title: m(locale, "auth.title"),

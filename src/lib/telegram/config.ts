@@ -7,8 +7,14 @@ export function getTelegramBotUsername(): string {
   return process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME?.trim() || "TajstayBot";
 }
 
+/** Server can create challenges and verify codes. */
 export function isTelegramLoginConfigured(): boolean {
   return Boolean(getTelegramBotToken());
+}
+
+/** Show Telegram button on /auth/sign-in (needs public bot name and/or server token). */
+export function isTelegramLoginUiEnabled(): boolean {
+  return Boolean(getTelegramBotToken() || getTelegramBotUsernamePublic());
 }
 
 /** Public bot handle for deep links (NEXT_PUBLIC_* on Vercel). */

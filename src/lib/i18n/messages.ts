@@ -303,7 +303,8 @@ const ru: Tree = {
     googleSignInError: "Не удалось войти через Google. Попробуйте позже.",
     orUseEmail: "или по email",
     telegramSignIn: "Войти через Telegram",
-    telegramConfigWarning: "Задайте NEXT_PUBLIC_TELEGRAM_BOT_USERNAME в .env (имя бота без @)",
+    telegramConfigWarning:
+      "Telegram: задайте TELEGRAM_BOT_TOKEN и NEXT_PUBLIC_TELEGRAM_BOT_USERNAME (имя бота без @) в переменных окружения",
     telegramRegister: "Зарегистрироваться через Telegram",
     telegramRegisterHint: "Новый аккаунт создаётся автоматически после входа через бота",
     telegramOpenBot: "Открыть бота TajStay",
@@ -1342,7 +1343,8 @@ const tg: Tree = {
     googleSignInError: "Воридшавӣ бо Google муваффақ нашуд. Баъдтар кӯшиш кунед.",
     orUseEmail: "ё тавассути email",
     telegramSignIn: "Ворид шудан бо Telegram",
-    telegramConfigWarning: "NEXT_PUBLIC_TELEGRAM_BOT_USERNAME-ро дар .env гузоред (номи бот бе @)",
+    telegramConfigWarning:
+      "Telegram: TELEGRAM_BOT_TOKEN ва NEXT_PUBLIC_TELEGRAM_BOT_USERNAME-ро дар муҳити сервер гузоред",
     telegramRegister: "Ба Telegram сабти ном",
     telegramRegisterHint: "Ҳисоби нав пас аз вуруд тавассути бот эҷод мешавад",
     telegramOpenBot: "Боти TajStay-ро кушоед",
@@ -2373,7 +2375,8 @@ const en: Tree = {
     googleSignInError: "Google sign-in failed. Please try again later.",
     orUseEmail: "or with email",
     telegramSignIn: "Sign in with Telegram",
-    telegramConfigWarning: "Set NEXT_PUBLIC_TELEGRAM_BOT_USERNAME in .env (bot name without @)",
+    telegramConfigWarning:
+      "Telegram: set TELEGRAM_BOT_TOKEN and NEXT_PUBLIC_TELEGRAM_BOT_USERNAME in server environment variables",
     telegramRegister: "Sign up with Telegram",
     telegramRegisterHint: "A new account is created automatically after Telegram sign-in",
     telegramOpenBot: "Open TajStay bot",
