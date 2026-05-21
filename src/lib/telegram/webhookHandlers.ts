@@ -1,10 +1,8 @@
-import { answerTelegramCallbackQuery, getTelegramUserPhotoUrl, sendTelegramMessage } from "@/lib/telegram/api";
+import { getTelegramUserPhotoUrl, sendTelegramMessage } from "@/lib/telegram/api";
 import { botLocaleFromTelegram, telegramBotMessages } from "@/lib/telegram/botMessages";
 import {
-  confirmTelegramChallengeByCode,
-  confirmTelegramChallengeByToken,
-  linkTelegramToChallenge,
-  parseConfirmCallbackData,
+  attachPhoneAndSendCode,
+  attachTelegramOnStart,
   parseLoginStartPayload
 } from "@/lib/telegram/loginChallenge";
 
@@ -15,54 +13,27 @@ type TgUser = {
   language_code?: string;
 };
 
+type TgContact = {
+  phone_number: string;
+  user_id?: number;
+  first_name?: string;
+};
+
 type TgMessage = {
   message_id: number;
   chat: { id: number };
   text?: string;
+  contact?: TgContact;
   from?: TgUser;
-};
-
-type TgCallback = {
-  id: string;
-  from: TgUser;
-  data?: string;
-  message?: { chat: { id: number } };
 };
 
 export type TelegramUpdate = {
   message?: TgMessage;
-  callback_query?: TgCallback;
 };
 
 export async function handleTelegramUpdate(update: TelegramUpdate): Promise<void> {
-  if (update.callback_query) {
-    await handleCallback(update.callback_query);
-    return;
-  }
   if (update.message) {
     await handleMessage(update.message);
-  }
-}
-
-async function handleCallback(cb: TgCallback): Promise<void> {
-  const token = parseConfirmCallbackData(cb.data);
-  const chatId = cb.message?.chat.id ?? cb.from.id;
-  const locale = botLocaleFromTelegram(cb.from.language_code);
-  const L = telegramBotMessages(locale);
-
-  if (!token) {
-    await answerTelegramCallbackQuery({ callbackQueryId: cb.id });
-    return;
-  }
-
-  const ok = await confirmTelegramChallengeByToken(token, String(cb.from.id));
-  await answerTelegramCallbackQuery({
-    callbackQueryId: cb.id,
-    text: ok ? L.confirmed : L.invalid
-  });
-
-  if (ok) {
-    await sendTelegramMessage({ chatId, text: L.confirmed });
   }
 }
 
@@ -73,42 +44,57 @@ async function handleMessage(message: TgMessage): Promise<void> {
   const chatId = message.chat.id;
   const locale = botLocaleFromTelegram(from.language_code);
   const L = telegramBotMessages(locale);
-  const text = message.text?.trim() || "";
+  const telegramId = String(from.id);
 
-  const startToken = parseLoginStartPayload(text);
+  if (message.contact?.phone_number) {
+    const open = await findOpenChallengeForTelegram(telegramId);
+    if (!open) return;
+
+    const result = await attachPhoneAndSendCode(
+      open.token,
+      telegramId,
+      message.contact.phone_number,
+      from.language_code
+    );
+
+    if (!result.ok) {
+      const text =
+        result.reason === "cooldown"
+          ? L.cooldown
+          : result.reason === "expired"
+            ? L.expired
+            : L.invalid;
+      await sendTelegramMessage({ chatId, text });
+    }
+    return;
+  }
+
+  const startToken = parseLoginStartPayload(message.text?.trim());
   if (startToken) {
     const photoUrl = await getTelegramUserPhotoUrl(from.id);
-    const linked = await linkTelegramToChallenge(startToken, {
+    const ok = await attachTelegramOnStart(startToken, {
       id: from.id,
       username: from.username,
       first_name: from.first_name,
-      photoUrl
+      photoUrl,
+      language_code: from.language_code
     });
 
-    if (!linked) {
+    if (!ok) {
       await sendTelegramMessage({ chatId, text: L.expired });
       return;
     }
 
     await sendTelegramMessage({
       chatId,
-      text: L.welcome(linked.code),
+      text: L.startWelcome,
       replyMarkup: {
-        inline_keyboard: [[{ text: L.confirmButton, callback_data: `confirm_tg_login_${startToken}` }]]
+        keyboard: [[{ text: L.sharePhoneButton, request_contact: true }]],
+        resize_keyboard: true,
+        one_time_keyboard: true
       }
     });
     return;
-  }
-
-  const digits = text.replace(/\D/g, "");
-  if (digits.length === 6) {
-    const open = await findOpenChallengeForTelegram(String(from.id));
-    if (!open) return;
-
-    const ok = await confirmTelegramChallengeByCode(open.token, digits, String(from.id));
-    if (ok) {
-      await sendTelegramMessage({ chatId, text: L.confirmed });
-    }
   }
 }
 
@@ -117,7 +103,6 @@ async function findOpenChallengeForTelegram(telegramId: string): Promise<{ token
   const row = await prisma.telegramLoginChallenge.findFirst({
     where: {
       telegramId,
-      confirmedAt: null,
       usedAt: null,
       expiresAt: { gt: new Date() }
     },

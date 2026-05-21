@@ -57,13 +57,19 @@ export type SignInLabels = {
   telegramRegisterHint: string;
   telegramOpenBot: string;
   telegramWaitingBot: string;
-  telegramAwaitingConfirm: string;
-  telegramConfirmed: string;
+  telegramAwaitingPhone: string;
+  telegramEnterCode: string;
+  telegramCodeSentHint: string;
   telegramExpired: string;
   telegramStep1: string;
   telegramStep2: string;
+  telegramStep3: string;
+  telegramVerify: string;
+  telegramTooManyAttempts: string;
+  telegramNoCodeYet: string;
   telegramExpiresIn: string;
   telegramConfigWarning: string;
+  back: string;
 };
 
 async function readApiJson(res: Response): Promise<{ error?: string }> {
@@ -251,13 +257,18 @@ export function SignInClient({
                 signIn: isRegister ? L.telegramRegister : L.telegramSignIn,
                 openBot: L.telegramOpenBot,
                 waitingBot: L.telegramWaitingBot,
-                awaitingConfirm: L.telegramAwaitingConfirm,
-                confirmed: L.telegramConfirmed,
+                awaitingPhone: L.telegramAwaitingPhone,
+                enterCode: L.telegramEnterCode,
+                codeSentHint: L.telegramCodeSentHint,
                 expired: L.telegramExpired,
                 errorGeneric: L.errorGeneric,
                 expiresIn: L.telegramExpiresIn,
                 step1: L.telegramStep1,
-                step2: L.telegramStep2
+                step2: L.telegramStep2,
+                step3: L.telegramStep3,
+                verify: L.telegramVerify,
+                tooManyAttempts: L.telegramTooManyAttempts,
+                back: L.back
               }}
               onSuccess={() => refreshMe()}
               onError={(msg) => setFormError(mapApiErrorMessage(msg))}

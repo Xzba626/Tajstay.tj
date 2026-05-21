@@ -2,18 +2,24 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Locale } from "@/lib/i18n/locale";
+import { OtpCodeInput } from "@/components/auth/OtpCodeInput";
 
 export type TelegramLoginLabels = {
   signIn: string;
   openBot: string;
   waitingBot: string;
-  awaitingConfirm: string;
-  confirmed: string;
+  awaitingPhone: string;
+  enterCode: string;
+  codeSentHint: string;
   expired: string;
   errorGeneric: string;
   expiresIn: string;
   step1: string;
   step2: string;
+  step3: string;
+  verify: string;
+  tooManyAttempts: string;
+  back: string;
 };
 
 type Props = {
@@ -30,7 +36,9 @@ type ChallengeState = {
   expiresInSec: number;
 };
 
-type PollStatus = "pending" | "awaiting_confirm" | "confirmed" | "expired" | "used" | "not_found";
+type PollStatus = "pending" | "awaiting_phone" | "code_sent" | "expired" | "used" | "not_found";
+
+const EMPTY_OTP = ["", "", "", "", "", ""];
 
 export function TelegramLoginPanel({ labels: L, onSuccess, onError }: Props) {
   const [active, setActive] = useState(false);
@@ -38,29 +46,41 @@ export function TelegramLoginPanel({ labels: L, onSuccess, onError }: Props) {
   const [challenge, setChallenge] = useState<ChallengeState | null>(null);
   const [status, setStatus] = useState<PollStatus | null>(null);
   const [secondsLeft, setSecondsLeft] = useState(0);
-  const completing = useRef(false);
+  const [otp, setOtp] = useState([...EMPTY_OTP]);
+  const [otpShake, setOtpShake] = useState(false);
+  const [phoneMasked, setPhoneMasked] = useState<string | null>(null);
+  const verifying = useRef(false);
 
-  const finishLogin = useCallback(async () => {
-    if (!challenge || completing.current) return;
-    completing.current = true;
-    setLoading(true);
-    try {
-      const res = await fetch("/api/auth/telegram/session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", accept: "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ token: challenge.token })
-      });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(json.error || L.errorGeneric);
-      await onSuccess();
-    } catch (err: unknown) {
-      onError?.(err instanceof Error ? err.message : L.errorGeneric);
-      completing.current = false;
-    } finally {
-      setLoading(false);
-    }
-  }, [challenge, L.errorGeneric, onError, onSuccess]);
+  const otpComplete = otp.every((d) => d.trim().length === 1);
+
+  const verifyCode = useCallback(
+    async (code: string) => {
+      if (!challenge || verifying.current) return;
+      verifying.current = true;
+      setLoading(true);
+      try {
+        const res = await fetch("/api/auth/telegram/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", accept: "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ token: challenge.token, code })
+        });
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          setOtpShake(true);
+          window.setTimeout(() => setOtpShake(false), 500);
+          throw new Error(json.error || L.errorGeneric);
+        }
+        await onSuccess();
+      } catch (err: unknown) {
+        onError?.(err instanceof Error ? err.message : L.errorGeneric);
+        verifying.current = false;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [challenge, L.errorGeneric, onError, onSuccess]
+  );
 
   useEffect(() => {
     if (!challenge) return;
@@ -76,11 +96,6 @@ export function TelegramLoginPanel({ labels: L, onSuccess, onError }: Props) {
   }, [challenge]);
 
   useEffect(() => {
-    if (!challenge || status !== "confirmed") return;
-    void finishLogin();
-  }, [challenge, status, finishLogin]);
-
-  useEffect(() => {
     if (!challenge || !active) return;
     if (status === "expired" || status === "used") return;
 
@@ -91,10 +106,11 @@ export function TelegramLoginPanel({ labels: L, onSuccess, onError }: Props) {
         const res = await fetch(`/api/auth/telegram/status/${encodeURIComponent(challenge!.token)}`, {
           cache: "no-store"
         });
-        const json = (await res.json()) as { status?: PollStatus };
+        const json = (await res.json()) as { status?: PollStatus; phoneMasked?: string };
         if (cancelled) return;
         const s = json.status ?? "not_found";
         setStatus(s);
+        if (json.phoneMasked) setPhoneMasked(json.phoneMasked);
       } catch {
         if (!cancelled) onError?.(L.errorGeneric);
       }
@@ -110,8 +126,8 @@ export function TelegramLoginPanel({ labels: L, onSuccess, onError }: Props) {
 
   async function startChallenge() {
     setLoading(true);
-    setFormLocalError(null);
-    completing.current = false;
+    verifying.current = false;
+    setOtp([...EMPTY_OTP]);
     try {
       const res = await fetch("/api/auth/telegram/challenge", {
         method: "POST",
@@ -130,16 +146,14 @@ export function TelegramLoginPanel({ labels: L, onSuccess, onError }: Props) {
     }
   }
 
-  const [formLocalError, setFormLocalError] = useState<string | null>(null);
-
   const statusText =
-    status === "awaiting_confirm"
-      ? L.awaitingConfirm
-      : status === "confirmed"
-        ? L.confirmed
+    status === "awaiting_phone"
+      ? L.awaitingPhone
+      : status === "code_sent"
+        ? L.codeSentHint
         : status === "expired"
           ? L.expired
-          : status === "pending" && challenge
+          : status === "pending"
             ? L.waitingBot
             : null;
 
@@ -171,12 +185,36 @@ export function TelegramLoginPanel({ labels: L, onSuccess, onError }: Props) {
       </a>
       <p className="text-xs text-brand-300">{L.step2}</p>
       {statusText ? <p className="text-sm font-medium text-white">{statusText}</p> : null}
-      {secondsLeft > 0 ? (
-        <p className="text-xs text-brand-400">
-          {L.expiresIn.replace("{n}", String(secondsLeft))}
-        </p>
+      {phoneMasked ? <p className="text-xs text-brand-400">{phoneMasked}</p> : null}
+
+      {status === "code_sent" ? (
+        <div className="space-y-3 border-t border-white/10 pt-3">
+          <p className="text-xs text-brand-200">{L.step3}</p>
+          <p className="text-sm font-semibold text-white">{L.enterCode}</p>
+          <OtpCodeInput
+            value={otp}
+            onChange={setOtp}
+            onComplete={(code) => void verifyCode(code)}
+            disabled={loading}
+            loading={loading}
+            shake={otpShake}
+            autoFocus
+          />
+          <button
+            type="button"
+            disabled={loading || !otpComplete}
+            onClick={() => void verifyCode(otp.join(""))}
+            className="brand-gradient min-h-[48px] w-full rounded-xl text-sm font-semibold text-white disabled:opacity-50"
+          >
+            {loading ? `${L.verify}…` : L.verify}
+          </button>
+        </div>
       ) : null}
-      {formLocalError ? <p className="text-xs text-red-300">{formLocalError}</p> : null}
+
+      {secondsLeft > 0 ? (
+        <p className="text-xs text-brand-400">{L.expiresIn.replace("{n}", String(secondsLeft))}</p>
+      ) : null}
+
       <button
         type="button"
         className="text-xs font-semibold text-brand-300 underline-offset-2 hover:text-white hover:underline"
@@ -184,10 +222,10 @@ export function TelegramLoginPanel({ labels: L, onSuccess, onError }: Props) {
           setActive(false);
           setChallenge(null);
           setStatus(null);
-          completing.current = false;
+          verifying.current = false;
         }}
       >
-        ← Back
+        ← {L.back}
       </button>
     </div>
   );

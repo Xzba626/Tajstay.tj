@@ -58,13 +58,19 @@ export default function SignInPage({ searchParams }: { searchParams?: { next?: s
     telegramRegisterHint: m(locale, "auth.telegramRegisterHint"),
     telegramOpenBot: m(locale, "auth.telegramOpenBot"),
     telegramWaitingBot: m(locale, "auth.telegramWaitingBot"),
-    telegramAwaitingConfirm: m(locale, "auth.telegramAwaitingConfirm"),
-    telegramConfirmed: m(locale, "auth.telegramConfirmed"),
+    telegramAwaitingPhone: m(locale, "auth.telegramAwaitingPhone"),
+    telegramEnterCode: m(locale, "auth.telegramEnterCode"),
+    telegramCodeSentHint: m(locale, "auth.telegramCodeSentHint"),
     telegramExpired: m(locale, "auth.telegramExpired"),
     telegramStep1: m(locale, "auth.telegramStep1"),
     telegramStep2: m(locale, "auth.telegramStep2"),
+    telegramStep3: m(locale, "auth.telegramStep3"),
+    telegramVerify: m(locale, "auth.telegramVerify"),
+    telegramTooManyAttempts: m(locale, "auth.telegramTooManyAttempts"),
+    telegramNoCodeYet: m(locale, "auth.telegramNoCodeYet"),
     telegramExpiresIn: m(locale, "auth.telegramExpiresIn"),
-    telegramConfigWarning: m(locale, "auth.telegramConfigWarning")
+    telegramConfigWarning: m(locale, "auth.telegramConfigWarning"),
+    back: m(locale, "common.back")
   };
 
   return (

@@ -520,16 +520,20 @@ model SiteContentState {
 /// Auth security / audit events (OTP, login, suspicious activity).
 /// One-time login via @TajstayBot (/start login_<token>).
 model TelegramLoginChallenge {
-  id               Int       @id @default(autoincrement())
-  token            String    @unique
-  codeHash         String
-  telegramId       String?
-  telegramUsername String?
-  telegramPhotoUrl String?
-  expiresAt        DateTime
-  confirmedAt      DateTime?
-  usedAt           DateTime?
-  createdAt        DateTime  @default(now())
+  id                 Int       @id @default(autoincrement())
+  token              String    @unique
+  codeHash           String
+  telegramId         String?
+  telegramUsername   String?
+  telegramFirstName  String?
+  telegramPhotoUrl   String?
+  phone              String?
+  attemptCount       Int       @default(0)
+  lastCodeSentAt     DateTime?
+  expiresAt          DateTime
+  verifiedAt         DateTime?
+  usedAt             DateTime?
+  createdAt          DateTime  @default(now())
 
   @@index([expiresAt])
   @@index([telegramId])

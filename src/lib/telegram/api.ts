@@ -2,6 +2,15 @@ import { getTelegramBotToken } from "@/lib/telegram/config";
 
 type TelegramApiResult<T> = { ok: true; result: T } | { ok: false; description?: string };
 
+type ReplyMarkup =
+  | {
+      keyboard: { text: string; request_contact?: boolean }[][];
+      resize_keyboard?: boolean;
+      one_time_keyboard?: boolean;
+    }
+  | { remove_keyboard: true }
+  | { inline_keyboard: { text: string; callback_data: string }[][] };
+
 async function callTelegram<T>(method: string, body: Record<string, unknown>): Promise<T> {
   const token = getTelegramBotToken();
   if (!token) throw new Error("Telegram bot is not configured");
@@ -21,15 +30,19 @@ async function callTelegram<T>(method: string, body: Record<string, unknown>): P
 export async function sendTelegramMessage(params: {
   chatId: number | string;
   text: string;
-  replyMarkup?: {
-    inline_keyboard: { text: string; callback_data: string }[][];
-  };
+  replyMarkup?: ReplyMarkup;
+  removeKeyboard?: boolean;
 }): Promise<void> {
+  let markup: ReplyMarkup | undefined = params.replyMarkup;
+  if (params.removeKeyboard) {
+    markup = { remove_keyboard: true };
+  }
+
   await callTelegram("sendMessage", {
     chat_id: params.chatId,
     text: params.text,
     parse_mode: "HTML",
-    reply_markup: params.replyMarkup
+    reply_markup: markup
   });
 }
 
@@ -47,15 +60,4 @@ export async function getTelegramUserPhotoUrl(userId: number): Promise<string | 
   } catch {
     return null;
   }
-}
-
-export async function answerTelegramCallbackQuery(params: {
-  callbackQueryId: string;
-  text?: string;
-}): Promise<void> {
-  await callTelegram("answerCallbackQuery", {
-    callback_query_id: params.callbackQueryId,
-    text: params.text,
-    show_alert: Boolean(params.text)
-  });
 }

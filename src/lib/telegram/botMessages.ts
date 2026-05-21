@@ -10,44 +10,52 @@ export function botLocaleFromTelegram(languageCode?: string | null): BotLocale {
 const MESSAGES: Record<
   BotLocale,
   {
-    welcome: (code: string) => string;
-    confirmButton: string;
+    startWelcome: string;
+    sharePhoneButton: string;
+    codeSent: (code: string) => string;
     confirmed: string;
     expired: string;
     invalid: string;
     wrongAccount: string;
-    codeHint: string;
+    cooldown: string;
+    phoneRequired: string;
   }
 > = {
   ru: {
-    welcome: (code) =>
-      `Вход в <b>TajStay</b>\n\nКод: <code>${code}</code>\n\nНажмите кнопку ниже или отправьте этот код в чат.`,
-    confirmButton: "Подтвердить вход",
+    startWelcome:
+      "Вход в <b>TajStay</b>\n\nНажмите кнопку ниже и поделитесь номером телефона. Мы отправим код <b>в этом чате</b> (не SMS).",
+    sharePhoneButton: "Отправить номер телефона",
+    codeSent: (code) => `Ваш код для входа в TajStay: <code>${code}</code>\n\nВведите его на сайте.`,
     confirmed: "Вход подтверждён. Вернитесь на сайт TajStay.",
     expired: "Ссылка для входа истекла. Запросите новую на сайте.",
     invalid: "Ссылка для входа недействительна.",
     wrongAccount: "Эта ссылка привязана к другому аккаунту Telegram.",
-    codeHint: "Отправьте 6-значный код из сообщения выше."
+    cooldown: "Подождите минуту перед повторной отправкой кода.",
+    phoneRequired: "Пожалуйста, нажмите кнопку «Отправить номер телефона»."
   },
   tg: {
-    welcome: (code) =>
-      `Вуруд ба <b>TajStay</b>\n\nРамз: <code>${code}</code>\n\nТугмаро пахш кунед ё ин рамзро дар чат фиристед.`,
-    confirmButton: "Вурудро тасдиқ кардан",
+    startWelcome:
+      "Вуруд ба <b>TajStay</b>\n\nТугмаи зеринро пахш кунед ва рақами телефонро мубодила кунед. Рамзро <b>дар ҳамин чат</b> мефиристем (на SMS).",
+    sharePhoneButton: "Фиристодани рақами телефон",
+    codeSent: (code) => `Рамзи вуруд ба TajStay: <code>${code}</code>\n\nОнро дар сомона ворид кунед.`,
     confirmed: "Вуруд тасдиқ шуд. Ба сомонаи TajStay баргардед.",
     expired: "Истиноди вуруд анҷом ёфт. Аз сомона дубора дархост кунед.",
     invalid: "Истиноди вуруд нодуруст аст.",
     wrongAccount: "Ин истинод ба ҳисоби дигари Telegram вобаста аст.",
-    codeHint: "Рамзи 6-рақамаро аз паёми боло фиристед."
+    cooldown: "Пеш аз фиристодани дубораи рамз 1 дақиқа интизор шавед.",
+    phoneRequired: "Лутфан тугмаи «Фиристодани рақами телефон»-ро пахш кунед."
   },
   en: {
-    welcome: (code) =>
-      `Sign in to <b>TajStay</b>\n\nCode: <code>${code}</code>\n\nTap the button below or send this code in chat.`,
-    confirmButton: "Confirm sign-in",
+    startWelcome:
+      "Sign in to <b>TajStay</b>\n\nTap the button below and share your phone number. We will send the code <b>in this chat</b> (not SMS).",
+    sharePhoneButton: "Share phone number",
+    codeSent: (code) => `Your TajStay sign-in code: <code>${code}</code>\n\nEnter it on the website.`,
     confirmed: "Sign-in confirmed. Return to the TajStay website.",
     expired: "This sign-in link has expired. Request a new one on the website.",
     invalid: "This sign-in link is invalid.",
     wrongAccount: "This link is linked to a different Telegram account.",
-    codeHint: "Send the 6-digit code from the message above."
+    cooldown: "Please wait 60 seconds before requesting a new code.",
+    phoneRequired: "Please tap “Share phone number”."
   }
 };
 
