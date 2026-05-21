@@ -260,7 +260,7 @@ export default async function HomePage() {
               </div>
               <div className="flex flex-col gap-3 sm:flex-row lg:justify-end">
                 <Link
-                  href="/apply/owner"
+                  href="/profile/become-owner"
                   className="inline-flex items-center justify-center rounded-2xl bg-amber-400 px-6 py-3 text-sm font-semibold text-slate-900 shadow-lg transition hover:bg-amber-300 active:scale-[0.99]"
                 >
                   {m(locale, "userMenu.becomeOwner")}

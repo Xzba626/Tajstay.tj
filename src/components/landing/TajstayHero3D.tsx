@@ -41,7 +41,7 @@ export function TajstayHero3D({ heroBadge, heroTitle, heroSubtitle, ctaSearch, c
             {ctaSearch}
           </Link>
           <Link
-            href="/apply/owner"
+            href="/profile/become-owner"
             className="inline-flex min-h-[52px] items-center justify-center rounded-2xl border border-emerald-400/40 px-6 py-3.5 text-sm font-semibold text-emerald-200 transition hover:bg-emerald-500/10"
           >
             {ctaOwners}

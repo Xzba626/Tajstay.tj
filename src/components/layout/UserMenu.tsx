@@ -280,7 +280,7 @@ export function UserMenu({ userName, role, ownerApp, labels: L, initialUnreadCou
 
           {role === "GUEST" && ownerApp.kind === "none" && (
             <Link
-              href="/apply/owner"
+              href="/profile/become-owner"
               className="mx-1 rounded-xl px-3 py-2.5 font-medium text-green-800 transition-colors hover:bg-green-50"
               onClick={() => setOpen(false)}
             >
@@ -299,7 +299,7 @@ export function UserMenu({ userName, role, ownerApp, labels: L, initialUnreadCou
                 {L.ownerRejected}
                 {ownerApp.comment ? `: ${ownerApp.comment}` : ""}
               </div>
-              <Link href="/apply/owner" className="mx-1 rounded-xl px-3 py-2.5 text-green-800 hover:bg-green-50" onClick={() => setOpen(false)}>
+              <Link href="/profile/become-owner" className="mx-1 rounded-xl px-3 py-2.5 text-green-800 hover:bg-green-50" onClick={() => setOpen(false)}>
                 {L.applyAgain}
               </Link>
             </>

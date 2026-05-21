@@ -35,6 +35,8 @@
     "bcryptjs": "^2.4.3",
     "classnames": "^2.5.1",
     "date-fns": "^2.30.0",
+    "firebase": "^12.13.0",
+    "firebase-admin": "^13.10.0",
     "framer-motion": "^11.11.17",
     "gsap": "^3.13.0",
     "leaflet": "^1.9.4",

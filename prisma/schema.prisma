@@ -17,6 +17,10 @@ model User {
   emailVerified DateTime?
   image     String?
   password  String
+  /// Firebase Auth UID after phone sign-in (production SMS OTP).
+  firebaseUid   String?  @unique
+  /// True when phone was verified via Firebase Phone Auth (or legacy OTP).
+  phoneVerified Boolean  @default(false)
   role      String   @default("GUEST")
   verified  Boolean  @default(false)
   isBanned  Boolean   @default(false)

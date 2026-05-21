@@ -41,7 +41,7 @@ export function HomeHeroLuxury({
               {ctaSearch}
             </Link>
             <Link
-              href="/apply/owner"
+              href="/profile/become-owner"
               className="inline-flex min-h-[52px] items-center justify-center rounded-2xl border border-[rgba(34,197,94,0.38)] bg-transparent px-6 py-3.5 text-sm font-semibold text-[var(--brand-green)] transition hover:bg-[rgba(34,197,94,0.08)] active:scale-[0.98]"
             >
               {ctaOwners}

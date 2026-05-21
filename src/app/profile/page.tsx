@@ -82,7 +82,7 @@ export default async function ProfilePage() {
             <p className="mt-1 text-red-300">
               {m(locale, "profile.ownerRejected")}
               {latestApp.comment ? `: ${latestApp.comment}` : ""}.{" "}
-              <Link href="/apply/owner" className="font-medium underline">
+              <Link href="/profile/become-owner" className="font-medium underline">
                 {m(locale, "profile.applyAgain")}
               </Link>
             </p>
@@ -94,10 +94,7 @@ export default async function ProfilePage() {
       )}
 
       {full?.role === "GUEST" && (ownerNav.kind === "none" || ownerNav.kind === "rejected") && (
-        <Link
-          href="/apply/owner"
-          className="ds-primary-btn inline-flex items-center text-sm"
-        >
+        <Link href="/profile/become-owner" className="ds-primary-btn inline-flex items-center text-sm">
           {m(locale, "profile.becomeOwner")}
         </Link>
       )}

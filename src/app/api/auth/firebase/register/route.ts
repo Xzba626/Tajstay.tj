@@ -1,70 +1,58 @@
 import { NextResponse } from "next/server";
+
+export const dynamic = "force-dynamic";
 import { z } from "zod";
-import { hashPassword } from "@/lib/auth/password";
-import { verifyPhoneOtp } from "@/lib/auth/otp";
-import { createUserFromFirebasePhone, verifyFirebaseIdToken } from "@/lib/auth/firebasePhone";
-import { prisma } from "@/lib/prisma";
 import { createSessionCookie } from "@/lib/auth/session";
+import { createUserFromFirebasePhone, findUserByFirebaseOrPhone, verifyFirebaseIdToken } from "@/lib/auth/firebasePhone";
 import { isFirebasePhoneAuthConfigured } from "@/lib/firebase/config";
 import { clientIp, rateLimit } from "@/lib/security/rateLimit";
 import { normalizePhone } from "@/lib/validation/phone";
+import { verifyPhoneOtp } from "@/lib/auth/otp";
+import crypto from "crypto";
+import { hashPassword } from "@/lib/auth/password";
+import { prisma } from "@/lib/prisma";
 
 const schema = z
   .object({
     name: z.string().min(2),
     phone: z.string().min(6),
     email: z.string().email().optional(),
-    password: z.string().min(6),
-    otp: z.string().regex(/^\d{6}$/).optional(),
     firebaseIdToken: z.string().min(20).optional(),
-    role: z.enum(["GUEST"]).optional()
+    otp: z.string().regex(/^\d{6}$/).optional()
   })
-  .refine((v) => Boolean(v.otp) || Boolean(v.firebaseIdToken), {
-    message: "otp or firebaseIdToken required"
+  .refine((v) => Boolean(v.firebaseIdToken) || Boolean(v.otp), {
+    message: "firebaseIdToken or otp required"
   });
 
+/** POST /api/auth/firebase/register — регистрация по телефону (Firebase SMS или dev OTP). */
 export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
 
-  const { name, phone, email, password } = parsed.data;
-  const rawPhone = phone.trim();
-  const ip = clientIp(req);
-  const normalizedPhone = normalizePhone(phone);
-  const normalizedEmail = email?.trim().toLowerCase() || null;
-  const normalizedName = name.trim();
+  const normalizedPhone = normalizePhone(parsed.data.phone);
+  const normalizedName = parsed.data.name.trim();
+  const normalizedEmail = parsed.data.email?.trim().toLowerCase() || null;
 
   if (!normalizedPhone || normalizedName.length < 2) {
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
   }
 
-  const ipRl = rateLimit(`post:register:ip:${ip}`, 15, 60_000);
+  const ip = clientIp(req);
+  const ipRl = rateLimit(`post:firebase-register:ip:${ip}`, 15, 60_000);
   if (!ipRl.ok) {
     const res = NextResponse.json({ error: "Too many attempts. Try later." }, { status: 429 });
     if (ipRl.retryAfterSec) res.headers.set("Retry-After", String(ipRl.retryAfterSec));
     return res;
   }
-  const phoneRl = rateLimit(`post:register:phone:${normalizedPhone}`, 5, 10 * 60_000);
-  if (!phoneRl.ok) {
-    const res = NextResponse.json({ error: "Too many attempts. Try later." }, { status: 429 });
-    if (phoneRl.retryAfterSec) res.headers.set("Retry-After", String(phoneRl.retryAfterSec));
-    return res;
-  }
 
-  const existingByPhone = await prisma.user.findFirst({
-    where: {
-      OR: [{ phone: normalizedPhone }, { phone: rawPhone }]
-    }
-  });
-  if (existingByPhone) return NextResponse.json({ error: "Phone already in use" }, { status: 409 });
+  const existing = await prisma.user.findUnique({ where: { phone: normalizedPhone } });
+  if (existing) return NextResponse.json({ error: "Phone already in use" }, { status: 409 });
 
   if (normalizedEmail) {
     const existingByEmail = await prisma.user.findUnique({ where: { email: normalizedEmail } });
     if (existingByEmail) return NextResponse.json({ error: "Email already in use" }, { status: 409 });
   }
-
-  const role = "GUEST" as const;
 
   let user;
 
@@ -77,26 +65,15 @@ export async function POST(req: Request) {
       if (tokenPhone !== normalizedPhone) {
         return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
       }
-      const existing = await prisma.user.findFirst({
-        where: { OR: [{ phone: normalizedPhone }, { phone: rawPhone }, { firebaseUid }] }
-      });
-      if (existing) return NextResponse.json({ error: "Phone already in use" }, { status: 409 });
-      if (normalizedEmail) {
-        const existingByEmail = await prisma.user.findUnique({ where: { email: normalizedEmail } });
-        if (existingByEmail) return NextResponse.json({ error: "Email already in use" }, { status: 409 });
-      }
+      const clash = await findUserByFirebaseOrPhone(firebaseUid, normalizedPhone);
+      if (clash) return NextResponse.json({ error: "Phone already in use" }, { status: 409 });
+
       user = await createUserFromFirebasePhone({
         firebaseUid,
         phone: normalizedPhone,
         name: normalizedName,
         email: normalizedEmail
       });
-      if (password) {
-        user = await prisma.user.update({
-          where: { id: user.id },
-          data: { password: await hashPassword(password) }
-        });
-      }
     } catch {
       return NextResponse.json({ error: "Invalid OTP" }, { status: 401 });
     }
@@ -104,15 +81,13 @@ export async function POST(req: Request) {
     const otpOk = await verifyPhoneOtp(normalizedPhone, parsed.data.otp!);
     if (!otpOk) return NextResponse.json({ error: "Invalid OTP" }, { status: 401 });
 
-    const passwordHash = await hashPassword(password);
-
     user = await prisma.user.create({
       data: {
         name: normalizedName,
         phone: normalizedPhone,
         email: normalizedEmail,
-        password: passwordHash,
-        role,
+        password: await hashPassword(`otp-${crypto.randomBytes(8).toString("hex")}`),
+        role: "GUEST",
         phoneVerified: true,
         verified: true
       }
@@ -123,4 +98,3 @@ export async function POST(req: Request) {
   await createSessionCookie(user.id, res);
   return res;
 }
-

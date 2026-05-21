@@ -1,4 +1,5 @@
 import { isGoogleOAuthConfigured } from "@/lib/auth/googleOAuthEnv";
+import { isFirebasePhoneAuthConfigured } from "@/lib/firebase/config";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
 import { SignInClient } from "./SignInClient";
@@ -16,22 +17,21 @@ export default function SignInPage({ searchParams }: { searchParams?: { next?: s
     leftBenefit3: m(locale, "auth.leftBenefit3"),
     tabsSignIn: m(locale, "auth.tabsSignIn"),
     tabsRegister: m(locale, "auth.tabsRegister"),
-    emailFormTitle: m(locale, "auth.emailFormTitle"),
+    methodPhone: m(locale, "auth.methodPhone"),
+    methodEmail: m(locale, "auth.methodEmail"),
+    signInSubtitle: m(locale, "auth.signInSubtitle"),
+    registerSubtitle: m(locale, "auth.registerSubtitle"),
     loginLabel: m(locale, "auth.loginLabel"),
     emailPlaceholder: m(locale, "auth.emailPlaceholder"),
     password: m(locale, "auth.password"),
-    passwordHint: m(locale, "auth.passwordHint"),
     passwordPlaceholder: m(locale, "auth.passwordPlaceholder"),
     showPassword: m(locale, "auth.showPassword"),
     hidePassword: m(locale, "auth.hidePassword"),
     signIn: m(locale, "auth.signIn"),
-    signInHint: m(locale, "auth.signInHint"),
     registerTitle: m(locale, "auth.registerTitle"),
-    firstName: m(locale, "auth.firstName"),
-    lastName: m(locale, "auth.lastName"),
+    fullName: m(locale, "auth.fullName"),
     phone: m(locale, "auth.phone"),
     email: m(locale, "auth.email"),
-    emailOptional: m(locale, "auth.emailOptional"),
     createAccount: m(locale, "auth.createAccount"),
     confirmPassword: m(locale, "auth.confirmPassword"),
     confirmPasswordPlaceholder: m(locale, "auth.confirmPasswordPlaceholder"),
@@ -44,31 +44,24 @@ export default function SignInPage({ searchParams }: { searchParams?: { next?: s
     promo2: m(locale, "auth.promo2"),
     promo3: m(locale, "auth.promo3"),
     resetLinkInPassword: m(locale, "auth.resetLinkInPassword"),
-    ownerTabCta: m(locale, "auth.ownerTabCta"),
-    ownerRegisterHint: m(locale, "auth.ownerRegisterHint"),
     googleSignIn: m(locale, "auth.googleSignIn"),
     googleSignInError: m(locale, "auth.googleSignInError"),
     forgotPassword: m(locale, "auth.forgotPassword"),
-    becomeOwner: m(locale, "auth.becomeOwner"),
-    createOwnerAccount: m(locale, "auth.createOwnerAccount"),
     errInvalidCredentials: m(locale, "auth.errInvalidCredentials"),
     errTooManyAttempts: m(locale, "auth.errTooManyAttempts"),
     errPhoneInUse: m(locale, "auth.errPhoneInUse"),
     errEmailInUse: m(locale, "auth.errEmailInUse"),
     errInvalidPayload: m(locale, "auth.errInvalidPayload"),
     errInvalidOtp: m(locale, "auth.errInvalidOtp"),
-    stepWhoTitle: m(locale, "auth.stepWhoTitle"),
-    stepPhoneTitle: m(locale, "auth.stepPhoneTitle"),
+    accountNotFound: m(locale, "auth.accountNotFound"),
     stepCodeTitle: m(locale, "auth.stepCodeTitle"),
-    roleGuest: m(locale, "auth.roleGuest"),
-    roleOwner: m(locale, "auth.roleOwner"),
     getCode: m(locale, "auth.getCode"),
     enterCode: m(locale, "auth.enterCode"),
     retryIn: m(locale, "auth.retryIn"),
     retryNow: m(locale, "auth.retryNow"),
-    yourName: m(locale, "auth.yourName"),
     createPassword: m(locale, "auth.createPassword"),
-    continueBtn: m(locale, "auth.continueBtn"),
+    otpVerified: m(locale, "auth.otpVerified"),
+    orContinueWith: m(locale, "auth.orContinueWith"),
     back: m(locale, "common.back")
   };
 
@@ -78,6 +71,7 @@ export default function SignInPage({ searchParams }: { searchParams?: { next?: s
       labels={labels}
       nextPath={searchParams?.next ?? null}
       googleOAuthEnabled={isGoogleOAuthConfigured()}
+      firebasePhoneAuthEnabled={isFirebasePhoneAuthConfigured()}
     />
   );
 }

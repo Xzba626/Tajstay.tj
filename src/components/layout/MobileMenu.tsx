@@ -207,11 +207,11 @@ export function MobileMenu({ user, ownerApp, locale, labels: L, unreadCount = 0 
       });
 
       if (role === "GUEST") {
-        if (ownerApp.kind === "none") list.push({ kind: "link", href: "/apply/owner", label: L.becomeOwner });
+        if (ownerApp.kind === "none") list.push({ kind: "link", href: "/profile/become-owner", label: L.becomeOwner });
         if (ownerApp.kind === "pending") list.push({ kind: "text", label: L.ownerPending });
         if (ownerApp.kind === "rejected") {
           list.push({ kind: "text", label: L.ownerRejected });
-          list.push({ kind: "link", href: "/apply/owner", label: L.applyAgain });
+          list.push({ kind: "link", href: "/profile/become-owner", label: L.applyAgain });
         }
       }
       if (role === "OWNER") list.push({ kind: "link", href: "/dashboard/owner", label: L.ownerPanel });
