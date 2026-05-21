@@ -1,18 +1,31 @@
 "use client";
 
-import { useCallback, useId, useRef } from "react";
+import { useCallback, useId, useRef, useEffect } from "react";
+import { cn } from "@/lib/cn";
 
 type Props = {
   value: string[];
   onChange: (next: string[]) => void;
   onComplete?: (code: string) => void;
   disabled?: boolean;
+  loading?: boolean;
   error?: boolean;
   success?: boolean;
+  shake?: boolean;
   autoFocus?: boolean;
 };
 
-export function OtpCodeInput({ value, onChange, onComplete, disabled, error, success, autoFocus }: Props) {
+export function OtpCodeInput({
+  value,
+  onChange,
+  onComplete,
+  disabled,
+  loading,
+  error,
+  success,
+  shake,
+  autoFocus
+}: Props) {
   const uid = useId();
   const refs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -35,20 +48,24 @@ export function OtpCodeInput({ value, onChange, onComplete, disabled, error, suc
     const next = ["", "", "", "", "", ""];
     for (let i = 0; i < digits.length; i++) next[i] = digits[i]!;
     onChange(next);
-    const focusIdx = Math.min(digits.length, 5);
-    refs.current[focusIdx]?.focus();
+    refs.current[Math.min(digits.length, 5)]?.focus();
     if (digits.length === 6) onComplete?.(digits);
   };
 
+  useEffect(() => {
+    if (autoFocus) refs.current[0]?.focus();
+  }, [autoFocus]);
+
   const boxClass = (filled: boolean) => {
-    if (success) return "border-[var(--brand-green)] bg-[rgba(34,197,94,0.15)] text-[var(--brand-green-light)]";
-    if (error) return "border-red-400/60 bg-red-500/10 text-red-200";
+    if (loading) return "border-white/10 bg-white/5 text-transparent animate-pulse";
+    if (success) return "border-[var(--brand-green)] bg-[rgba(34,197,94,0.18)] text-[var(--brand-green-light)] otp-success-pop";
+    if (error) return "border-red-400/70 bg-red-500/10 text-red-200";
     if (filled) return "border-[var(--brand-green)] bg-[rgba(34,197,94,0.1)] text-[var(--brand-green-light)]";
     return "border-white/15 bg-white/5 text-white";
   };
 
   return (
-    <div className="flex justify-center gap-2" onPaste={handlePaste}>
+    <div className={cn("flex justify-center gap-1.5 sm:gap-2", shake && "otp-shake")} onPaste={handlePaste}>
       {value.map((d, idx) => (
         <input
           key={idx}
@@ -56,19 +73,25 @@ export function OtpCodeInput({ value, onChange, onComplete, disabled, error, suc
             refs.current[idx] = el;
           }}
           id={`${uid}-otp-${idx}`}
-          value={d}
+          value={loading ? "" : d}
           type="text"
           inputMode="numeric"
+          pattern="[0-9]*"
           autoComplete={idx === 0 ? "one-time-code" : "off"}
+          enterKeyHint="done"
           maxLength={1}
-          disabled={disabled}
-          autoFocus={autoFocus && idx === 0}
+          disabled={disabled || loading}
           aria-label={`Digit ${idx + 1}`}
           onChange={(e) => setDigit(idx, e.target.value.replace(/\D/g, "").slice(-1))}
           onKeyDown={(e) => {
             if (e.key === "Backspace" && !value[idx] && idx > 0) refs.current[idx - 1]?.focus();
           }}
-          className={`h-[52px] w-[44px] rounded-[10px] border text-center text-xl font-bold outline-none transition sm:w-[52px] ${boxClass(!!d)} disabled:opacity-50`}
+          className={cn(
+            "h-[48px] w-[40px] rounded-[10px] border text-center text-xl font-bold outline-none transition-all duration-200 sm:h-[52px] sm:w-[48px]",
+            boxClass(!!d),
+            "focus:border-[var(--brand-green)] focus:ring-2 focus:ring-[var(--brand-green)]/25",
+            "disabled:opacity-50"
+          )}
         />
       ))}
     </div>

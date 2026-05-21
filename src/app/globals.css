@@ -829,6 +829,45 @@ h1, h2 {
   100% { transform: scale(1); opacity: 1; }
 }
 
+@keyframes otp-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+@keyframes otp-success-pop {
+  0% { transform: scale(0.92); }
+  50% { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+
+.otp-shake {
+  animation: otp-shake 0.45s ease-in-out;
+}
+
+.otp-success-pop {
+  animation: otp-success-pop 0.35s ease-out;
+}
+
+.auth-form-panel {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+@media (max-width: 640px) {
+  .auth-sticky-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
+    margin-left: -0.25rem;
+    margin-right: -0.25rem;
+    padding: 0.75rem 0.25rem max(0.75rem, env(safe-area-inset-bottom));
+    background: linear-gradient(to top, rgba(15, 23, 42, 0.98) 70%, transparent);
+    backdrop-filter: blur(8px);
+  }
+}
+
 /* ---- Premium card upgrade ---- */
 .hotel-card-premium {
   position: relative;

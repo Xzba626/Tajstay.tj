@@ -29,6 +29,8 @@ import { OwnerHelpTips } from "@/components/owner/OwnerHelpTips";
 import ReviewReplyForm from "@/components/ReviewReplyForm";
 import { getOwnerDashboardKpis } from "@/lib/services/ownerDashboardKpis";
 import { getOwnerCalendarData } from "@/lib/services/ownerCalendar";
+import { getOwnerOnboardingSteps } from "@/lib/services/ownerOnboarding";
+import { OwnerOnboardingPanel } from "@/components/owner/OwnerOnboardingPanel";
 import { BOOKING_SOURCE, getBookingGuestLabel } from "@/lib/domain/booking";
 import { AppImage } from "@/components/ui/AppImage";
 
@@ -111,6 +113,7 @@ export default async function OwnerDashboardPage({
         roomId?: string;
         checkIn?: string;
         checkOut?: string;
+        onboarding?: string;
       }>
     | {
         section?: string;
@@ -126,11 +129,14 @@ export default async function OwnerDashboardPage({
         roomId?: string;
         checkIn?: string;
         checkOut?: string;
+        onboarding?: string;
       };
 }) {
   const user = await requireOwner();
   const locale = getLocale();
   const params = searchParams ? await searchParams : undefined;
+  const onboardingSteps = await getOwnerOnboardingSteps(user.id);
+  const showOnboardingWelcome = (params?.onboarding ?? "") === "1";
   const raw = params?.section;
   const activeSection: OwnerSection =
     raw && VALID_OWNER_SECTIONS.has(raw as OwnerSection) ? (raw as OwnerSection) : "overview";
@@ -495,6 +501,7 @@ export default async function OwnerDashboardPage({
 
       {activeSection === "overview" && (
         <>
+          <OwnerOnboardingPanel locale={locale} initialSteps={onboardingSteps} showWelcome={showOnboardingWelcome} />
           {!hasHotels && (
             <div className="scroll-mt-28">
               <OwnerEmptyState />

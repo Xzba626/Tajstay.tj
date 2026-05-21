@@ -14,7 +14,7 @@ import {
   sendFirebasePhoneOtp
 } from "@/lib/firebase/client";
 import { AuthMethodTabs } from "@/components/auth/AuthMethodTabs";
-import { OtpCodeInput } from "@/components/auth/OtpCodeInput";
+import { OtpVerificationPanel } from "@/components/auth/OtpVerificationPanel";
 import { TajikPhoneInput } from "@/components/auth/TajikPhoneInput";
 
 type ApiUser = { id: number; role: string; name: string; phone: string; email?: string | null };
@@ -67,6 +67,7 @@ export type SignInLabels = {
   errInvalidOtp: string;
   accountNotFound: string;
   stepCodeTitle: string;
+  sentToLabel: string;
   getCode: string;
   enterCode: string;
   retryIn: string;
@@ -168,6 +169,7 @@ export function SignInClient({
 
   const [isLoginSubmitting, setIsLoginSubmitting] = useState(false);
   const [isRegisterSubmitting, setIsRegisterSubmitting] = useState(false);
+  const [otpShake, setOtpShake] = useState(false);
 
   const loginPhoneE164 = useMemo(() => formatTajikPhoneInput(loginPhone), [loginPhone]);
   const regPhoneE164 = useMemo(() => formatTajikPhoneInput(regPhone), [regPhone]);
@@ -336,7 +338,9 @@ export function SignInClient({
       }
       await refreshMe();
     } catch (err: unknown) {
+      setOtpShake(true);
       setFormError(mapApiErrorMessage(err instanceof Error ? err.message : ""));
+      window.setTimeout(() => setOtpShake(false), 500);
     } finally {
       setIsLoginSubmitting(false);
     }
@@ -386,7 +390,9 @@ export function SignInClient({
       });
       await refreshMe();
     } catch (err: unknown) {
+      setOtpShake(true);
       setFormError(mapApiErrorMessage(err instanceof Error ? err.message : ""));
+      window.setTimeout(() => setOtpShake(false), 500);
     } finally {
       setIsRegisterSubmitting(false);
     }
@@ -421,27 +427,6 @@ export function SignInClient({
     } finally {
       setIsRegisterSubmitting(false);
     }
-  }
-
-  function OtpResendRow({ onResend, phoneE164 }: { onResend: () => void; phoneE164: string }) {
-    return (
-      <div className="text-center text-xs text-brand-200">
-        {otpRetryIn > 0 ? (
-          `${L.retryIn} ${otpRetryIn}с`
-        ) : (
-          <button
-            type="button"
-            disabled={otpSending}
-            className="font-semibold text-[var(--brand-green)] disabled:opacity-60"
-            onClick={() => {
-              void requestOtp(phoneE164).then((ok) => ok && onResend());
-            }}
-          >
-            {otpSending ? "…" : L.retryNow}
-          </button>
-        )}
-      </div>
-    );
   }
 
   function GoogleButton() {
@@ -497,7 +482,7 @@ export function SignInClient({
           </ul>
         </section>
 
-        <section className="surface-1 rounded-3xl p-4 sm:rounded-[28px] sm:p-8" data-reveal data-stagger="80">
+        <section className="auth-form-panel surface-1 rounded-3xl p-4 sm:rounded-[28px] sm:p-8" data-reveal data-stagger="80">
           <div>
             <div className="text-sm font-semibold text-white">{L.heading}</div>
             <div className="mt-1 text-xs text-brand-200">{subtitle}</div>
@@ -566,26 +551,31 @@ export function SignInClient({
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <p className="text-center text-sm text-brand-200">{L.stepCodeTitle}</p>
-                    <OtpCodeInput
+                    <OtpVerificationPanel
+                      phoneE164={loginPhoneE164}
+                      title={L.stepCodeTitle}
+                      sentToLabel={L.sentToLabel}
+                      retryIn={otpRetryIn}
+                      retryNowLabel={L.retryNow}
+                      retryInLabel={L.retryIn}
+                      devHint={!useFirebaseSms ? devOtpHint : null}
                       value={signInOtp}
                       onChange={setSignInOtp}
-                      disabled={isLoginSubmitting || otpVerifying}
-                      success={!!signInFirebaseToken}
-                      error={!!formError && formError !== L.otpVerified}
-                      autoFocus
                       onComplete={() => void handleSignInPhoneSubmit()}
+                      onResend={() => {
+                        setSignInOtp([...EMPTY_OTP]);
+                        void handleSignInPhoneSendCode();
+                      }}
+                      verifying={otpVerifying || isLoginSubmitting}
+                      sending={otpSending}
+                      error={!!formError}
+                      success={!!signInFirebaseToken}
+                      shake={otpShake}
                     />
-                    <OtpResendRow phoneE164={loginPhoneE164} onResend={() => setSignInOtp([...EMPTY_OTP])} />
-                    {devOtpHint && !useFirebaseSms ? (
-                      <div className="rounded-xl border border-brand-600 bg-brand-800/80 px-3 py-2 text-center text-xs text-brand-200">
-                        Dev: <span className="font-mono text-white">{devOtpHint}</span>
-                      </div>
-                    ) : null}
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="auth-sticky-actions grid grid-cols-2 gap-2">
                       <button
                         type="button"
-                        className="rounded-xl border border-white/10 bg-white/5 py-2 text-sm text-white"
+                        className="min-h-[48px] rounded-xl border border-white/10 bg-white/5 py-2 text-sm text-white"
                         onClick={() => {
                           setSignInPhoneStep("input");
                           resetPhoneAuthState();
@@ -598,7 +588,7 @@ export function SignInClient({
                         type="button"
                         disabled={isLoginSubmitting || !signInOtpComplete || otpVerifying}
                         onClick={() => void handleSignInPhoneSubmit()}
-                        className="brand-gradient h-11 rounded-xl text-sm font-semibold text-white disabled:opacity-50"
+                        className="brand-gradient min-h-[48px] rounded-xl text-sm font-semibold text-white disabled:opacity-50"
                       >
                         {isLoginSubmitting ? `${L.signIn}…` : L.signIn}
                       </button>
@@ -696,24 +686,31 @@ export function SignInClient({
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <p className="text-center text-sm text-brand-200">{L.enterCode}</p>
-                    <OtpCodeInput
+                    <OtpVerificationPanel
+                      phoneE164={regPhoneE164}
+                      title={L.enterCode}
+                      sentToLabel={L.sentToLabel}
+                      retryIn={otpRetryIn}
+                      retryNowLabel={L.retryNow}
+                      retryInLabel={L.retryIn}
+                      devHint={!useFirebaseSms ? devOtpHint : null}
                       value={regOtp}
                       onChange={setRegOtp}
-                      disabled={isRegisterSubmitting || otpVerifying}
+                      onComplete={() => void handleRegisterPhoneSubmit()}
+                      onResend={() => {
+                        setRegOtp([...EMPTY_OTP]);
+                        void handleRegisterPhoneSendCode();
+                      }}
+                      verifying={otpVerifying || isRegisterSubmitting}
+                      sending={otpSending}
+                      error={!!formError}
                       success={!!regFirebaseToken}
-                      autoFocus
+                      shake={otpShake}
                     />
-                    <OtpResendRow phoneE164={regPhoneE164} onResend={() => setRegOtp([...EMPTY_OTP])} />
-                    {devOtpHint && !useFirebaseSms ? (
-                      <div className="rounded-xl border border-brand-600 bg-brand-800/80 px-3 py-2 text-center text-xs text-brand-200">
-                        Dev: <span className="font-mono text-white">{devOtpHint}</span>
-                      </div>
-                    ) : null}
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="auth-sticky-actions grid grid-cols-2 gap-2">
                       <button
                         type="button"
-                        className="rounded-xl border border-white/10 bg-white/5 py-2 text-sm text-white"
+                        className="min-h-[48px] rounded-xl border border-white/10 bg-white/5 py-2 text-sm text-white"
                         onClick={() => {
                           setRegisterPhoneStep("input");
                           resetPhoneAuthState();
@@ -726,7 +723,7 @@ export function SignInClient({
                         type="button"
                         disabled={isRegisterSubmitting || !regOtpComplete || otpVerifying || (useFirebaseSms && !regFirebaseToken)}
                         onClick={() => void handleRegisterPhoneSubmit()}
-                        className="brand-gradient h-11 rounded-xl text-sm font-semibold text-white disabled:opacity-50"
+                        className="brand-gradient min-h-[48px] rounded-xl text-sm font-semibold text-white disabled:opacity-50"
                       >
                         {isRegisterSubmitting ? `${L.createAccount}…` : L.createAccount}
                       </button>

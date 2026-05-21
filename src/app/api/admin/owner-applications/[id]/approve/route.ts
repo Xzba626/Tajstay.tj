@@ -4,8 +4,16 @@ import { getAdminUser } from "@/lib/auth/requireAdmin";
 import { forbiddenJson } from "@/lib/auth/apiResponses";
 import { OWNER_APPLICATION_STATUS } from "@/lib/domain/booking";
 import { publicUrl } from "@/lib/http/publicOrigin";
+import { createNotification } from "@/lib/notifications/create";
+import { getLocale } from "@/lib/i18n/get-locale";
+import { m } from "@/lib/i18n/messages";
 
-export async function POST(_req: NextRequest, { params }: { params: { id: string } }) {
+function wantsJson(req: NextRequest): boolean {
+  const accept = req.headers.get("accept") ?? "";
+  return accept.includes("application/json") || req.headers.get("x-requested-with") === "XMLHttpRequest";
+}
+
+export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const admin = await getAdminUser();
   if (!admin) return forbiddenJson();
 
@@ -34,14 +42,17 @@ export async function POST(_req: NextRequest, { params }: { params: { id: string
     })
   ]);
 
-  await prisma.notification.create({
-    data: {
-      userId: application.userId,
-      bookingId: null,
-      type: "OWNER_APPLICATION_APPROVED",
-      isRead: false
-    }
+  const locale = getLocale();
+  await createNotification({
+    userId: application.userId,
+    type: "OWNER_APPLICATION_APPROVED",
+    title: m(locale, "notifications.OWNER_APPLICATION_APPROVED"),
+    message: m(locale, "notifications.ownerApprovedBody"),
+    link: "/dashboard/owner?onboarding=1"
   });
 
-  return NextResponse.redirect(publicUrl(_req, "/dashboard/admin"));
+  if (wantsJson(req)) {
+    return NextResponse.json({ ok: true, role: "OWNER", redirect: "/dashboard/owner?onboarding=1" });
+  }
+  return NextResponse.redirect(publicUrl(req, "/dashboard/admin?section=applications"));
 }

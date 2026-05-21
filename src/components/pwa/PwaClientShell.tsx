@@ -4,6 +4,7 @@ import { NotificationPollerProvider } from "@/components/pwa/NotificationPollerP
 import { PwaInstallPrompt, type PwaInstallLabels } from "@/components/pwa/PwaInstallPrompt";
 import { PwaProvider } from "@/components/pwa/PwaProvider";
 import { PwaPushPrompt, type PwaPushLabels } from "@/components/pwa/PwaPushPrompt";
+import { AuthStateSync } from "@/components/auth/AuthStateSync";
 
 export function PwaClientShell({
   isAuthed,
@@ -22,7 +23,10 @@ export function PwaClientShell({
     <>
       <PwaProvider />
       {isAuthed ? (
-        <NotificationPollerProvider enabled initialUnreadCount={initialUnreadCount} toastLabel={toastLabel} />
+        <>
+          <AuthStateSync />
+          <NotificationPollerProvider enabled initialUnreadCount={initialUnreadCount} toastLabel={toastLabel} />
+        </>
       ) : null}
       <PwaInstallPrompt labels={installLabels} />
       {isAuthed ? <PwaPushPrompt labels={pushLabels} enabled /> : null}

@@ -55,6 +55,7 @@ export default function SignInPage({ searchParams }: { searchParams?: { next?: s
     errInvalidOtp: m(locale, "auth.errInvalidOtp"),
     accountNotFound: m(locale, "auth.accountNotFound"),
     stepCodeTitle: m(locale, "auth.stepCodeTitle"),
+    sentToLabel: m(locale, "auth.sentToLabel"),
     getCode: m(locale, "auth.getCode"),
     enterCode: m(locale, "auth.enterCode"),
     retryIn: m(locale, "auth.retryIn"),

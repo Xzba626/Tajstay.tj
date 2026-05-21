@@ -6,6 +6,7 @@ import { createSessionCookie } from "@/lib/auth/session";
 import { loginUserFromFirebasePhone, verifyFirebaseIdToken } from "@/lib/auth/firebasePhone";
 import { isFirebasePhoneAuthConfigured } from "@/lib/firebase/config";
 import { clientIp, rateLimit } from "@/lib/security/rateLimit";
+import { logAuthEvent } from "@/lib/auth/auditLog";
 
 const schema = z.object({
   idToken: z.string().min(20)
@@ -32,6 +33,13 @@ export async function POST(req: Request) {
   try {
     const { firebaseUid, phone } = await verifyFirebaseIdToken(parsed.data.idToken);
     const user = await loginUserFromFirebasePhone({ firebaseUid, phone });
+    await logAuthEvent({
+      event: "login_firebase",
+      userId: user.id,
+      ip,
+      userAgent: req.headers.get("user-agent") ?? undefined,
+      meta: { phone }
+    });
     const res = NextResponse.json({ ok: true });
     await createSessionCookie(user.id, res);
     return res;

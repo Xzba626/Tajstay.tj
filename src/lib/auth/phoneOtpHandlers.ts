@@ -7,6 +7,7 @@ import { hashPassword } from "@/lib/auth/password";
 import { createPhoneOtp, verifyPhoneOtp } from "@/lib/auth/otp";
 import { clientIp, rateLimit } from "@/lib/security/rateLimit";
 import { normalizePhone } from "@/lib/validation/phone";
+import { logAuthEvent } from "@/lib/auth/auditLog";
 
 const requestSchema = z.object({
   phone: z.string().min(6)
@@ -46,6 +47,13 @@ export async function handlePhoneOtpRequest(req: Request) {
     if (pairRl.retryAfterSec) res.headers.set("Retry-After", String(ipRl.retryAfterSec));
     return res;
   }
+
+  await logAuthEvent({
+    event: "otp_request",
+    ip,
+    userAgent: req.headers.get("user-agent") ?? undefined,
+    meta: { phone: normalizedPhone }
+  });
 
   let otp: string | undefined;
   try {
@@ -99,7 +107,15 @@ export async function handlePhoneOtpVerify(req: Request) {
   }
 
   const ok = await verifyPhoneOtp(normalizedPhone, normalizedCode);
-  if (!ok) return NextResponse.json({ error: "Invalid OTP" }, { status: 401 });
+  if (!ok) {
+    await logAuthEvent({
+      event: "otp_verify_fail",
+      ip,
+      userAgent: req.headers.get("user-agent") ?? undefined,
+      meta: { phone: normalizedPhone }
+    });
+    return NextResponse.json({ error: "Invalid OTP" }, { status: 401 });
+  }
 
   const rawPhone = parsed.data.phone.trim();
   const existing =
@@ -126,6 +142,14 @@ export async function handlePhoneOtpVerify(req: Request) {
       }
     });
   }
+
+  await logAuthEvent({
+    event: existing ? "login_phone" : "register_phone",
+    userId: user.id,
+    ip,
+    userAgent: req.headers.get("user-agent") ?? undefined,
+    meta: { phone: normalizedPhone }
+  });
 
   const res = NextResponse.json({ ok: true });
   await createSessionCookie(user.id, res);

@@ -513,6 +513,21 @@ model SiteContentState {
   updatedAt DateTime @updatedAt
 }
 
+/// Auth security / audit events (OTP, login, suspicious activity).
+model AuthAuditLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int?
+  event     String
+  ip        String?
+  userAgent String?
+  meta      String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([event])
+  @@index([createdAt])
+}
+
 /// Per-owner payment requisites shown to guests during checkout / booking room.
 model OwnerPaymentMethod {
   ownerId   Int      @id

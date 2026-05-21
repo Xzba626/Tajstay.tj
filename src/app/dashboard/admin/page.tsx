@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { AdminBookingPayCountdown } from "@/components/admin/AdminBookingPayCountdown";
+import { AdminOwnerApplicationActions } from "@/components/admin/AdminOwnerApplicationActions";
 import { OWNER_APPLICATION_STATUS } from "@/lib/domain/booking";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
@@ -657,24 +658,19 @@ export default async function AdminDashboardPage({
                     </a>
                   </div>
                 )}
-                <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-4">
-                  <form action={`/api/admin/owner-applications/${app.id}/approve`} method="post">
-                    <button type="submit" className="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600">
-                      {m(locale, "admin.approve")}
-                    </button>
-                  </form>
-                  <form action={`/api/admin/owner-applications/${app.id}/reject`} method="post" className="flex flex-wrap items-end gap-2">
-                    <textarea
-                      name="comment"
-                      required
-                      placeholder={m(locale, "admin.rejectReason")}
-                      className="min-h-[60px] min-w-[200px] rounded-xl border border-slate-200 px-3 py-2 text-sm"
-                    />
-                    <button type="submit" className="rounded-xl border-2 border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-800 transition hover:bg-red-100">
-                      {m(locale, "admin.reject")}
-                    </button>
-                  </form>
-                </div>
+                <AdminOwnerApplicationActions
+                  applicationId={app.id}
+                  labels={{
+                    approve: m(locale, "admin.approve"),
+                    reject: m(locale, "admin.reject"),
+                    rejectReason: m(locale, "admin.rejectReason"),
+                    confirmApproveTitle: m(locale, "admin.confirmApproveTitle"),
+                    confirmApproveDesc: m(locale, "admin.confirmApproveDesc"),
+                    confirmApproveCta: m(locale, "admin.confirmApproveCta"),
+                    cancel: m(locale, "admin.cancel"),
+                    processing: m(locale, "admin.processing")
+                  }}
+                />
               </div>
             ))}
           </div>
