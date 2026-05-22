@@ -22,7 +22,7 @@ async function renderIcon(size, paddingRatio = 0.12) {
       width: size,
       height: size,
       channels: 4,
-      background: { r: 11, g: 109, b: 94, alpha: 1 }
+      background: { r: 4, g: 26, b: 18, alpha: 1 }
     }
   })
     .composite([{ input: logo, gravity: "centre" }])
@@ -38,7 +38,7 @@ async function renderMaskable(size) {
       width: size,
       height: size,
       channels: 4,
-      background: { r: 11, g: 109, b: 94, alpha: 1 }
+      background: { r: 4, g: 26, b: 18, alpha: 1 }
     }
   })
     .composite([{ input: logo, gravity: "centre" }])

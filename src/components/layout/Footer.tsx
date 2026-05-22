@@ -13,6 +13,7 @@ export async function Footer() {
     { href: "/about", label: m(locale, "footer.about") },
     { href: "/contacts", label: m(locale, "footer.contacts") },
     { href: "/faq", label: m(locale, "footer.faq") },
+    { href: "/profile/become-owner", label: m(locale, "userMenu.becomeOwner") },
     { href: "/terms", label: m(locale, "footer.terms") },
     { href: "/policy", label: m(locale, "footer.policy") }
   ];

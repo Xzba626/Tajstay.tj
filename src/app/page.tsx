@@ -7,14 +7,17 @@ import { HotelCard } from "@/components/HotelCard";
 import { getSiteContent } from "@/lib/site-content";
 import { prisma } from "@/lib/prisma";
 import { safeDbQuery } from "@/lib/db/safeDb";
-import { HeroThreeBackground } from "@/components/effects/HeroThreeBackground";
 import { AIRecommendationLab } from "@/components/ai/AIRecommendationLab";
 import { ViewTransitionLink } from "@/components/effects/ViewTransitionLink";
 import { HomeScrollEnhancer } from "./HomeScrollEnhancer";
 import { GuestHomeExtras } from "@/components/guest/GuestHomeExtras";
 import { SearchBar } from "@/components/SearchBar";
-import { getBookingGuestLabel } from "@/lib/domain/booking";
 import { TajstayHero3D } from "@/components/landing/TajstayHero3D";
+import { PageContainer, SectionContainer, ContentGrid, EmptyStateCard } from "@/components/ds";
+import { HomeSectionHeader } from "@/components/home/HomeSectionHeader";
+import { HomeSearchSticky } from "@/components/home/HomeSearchSticky";
+import { HomeOwnerCta } from "@/components/home/HomeOwnerCta";
+import { HomeReviewsSection } from "@/components/home/HomeReviewsSection";
 
 export default async function HomePage() {
   const locale = getLocale();
@@ -32,6 +35,12 @@ export default async function HomePage() {
     { title: m(locale, "home.trust1Title"), text: m(locale, "home.trust1Text"), icon: "✓" as const },
     { title: m(locale, "home.trust2Title"), text: m(locale, "home.trust2Text"), icon: "🔒" as const },
     { title: m(locale, "home.trust3Title"), text: m(locale, "home.trust3Text"), icon: "💬" as const }
+  ];
+
+  const partnerTrust = [
+    m(locale, "home.trust1Title"),
+    m(locale, "home.trust2Title"),
+    m(locale, "home.trust3Title")
   ];
 
   const latestReviews = await safeDbQuery(
@@ -54,228 +63,160 @@ export default async function HomePage() {
   }));
 
   return (
-    <div className="home-chapters">
+    <div className="home-page home-chapters pb-28 md:pb-16">
       <HomeScrollEnhancer />
+      <HomeSearchSticky label={m(locale, "home.ctaSearch")} />
 
-      <section className="home-chapter home-chapter--band-hero home-chapter--snap noise-overlay relative flex min-h-[min(78svh,760px)] flex-col overflow-hidden pb-4 pt-4 sm:min-h-[min(100dvh,960px)] sm:pb-10 sm:pt-10">
-        <HeroThreeBackground />
-        <TajstayHero3D
-          heroBadge={m(locale, "home.heroBadge")}
-          heroTitle={t(locale, "heroTitle")}
-          heroSubtitle={t(locale, "heroSubtitle")}
-          ctaSearch={m(locale, "home.ctaSearch")}
-          ctaOwners={m(locale, "home.ctaOwners")}
-          searchSectionLabel={m(locale, "search.search")}
-        >
-          <SearchBar locale={locale} />
-        </TajstayHero3D>
+      {/* Hero */}
+      <section className="home-section home-section--hero home-chapter home-chapter--band-hero relative overflow-hidden">
+        <PageContainer publicPage className="relative z-[1] flex min-h-[inherit] flex-col justify-center !py-0">
+          <TajstayHero3D
+            heroBadge={m(locale, "home.heroBadge")}
+            heroTitle={t(locale, "heroTitle")}
+            heroSubtitle={t(locale, "heroSubtitle")}
+            ctaSearch={m(locale, "home.ctaSearch")}
+          />
+        </PageContainer>
       </section>
 
-      <div className="home-chapter-divider" aria-hidden />
+      {/* Search — primary action */}
+      <section id="home-search" className="home-section home-section--search home-chapter scroll-mt-24" data-reveal>
+        <PageContainer publicPage className="!py-0">
+          <HomeSectionHeader
+            eyebrow={m(locale, "search.search")}
+            title={m(locale, "home.ctaSearch")}
+            description={t(locale, "heroSubtitle")}
+          />
+          <SearchBar locale={locale} />
+        </PageContainer>
+      </section>
 
-      <GuestHomeExtras locale={locale} />
-
-      {content.homeBanner.enabled && (
-        <>
-          <section className="home-chapter home-chapter--snap py-6 sm:py-8" data-reveal>
-            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-              <div className="rounded-[1.75rem] border border-emerald-300/20 bg-gradient-to-r from-emerald-950 via-emerald-800 to-teal-700 p-6 text-white shadow-xl shadow-emerald-900/30">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <h2 className="text-2xl font-bold tracking-tight">{content.homeBanner.title}</h2>
-                    <p className="mt-2 max-w-2xl text-sm text-emerald-100/90">{content.homeBanner.subtitle}</p>
-                  </div>
-                  <Link
-                    href={content.homeBanner.ctaHref}
-                    className="inline-flex shrink-0 items-center justify-center rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-emerald-900 transition hover:bg-emerald-50"
-                  >
-                    {content.homeBanner.ctaText}
-                  </Link>
+      {content.homeBanner.enabled ? (
+        <section className="home-section home-section--compact" data-reveal>
+          <PageContainer publicPage className="!py-0">
+            <div className="rounded-2xl border border-emerald-400/20 bg-gradient-to-r from-emerald-950/90 to-teal-900/80 p-5 sm:p-6">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="text-lg font-bold text-white sm:text-xl">{content.homeBanner.title}</h2>
+                  <p className="mt-2 max-w-2xl text-sm text-emerald-100/90">{content.homeBanner.subtitle}</p>
                 </div>
+                <Link href={content.homeBanner.ctaHref} className="taj-btn taj-btn--primary shrink-0">
+                  {content.homeBanner.ctaText}
+                </Link>
               </div>
             </div>
-          </section>
-          <div className="home-chapter-divider" aria-hidden />
-        </>
-      )}
+          </PageContainer>
+        </section>
+      ) : null}
 
-      <section className="home-chapter home-chapter--snap home-chapter--band-a relative overflow-hidden border-y border-slate-800/70 py-8 sm:py-14" data-reveal>
-        <div className="relative z-[1] mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-center text-xl font-semibold tracking-tight text-slate-100 sm:text-2xl">
-            {m(locale, "home.trustTitle")}
-          </h2>
-          <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:grid-cols-4">
+      {/* Trust */}
+      <SectionContainer tight className="home-section home-section--compact home-chapter" data-reveal>
+        <PageContainer publicPage className="!py-0">
+          <HomeSectionHeader title={m(locale, "home.trustTitle")} align="center" className="!text-center [&_.home-section__desc]:mx-auto" />
+          <ContentGrid cols={3} gap="md">
             {trustPoints.map((item) => (
-              <div key={item.title} className="glass-panel rounded-2xl p-4 text-center">
-                <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-500/15 text-lg text-emerald-100 ring-1 ring-white/10">
-                  {item.icon}
-                </div>
-                <h3 className="text-sm font-semibold text-slate-100">{item.title}</h3>
+              <div key={item.title} className="home-trust-card">
+                <div className="home-trust-card__icon">{item.icon}</div>
+                <h3 className="mt-3 text-sm font-semibold text-[var(--taj-color-text)]">{item.title}</h3>
+                <p className="mt-1.5 text-xs leading-relaxed text-[var(--taj-color-text-muted)]">{item.text}</p>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
+          </ContentGrid>
+        </PageContainer>
+      </SectionContainer>
 
-      <div className="home-chapter-divider" aria-hidden />
-
-      <section className="home-chapter home-chapter--snap home-chapter--band-b relative overflow-hidden py-8 sm:py-14" data-reveal>
-        <div className="relative z-[1] mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h2 className="text-xl font-semibold tracking-tight text-slate-100 sm:text-2xl">{m(locale, "home.featuredTitle")}</h2>
-              <p className="mt-2 max-w-2xl text-sm text-slate-300 sm:text-base" />
-            </div>
-            <Link
-              href="/search"
-              className="shrink-0 text-sm font-semibold text-emerald-300 underline-offset-4 transition hover:underline"
-            >
-              {m(locale, "home.featuredAll")}
-            </Link>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {/* Popular */}
+      <section className="home-section home-section--compact home-chapter" data-reveal>
+        <PageContainer publicPage className="!py-0">
+          <HomeSectionHeader
+            title={m(locale, "home.featuredTitle")}
+            action={{ href: "/search", label: m(locale, "home.featuredAll") }}
+          />
+          <ContentGrid cols={3} gap="lg">
             {featured.slice(0, 6).map((hotel) => (
               <HotelCard key={hotel.id} hotel={hotel} locale={locale} />
             ))}
-            {!featured.length && (
-              <div className="glass-panel lg:col-span-3 rounded-2xl border border-dashed border-slate-700 px-6 py-10 text-center text-slate-300">
-                {m(locale, "admin.emptyResults")}
-                <p className="mt-2 text-sm text-slate-400">{m(locale, "admin.emptyResultsHint")}</p>
-              </div>
-            )}
-          </div>
-        </div>
+          </ContentGrid>
+          {!featured.length ? (
+            <EmptyStateCard
+              className="mt-4"
+              title={m(locale, "admin.emptyResults")}
+              description={m(locale, "admin.emptyResultsHint")}
+              actions={
+                <Link href="/search" className="taj-btn taj-btn--primary">
+                  {m(locale, "home.ctaSearch")}
+                </Link>
+              }
+            />
+          ) : null}
+        </PageContainer>
       </section>
 
-      <div className="home-chapter-divider" aria-hidden />
+      <GuestHomeExtras locale={locale} />
 
-      <div className="home-chapter home-chapter--snap home-chapter--band-a relative overflow-hidden py-8 sm:py-14">
-        <div className="relative z-[1]">
+      {/* AI */}
+      <section className="home-section home-section--compact home-chapter" data-reveal>
+        <PageContainer publicPage className="!py-0">
           <AIRecommendationLab
-          hotels={aiHotels}
-          locale={locale}
-          labels={{
-            badge: m(locale, "aiLab.badge"),
-            title: "AI Подборка",
-            subtitle: m(locale, "aiLab.subtitle"),
-            surprise: m(locale, "aiLab.surprise"),
-            budget: m(locale, "aiLab.budget"),
-            tripStyle: m(locale, "aiLab.tripStyle"),
-            modeFocus: m(locale, "aiLab.modeFocus"),
-            modeNature: m(locale, "aiLab.modeNature"),
-            modeRomance: m(locale, "aiLab.modeRomance"),
-            modeAdventure: m(locale, "aiLab.modeAdventure"),
-            match: m(locale, "aiLab.match"),
-            open: m(locale, "aiLab.open")
-          }}
-        />
-        </div>
-      </div>
-
-      <div className="home-chapter-divider" aria-hidden />
-
-      <section id="popular-destinations" className="home-chapter home-chapter--snap home-chapter--destinations relative overflow-hidden scroll-mt-24 py-8 sm:py-14" data-reveal>
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-400/35 to-transparent" aria-hidden />
-        <div className="relative z-[1] mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="surface-1 rounded-[2rem] p-5 ring-1 ring-emerald-400/15 sm:p-7">
-            <div className="flex items-end justify-between gap-3">
-              <div>
-                <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-emerald-300/90">
-                  {m(locale, "home.destinationsBadge")}
-                </p>
-                <h2 className="text-xl font-semibold tracking-tight text-slate-100 sm:text-2xl">
-                  {m(locale, "home.destinationsGridTitle")}
-                </h2>
-              </div>
-              <ViewTransitionLink href="/search" className="btn-ghost text-sm">
-                {m(locale, "home.ctaSearch")}
-              </ViewTransitionLink>
-            </div>
-
-            <div className="mt-4 flex gap-3 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {destinationCards.map((d) => (
-                <ViewTransitionLink
-                  key={d.title}
-                  href={`/search?city=${encodeURIComponent(d.cityQuery)}`}
-                  className="shrink-0"
-                >
-                  <div className="flex h-24 w-24 items-center justify-center rounded-3xl border border-white/10 bg-white/5 text-center text-xs font-semibold text-slate-100">
-                    {d.title}
-                  </div>
-                </ViewTransitionLink>
-              ))}
-            </div>
-          </div>
-        </div>
+            hotels={aiHotels}
+            locale={locale}
+            labels={{
+              badge: m(locale, "aiLab.badge"),
+              title: m(locale, "aiLab.title"),
+              subtitle: m(locale, "aiLab.subtitle"),
+              surprise: m(locale, "aiLab.surprise"),
+              budget: m(locale, "aiLab.budget"),
+              tripStyle: m(locale, "aiLab.tripStyle"),
+              modeFocus: m(locale, "aiLab.modeFocus"),
+              modeNature: m(locale, "aiLab.modeNature"),
+              modeRomance: m(locale, "aiLab.modeRomance"),
+              modeAdventure: m(locale, "aiLab.modeAdventure"),
+              match: m(locale, "aiLab.match"),
+              open: m(locale, "aiLab.open")
+            }}
+          />
+        </PageContainer>
       </section>
 
-      <div className="home-chapter-divider" aria-hidden />
-
-      <section
-        className="home-chapter home-chapter--snap relative flex min-h-[68vh] flex-col justify-center overflow-hidden py-10 sm:min-h-[min(85vh,800px)] sm:py-20"
-        data-reveal
-      >
-        <div className="relative z-[1] mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-center text-2xl font-bold tracking-tight text-slate-100 sm:text-3xl">{m(locale, "home.reviewsTitle")}</h2>
-          <p className="mx-auto mt-3 max-w-xl text-center text-slate-300" />
-          <div className="mt-12 grid gap-6 lg:grid-cols-3">
-            {latestReviews.map((r) => (
-              <blockquote
-                key={r.id}
-                className="glass-panel rounded-2xl p-6 transition hover:shadow-2xl hover:shadow-emerald-900/30"
-              >
-                <div className="flex gap-0.5 text-amber-400" aria-label={m(locale, "home.reviewsStarsAria", { n: r.rating })}>
-                  {Array.from({ length: r.rating }).map((_, i) => (
-                    <span key={i} aria-hidden>
-                      ★
-                    </span>
-                  ))}
+      {/* Directions */}
+      <section id="popular-destinations" className="home-section home-section--compact home-chapter scroll-mt-24" data-reveal>
+        <PageContainer publicPage className="!py-0">
+          <HomeSectionHeader
+            eyebrow={m(locale, "home.destinationsBadge")}
+            title={m(locale, "home.destinationsGridTitle")}
+            action={{ href: "/search", label: m(locale, "home.ctaSearch") }}
+          />
+          <div className="mt-2 flex gap-3 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {destinationCards.map((d) => (
+              <ViewTransitionLink key={d.title} href={`/search?city=${encodeURIComponent(d.cityQuery)}`} className="shrink-0">
+                <div className="home-dest-chip">
+                  <span className="text-sm font-semibold text-[var(--taj-color-text)]">{d.title}</span>
+                  <span className="mt-1 line-clamp-2 text-[10px] leading-snug text-[var(--taj-color-text-muted)]">{d.text}</span>
                 </div>
-                <p className="mt-4 text-sm leading-relaxed text-slate-200">&ldquo;{r.comment}&rdquo;</p>
-                <footer className="mt-4 border-t border-slate-700/70 pt-4 text-sm">
-                  <span className="font-semibold text-slate-100">{getBookingGuestLabel(r.booking)}</span>
-                  <span className="text-slate-400"> · {r.booking.room.hotel.city}</span>
-                </footer>
-              </blockquote>
+              </ViewTransitionLink>
             ))}
-            {!latestReviews.length && (
-              <div className="glass-panel lg:col-span-3 rounded-2xl border border-dashed border-slate-700 px-6 py-10 text-center text-slate-300">
-                {m(locale, "home.reviewsEmpty")}
-              </div>
-            )}
           </div>
-        </div>
+        </PageContainer>
       </section>
 
-      <div className="home-chapter-divider" aria-hidden />
+      {/* Reviews */}
+      <section className="home-section home-section--compact home-chapter" data-reveal>
+        <PageContainer publicPage className="!py-0">
+          <HomeReviewsSection locale={locale} reviews={latestReviews} />
+        </PageContainer>
+      </section>
 
-      <section className="home-chapter home-chapter--snap flex min-h-[min(70vh,720px)] flex-col justify-center pb-20 pt-8 sm:pb-24 sm:pt-12" data-reveal>
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="relative overflow-hidden rounded-[2rem] border border-emerald-100 bg-gradient-to-br from-emerald-950 via-green-900 to-emerald-800 p-8 text-white shadow-2xl shadow-emerald-900/25 sm:p-10">
-            <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-amber-300/20 blur-3xl" aria-hidden />
-            <div className="pointer-events-none absolute -left-24 bottom-0 h-64 w-64 rounded-full bg-white/10 blur-3xl" aria-hidden />
-            <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
-              <div>
-                <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">{m(locale, "home.ctaOwners")}</h2>
-                <p className="mt-3 max-w-xl text-green-100/90">{m(locale, "home.ownersShort")}</p>
-              </div>
-              <div className="flex flex-col gap-3 sm:flex-row lg:justify-end">
-                <Link
-                  href="/profile/become-owner"
-                  className="inline-flex items-center justify-center rounded-2xl bg-amber-400 px-6 py-3 text-sm font-semibold text-slate-900 shadow-lg transition hover:bg-amber-300 active:scale-[0.99]"
-                >
-                  {m(locale, "userMenu.becomeOwner")}
-                </Link>
-                <Link
-                  href="/dashboard/owner"
-                  className="inline-flex items-center justify-center rounded-2xl border border-white/20 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/15 active:scale-[0.99]"
-                >
-                  {m(locale, "userMenu.ownerPanel")}
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Owner CTA */}
+      <section className="home-section home-section--compact home-chapter" data-reveal>
+        <PageContainer publicPage className="!py-0">
+          <HomeOwnerCta
+            title={m(locale, "home.ctaOwners")}
+            description={m(locale, "home.ownersShort")}
+            primaryLabel={m(locale, "userMenu.becomeOwner")}
+            secondaryLabel={m(locale, "userMenu.ownerPanel")}
+            trustPoints={partnerTrust}
+          />
+        </PageContainer>
       </section>
     </div>
   );

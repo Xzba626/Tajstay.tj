@@ -10,7 +10,12 @@ type Props = {
 
 export function DashboardShell({ sidebar, children, mobileNav, className }: Props) {
   return (
-    <div className={cn("taj-dashboard-shell min-h-[calc(100vh-4rem)] bg-brand-900 font-[family-name:var(--taj-font-ui)] text-white", className)}>
+    <div
+      className={cn(
+        "taj-dashboard-shell min-h-[calc(100vh-4rem)] bg-[var(--taj-color-bg)] font-[family-name:var(--taj-font-ui)] text-[var(--taj-color-text)]",
+        className
+      )}
+    >
       <div className="taj-dashboard-inner mx-auto flex w-full max-w-[var(--taj-dashboard-max)]">
         {sidebar}
         <div className="taj-dashboard-main min-w-0 flex-1">

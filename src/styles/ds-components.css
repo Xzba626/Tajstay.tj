@@ -1,5 +1,5 @@
 /**
- * TajStay DS — component primitives (override global button rules safely)
+ * TajStay DS — component primitives (PR-2.1 brand-correct buttons)
  */
 
 .taj-btn {
@@ -14,17 +14,25 @@
   font-size: var(--taj-text-sm);
   font-weight: 600;
   line-height: 1;
-  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease,
-    color 0.2s ease;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.12s ease,
+    color 0.18s ease,
+    filter 0.18s ease;
   cursor: pointer;
   text-decoration: none;
   border: 1px solid transparent;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.taj-btn:disabled {
-  opacity: 0.55;
+.taj-btn:disabled,
+.taj-btn[aria-disabled="true"] {
+  opacity: 0.45;
   pointer-events: none;
   cursor: not-allowed;
+  filter: grayscale(0.25);
 }
 
 .taj-btn:focus-visible {
@@ -49,22 +57,66 @@
   width: 100%;
 }
 
-button.taj-btn--primary,
-a.taj-btn--primary {
-  background: linear-gradient(180deg, #4ade80, #16a34a) !important;
-  color: #052e16 !important;
-  border-color: rgba(187, 247, 208, 0.35) !important;
-  box-shadow: var(--taj-shadow-card), var(--taj-shadow-glow) !important;
+.taj-btn.is-loading {
+  pointer-events: none;
+  position: relative;
+  color: transparent !important;
 }
 
-button.taj-btn--primary:hover:not(:disabled),
+.taj-btn.is-loading::after {
+  content: "";
+  position: absolute;
+  width: 1.125rem;
+  height: 1.125rem;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: taj-spin 0.65s linear infinite;
+}
+
+button.taj-btn--primary.is-loading::after,
+a.taj-btn--primary.is-loading::after {
+  border-color: #052e16;
+  border-right-color: transparent;
+}
+
+@keyframes taj-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .taj-btn.is-loading::after {
+    animation: none;
+    border-right-color: currentColor;
+  }
+}
+
+button.taj-btn--primary,
+a.taj-btn--primary {
+  background: linear-gradient(180deg, #4ade80 0%, #22c55e 45%, #16a34a 100%) !important;
+  color: #052e16 !important;
+  border-color: rgba(187, 247, 208, 0.4) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.06) inset !important;
+}
+
+button.taj-btn--primary:hover:not(:disabled):not(.is-loading),
 a.taj-btn--primary:hover {
-  filter: brightness(1.06);
+  filter: brightness(1.08);
+  box-shadow: 0 6px 22px rgba(34, 197, 94, 0.28), 0 0 0 1px rgba(255, 255, 255, 0.08) inset !important;
+}
+
+button.taj-btn--primary:active:not(:disabled),
+a.taj-btn--primary:active {
+  transform: scale(0.98);
+  filter: brightness(0.95);
+  background: linear-gradient(180deg, #22c55e 0%, #16a34a 55%, #15803d 100%) !important;
 }
 
 button.taj-btn--secondary,
 a.taj-btn--secondary {
-  background: rgba(255, 255, 255, 0.06) !important;
+  background: var(--taj-public-surface) !important;
   color: var(--taj-color-text) !important;
   border-color: var(--taj-color-border-strong) !important;
   box-shadow: none !important;
@@ -72,7 +124,14 @@ a.taj-btn--secondary {
 
 button.taj-btn--secondary:hover:not(:disabled),
 a.taj-btn--secondary:hover {
-  background: rgba(255, 255, 255, 0.1) !important;
+  background: var(--taj-public-surface-strong) !important;
+  border-color: rgba(110, 231, 183, 0.4) !important;
+}
+
+button.taj-btn--secondary:active:not(:disabled),
+a.taj-btn--secondary:active {
+  transform: scale(0.98);
+  background: rgba(15, 42, 28, 0.95) !important;
 }
 
 button.taj-btn--ghost,
@@ -85,8 +144,13 @@ a.taj-btn--ghost {
 
 button.taj-btn--ghost:hover:not(:disabled),
 a.taj-btn--ghost:hover {
-  background: rgba(255, 255, 255, 0.06) !important;
+  background: rgba(34, 197, 94, 0.08) !important;
   color: var(--taj-color-text) !important;
+}
+
+button.taj-btn--ghost:active:not(:disabled),
+a.taj-btn--ghost:active {
+  transform: scale(0.98);
 }
 
 button.taj-btn--glass,
@@ -94,21 +158,27 @@ a.taj-btn--glass {
   background: var(--taj-public-surface) !important;
   color: var(--taj-color-text) !important;
   border-color: var(--taj-color-border) !important;
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(10px);
   box-shadow: var(--taj-shadow-sm) !important;
 }
 
 button.taj-btn--danger,
 a.taj-btn--danger {
-  background: rgba(239, 68, 68, 0.18) !important;
+  background: rgba(239, 68, 68, 0.16) !important;
   color: #fecaca !important;
   border-color: rgba(248, 113, 113, 0.35) !important;
   box-shadow: none !important;
 }
 
+button.taj-btn--danger:active:not(:disabled),
+a.taj-btn--danger:active {
+  transform: scale(0.98);
+  background: rgba(220, 38, 38, 0.28) !important;
+}
+
 button.taj-btn--success,
 a.taj-btn--success {
-  background: rgba(20, 92, 67, 0.35) !important;
+  background: rgba(20, 92, 67, 0.45) !important;
   color: #d1fae5 !important;
   border-color: rgba(52, 211, 153, 0.35) !important;
   box-shadow: none !important;
@@ -126,7 +196,7 @@ a.taj-btn--icon {
   width: 100%;
   border-radius: var(--taj-radius-lg);
   border: 1px solid var(--taj-color-border-strong);
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(8, 28, 20, 0.75);
   padding: 0 var(--taj-control-px);
   font-family: var(--taj-font-ui);
   font-size: var(--taj-text-sm);
@@ -141,7 +211,7 @@ a.taj-btn--icon {
 .taj-input:focus {
   outline: none;
   border-color: rgba(52, 211, 153, 0.55);
-  background: rgba(255, 255, 255, 0.09);
+  background: rgba(12, 36, 26, 0.9);
   box-shadow: var(--taj-shadow-focus);
 }
 
@@ -150,19 +220,18 @@ a.taj-btn--icon {
 }
 
 .taj-input--public {
-  background: rgba(255, 255, 255, 0.92);
-  color: #0f172a;
-  border-color: rgba(15, 23, 42, 0.12);
+  background: rgba(255, 255, 255, 0.94);
+  color: #0f291c;
+  border-color: rgba(15, 41, 28, 0.15);
 }
 
-/* Legacy class alias */
 .ds-input {
   display: flex;
   min-height: var(--taj-control-h);
   width: 100%;
   border-radius: var(--taj-radius-lg);
   border: 1px solid var(--taj-color-border-strong);
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(8, 28, 20, 0.75);
   padding: 0 var(--taj-control-px);
   font-family: var(--taj-font-ui);
   font-size: var(--taj-text-sm);
@@ -200,7 +269,7 @@ a.taj-btn--icon {
 
 .taj-card--public {
   background: var(--taj-public-surface);
-  backdrop-filter: blur(16px);
+  backdrop-filter: blur(10px);
 }
 
 .taj-card--outline {
@@ -229,12 +298,28 @@ a.taj-btn--icon {
   padding: var(--taj-space-3);
   border-radius: var(--taj-radius-2xl);
   border: 1px solid var(--taj-color-border);
-  background: rgba(15, 23, 42, 0.92);
+  background: rgba(4, 26, 18, 0.94);
   backdrop-filter: blur(12px);
   box-shadow: var(--taj-shadow-lg);
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .taj-btn:active {
+    transform: none;
+  }
+
   .taj-sticky-actions {
     position: static;
   }

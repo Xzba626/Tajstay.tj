@@ -1,0 +1,209 @@
+/* TajStay homepage — PR-2 public polish (tokens-based) */
+
+.home-page {
+  --home-section-y: clamp(2.5rem, 6vw, 4.5rem);
+}
+
+.home-section {
+  padding-block: var(--home-section-y);
+}
+
+.home-section--hero {
+  padding-block: clamp(1.5rem, 4vw, 2.5rem);
+  min-height: min(72svh, 680px);
+}
+
+@media (min-width: 1024px) {
+  .home-section--hero {
+    min-height: min(78svh, 720px);
+  }
+}
+
+.home-section--search {
+  padding-block: clamp(1.25rem, 3vw, 2rem);
+  margin-top: -0.5rem;
+}
+
+.home-section--compact {
+  padding-block: clamp(2rem, 4vw, 3rem);
+}
+
+.home-section__header {
+  margin-bottom: var(--taj-stack-lg);
+}
+
+.home-section__eyebrow {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(110, 231, 183, 0.85);
+}
+
+.home-section__title {
+  margin-top: 0.35rem;
+  font-family: var(--taj-font-ui);
+  font-size: clamp(1.25rem, 3vw, 1.75rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--taj-color-text);
+  line-height: var(--taj-leading-tight);
+}
+
+.home-section__desc {
+  margin-top: 0.5rem;
+  max-width: 36rem;
+  font-size: var(--taj-text-sm);
+  line-height: var(--taj-leading-relaxed);
+  color: var(--taj-color-text-secondary);
+}
+
+.home-search-sticky {
+  position: fixed;
+  left: var(--taj-page-px);
+  right: var(--taj-page-px);
+  bottom: max(0.75rem, env(safe-area-inset-bottom));
+  z-index: 90;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@media (min-width: 1024px) {
+  .home-search-sticky {
+    display: none;
+  }
+}
+
+.home-search-sticky.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(0.5rem);
+}
+
+.home-search-sticky {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.home-trust-card {
+  border-radius: var(--taj-radius-card-lg);
+  border: 1px solid var(--taj-color-border);
+  background: var(--taj-public-surface);
+  padding: var(--taj-space-5);
+  text-align: center;
+}
+
+.home-trust-card__icon {
+  margin-inline: auto;
+  display: flex;
+  height: 2.5rem;
+  width: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--taj-radius-lg);
+  background: rgba(16, 185, 129, 0.12);
+  font-size: 1.125rem;
+}
+
+.home-review-card {
+  border-radius: var(--taj-radius-card-lg);
+  border: 1px solid var(--taj-color-border);
+  background: var(--taj-color-bg-card-solid);
+  padding: var(--taj-space-6);
+}
+
+.home-owner-cta {
+  border-radius: 1.75rem;
+  border: 1px solid rgba(52, 211, 153, 0.22);
+  background: linear-gradient(145deg, rgba(6, 44, 32, 0.95), rgba(4, 24, 18, 0.98));
+  padding: clamp(1.75rem, 4vw, 2.5rem);
+  box-shadow: var(--taj-shadow-md);
+}
+
+.home-hero-visual {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .home-hero-visual {
+    display: block;
+  }
+}
+
+.home-hero-visual__frame {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: 1.5rem;
+  border: 1px solid var(--taj-color-border);
+  background: rgba(15, 23, 42, 0.4);
+  overflow: hidden;
+}
+
+.home-hero-visual__scene {
+  opacity: 0.55;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-hero-visual__scene {
+    display: none;
+  }
+}
+
+/* Hotel cards — calmer premium */
+.hotel-card-premium {
+  border-radius: var(--taj-radius-card-lg);
+  border: 1px solid var(--taj-color-border);
+  background: var(--taj-color-bg-card-solid);
+  box-shadow: var(--taj-shadow-sm);
+}
+
+.hotel-card-premium::before {
+  display: none;
+}
+
+.hotel-card-premium:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--taj-shadow-md);
+  border-color: rgba(52, 211, 153, 0.28);
+}
+
+@media (max-width: 639px) {
+  .hotel-card-premium:hover {
+    transform: none;
+  }
+}
+
+.hotel-img-wrap {
+  aspect-ratio: 16 / 10;
+  height: auto !important;
+}
+
+.hotel-img-wrap.h-44,
+.hotel-img-wrap.sm\:h-56 {
+  height: auto !important;
+}
+
+/* Header — lighter */
+.site-header {
+  border-bottom: 1px solid var(--taj-color-border);
+  background: rgba(11, 15, 14, 0.82);
+  backdrop-filter: blur(14px);
+  box-shadow: none;
+}
+
+.site-header__inner {
+  min-height: 3.5rem;
+}
+
+@media (min-width: 640px) {
+  .site-header__inner {
+    min-height: 4rem;
+  }
+}
+
+.home-search-card {
+  box-shadow: var(--taj-shadow-md);
+  backdrop-filter: blur(10px);
+}
+
+.home-chapter--band-hero .home-chapter-divider {
+  display: none;
+}

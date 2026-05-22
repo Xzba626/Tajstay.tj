@@ -75,8 +75,8 @@ export async function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-[100] border-b border-white/10 bg-slate-950/70 shadow-[0_8px_32px_rgba(2,6,23,0.4)] backdrop-blur-xl backdrop-saturate-150 ring-1 ring-white/[0.06] transition-[box-shadow,background-color] duration-300 supports-[backdrop-filter]:bg-slate-950/50">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-2 px-3 sm:h-[76px] sm:gap-3 sm:px-6 lg:px-8">
+    <header className="site-header sticky top-0 z-[100] transition-[background-color] duration-300">
+      <div className="site-header__inner mx-auto flex max-w-[var(--taj-page-max)] items-center justify-between gap-2 px-[var(--taj-page-px)] sm:gap-3">
         <ViewTransitionLink
           href="/"
           className="flex min-w-0 max-w-[74vw] shrink items-center gap-2 rounded-xl outline-none ring-emerald-300/0 transition hover:opacity-90 focus-visible:ring-2 sm:max-w-none sm:gap-3"

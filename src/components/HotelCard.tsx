@@ -68,7 +68,7 @@ export function HotelCard({ hotel, locale = "ru", variant = "accent", hrefQuery 
       {/* Image */}
       <ViewTransitionLink href={`/hotel/${hotel.id}${query}`} className="block">
         <div
-          className="hotel-img-wrap relative h-44 w-full sm:h-56"
+          className="hotel-img-wrap relative w-full"
           style={{ viewTransitionName: `hotel-hero-${hotel.id}` } as any}
         >
           {hotel.coverImageUrl ? (
@@ -139,18 +139,21 @@ export function HotelCard({ hotel, locale = "ru", variant = "accent", hrefQuery 
           </div>
         )}
 
-        {/* Price + CTA */}
-        <div className="mt-3 flex items-center justify-between gap-3 border-t border-white/[0.06] pt-3">
-          <div className="flex items-baseline gap-2">
-            <span className="text-sm text-brand-200">{t(locale, "fromPrice")}</span>
-            <span className="text-xl font-extrabold tracking-tight text-white">{minPrice.toLocaleString()}</span>
-            <span className="text-xs font-semibold text-brand-200">TJS</span>
+        <div className="mt-3 flex items-center justify-between gap-3 border-t border-[var(--taj-color-border)] pt-3">
+          <div className="min-w-0">
+            <span className="text-[10px] font-bold uppercase tracking-wide text-[var(--taj-color-text-muted)]">{t(locale, "fromPrice")}</span>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-xl font-extrabold tabular-nums tracking-tight text-[var(--taj-color-text)] sm:text-2xl">
+                {minPrice.toLocaleString()}
+              </span>
+              <span className="text-xs font-semibold text-[var(--taj-color-text-secondary)]">TJS</span>
+            </div>
           </div>
 
           <Link
             href={`/hotel/${hotel.id}${query}`}
             aria-label={t(locale, "details")}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white transition hover:bg-white/10"
+            className="taj-btn taj-btn--secondary taj-btn--icon shrink-0 !min-h-[2.75rem] !min-w-[2.75rem] !p-0"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M5 12h14M12 5l7 7-7 7"/>

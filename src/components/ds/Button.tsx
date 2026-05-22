@@ -34,11 +34,20 @@ export function Button({
   return (
     <button
       type={type}
-      className={cn("taj-btn", variantClass(variant), sizeClass(size), fullWidth && "taj-btn--full", className)}
+      className={cn(
+        "taj-btn",
+        variantClass(variant),
+        sizeClass(size),
+        fullWidth && "taj-btn--full",
+        loading && "is-loading",
+        className
+      )}
       disabled={disabled || loading}
+      aria-busy={loading || undefined}
+      aria-disabled={disabled || loading || undefined}
       {...props}
     >
-      {loading ? "…" : children}
+      {loading ? <span className="sr-only">Loading</span> : children}
     </button>
   );
 }

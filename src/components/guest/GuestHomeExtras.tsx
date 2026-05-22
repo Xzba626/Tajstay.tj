@@ -26,14 +26,15 @@ export function GuestHomeExtras({ locale }: { locale: Locale }) {
   if (!recent.length) return null;
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8" data-reveal>
-      <h2 className="text-lg font-semibold text-slate-900">{m(locale, "home.recentTitle")}</h2>
+    <section className="home-section home-section--compact home-chapter" data-reveal>
+      <div className="mx-auto w-full max-w-[var(--taj-page-max)] px-[var(--taj-page-px)]">
+      <h2 className="text-sm font-semibold text-[var(--taj-color-text-secondary)]">{m(locale, "home.recentTitle")}</h2>
       <ul className="mt-3 flex flex-wrap gap-2">
         {recent.map((h) => (
           <li key={h.id}>
             <Link
               href={`/hotel/${h.id}`}
-              className="inline-flex rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 shadow-sm transition hover:border-emerald-400"
+              className="inline-flex min-h-[2.75rem] items-center rounded-full border border-[var(--taj-color-border)] bg-[var(--taj-public-surface)] px-3 py-2 text-sm text-[var(--taj-color-text)] transition hover:border-emerald-400/40"
             >
               {h.name}
               <span className="ml-1 text-slate-400">· {h.city}</span>
@@ -41,6 +42,7 @@ export function GuestHomeExtras({ locale }: { locale: Locale }) {
           </li>
         ))}
       </ul>
+      </div>
     </section>
   );
 }

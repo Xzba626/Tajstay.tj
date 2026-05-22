@@ -1,22 +1,20 @@
 /**
- * TajStay Design System — PR-1 tokens
- * Public: Airbnb/Apple-like clarity | Dashboard: Stripe/Linear/Booking extranet
+ * TajStay Design System — brand tokens (PR-2.1 emerald identity)
+ * Premium travel-tech: deep green-black surfaces, emerald CTAs, sand accent
  */
 
 :root {
   /* ---- Layout widths ---- */
-  --taj-page-max: 80rem; /* 1280px — marketing / public */
-  --taj-page-max-narrow: 42rem; /* 672px — auth, profile account */
-  --taj-dashboard-max: 90rem; /* 1440px — owner/admin shell */
-  --taj-section-max: 72rem; /* 1152px — inner sections */
+  --taj-page-max: 80rem;
+  --taj-page-max-narrow: 42rem;
+  --taj-dashboard-max: 90rem;
+  --taj-section-max: 72rem;
 
-  /* ---- Horizontal padding (mobile-first) ---- */
   --taj-page-px: 1rem;
   --taj-page-px-sm: 1.5rem;
   --taj-page-px-lg: 2rem;
   --taj-page-px-xl: 2.5rem;
 
-  /* ---- Vertical section rhythm ---- */
   --taj-section-gap: 2rem;
   --taj-section-gap-lg: 3rem;
   --taj-stack-sm: 0.75rem;
@@ -24,7 +22,6 @@
   --taj-stack-lg: 1.5rem;
   --taj-stack-xl: 2rem;
 
-  /* ---- Spacing scale ---- */
   --taj-space-1: 0.25rem;
   --taj-space-2: 0.5rem;
   --taj-space-3: 0.75rem;
@@ -35,7 +32,6 @@
   --taj-space-10: 2.5rem;
   --taj-space-12: 3rem;
 
-  /* ---- Radius ---- */
   --taj-radius-sm: 0.5rem;
   --taj-radius-md: 0.75rem;
   --taj-radius-lg: 1rem;
@@ -44,15 +40,13 @@
   --taj-radius-card: 1rem;
   --taj-radius-card-lg: 1.25rem;
 
-  /* ---- Shadows ---- */
-  --taj-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.12);
-  --taj-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.22);
+  --taj-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
+  --taj-shadow-md: 0 8px 28px rgba(0, 0, 0, 0.28);
   --taj-shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.32);
-  --taj-shadow-card: 0 10px 28px rgba(0, 0, 0, 0.28);
-  --taj-shadow-glow: 0 0 24px rgba(52, 211, 153, 0.12);
-  --taj-shadow-focus: 0 0 0 3px rgba(52, 211, 153, 0.28);
+  --taj-shadow-card: 0 10px 32px rgba(0, 0, 0, 0.25);
+  --taj-shadow-glow: 0 0 20px rgba(34, 197, 94, 0.18);
+  --taj-shadow-focus: 0 0 0 3px rgba(52, 211, 153, 0.4);
 
-  /* ---- Typography ---- */
   --taj-font-ui: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   --taj-font-display: "Playfair Display", Georgia, serif;
   --taj-text-xs: 0.75rem;
@@ -62,49 +56,58 @@
   --taj-text-xl: 1.25rem;
   --taj-text-2xl: 1.5rem;
   --taj-text-3xl: clamp(1.65rem, 4vw, 2.25rem);
-  --taj-leading-tight: 1.2;
-  --taj-leading-normal: 1.5;
-  --taj-leading-relaxed: 1.65;
+  --taj-leading-tight: 1.22;
+  --taj-leading-normal: 1.55;
+  --taj-leading-relaxed: 1.7;
 
-  /* ---- Control sizes (touch-friendly) ---- */
-  --taj-control-h: 2.75rem; /* 44px */
-  --taj-control-h-sm: 2.5rem; /* 40px */
-  --taj-control-h-lg: 3rem; /* 48px */
+  --taj-control-h: 2.75rem;
+  --taj-control-h-sm: 2.5rem;
+  --taj-control-h-lg: 3rem;
   --taj-control-px: 0.875rem;
 
-  /* ---- Colors — dashboard (dark extranet) ---- */
-  --taj-color-bg: #0b0f0e;
-  --taj-color-bg-elevated: #0f1f1a;
-  --taj-color-bg-card: rgba(255, 255, 255, 0.05);
-  --taj-color-bg-card-solid: #121f14;
-  --taj-color-border: rgba(255, 255, 255, 0.1);
-  --taj-color-border-strong: rgba(255, 255, 255, 0.16);
-  --taj-color-text: #f8fafc;
-  --taj-color-text-secondary: #b5c9c3;
-  --taj-color-text-muted: #6f8f86;
-  --taj-color-primary: #145c43;
-  --taj-color-primary-hover: #1a7354;
-  --taj-color-accent: #34d399;
+  /* ---- TajStay brand palette (emerald / jade — NOT blue) ---- */
+  --taj-emerald-50: #ecfdf5;
+  --taj-emerald-400: #34d399;
+  --taj-emerald-500: #22c55e;
+  --taj-emerald-600: #16a34a;
+  --taj-emerald-700: #15803d;
+  --taj-emerald-800: #166534;
+  --taj-jade-900: #0f3d2e;
+  --taj-sand-400: #d4b87a;
+  --taj-sand-500: #c9a227;
+
+  --taj-color-bg: #041a12;
+  --taj-color-bg-elevated: #0a2418;
+  --taj-color-bg-card: rgba(18, 48, 32, 0.55);
+  --taj-color-bg-card-solid: #0f2a1c;
+  --taj-color-border: rgba(110, 231, 183, 0.14);
+  --taj-color-border-strong: rgba(110, 231, 183, 0.28);
+  --taj-color-text: #f0f7f2;
+  --taj-color-text-secondary: #b8d4c4;
+  --taj-color-text-muted: #7a9f8a;
+  --taj-color-primary: #22c55e;
+  --taj-color-primary-hover: #4ade80;
+  --taj-color-primary-active: #16a34a;
+  --taj-color-accent: var(--taj-sand-400);
   --taj-color-danger: #f87171;
   --taj-color-success: #4ade80;
   --taj-color-warning: #fbbf24;
 
-  /* ---- Colors — public (light-on-dark marketing) ---- */
-  --taj-public-surface: rgba(255, 255, 255, 0.06);
-  --taj-public-surface-strong: rgba(255, 255, 255, 0.1);
+  --taj-public-surface: rgba(15, 42, 28, 0.65);
+  --taj-public-surface-strong: rgba(20, 55, 38, 0.85);
 
-  /* ---- Legacy aliases (keep existing pages working) ---- */
-  --ds-primary: var(--taj-color-primary);
-  --ds-secondary: var(--taj-color-primary);
+  /* Legacy DS aliases */
+  --ds-primary: var(--taj-jade-900);
+  --ds-secondary: var(--taj-emerald-600);
   --ds-bg-main: var(--taj-color-bg);
   --ds-bg-section: var(--taj-color-bg-elevated);
   --ds-text-primary: var(--taj-color-text);
   --ds-text-secondary: var(--taj-color-text-secondary);
   --ds-text-muted: var(--taj-color-text-muted);
-  --ds-border: #2a4a40;
+  --ds-border: rgba(47, 107, 85, 0.55);
   --ds-shadow-soft: var(--taj-shadow-card);
   --ds-radius: var(--taj-radius-xl);
-  --ds-glow: rgba(0, 255, 150, 0.15);
+  --ds-glow: var(--taj-shadow-glow);
 }
 
 @media (min-width: 640px) {
