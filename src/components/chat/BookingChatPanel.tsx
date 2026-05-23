@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { isSyntheticArchiveChatMessageId } from "@/lib/chat/archiveMessageIds";
@@ -149,6 +150,49 @@ function statusLabelRu(status: string): string {
 function avatarLetter(name: string): string {
   const t = (name || "?").trim();
   return t.slice(0, 1).toUpperCase();
+}
+
+function roleAccent(role: string): { bubble: string; meta: string; avatar: string; label: string } {
+  if (role === "OWNER") {
+    return {
+      bubble:
+        "bg-gradient-to-br from-sky-600 to-sky-700 text-white ring-1 ring-sky-300/25 shadow-[0_4px_18px_-8px_rgba(56,189,248,0.45)]",
+      meta: "text-sky-100/80",
+      avatar: "bg-gradient-to-br from-sky-500/30 to-sky-700/25 text-sky-100 ring-sky-300/25",
+      label: "text-sky-200"
+    };
+  }
+  if (role === "ADMIN") {
+    return {
+      bubble:
+        "bg-gradient-to-br from-violet-600 to-indigo-700 text-white ring-1 ring-violet-300/25 shadow-[0_4px_18px_-8px_rgba(139,92,246,0.45)]",
+      meta: "text-violet-100/80",
+      avatar: "bg-gradient-to-br from-violet-500/30 to-indigo-700/25 text-violet-100 ring-violet-300/25",
+      label: "text-violet-200"
+    };
+  }
+  if (role === "GUEST") {
+    return {
+      bubble:
+        "bg-gradient-to-br from-emerald-600 to-teal-700 text-white ring-1 ring-emerald-300/25 shadow-[0_4px_18px_-8px_rgba(16,185,129,0.45)]",
+      meta: "text-emerald-100/80",
+      avatar: "bg-gradient-to-br from-emerald-500/30 to-teal-600/25 text-emerald-100 ring-emerald-300/25",
+      label: "text-emerald-200"
+    };
+  }
+  return {
+    bubble: "bg-slate-800 text-slate-100 ring-1 ring-white/10",
+    meta: "text-slate-400",
+    avatar: "bg-white/10 text-slate-200 ring-white/10",
+    label: "text-slate-300"
+  };
+}
+
+function roleShortLabel(role: string, locale: Locale): string {
+  if (role === "GUEST") return m(locale, "bookingRoom.counterpartGuest") || "Гость";
+  if (role === "OWNER") return m(locale, "bookingRoom.counterpartOwner") || "Владелец";
+  if (role === "ADMIN") return "Поддержка";
+  return role;
 }
 
 export function BookingChatPanel({
@@ -596,27 +640,29 @@ export function BookingChatPanel({
           </span>
         </div>
       ) : (
-      <header className="sticky top-0 z-20 flex shrink-0 items-center gap-3 border-b border-white/[0.08] bg-slate-950/90 px-4 py-3 shadow-[0_8px_24px_rgba(0,0,0,0.35)] backdrop-blur-xl supports-[backdrop-filter]:bg-slate-950/75">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500/30 to-teal-600/20 text-lg font-bold text-emerald-100 ring-1 ring-white/10">
+      <header className="sticky top-0 z-20 flex shrink-0 items-start gap-3 border-b border-white/[0.08] bg-slate-950/90 px-3.5 py-2.5 shadow-[0_8px_24px_rgba(0,0,0,0.35)] backdrop-blur-xl supports-[backdrop-filter]:bg-slate-950/75 sm:px-4 sm:py-3">
+        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-base font-bold ring-1 ring-inset ${roleAccent(currentUserRole === "GUEST" ? "OWNER" : currentUserRole === "OWNER" ? "GUEST" : "ADMIN").avatar}`}>
           {avatarLetter(title)}
         </div>
         <div className="min-w-0 flex-1">
-          <div className="truncate text-[15px] font-semibold tracking-tight text-white">{title}</div>
-          <div className="truncate text-xs text-slate-400">{headerSubtitle}</div>
-          {counterpartTrustBadges.length ? (
-            <TrustBadges locale={locale} badges={counterpartTrustBadges} size="sm" className="mt-1.5" />
-          ) : null}
-          <div className="mt-1.5 flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-2">
+            <div className="truncate text-[14px] font-semibold tracking-tight text-white sm:text-[15px]">{title}</div>
             <span
-              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ring-1 ring-inset ${statusPillClass(statusForPill)}`}
+              className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide ring-1 ring-inset ${statusPillClass(statusForPill)}`}
             >
               {uiStatus === "Обработка..." ? "…" : statusLabelLocalized(statusForPill, locale)}
             </span>
+          </div>
+          <div className="truncate text-[11px] text-slate-400">{headerSubtitle}</div>
+          {counterpartTrustBadges.length ? (
+            <TrustBadges locale={locale} badges={counterpartTrustBadges} size="sm" className="mt-1.5" />
+          ) : null}
+          <div className="mt-1 flex flex-wrap items-center gap-2 text-[10px]">
             {isAdmin ? (
               <button
                 type="button"
                 onClick={() => adminPurgeRoom()}
-                className="text-[10px] font-semibold uppercase tracking-wide text-red-300/90 underline-offset-2 hover:underline"
+                className="font-semibold uppercase tracking-wide text-red-300/90 underline-offset-2 hover:underline"
               >
                 Очистить чат
               </button>
@@ -625,7 +671,7 @@ export function BookingChatPanel({
               <button
                 type="button"
                 onClick={() => ownerHideChat()}
-                className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 underline-offset-2 hover:text-slate-200 hover:underline"
+                className="font-semibold uppercase tracking-wide text-slate-400 underline-offset-2 hover:text-slate-200 hover:underline"
               >
                 Удалить чат
               </button>
@@ -635,7 +681,7 @@ export function BookingChatPanel({
           (effectiveStatus === "WAITING_PAYMENT" ||
             effectiveStatus === "WAIT_PROOF" ||
             effectiveStatus === "ON_REVIEW") ? (
-            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-400">
+            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-400">
               {effectiveStatus === "ON_REVIEW" && liveBooking.proofReviewDeadlineAt ? (
                 <span className="tabular-nums text-slate-300">
                   {m(locale, "status.ON_REVIEW")}:{" "}
@@ -656,12 +702,12 @@ export function BookingChatPanel({
             </div>
           ) : null}
           {isAdmin && (effectiveStatus === "WAITING_PAYMENT" || effectiveStatus === "WAIT_PROOF") ? (
-            <div className="mt-2 flex flex-wrap gap-2">
+            <div className="mt-1.5 -mx-1 flex gap-2 overflow-x-auto px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 type="button"
                 disabled={actionBusy}
                 onClick={() => void adminExtendBooking()}
-                className="rounded-lg border border-amber-400/30 bg-amber-500/15 px-2.5 py-1 text-[10px] font-semibold text-amber-100"
+                className="shrink-0 rounded-lg border border-amber-400/30 bg-amber-500/15 px-2.5 py-1 text-[10px] font-semibold text-amber-100"
               >
                 {m(locale, "chat.extend5")}
               </button>
@@ -669,7 +715,7 @@ export function BookingChatPanel({
                 type="button"
                 disabled={actionBusy || liveBooking?.paymentTimerPaused}
                 onClick={() => void adminTimerAction("pause")}
-                className="rounded-lg border border-white/15 bg-white/5 px-2.5 py-1 text-[10px] font-semibold text-slate-200"
+                className="shrink-0 rounded-lg border border-white/15 bg-white/5 px-2.5 py-1 text-[10px] font-semibold text-slate-200"
               >
                 {m(locale, "chat.pauseTimer")}
               </button>
@@ -677,7 +723,7 @@ export function BookingChatPanel({
                 type="button"
                 disabled={actionBusy || !liveBooking?.paymentTimerPaused}
                 onClick={() => void adminTimerAction("resume")}
-                className="rounded-lg border border-emerald-400/30 bg-emerald-500/15 px-2.5 py-1 text-[10px] font-semibold text-emerald-100"
+                className="shrink-0 rounded-lg border border-emerald-400/30 bg-emerald-500/15 px-2.5 py-1 text-[10px] font-semibold text-emerald-100"
               >
                 {m(locale, "chat.resumeTimer")}
               </button>
@@ -688,7 +734,7 @@ export function BookingChatPanel({
           <button
             type="button"
             onClick={onClose}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-lg text-slate-200 transition hover:bg-white/10"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-base text-slate-200 transition hover:bg-white/10"
             aria-label="Закрыть чат"
           >
             ×
@@ -730,81 +776,79 @@ export function BookingChatPanel({
               const msg = row.msg;
               const mine = msg.senderId === currentUserId;
               const system = msg.senderRole === "SYSTEM";
-              const fromGuest = msg.senderRole === "GUEST";
               if (system) {
                 return (
-                  <div key={row.key} className="mx-auto my-1 max-w-[92%]">
-                    <div className="rounded-xl border border-violet-400/20 bg-violet-500/10 px-3 py-2 text-center">
+                  <div key={row.key} className="mx-auto my-1.5 max-w-[88%]">
+                    <div className="rounded-full border border-violet-400/20 bg-violet-500/10 px-3 py-1.5 text-center">
                       <p className="text-[11px] leading-snug text-violet-100/90">
                         <span aria-hidden className="mr-1">
                           🛡️
                         </span>
                         {msg.message.replace(/^🛡️\s*/, "")}
+                        <span className="ml-2 text-[9px] tabular-nums text-violet-300/55">{timeLabel(msg.createdAt)}</span>
                       </p>
-                      <p className="mt-1 text-[9px] text-violet-300/50">{timeLabel(msg.createdAt)}</p>
                     </div>
                   </div>
                 );
               }
+              const accent = roleAccent(msg.senderRole);
+              const align = mine ? "justify-end" : "justify-start";
+              const tail = mine ? "rounded-br-md" : "rounded-bl-md";
+              const bubbleColors = mine
+                ? accent.bubble
+                : "bg-[#161e2e] text-slate-100 ring-1 ring-white/10";
+              const metaColor = mine ? accent.meta : "text-slate-400";
+              const hasText = !!msg.message && msg.message !== "📎";
               return (
                 <div
                   key={row.key}
-                  className={`group flex w-full ${fromGuest ? "justify-end" : "justify-start"} ${row.showMeta ? "mt-2" : "mt-0.5"}`}
+                  className={`group flex w-full ${align} ${row.showMeta ? "mt-2.5" : "mt-1"}`}
                 >
-                  <div
-                    className={`relative max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm shadow-md ${
-                      fromGuest
-                        ? "rounded-br-md bg-emerald-600 text-white"
-                        : "rounded-bl-md bg-slate-800 text-slate-100 ring-1 ring-white/10"
-                    }`}
-                  >
-                    {isAdmin && !isSyntheticArchiveChatMessageId(msg.id) ? (
-                      <button
-                        type="button"
-                        title="Скрыть"
-                        onClick={() => adminDeleteMessage(msg.id)}
-                        className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-red-500/90 text-[11px] font-bold text-white opacity-0 transition group-hover:opacity-100"
-                      >
-                        ×
-                      </button>
+                  <div className={`flex max-w-[82%] flex-col ${mine ? "items-end" : "items-start"}`}>
+                    {row.showMeta && !mine ? (
+                      <span className={`mb-1 px-2 text-[10px] font-semibold uppercase tracking-wide ${accent.label}`}>
+                        {msg.senderName} · {roleShortLabel(msg.senderRole, locale)}
+                      </span>
                     ) : null}
-                    {row.showMeta ? (
-                      <div
-                        className={`mb-1 flex items-center justify-between gap-2 text-[10px] ${fromGuest ? "text-emerald-100/90" : "text-slate-400"}`}
-                      >
-                        <span className="font-medium">{mine ? m(locale, "chat.you") : msg.senderName}</span>
-                        <span>
-                          {timeLabel(msg.createdAt)}
-                          {mine && msg.readAt ? (
-                            <span className="ml-1 text-emerald-200/70" title={m(locale, "chat.readReceipt")}>
-                              ✓✓
-                            </span>
-                          ) : null}
-                        </span>
-                      </div>
-                    ) : (
-                      <div className={`text-right text-[9px] ${fromGuest ? "text-emerald-100/60" : "text-slate-500"}`}>
-                        {timeLabel(msg.createdAt)}
+                    <div
+                      className={`relative min-w-0 rounded-2xl px-3 py-2 text-[13.5px] leading-snug ${tail} ${bubbleColors}`}
+                    >
+                      {isAdmin && !isSyntheticArchiveChatMessageId(msg.id) ? (
+                        <button
+                          type="button"
+                          title="Скрыть"
+                          onClick={() => adminDeleteMessage(msg.id)}
+                          className="absolute -right-1.5 -top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-red-500/90 text-[11px] font-bold text-white opacity-0 shadow-md transition group-hover:opacity-100"
+                        >
+                          ×
+                        </button>
+                      ) : null}
+                      {msg.imageUrl ? (
+                        <button
+                          type="button"
+                          onClick={() => setLightbox(msg.imageUrl || null)}
+                          className={`block overflow-hidden rounded-xl ring-1 ring-white/15 ${hasText ? "mb-1.5" : ""}`}
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={msg.imageUrl} alt="" className="max-h-56 w-full max-w-[260px] object-cover" />
+                        </button>
+                      ) : null}
+                      {hasText ? (
+                        <div className="whitespace-pre-wrap break-words [overflow-wrap:anywhere] hyphens-auto">
+                          {msg.message}
+                        </div>
+                      ) : null}
+                      <div className={`mt-1 flex items-center justify-end gap-1 text-[10px] tabular-nums ${metaColor}`}>
+                        <span>{timeLabel(msg.createdAt)}</span>
                         {mine && msg.readAt ? (
-                          <span className="ml-1 text-emerald-200/70" title={m(locale, "chat.readReceipt")}>
-                            ✓✓
+                          <span title={m(locale, "chat.readReceipt")}>✓✓</span>
+                        ) : mine ? (
+                          <span className="opacity-60" title={m(locale, "chat.you")}>
+                            ✓
                           </span>
                         ) : null}
                       </div>
-                    )}
-                    {msg.imageUrl ? (
-                      <button
-                        type="button"
-                        onClick={() => setLightbox(msg.imageUrl || null)}
-                        className="mt-1 block overflow-hidden rounded-xl ring-1 ring-white/15"
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={msg.imageUrl} alt="" className="max-h-40 w-full object-cover" />
-                      </button>
-                    ) : null}
-                    {msg.message && msg.message !== "📎" ? (
-                      <div className={`whitespace-pre-wrap break-words ${row.showMeta ? "pt-1" : ""}`}>{msg.message}</div>
-                    ) : null}
+                    </div>
                   </div>
                 </div>
               );
@@ -815,160 +859,150 @@ export function BookingChatPanel({
       </div>
 
       <div
-        className="sticky bottom-0 z-10 shrink-0 space-y-2 border-t border-white/[0.08] bg-[rgba(7,10,14,0.96)] px-3 py-3 backdrop-blur-2xl"
-        style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom))" }}
+        className="sticky bottom-0 z-10 shrink-0 space-y-2 border-t border-white/[0.08] bg-[rgba(7,10,14,0.96)] px-3 py-2.5 backdrop-blur-2xl"
+        style={{ paddingBottom: "max(10px, env(safe-area-inset-bottom))" }}
       >
         {isAdmin && effectiveStatus === "ON_REVIEW" && !suppressReviewActions ? (
           <button
             type="button"
             disabled={actionBusy}
             onClick={() => void adminConfirmPaymentFromChat()}
-            className="w-full rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 py-4 text-base font-bold text-white shadow-[0_0_28px_rgba(16,185,129,0.35)] transition hover:brightness-105 disabled:opacity-55"
+            className="w-full rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 py-3.5 text-sm font-bold text-white shadow-[0_0_28px_rgba(16,185,129,0.35)] transition hover:brightness-105 disabled:opacity-55"
           >
             {actionBusy ? "…" : m(locale, "chat.confirmPayBig")}
           </button>
         ) : null}
 
-        <div
-          className="rounded-2xl border border-white/[0.09] bg-white/[0.04] p-2.5 backdrop-blur-md"
-          style={{ borderRadius: 16 }}
-        >
-          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-            <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Действия</div>
-            <div className="text-[10px] text-slate-500">{currentUserRole}</div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {isGuest && (effectiveStatus === "WAITING_PAYMENT" || effectiveStatus === "WAIT_PROOF") ? (
-              paymentCode && !suppressPaymentDeepLink ? (
-                <Link
-                  href={`/payment/${encodeURIComponent(paymentCode)}?after=1`}
-                  className="rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs font-semibold text-emerald-100 transition hover:bg-white/10"
-                >
-                  Загрузить чек
-                </Link>
-              ) : null
-            ) : null}
-            {isOwner && effectiveStatus === "CONFIRMED" ? (
-              (() => {
-                const allowed = !!checkIn && isOnOrAfterLocalDay(new Date(), checkIn);
-                return (
-                  <button
-                    type="button"
-                    disabled={actionBusy || !allowed}
-                    onClick={() => {
-                      if (!allowed) return;
-                      callAction({
-                        nextStatus: "CHECKED_IN",
-                        url: `/api/owner/bookings/${bookingId}/check-in`,
-                        errorPrefix: "Не удалось подтвердить заселение"
-                      });
-                    }}
-                    className="rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white disabled:opacity-60"
-                    title={!allowed ? "В день заезда" : undefined}
-                  >
-                    Заселение
-                  </button>
-                );
-              })()
-            ) : null}
-            {canGuestCancel ? (
+        {(() => {
+          const actions: ReactNode[] = [];
+          if (isGuest && (effectiveStatus === "WAITING_PAYMENT" || effectiveStatus === "WAIT_PROOF") && paymentCode && !suppressPaymentDeepLink) {
+            actions.push(
+              <Link
+                key="upload-proof"
+                href={`/payment/${encodeURIComponent(paymentCode)}?after=1`}
+                className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1.5 text-[11px] font-semibold text-emerald-100 transition hover:bg-emerald-500/20"
+              >
+                <span aria-hidden>📄</span> Загрузить чек
+              </Link>
+            );
+          }
+          if (isOwner && effectiveStatus === "CONFIRMED") {
+            const allowed = !!checkIn && isOnOrAfterLocalDay(new Date(), checkIn);
+            actions.push(
               <button
+                key="check-in"
+                type="button"
+                disabled={actionBusy || !allowed}
+                onClick={() => {
+                  if (!allowed) return;
+                  callAction({
+                    nextStatus: "CHECKED_IN",
+                    url: `/api/owner/bookings/${bookingId}/check-in`,
+                    errorPrefix: "Не удалось подтвердить заселение"
+                  });
+                }}
+                className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600 px-3 py-1.5 text-[11px] font-semibold text-white shadow-sm transition hover:brightness-110 disabled:opacity-55"
+                title={!allowed ? "В день заезда" : undefined}
+              >
+                <span aria-hidden>🔑</span> Заселение
+              </button>
+            );
+          }
+          if (canGuestCancel) {
+            actions.push(
+              <button
+                key="cancel-guest"
                 type="button"
                 onClick={() => setConfirmCancelOpen(true)}
-                className="rounded-xl border border-red-400/35 px-3 py-2 text-xs font-semibold text-red-200"
+                className="inline-flex items-center gap-1.5 rounded-full border border-red-400/30 bg-red-500/[0.08] px-3 py-1.5 text-[11px] font-semibold text-red-200 transition hover:bg-red-500/15"
               >
                 Отменить бронь
               </button>
-            ) : null}
-            {canAdminCancel ? (
+            );
+          }
+          if (canAdminCancel) {
+            actions.push(
               <button
+                key="cancel-admin"
                 type="button"
                 onClick={() => setConfirmAdminCancelOpen(true)}
-                className="rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-200"
+                className="inline-flex items-center gap-1.5 rounded-full border border-red-500/40 bg-red-500/15 px-3 py-1.5 text-[11px] font-semibold text-red-200 transition hover:bg-red-500/25"
               >
                 {m(locale, "chat.adminCancelBooking")}
               </button>
-            ) : null}
-          </div>
-        </div>
+            );
+          }
+          if (!actions.length) return null;
+          return (
+            <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {actions}
+            </div>
+          );
+        })()}
 
-        {isGuest && canSend && (effectiveStatus === "WAITING_PAYMENT" || effectiveStatus === "WAIT_PROOF") ? (
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              disabled={sending}
-              onClick={() => void sendQuickReply(m(locale, "chat.quickPaidBtn"))}
-              className="rounded-full border border-emerald-400/25 bg-emerald-500/10 px-3 py-2 text-[11px] font-semibold text-emerald-100 disabled:opacity-50"
-            >
-              {m(locale, "chat.quickPaidBtn")}
-            </button>
-            <button
-              type="button"
-              disabled={sending}
-              onClick={() => void sendQuickReply(m(locale, "chat.quickUploadReceipt"))}
-              className="rounded-full border border-white/12 bg-white/5 px-3 py-2 text-[11px] font-semibold text-slate-200 disabled:opacity-50"
-            >
-              {m(locale, "chat.quickUploadReceipt")}
-            </button>
-            <button
-              type="button"
-              disabled={sending}
-              onClick={() => void sendQuickReply(m(locale, "chat.quickAlmostThere"))}
-              className="rounded-full border border-white/12 bg-white/5 px-3 py-2 text-[11px] font-semibold text-slate-200 disabled:opacity-50"
-            >
-              {m(locale, "chat.quickAlmostThere")}
-            </button>
-          </div>
-        ) : null}
-
-        {isOwner && canSend && !chatArchived ? (
-          <div className="flex flex-wrap gap-2">
-            {HOST_QUICK_KEYS.map((k) => {
-              const label = m(locale, `chat.quickReply.host.${k}`);
-              return (
+        {(() => {
+          const chips: { key: string; label: string; tone: "guest" | "owner" | "admin" }[] = [];
+          if (isGuest && canSend && (effectiveStatus === "WAITING_PAYMENT" || effectiveStatus === "WAIT_PROOF")) {
+            chips.push(
+              { key: "g-paid", label: m(locale, "chat.quickPaidBtn"), tone: "guest" },
+              { key: "g-receipt", label: m(locale, "chat.quickUploadReceipt"), tone: "guest" },
+              { key: "g-almost", label: m(locale, "chat.quickAlmostThere"), tone: "guest" }
+            );
+          }
+          if (isOwner && canSend && !chatArchived) {
+            HOST_QUICK_KEYS.forEach((k) => chips.push({ key: `o-${k}`, label: m(locale, `chat.quickReply.host.${k}`), tone: "owner" }));
+          }
+          if (isAdmin && canSend && !chatArchived) {
+            ADMIN_QUICK_KEYS.forEach((k) => chips.push({ key: `a-${k}`, label: m(locale, `chat.quickReply.admin.${k}`), tone: "admin" }));
+          }
+          if (!chips.length) return null;
+          const toneClass = (t: "guest" | "owner" | "admin") =>
+            t === "guest"
+              ? "border-emerald-400/25 bg-emerald-500/10 text-emerald-100 hover:bg-emerald-500/20"
+              : t === "owner"
+                ? "border-sky-400/25 bg-sky-500/10 text-sky-100 hover:bg-sky-500/20"
+                : "border-violet-400/25 bg-violet-500/10 text-violet-100 hover:bg-violet-500/20";
+          return (
+            <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {chips.map((c) => (
                 <button
-                  key={k}
+                  key={c.key}
                   type="button"
                   disabled={sending}
-                  title={label}
-                  onClick={() => void sendQuickReply(label)}
-                  className="max-w-[220px] truncate rounded-full border border-emerald-400/25 bg-emerald-500/10 px-3 py-2 text-[11px] font-semibold text-emerald-100 disabled:opacity-50"
+                  title={c.label}
+                  onClick={() => void sendQuickReply(c.label)}
+                  className={`max-w-[240px] shrink-0 truncate rounded-full border px-3 py-1.5 text-[11px] font-semibold transition disabled:opacity-50 ${toneClass(c.tone)}`}
                 >
-                  {label}
+                  {c.label}
                 </button>
-              );
-            })}
-          </div>
-        ) : null}
-
-        {isAdmin && canSend && !chatArchived ? (
-          <div className="flex flex-wrap gap-2">
-            {ADMIN_QUICK_KEYS.map((k) => {
-              const label = m(locale, `chat.quickReply.admin.${k}`);
-              return (
-                <button
-                  key={k}
-                  type="button"
-                  disabled={sending}
-                  title={label}
-                  onClick={() => void sendQuickReply(label)}
-                  className="max-w-[220px] truncate rounded-full border border-indigo-400/25 bg-indigo-500/10 px-3 py-2 text-[11px] font-semibold text-indigo-100 disabled:opacity-50"
-                >
-                  {label}
-                </button>
-              );
-            })}
-          </div>
-        ) : null}
+              ))}
+            </div>
+          );
+        })()}
 
         <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
-        {file ? <div className="truncate text-[11px] text-emerald-200/90">{file.name}</div> : null}
-        <div className="flex min-h-[52px] items-end gap-1 rounded-full border border-white/12 bg-slate-900/95 py-1.5 pl-2 pr-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+        {file ? (
+          <div className="flex items-center justify-between gap-2 rounded-xl border border-emerald-400/20 bg-emerald-500/[0.08] px-3 py-1.5 text-[11px] text-emerald-100">
+            <span className="truncate">📎 {file.name}</span>
+            <button
+              type="button"
+              onClick={() => {
+                setFile(null);
+                if (fileRef.current) fileRef.current.value = "";
+              }}
+              className="shrink-0 rounded-full px-1.5 text-emerald-200 hover:bg-emerald-500/15"
+              aria-label="Убрать файл"
+            >
+              ×
+            </button>
+          </div>
+        ) : null}
+        <div className="flex min-h-[48px] items-end gap-1 rounded-3xl border border-white/[0.10] bg-slate-900/85 py-1 pl-1.5 pr-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] focus-within:border-emerald-400/40 focus-within:ring-2 focus-within:ring-emerald-400/15">
           <button
             type="button"
             disabled={chatArchived || !canSend}
             onClick={() => fileRef.current?.click()}
-            className="mb-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg text-slate-300 transition hover:bg-white/5 disabled:opacity-40"
+            className="mb-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-base text-slate-300 transition hover:bg-white/5 disabled:opacity-40"
             aria-label="Прикрепить изображение"
           >
             📎
@@ -979,7 +1013,7 @@ export function BookingChatPanel({
             placeholder={chatArchived ? "Архив…" : "Сообщение…"}
             disabled={chatArchived || !canSend}
             rows={1}
-            className="mb-1 max-h-28 min-h-[44px] flex-1 resize-none rounded-2xl bg-transparent px-2 py-2.5 text-sm text-slate-100 outline-none placeholder:text-slate-500 disabled:opacity-50"
+            className="my-1 max-h-28 min-h-[36px] flex-1 resize-none rounded-2xl bg-transparent px-2 py-1.5 text-[13.5px] leading-snug text-slate-100 outline-none placeholder:text-slate-500 disabled:opacity-50"
             maxLength={1500}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
@@ -994,12 +1028,19 @@ export function BookingChatPanel({
               send().catch(() => undefined);
             }}
             disabled={!canSubmit}
-            className="mb-0.5 shrink-0 rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-[0_0_18px_rgba(16,185,129,0.25)] disabled:opacity-45"
+            aria-label={m(locale, "chat.you")}
+            className="mb-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-[0_0_18px_rgba(16,185,129,0.25)] transition hover:brightness-110 disabled:from-slate-700 disabled:to-slate-700 disabled:opacity-50"
           >
-            {sending ? "…" : "Отпр."}
+            {sending ? (
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden />
+            ) : (
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 12l14-7-5 14-3-6-6-1z" />
+              </svg>
+            )}
           </button>
         </div>
-        {error ? <div className="text-xs text-red-300">{error}</div> : null}
+        {error ? <div className="px-1 text-xs text-red-300">{error}</div> : null}
       </div>
 
       {confirmCancelOpen ? (
@@ -1087,14 +1128,35 @@ export function BookingChatPanel({
     </>
   );
 
-  const shellClass =
-    presentation === "overlay"
-      ? "fixed inset-0 z-[100] flex flex-col bg-[rgba(7,10,14,0.92)] backdrop-blur-xl sm:inset-4 sm:rounded-2xl sm:border sm:border-white/10"
-      : embeddedInRoom
-        ? "flex h-full min-h-0 flex-col overflow-hidden"
-        : density === "compact"
-          ? "flex h-[min(52dvh,520px)] min-h-[260px] flex-col overflow-hidden rounded-2xl border border-white/10 bg-[rgba(15,23,42,0.55)] shadow-2xl backdrop-blur-xl"
-          : "flex h-[min(720px,calc(100vh-8rem))] min-h-[420px] flex-col overflow-hidden rounded-2xl border border-white/10 bg-[rgba(15,23,42,0.55)] shadow-2xl backdrop-blur-xl";
+  if (presentation === "overlay") {
+    return (
+      <div
+        className="fixed inset-0 z-[100] flex items-stretch justify-center sm:items-center sm:p-4"
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+      >
+        <button
+          type="button"
+          aria-label="Закрыть чат"
+          onClick={onClose}
+          className="absolute inset-0 cursor-default bg-black/55 backdrop-blur-sm"
+        />
+        <div
+          className="relative z-[1] flex h-[100dvh] w-full flex-col overflow-hidden bg-[rgba(7,10,14,0.97)] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.65)] sm:h-[min(820px,calc(100dvh-2rem))] sm:max-w-[640px] sm:rounded-3xl sm:border sm:border-white/10 sm:ring-1 sm:ring-white/5"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {inner}
+        </div>
+      </div>
+    );
+  }
+
+  const shellClass = embeddedInRoom
+    ? "flex h-full min-h-0 flex-col overflow-hidden"
+    : density === "compact"
+      ? "flex h-[min(60dvh,560px)] min-h-[320px] flex-col overflow-hidden rounded-3xl border border-white/10 bg-[rgba(15,23,42,0.6)] shadow-2xl backdrop-blur-xl"
+      : "flex h-[min(720px,calc(100vh-8rem))] min-h-[420px] flex-col overflow-hidden rounded-3xl border border-white/10 bg-[rgba(15,23,42,0.6)] shadow-2xl backdrop-blur-xl";
 
   return <div className={shellClass}>{inner}</div>;
 }
@@ -1104,17 +1166,31 @@ type LauncherProps = Omit<BookingChatPanelProps, "presentation" | "onClose"> & {
 export function BookingChatLauncher(props: LauncherProps) {
   const { openLabel = "Открыть чат", defaultOpen, ...rest } = props;
   const [open, setOpen] = useState(Boolean(defaultOpen));
+
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
   return (
     <>
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-2 rounded-2xl border border-emerald-400/35 bg-emerald-500/15 px-4 py-2.5 text-sm font-semibold text-emerald-100 shadow-[0_0_24px_rgba(16,185,129,0.12)] backdrop-blur-md transition hover:bg-emerald-500/25"
-        style={{ borderRadius: 16 }}
+        className="inline-flex items-center gap-2 rounded-full border border-emerald-400/35 bg-emerald-500/15 px-4 py-2 text-sm font-semibold text-emerald-100 shadow-[0_0_22px_rgba(16,185,129,0.18)] backdrop-blur-md transition hover:bg-emerald-500/25"
       >
-        <span className="text-base" aria-hidden>
-          💬
-        </span>
+        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+        </svg>
         {openLabel}
       </button>
       {open ? <BookingChatPanel {...rest} presentation="overlay" onClose={() => setOpen(false)} /> : null}
