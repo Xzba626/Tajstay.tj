@@ -80,7 +80,7 @@ export function PwaInstallPrompt({ labels }: { labels: PwaInstallLabels }) {
     >
       <div className="flex gap-3">
         <Image
-          src="/icons/icon-192.png"
+          src="/icons/icon-192.png?v=3"
           alt=""
           width={48}
           height={48}
