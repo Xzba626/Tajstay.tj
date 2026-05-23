@@ -54,11 +54,11 @@ export function SplashScreenClient({ subtitle }: Props) {
     >
       <div className={fadeOut ? "taj-splash-logo-out flex flex-col items-center gap-6" : "animate-splash-in flex flex-col items-center gap-6"}>
         <Image
-          src="/logo-main.png"
+          src="/logo.svg"
           alt="TajStay"
-          width={220}
-          height={220}
-          className="h-auto w-44 rounded-xl drop-shadow-2xl"
+          width={280}
+          height={93}
+          className="h-auto w-52 max-w-[min(280px,80vw)] drop-shadow-2xl"
           priority
           unoptimized
         />

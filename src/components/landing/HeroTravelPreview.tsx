@@ -1,18 +1,21 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { HeroTravelBackdrop } from "@/components/landing/HeroTravelBackdrop";
 
 const DESTINATIONS = [
   { id: "dushanbe", label: "Душанбе", x: 52, y: 48 },
   { id: "khujand", label: "Худжанд", x: 38, y: 32 },
-  { id: "pamir", label: "Памир", x: 68, y: 58 }
+  { id: "panjakent", label: "Панҷакент", x: 44, y: 40 },
+  { id: "pamir", label: "Памир", x: 68, y: 58 },
+  { id: "iskanderkul", label: "Искандаркӯл", x: 58, y: 44 }
 ] as const;
 
 type Props = {
   className?: string;
 };
 
-/** Lightweight hero preview — globe, routes, booking card; no WebGL */
+/** Hero preview — mountains, globe, routes, booking cards; no WebGL */
 export function HeroTravelPreview({ className }: Props) {
   const frameRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number | null>(null);
@@ -71,19 +74,21 @@ export function HeroTravelPreview({ className }: Props) {
       onMouseLeave={onLeave}
       aria-hidden
     >
+      <HeroTravelBackdrop />
+
       <div
         className="hero-travel-preview__layer hero-travel-preview__globe"
         style={{ transform: `translate(${offset.x * 0.4}px, ${offset.y * 0.4}px)` }}
       >
         <svg viewBox="0 0 200 200" className="h-full w-full" fill="none">
-          <circle cx="100" cy="100" r="78" stroke="rgba(16, 120, 88, 0.15)" strokeWidth="1.5" />
-          <ellipse cx="100" cy="100" rx="78" ry="28" stroke="rgba(16, 120, 88, 0.1)" strokeWidth="1" />
-          <ellipse cx="100" cy="100" rx="28" ry="78" stroke="rgba(16, 120, 88, 0.1)" strokeWidth="1" />
+          <circle cx="100" cy="100" r="78" stroke="rgba(52, 211, 153, 0.22)" strokeWidth="1.5" />
+          <ellipse cx="100" cy="100" rx="78" ry="28" stroke="rgba(52, 211, 153, 0.12)" strokeWidth="1" />
+          <ellipse cx="100" cy="100" rx="28" ry="78" stroke="rgba(52, 211, 153, 0.12)" strokeWidth="1" />
           <path
             d="M28 100 Q55 72 100 68 Q145 64 172 100 Q145 128 100 132 Q55 136 28 100"
-            stroke="rgba(34, 197, 94, 0.2)"
+            stroke="rgba(34, 197, 94, 0.25)"
             strokeWidth="1.2"
-            fill="rgba(16, 185, 129, 0.04)"
+            fill="rgba(16, 185, 129, 0.06)"
           />
           <path
             className="hero-travel-preview__route"
@@ -93,20 +98,44 @@ export function HeroTravelPreview({ className }: Props) {
             strokeDasharray="6 8"
             strokeLinecap="round"
           />
+          <path
+            className="hero-travel-preview__route"
+            d="M48 108 Q88 92 118 96 Q148 100 168 88"
+            stroke="url(#routeGrad2)"
+            strokeWidth="1.5"
+            strokeDasharray="4 10"
+            strokeLinecap="round"
+            opacity="0.7"
+          />
           <defs>
             <linearGradient id="routeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#34d399" stopOpacity="0.3" />
-              <stop offset="50%" stopColor="#22c55e" stopOpacity="0.8" />
-              <stop offset="100%" stopColor="#d4b87a" stopOpacity="0.6" />
+              <stop offset="0%" stopColor="#34d399" stopOpacity="0.35" />
+              <stop offset="50%" stopColor="#22c55e" stopOpacity="0.9" />
+              <stop offset="100%" stopColor="#d4b87a" stopOpacity="0.65" />
+            </linearGradient>
+            <linearGradient id="routeGrad2" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#6ee7b7" stopOpacity="0.3" />
+              <stop offset="100%" stopColor="#34d399" stopOpacity="0.7" />
             </linearGradient>
           </defs>
           {DESTINATIONS.map((d) => (
             <g key={d.id} transform={`translate(${d.x * 2}, ${d.y * 2})`}>
-              <circle r="5" fill="#22c55e" opacity="0.9" />
-              <circle r="9" fill="#22c55e" opacity="0.15" className="hero-travel-preview__pulse" />
+              <circle r="4" fill="#4ade80" />
+              <circle r="8" fill="#22c55e" className="hero-travel-preview__pulse" />
             </g>
           ))}
         </svg>
+      </div>
+
+      <div
+        className="hero-travel-preview__float hero-travel-preview__float--verified"
+        style={{ transform: `translate(${offset.x * 0.2}px, ${offset.y * 0.15}px)` }}
+      >
+        <span className="hero-travel-preview__float-icon">✓</span>
+        <div>
+          <div className="hero-travel-preview__float-title">Проверено</div>
+          <div className="hero-travel-preview__float-text">Искандаркӯл · дом</div>
+        </div>
       </div>
 
       <div
@@ -123,7 +152,7 @@ export function HeroTravelPreview({ className }: Props) {
       </div>
 
       <div className="hero-travel-preview__chips">
-        {DESTINATIONS.map((d) => (
+        {DESTINATIONS.slice(0, 4).map((d) => (
           <span key={d.id} className="hero-travel-preview__chip">
             {d.label}
           </span>
@@ -132,7 +161,7 @@ export function HeroTravelPreview({ className }: Props) {
 
       <div className="hero-travel-preview__trust">
         <span>✓ Проверенные объекты</span>
-        <span>✓ Чат с хозяином</span>
+        <span>✓ Безопасное бронирование</span>
       </div>
     </div>
   );

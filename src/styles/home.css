@@ -1,12 +1,12 @@
 /**
- * TajStay — PR-2 public homepage
- * Mobile-first · Apple/Airbnb clarity · restrained effects
+ * TajStay — public homepage
+ * Premium dark emerald · mobile-first
  */
 
 /* ---- Page rhythm ---- */
 .home-page {
-  --home-section-py: clamp(2.5rem, 6vw, 4rem);
-  --home-section-py-compact: clamp(1.75rem, 4vw, 2.75rem);
+  --home-section-py: clamp(2rem, 5vw, 3.5rem);
+  --home-section-py-compact: clamp(1.5rem, 3.5vw, 2.5rem);
 }
 
 .home-section {
@@ -18,31 +18,34 @@
 }
 
 .home-section--hero {
-  padding-block: clamp(1.5rem, 4vw, 2rem);
-  min-height: min(72svh, 720px);
+  padding-block: clamp(0.75rem, 2vw, 1.25rem);
+  min-height: auto;
+  padding-bottom: 0;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
   .home-section--hero {
-    min-height: min(78svh, 760px);
+    min-height: min(580px, calc(100svh - 4.5rem));
+  }
+}
+
+.home-hero-search-overlap {
+  position: relative;
+  z-index: 3;
+  margin-top: clamp(1rem, 2.5vw, 1.5rem);
+  padding-bottom: clamp(1.25rem, 3vw, 2rem);
+}
+
+@media (min-width: 1024px) {
+  .home-hero-search-overlap {
+    margin-top: -2.75rem;
   }
 }
 
 .home-section--search {
-  padding-top: clamp(1.5rem, 4vw, 2.5rem);
-  padding-bottom: var(--home-section-py-compact);
-  margin-top: -1.5rem;
-  position: relative;
-  z-index: 2;
+  padding-block: var(--home-section-py-compact);
 }
 
-@media (min-width: 1024px) {
-  .home-section--search {
-    margin-top: -2.5rem;
-  }
-}
-
-/* ---- Section typography (sans UI — no dashboard serif) ---- */
 .home-section__eyebrow {
   font-size: 0.68rem;
   font-weight: 700;
@@ -72,12 +75,41 @@
   margin-bottom: clamp(1.25rem, 3vw, 1.75rem);
 }
 
-/* ---- Hero visual (desktop only — mobile stays content-first) ---- */
+/* ---- Hero trust badges ---- */
+.home-hero-trust {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem 1rem;
+  margin-top: 1.25rem;
+}
+
+@media (min-width: 1024px) {
+  .home-hero-trust {
+    justify-content: flex-start;
+  }
+}
+
+.home-hero-trust__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #a7f3d0;
+}
+
+.home-hero-trust__item svg {
+  flex-shrink: 0;
+  color: #34d399;
+}
+
+/* ---- Hero visual ---- */
 .home-hero-visual {
   display: none;
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   .home-hero-visual {
     display: block;
   }
@@ -88,28 +120,30 @@
   aspect-ratio: 4 / 3;
   overflow: hidden;
   border-radius: var(--taj-radius-2xl);
-  border: 1px solid var(--taj-color-border);
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(236, 253, 245, 0.9));
-  box-shadow: var(--taj-shadow-md);
+  border: 1px solid rgba(52, 211, 153, 0.2);
+  background: linear-gradient(145deg, #0a2e1f 0%, #041a12 100%);
+  box-shadow:
+    0 24px 48px rgba(0, 0, 0, 0.38),
+    0 0 0 1px rgba(52, 211, 153, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
-/* Hero travel preview (PR-2.2) */
+/* Hero travel preview */
 .hero-travel-preview {
   position: relative;
   height: 100%;
-  min-height: 14rem;
-  padding: 1rem;
-  background: linear-gradient(160deg, rgba(255, 255, 255, 0.6), rgba(236, 253, 245, 0.5));
+  min-height: 13rem;
+  padding: 0.85rem;
 }
 
 .hero-travel-preview__layer {
   position: absolute;
-  inset: 0.75rem;
+  inset: 0.65rem;
   pointer-events: none;
 }
 
 .hero-travel-preview__globe {
-  opacity: 0.85;
+  opacity: 1;
 }
 
 .hero-travel-preview__route {
@@ -140,23 +174,23 @@
 
 .hero-travel-preview__card {
   position: absolute;
-  right: 0.75rem;
-  bottom: 3.25rem;
-  left: auto;
+  right: 0.65rem;
+  bottom: 2.75rem;
   z-index: 2;
-  width: min(11rem, 58%);
+  width: min(11.5rem, 58%);
   border-radius: var(--taj-radius-lg);
-  border: 1px solid var(--taj-color-border);
-  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(52, 211, 153, 0.22);
+  background: rgba(8, 32, 24, 0.88);
   padding: 0.65rem 0.75rem;
-  box-shadow: var(--taj-shadow-md);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(10px);
 }
 
 .hero-travel-preview__card-badge {
   font-size: 0.5625rem;
   font-weight: 700;
   font-family: ui-monospace, monospace;
-  color: var(--taj-color-primary);
+  color: #6ee7b7;
   letter-spacing: 0.04em;
 }
 
@@ -164,14 +198,14 @@
   margin-top: 0.2rem;
   font-size: 0.6875rem;
   font-weight: 700;
-  color: var(--taj-color-text);
+  color: #f0fdf4;
   line-height: 1.25;
 }
 
 .hero-travel-preview__card-meta {
   margin-top: 0.15rem;
   font-size: 0.5625rem;
-  color: var(--taj-color-text-muted);
+  color: #a7d4bc;
 }
 
 .hero-travel-preview__card-row {
@@ -183,25 +217,73 @@
 }
 
 .hero-travel-preview__card-price {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 800;
-  color: var(--taj-color-text);
+  color: #ffffff;
 }
 
 .hero-travel-preview__card-status {
   font-size: 0.5rem;
   font-weight: 700;
   text-transform: uppercase;
-  color: #15803d;
-  background: rgba(34, 197, 94, 0.12);
-  padding: 0.1rem 0.35rem;
+  color: #6ee7b7;
+  background: rgba(34, 197, 94, 0.16);
+  padding: 0.12rem 0.4rem;
   border-radius: 9999px;
+  border: 1px solid rgba(52, 211, 153, 0.25);
+}
+
+.hero-travel-preview__float {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  border-radius: var(--taj-radius-md);
+  border: 1px solid rgba(52, 211, 153, 0.2);
+  background: rgba(8, 32, 24, 0.9);
+  padding: 0.45rem 0.6rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(8px);
+}
+
+.hero-travel-preview__float--verified {
+  left: 0.65rem;
+  top: 2.75rem;
+}
+
+.hero-travel-preview__float-icon {
+  display: flex;
+  height: 1.35rem;
+  width: 1.35rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: rgba(34, 197, 94, 0.18);
+  font-size: 0.625rem;
+  font-weight: 800;
+  color: #4ade80;
+}
+
+.hero-travel-preview__float-title {
+  font-size: 0.5625rem;
+  font-weight: 700;
+  color: #6ee7b7;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.hero-travel-preview__float-text {
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: #ecfdf5;
+  line-height: 1.2;
 }
 
 .hero-travel-preview__chips {
   position: absolute;
-  left: 0.75rem;
-  top: 0.75rem;
+  left: 0.65rem;
+  top: 0.65rem;
   z-index: 2;
   display: flex;
   flex-wrap: wrap;
@@ -210,42 +292,25 @@
 
 .hero-travel-preview__chip {
   border-radius: 9999px;
-  border: 1px solid var(--taj-color-border);
-  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(52, 211, 153, 0.18);
+  background: rgba(8, 32, 24, 0.82);
   padding: 0.2rem 0.5rem;
   font-size: 0.5625rem;
   font-weight: 600;
-  color: var(--taj-color-text-secondary);
+  color: #a7f3d0;
 }
 
 .hero-travel-preview__trust {
   position: absolute;
-  left: 0.75rem;
-  bottom: 0.65rem;
+  left: 0.65rem;
+  bottom: 0.55rem;
   z-index: 2;
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
   font-size: 0.5625rem;
   font-weight: 600;
-  color: var(--taj-color-text-muted);
-}
-
-.home-hero-canvas {
-  opacity: 0.35;
-  pointer-events: none;
-}
-
-@media (max-width: 767px) {
-  .home-hero-canvas {
-    display: none;
-  }
-}
-
-@media (min-width: 768px) {
-  .home-hero-canvas {
-    opacity: 0.45;
-  }
+  color: #86efac;
 }
 
 /* ---- Sticky mobile search CTA ---- */
@@ -287,7 +352,7 @@
 
 .home-trust-card:hover {
   border-color: rgba(52, 211, 153, 0.28);
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(16, 45, 34, 0.85);
 }
 
 .home-trust-card__icon {
@@ -297,7 +362,7 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--taj-radius-lg);
-  background: rgba(16, 185, 129, 0.12);
+  background: rgba(16, 185, 129, 0.14);
   font-size: 1.125rem;
 }
 
@@ -313,8 +378,8 @@
 /* ---- Owner partner CTA ---- */
 .home-owner-cta {
   border-radius: var(--taj-radius-2xl);
-  border: 1px solid rgba(16, 120, 88, 0.18);
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(236, 253, 245, 0.92));
+  border: 1px solid rgba(52, 211, 153, 0.2);
+  background: linear-gradient(145deg, rgba(10, 46, 31, 0.95), rgba(4, 26, 18, 0.98));
   padding: clamp(1.5rem, 4vw, 2.5rem);
   box-shadow: var(--taj-shadow-md);
 }
@@ -352,7 +417,7 @@
 
 .home-dest-chip:hover {
   border-color: rgba(52, 211, 153, 0.35);
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(16, 45, 34, 0.9);
   transform: translateY(-2px);
 }
 
@@ -363,12 +428,13 @@
   }
 }
 
-/* ---- Site header (lighter chrome) ---- */
+/* ---- Site header ---- */
 .site-header {
-  border-bottom: 1px solid var(--taj-color-border);
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(52, 211, 153, 0.12);
+  background: rgba(4, 26, 18, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.22);
 }
 
 .site-header__inner {
@@ -387,21 +453,21 @@
   padding: 0.5rem 0.75rem;
   font-size: var(--taj-text-sm);
   font-weight: 600;
-  color: var(--taj-color-text-secondary);
+  color: #a7d4bc;
   transition: background 0.2s ease, color 0.2s ease;
 }
 
 .site-header .header-nav-link:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--taj-color-text);
+  background: rgba(52, 211, 153, 0.1);
+  color: #ecfdf5;
 }
 
 .site-header .header-nav-link.is-active {
-  background: rgba(16, 185, 129, 0.14);
+  background: rgba(16, 185, 129, 0.18);
   color: #d1fae5;
 }
 
-/* ---- Home hotel cards: calmer, 16:9 ---- */
+/* ---- Home hotel cards ---- */
 .home-page .hotel-card-premium {
   border-radius: var(--taj-radius-card-lg);
   border-color: var(--taj-color-border);

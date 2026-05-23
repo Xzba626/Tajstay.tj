@@ -58,7 +58,7 @@ const defaultContent: SiteContent = {
   },
   brand: {
     siteName: "TajStay",
-    logoMainUrl: "/logo-main.png",
+    logoMainUrl: "/logo.svg",
     logoMarkUrl: "/logo-mark.svg",
     faviconUrl: "/logo-mark.svg"
   },
@@ -80,15 +80,29 @@ const defaultContent: SiteContent = {
   }
 };
 
+function normalizeBrandUrl(url: string, fallback: string): string {
+  const trimmed = url.trim();
+  if (!trimmed) return fallback;
+  if (trimmed.includes("tajstay-logo") || trimmed.includes("logo-main.png")) return fallback;
+  return trimmed;
+}
+
 function mergeWithDefaults(parsed: Partial<SiteContent> | null | undefined): SiteContent {
+  const brand = {
+    ...defaultContent.brand,
+    ...parsed?.brand
+  };
+
   return {
     homeBanner: {
       ...defaultContent.homeBanner,
       ...parsed?.homeBanner
     },
     brand: {
-      ...defaultContent.brand,
-      ...parsed?.brand
+      siteName: brand.siteName.trim() || defaultContent.brand.siteName,
+      logoMainUrl: normalizeBrandUrl(brand.logoMainUrl, defaultContent.brand.logoMainUrl),
+      logoMarkUrl: normalizeBrandUrl(brand.logoMarkUrl, defaultContent.brand.logoMarkUrl),
+      faviconUrl: normalizeBrandUrl(brand.faviconUrl, defaultContent.brand.faviconUrl)
     },
     paymentCatalog: {
       methods: Array.isArray(parsed?.paymentCatalog?.methods)

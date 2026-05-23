@@ -31,6 +31,12 @@ export default async function HomePage() {
     { title: m(locale, "home.cityBadakhshan"), text: m(locale, "home.dest4"), cityQuery: "Badakhshan" }
   ];
 
+  const heroTrustPoints = [
+    m(locale, "home.trust1Title"),
+    m(locale, "home.trust2Title"),
+    m(locale, "home.trust3Title")
+  ];
+
   const trustPoints = [
     { title: m(locale, "home.trust1Title"), text: m(locale, "home.trust1Text"), icon: "✓" as const },
     { title: m(locale, "home.trust2Title"), text: m(locale, "home.trust2Text"), icon: "🔒" as const },
@@ -67,7 +73,7 @@ export default async function HomePage() {
       <HomeScrollEnhancer />
       <HomeSearchSticky label={m(locale, "home.ctaSearch")} />
 
-      {/* Hero */}
+      {/* Hero + search (first screen) */}
       <section className="home-section home-section--hero home-chapter home-chapter--band-hero relative overflow-hidden">
         <PageContainer publicPage className="relative z-[1] flex min-h-[inherit] flex-col justify-center !py-0">
           <TajstayHero3D
@@ -75,19 +81,11 @@ export default async function HomePage() {
             heroTitle={t(locale, "heroTitle")}
             heroSubtitle={t(locale, "heroSubtitle")}
             ctaSearch={m(locale, "home.ctaSearch")}
+            trustPoints={heroTrustPoints}
           />
-        </PageContainer>
-      </section>
-
-      {/* Search — primary action */}
-      <section id="home-search" className="home-section home-section--search home-chapter scroll-mt-24" data-reveal>
-        <PageContainer publicPage className="!py-0">
-          <HomeSectionHeader
-            eyebrow={m(locale, "search.search")}
-            title={m(locale, "home.ctaSearch")}
-            description={t(locale, "heroSubtitle")}
-          />
-          <SearchBar locale={locale} />
+          <div id="home-search" className="home-hero-search-overlap scroll-mt-24" data-reveal>
+            <SearchBar locale={locale} />
+          </div>
         </PageContainer>
       </section>
 

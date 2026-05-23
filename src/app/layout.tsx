@@ -63,7 +63,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-title" content="TajStay" />
       </head>
-      <body className="min-h-screen bg-[var(--brand-bg)] text-slate-100 antialiased font-sans">
+      <body className="min-h-screen bg-[var(--brand-bg)] text-[var(--brand-text)] antialiased font-sans">
         <AuthProvider>
           <SplashScreen />
           <PageBackdrop />

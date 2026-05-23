@@ -709,7 +709,7 @@ html.home-page-snap .home-chapter--snap {
 }
 
 .home-chapter--band-hero {
-  min-height: min(100dvh, 960px);
+  min-height: auto;
 }
 
 .home-chapter--band-a {
@@ -2242,27 +2242,27 @@ select:focus,
 }
 
 /* ==========================================================================
-   TajStay brand palette lock — PR-2.2 fresh emerald (light-first)
+   TajStay brand palette lock — premium dark emerald
    ========================================================================== */
 :root,
 [data-theme="light"],
 [data-theme="dark"] {
-  --bg-base: #f0f9f4 !important;
-  --bg-surface: #ffffff !important;
-  --bg-elevated: #ffffff !important;
-  --bg-input: #ffffff !important;
+  --bg-base: #041a12 !important;
+  --bg-surface: #0c2419 !important;
+  --bg-elevated: #103529 !important;
+  --bg-input: #0f2d22 !important;
 
-  --green-primary: #16a34a !important;
-  --green-hover: #22c55e !important;
-  --green-dim: #15803d !important;
-  --green-glow: rgba(34, 197, 94, 0.14) !important;
-  --green-border: rgba(16, 120, 88, 0.18) !important;
+  --green-primary: #22c55e !important;
+  --green-hover: #4ade80 !important;
+  --green-dim: #16a34a !important;
+  --green-glow: rgba(34, 197, 94, 0.18) !important;
+  --green-border: rgba(52, 211, 153, 0.22) !important;
 
-  --text-primary: #0f2920 !important;
-  --text-secondary: #3d5c50 !important;
-  --text-muted: #6b8a7a !important;
-  --border: rgba(16, 120, 88, 0.12) !important;
-  --border-focus: rgba(52, 211, 153, 0.45) !important;
+  --text-primary: #f0fdf4 !important;
+  --text-secondary: #d1fae5 !important;
+  --text-muted: #a7d4bc !important;
+  --border: rgba(52, 211, 153, 0.14) !important;
+  --border-focus: rgba(74, 222, 128, 0.45) !important;
 
   --brand-bg: var(--bg-base) !important;
   --brand-surface: var(--bg-surface) !important;
@@ -2272,17 +2272,26 @@ select:focus,
   --brand-green-dark: var(--green-dim) !important;
   --brand-border: var(--border) !important;
   --brand-text: var(--text-primary) !important;
-  --brand-muted: var(--text-secondary) !important;
-  --brand-star: #c9a227 !important;
+  --brand-muted: var(--text-muted) !important;
+  --brand-star: #d4b87a !important;
+
+  --taj-color-text: #f0fdf4 !important;
+  --taj-color-text-secondary: #d1fae5 !important;
+  --taj-color-text-muted: #a7d4bc !important;
+  --taj-color-border: rgba(52, 211, 153, 0.16) !important;
+  --taj-color-border-strong: rgba(52, 211, 153, 0.28) !important;
+  --taj-public-surface: rgba(12, 36, 25, 0.82) !important;
+  --taj-public-surface-strong: rgba(15, 45, 34, 0.94) !important;
 }
 
 body,
 html,
 #__next {
   background:
-    radial-gradient(980px 560px at 84% -8%, rgba(34, 197, 94, 0.1), transparent 72%),
-    radial-gradient(920px 520px at 12% 6%, rgba(167, 243, 208, 0.25), transparent 70%),
+    radial-gradient(980px 560px at 84% -8%, rgba(34, 197, 94, 0.12), transparent 72%),
+    radial-gradient(920px 520px at 12% 6%, rgba(16, 185, 129, 0.08), transparent 70%),
     var(--bg-base) !important;
+  color: var(--text-primary) !important;
 }
 
 .page-backdrop,
@@ -2299,21 +2308,22 @@ html,
 .page-backdrop--subtle,
 .page-backdrop--default {
   background:
-    radial-gradient(980px 560px at 84% -8%, rgba(34, 197, 94, 0.08), transparent 72%),
-    radial-gradient(920px 520px at 12% 6%, rgba(167, 243, 208, 0.2), transparent 70%),
+    radial-gradient(980px 560px at 84% -8%, rgba(34, 197, 94, 0.1), transparent 72%),
+    radial-gradient(920px 520px at 12% 6%, rgba(16, 185, 129, 0.06), transparent 70%),
     var(--bg-base) !important;
 }
 
 .page-vignette {
-  background: radial-gradient(circle at 50% 28%, transparent 0%, rgba(15, 41, 28, 0.03) 70%, rgba(15, 41, 28, 0.06) 100%) !important;
+  background: radial-gradient(circle at 50% 28%, transparent 0%, rgba(0, 0, 0, 0.18) 72%, rgba(0, 0, 0, 0.32) 100%) !important;
 }
 
 /* ---- Home hero premium polish ---- */
 .home-chapter--band-hero {
   background:
-    linear-gradient(165deg, rgba(255, 255, 255, 0.92) 0%, rgba(236, 253, 245, 0.88) 45%, rgba(240, 249, 244, 1) 100%),
-    radial-gradient(ellipse 90% 70% at 18% 20%, rgba(34, 197, 94, 0.1), transparent 58%),
-    radial-gradient(ellipse 70% 55% at 82% 30%, rgba(212, 184, 122, 0.08), transparent 52%);
+    radial-gradient(ellipse 90% 70% at 78% 12%, rgba(34, 197, 94, 0.14), transparent 58%),
+    radial-gradient(ellipse 65% 55% at 12% 22%, rgba(212, 184, 122, 0.07), transparent 52%),
+    radial-gradient(ellipse 50% 40% at 50% 100%, rgba(16, 185, 129, 0.08), transparent 60%),
+    linear-gradient(165deg, #062418 0%, #041a12 48%, #031510 100%);
 }
 
 .home-chapter--band-hero::before {
@@ -2321,7 +2331,22 @@ html,
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(180deg, transparent 0%, rgba(240, 249, 244, 0.4) 100%);
+  background:
+    linear-gradient(90deg, rgba(4, 26, 18, 0.35) 0%, transparent 42%, transparent 58%, rgba(4, 26, 18, 0.2) 100%),
+    linear-gradient(180deg, transparent 0%, rgba(3, 21, 16, 0.45) 100%);
+  z-index: 0;
+}
+
+.home-chapter--band-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(52, 211, 153, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(52, 211, 153, 0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, black 20%, transparent 75%);
   z-index: 0;
 }
 
@@ -2330,23 +2355,24 @@ html,
   align-items: center;
   gap: 0.35rem;
   border-radius: 9999px;
-  border: 1px solid rgba(16, 120, 88, 0.2);
-  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(52, 211, 153, 0.28);
+  background: rgba(12, 36, 25, 0.75);
   padding: 0.35rem 0.75rem;
   font-size: 0.68rem;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #15803d;
+  color: #6ee7b7;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .home-hero-title {
-  color: var(--taj-color-text);
-  text-shadow: none;
+  color: #ffffff;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.35);
 }
 
 .home-hero-subtitle {
-  color: var(--taj-color-text-secondary);
+  color: #d1fae5;
   line-height: 1.55;
 }
 
@@ -2414,11 +2440,11 @@ html,
 
 .home-search-card {
   border-radius: 1.5rem;
-  border: 1px solid var(--taj-color-border-strong);
-  background: var(--taj-public-surface-strong);
+  border: 1px solid rgba(52, 211, 153, 0.22);
+  background: rgba(12, 36, 25, 0.92);
   padding: 1.25rem 1.5rem;
-  box-shadow: var(--taj-shadow-md), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
 }
 
 .home-search-label {
