@@ -579,18 +579,18 @@ export function BookingChatPanel({
       ) : null}
 
       {embeddedInRoom ? (
-        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-white/[0.08] bg-slate-950/80 px-3 py-2 backdrop-blur-md">
+        <div className="chat-shell__bar">
           <div className="min-w-0">
-            <div className="truncate text-xs font-semibold text-slate-200">{title}</div>
+            <div className="chat-shell__bar-title truncate">{title}</div>
             {headerSubtitle ? (
-              <div className="truncate text-[10px] text-slate-500">{headerSubtitle}</div>
+              <div className="chat-shell__bar-sub truncate">{headerSubtitle}</div>
             ) : null}
             {counterpartTrustBadges.length ? (
               <TrustBadges locale={locale} badges={counterpartTrustBadges} size="sm" className="mt-1.5" />
             ) : null}
           </div>
           <span
-            className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide ring-1 ring-inset ${statusPillClass(statusForPill)}`}
+            className={`shrink-0 ${statusPillClass(statusForPill)}`}
           >
             {statusLabelLocalized(statusForPill, locale)}
           </span>
@@ -699,7 +699,7 @@ export function BookingChatPanel({
 
       <div
         ref={scrollRef}
-        className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-[#050a0e] px-3 py-3 sm:min-h-[280px]"
+        className="chat-messages min-h-0 flex-1 overflow-y-auto overscroll-contain sm:min-h-[280px]"
       >
         {chatArchived ? (
           <div className="mx-auto max-w-md rounded-2xl border border-amber-400/20 bg-amber-500/10 px-4 py-3 text-center text-sm text-amber-100/90 backdrop-blur-md">
@@ -749,14 +749,10 @@ export function BookingChatPanel({
               return (
                 <div
                   key={row.key}
-                  className={`group flex w-full ${fromGuest ? "justify-end" : "justify-start"} ${row.showMeta ? "mt-2" : "mt-0.5"}`}
+                  className={`chat-bubble-row ${fromGuest ? "chat-bubble-row--mine" : "chat-bubble-row--theirs"} ${row.showMeta ? "mt-2" : "mt-0.5"}`}
                 >
                   <div
-                    className={`relative max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm shadow-md ${
-                      fromGuest
-                        ? "rounded-br-md bg-emerald-600 text-white"
-                        : "rounded-bl-md bg-slate-800 text-slate-100 ring-1 ring-white/10"
-                    }`}
+                    className={`chat-bubble ${fromGuest ? "chat-bubble--mine" : "chat-bubble--theirs"}`}
                   >
                     {isAdmin && !isSyntheticArchiveChatMessageId(msg.id) ? (
                       <button
@@ -815,8 +811,7 @@ export function BookingChatPanel({
       </div>
 
       <div
-        className="sticky bottom-0 z-10 shrink-0 space-y-2 border-t border-white/[0.08] bg-[rgba(7,10,14,0.96)] px-3 py-3 backdrop-blur-2xl"
-        style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom))" }}
+        className="chat-compose"
       >
         {isAdmin && effectiveStatus === "ON_REVIEW" && !suppressReviewActions ? (
           <button
@@ -829,10 +824,8 @@ export function BookingChatPanel({
           </button>
         ) : null}
 
-        <div
-          className="rounded-2xl border border-white/[0.09] bg-white/[0.04] p-2.5 backdrop-blur-md"
-          style={{ borderRadius: 16 }}
-        >
+        {!embeddedInRoom ? (
+        <div className="rounded-2xl border border-[var(--taj-color-border)] bg-[var(--taj-color-bg-card-solid)] p-2.5">
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
             <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Действия</div>
             <div className="text-[10px] text-slate-500">{currentUserRole}</div>
@@ -891,9 +884,10 @@ export function BookingChatPanel({
             ) : null}
           </div>
         </div>
+        ) : null}
 
         {isGuest && canSend && (effectiveStatus === "WAITING_PAYMENT" || effectiveStatus === "WAIT_PROOF") ? (
-          <div className="flex flex-wrap gap-2">
+          <div className="chat-compose__quick">
             <button
               type="button"
               disabled={sending}
@@ -963,12 +957,12 @@ export function BookingChatPanel({
 
         <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
         {file ? <div className="truncate text-[11px] text-emerald-200/90">{file.name}</div> : null}
-        <div className="flex min-h-[52px] items-end gap-1 rounded-full border border-white/12 bg-slate-900/95 py-1.5 pl-2 pr-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+        <div className="chat-compose__row">
           <button
             type="button"
             disabled={chatArchived || !canSend}
             onClick={() => fileRef.current?.click()}
-            className="mb-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg text-slate-300 transition hover:bg-white/5 disabled:opacity-40"
+            className="chat-compose__attach disabled:opacity-40"
             aria-label="Прикрепить изображение"
           >
             📎
@@ -979,7 +973,7 @@ export function BookingChatPanel({
             placeholder={chatArchived ? "Архив…" : "Сообщение…"}
             disabled={chatArchived || !canSend}
             rows={1}
-            className="mb-1 max-h-28 min-h-[44px] flex-1 resize-none rounded-2xl bg-transparent px-2 py-2.5 text-sm text-slate-100 outline-none placeholder:text-slate-500 disabled:opacity-50"
+            className="chat-compose__input disabled:opacity-50"
             maxLength={1500}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
@@ -994,7 +988,7 @@ export function BookingChatPanel({
               send().catch(() => undefined);
             }}
             disabled={!canSubmit}
-            className="mb-0.5 shrink-0 rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-[0_0_18px_rgba(16,185,129,0.25)] disabled:opacity-45"
+            className="chat-compose__send disabled:opacity-45"
           >
             {sending ? "…" : "Отпр."}
           </button>
@@ -1090,8 +1084,7 @@ export function BookingChatPanel({
   const shellClass =
     presentation === "overlay"
       ? "fixed inset-0 z-[100] flex flex-col bg-[rgba(7,10,14,0.92)] backdrop-blur-xl sm:inset-4 sm:rounded-2xl sm:border sm:border-white/10"
-      : embeddedInRoom
-        ? "flex h-full min-h-0 flex-col overflow-hidden"
+       : embeddedInRoom ? "chat-shell flex h-full min-h-0 flex-col overflow-hidden"
         : density === "compact"
           ? "flex h-[min(52dvh,520px)] min-h-[260px] flex-col overflow-hidden rounded-2xl border border-white/10 bg-[rgba(15,23,42,0.55)] shadow-2xl backdrop-blur-xl"
           : "flex h-[min(720px,calc(100vh-8rem))] min-h-[420px] flex-col overflow-hidden rounded-2xl border border-white/10 bg-[rgba(15,23,42,0.55)] shadow-2xl backdrop-blur-xl";

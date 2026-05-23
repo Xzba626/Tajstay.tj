@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { HeroTravelBackdrop } from "@/components/landing/HeroTravelBackdrop";
+import { HeroTravelPreview } from "@/components/landing/HeroTravelPreview";
 
 type Props = {
   heroBadge: string;
@@ -28,7 +28,7 @@ export function TajstayHero3D({ heroBadge, heroTitle, heroSubtitle, ctaSearch }:
 
       <div className="home-hero-visual mx-auto w-full max-w-md lg:max-w-none" aria-hidden>
         <div className="home-hero-visual__frame">
-          <HeroTravelBackdrop />
+          <HeroTravelPreview />
         </div>
       </div>
     </div>

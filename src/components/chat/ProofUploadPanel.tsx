@@ -57,26 +57,23 @@ export function ProofUploadPanel({
   }
 
   return (
-    <section className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 backdrop-blur-md">
+    <section className="chat-proof-card">
       {!open ? (
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="w-full rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 py-3.5 text-sm font-bold text-white shadow-lg shadow-emerald-900/30 transition hover:brightness-105"
-        >
+        <button type="button" onClick={() => setOpen(true)} className="taj-btn taj-btn--primary taj-btn--sm taj-btn--full">
           {m(locale, "bookingRoom.proof.cta")}
         </button>
       ) : (
         <form onSubmit={onSubmit} className="space-y-3" encType="multipart/form-data">
           <div className="flex items-center justify-between gap-2">
-            <h2 className="text-sm font-semibold text-white">{m(locale, "bookingRoom.proof.title")}</h2>
-            <button type="button" onClick={() => setOpen(false)} className="text-xs text-slate-400 hover:text-white">
+            <h2 className="text-sm font-semibold text-[var(--taj-color-text)]">{m(locale, "bookingRoom.proof.title")}</h2>
+            <button type="button" onClick={() => setOpen(false)} className="text-xs text-[var(--taj-color-text-muted)] hover:text-[var(--taj-color-text)]">
               {m(locale, "bookingRoom.proof.cancel")}
             </button>
           </div>
-          <label className="flex cursor-pointer flex-col items-center gap-2 rounded-xl border border-dashed border-emerald-400/35 bg-emerald-500/10 px-4 py-6">
-            <span className="text-sm font-semibold text-emerald-100">{m(locale, "bookingRoom.proof.file")}</span>
-            <span className="text-xs text-slate-500">PNG, JPG, WebP</span>
+          <span className="chat-proof-card__status chat-proof-card__status--pending">{m(locale, "status.ON_REVIEW")}</span>
+          <label className="flex cursor-pointer flex-col items-center gap-2 rounded-xl border border-dashed border-[var(--taj-color-border-strong)] bg-[var(--taj-emerald-50)] px-3 py-4">
+            <span className="text-xs font-semibold text-[var(--taj-color-primary)]">{m(locale, "bookingRoom.proof.file")}</span>
+            <span className="text-[10px] text-[var(--taj-color-text-muted)]">PNG, JPG, WebP</span>
             <input name="proofFile" type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" required />
           </label>
           <input
@@ -86,20 +83,16 @@ export function ProofUploadPanel({
             step={1}
             defaultValue={defaultAmount}
             placeholder={m(locale, "bookingRoom.proof.amount")}
-            className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white"
+            className="taj-input text-sm"
           />
           <textarea
             name="proofComment"
             rows={2}
             placeholder={m(locale, "bookingRoom.proof.comment")}
-            className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white"
+            className="taj-input min-h-[4rem] resize-y py-2 text-sm"
           />
-          {error ? <p className="text-xs text-red-300">{error}</p> : null}
-          <button
-            type="submit"
-            disabled={busy}
-            className="w-full rounded-xl bg-emerald-600 py-3 text-sm font-semibold text-white disabled:opacity-60"
-          >
+          {error ? <p className="text-xs text-red-600" role="alert">{error}</p> : null}
+          <button type="submit" disabled={busy} className="taj-btn taj-btn--primary taj-btn--sm taj-btn--full">
             {busy ? "…" : m(locale, "bookingRoom.proof.submit")}
           </button>
         </form>
@@ -107,4 +100,3 @@ export function ProofUploadPanel({
     </section>
   );
 }
-

@@ -88,64 +88,86 @@ export function BookingRoom(props: BookingRoomProps) {
   const isOwner = currentUserRole === "OWNER";
 
   const showPaymentFlow =
-    isGuest &&
-    (bookingStatus === BOOKING_STATUS.WAITING_PAYMENT || bookingStatus === BOOKING_STATUS.WAIT_PROOF);
+    isGuest && (bookingStatus === BOOKING_STATUS.WAITING_PAYMENT || bookingStatus === BOOKING_STATUS.WAIT_PROOF);
 
   const canSubmitProof =
-    isGuest &&
-    (bookingStatus === BOOKING_STATUS.WAITING_PAYMENT || bookingStatus === BOOKING_STATUS.WAIT_PROOF);
+    isGuest && (bookingStatus === BOOKING_STATUS.WAITING_PAYMENT || bookingStatus === BOOKING_STATUS.WAIT_PROOF);
 
   const showReviewUi = isOnReview;
   const showReviewCard = showReviewUi && (isAdmin || isOwner);
 
-  return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-3 py-4 sm:px-4 sm:py-6">
-      <div className="flex flex-wrap items-center gap-3 text-sm">
-        <Link href={backHref} className="text-slate-400 transition hover:text-white">
-          ← {m(locale, "bookingRoom.back")}
-        </Link>
-        <Link
-          href="/dashboard/messages"
-          className="rounded-xl border border-white/10 px-3 py-1 text-xs text-slate-300 hover:bg-white/5"
-        >
-          {m(locale, "bookingRoom.allMessages")}
-        </Link>
-      </div>
-
-      <div className="sticky top-14 z-30 -mx-1 space-y-3 px-1 pb-1">
-        <BookingChatHeader
+  const asideContent = (
+    <>
+      <BookingTimeline locale={locale} events={timeline} highlightKind={isOnReview ? "ON_REVIEW" : undefined} />
+      {isGuest && isOnReview ? <GuestReviewWaitingCard locale={locale} proofSubmittedAt={proofSubmittedAt} /> : null}
+      {showReviewCard ? (
+        <PaymentReviewCard
           locale={locale}
-          hotelName={hotelName}
-          roomTitle={roomTitle}
-          coverImageUrl={coverImageUrl}
-          checkInIso={checkInIso}
-          checkOutIso={checkOutIso}
-          guestCount={guestCount}
+          bookingId={bookingId}
+          canAct={isAdmin}
+          guestLabel={guestLabel}
           totalPrice={Number(totalPrice)}
           currency={currency}
-          bookingStatus={bookingStatus}
-          paymentStatus={paymentStatus}
-          publicCode={publicCode}
-          sticky
+          paymentProofUrl={paymentProofUrl}
+          guestDocumentUrl={guestDocumentUrl}
+          proofSubmittedAt={proofSubmittedAt}
+          proofReviewDeadlineAt={proofReviewDeadlineAt}
+          proofAmount={proofAmount}
+          proofComment={proofComment}
         />
-        {showReviewUi ? (
-          <ReviewBanner locale={locale} role={currentUserRole} proofReviewDeadlineAt={proofReviewDeadlineAt} />
-        ) : null}
-      </div>
+      ) : null}
+      {showPaymentFlow ? (
+        <>
+          <PaymentMethodsBlock locale={locale} methods={paymentMethods} />
+          <ProofUploadPanel
+            locale={locale}
+            bookingId={bookingId}
+            publicCode={publicCode}
+            canSubmit={canSubmitProof}
+            defaultAmount={Number(totalPrice)}
+          />
+        </>
+      ) : null}
+    </>
+  );
+
+  return (
+    <div className="chat-page">
+      <nav className="chat-page__nav" aria-label={m(locale, "bookingRoom.back")}>
+        <Link href={backHref}>← {m(locale, "bookingRoom.back")}</Link>
+        <Link href="/dashboard/messages">{m(locale, "bookingRoom.allMessages")}</Link>
+      </nav>
+
+      <BookingChatHeader
+        locale={locale}
+        hotelName={hotelName}
+        roomTitle={roomTitle}
+        coverImageUrl={coverImageUrl}
+        checkInIso={checkInIso}
+        checkOutIso={checkOutIso}
+        guestCount={guestCount}
+        totalPrice={Number(totalPrice)}
+        currency={currency}
+        bookingStatus={bookingStatus}
+        paymentStatus={paymentStatus}
+        publicCode={publicCode}
+        compact
+      />
+
+      {showReviewUi ? (
+        <ReviewBanner locale={locale} role={currentUserRole} proofReviewDeadlineAt={proofReviewDeadlineAt} />
+      ) : null}
 
       {proofSent && !isOnReview ? (
-        <div
-          className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-100"
-          role="status"
-        >
-          {m(locale, "bookingRoom.proof.sentBanner")}
+        <div className="chat-proof-card" role="status">
+          <span className="chat-proof-card__status chat-proof-card__status--pending">{m(locale, "bookingRoom.proof.sentBanner")}</span>
         </div>
       ) : null}
 
       <DisputeActions locale={locale} bookingId={bookingId} canOpen={currentUserRole !== "ADMIN"} />
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
-        <div className="flex min-h-[min(72dvh,640px)] flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-950/80 shadow-2xl ring-1 ring-white/5">
+      <div className="chat-page__layout">
+        <main className="chat-page__thread">
           <BookingChatPanel
             bookingId={bookingId}
             currentUserId={currentUserId}
@@ -164,43 +186,16 @@ export function BookingRoom(props: BookingRoomProps) {
             suppressPaymentDeepLink={showPaymentFlow || isOnReview}
             suppressReviewActions={showReviewCard}
             embeddedInRoom
-            density="default"
+            density="compact"
           />
-        </div>
+        </main>
 
-        <aside className="space-y-4 lg:sticky lg:top-36 lg:max-h-[calc(100dvh-9rem)] lg:self-start lg:overflow-y-auto">
-          <BookingTimeline locale={locale} events={timeline} highlightKind={isOnReview ? "ON_REVIEW" : undefined} />
-          {isGuest && isOnReview ? (
-            <GuestReviewWaitingCard locale={locale} proofSubmittedAt={proofSubmittedAt} />
-          ) : null}
-          {showReviewCard ? (
-            <PaymentReviewCard
-              locale={locale}
-              bookingId={bookingId}
-              canAct={isAdmin}
-              guestLabel={guestLabel}
-              totalPrice={Number(totalPrice)}
-              currency={currency}
-              paymentProofUrl={paymentProofUrl}
-              guestDocumentUrl={guestDocumentUrl}
-              proofSubmittedAt={proofSubmittedAt}
-              proofReviewDeadlineAt={proofReviewDeadlineAt}
-              proofAmount={proofAmount}
-              proofComment={proofComment}
-            />
-          ) : null}
-          {showPaymentFlow ? (
-            <>
-              <PaymentMethodsBlock locale={locale} methods={paymentMethods} />
-              <ProofUploadPanel
-                locale={locale}
-                bookingId={bookingId}
-                publicCode={publicCode}
-                canSubmit={canSubmitProof}
-                defaultAmount={Number(totalPrice)}
-              />
-            </>
-          ) : null}
+        <aside className="chat-page__aside chat-page__aside--collapsible lg:!block">
+          <details className="lg:hidden">
+            <summary>{m(locale, "bookingRoom.header.payment")} & {m(locale, "bookingRoom.header.dates")}</summary>
+            <div className="chat-page__aside-inner">{asideContent}</div>
+          </details>
+          <div className="hidden space-y-2 lg:block">{asideContent}</div>
         </aside>
       </div>
     </div>

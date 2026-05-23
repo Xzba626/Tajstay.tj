@@ -7,40 +7,48 @@
 @import "../styles/ds-components.css";
 @import "../styles/home.css";
 @import "../styles/auth.css";
+@import "../styles/chat.css";
 
 :root,
 [data-theme="light"] {
   --app-bg:
-    radial-gradient(1200px 520px at 85% -10%, rgba(34, 197, 94, 0.16), transparent 75%),
-    radial-gradient(1000px 480px at 10% 0%, rgba(20, 184, 166, 0.14), transparent 72%),
-    radial-gradient(900px 420px at 55% 10%, rgba(16, 185, 129, 0.08), transparent 72%),
-    linear-gradient(180deg, rgba(7, 42, 30, 0.82) 0%, rgba(6, 34, 25, 0.9) 55%, rgba(5, 26, 20, 0.95) 100%);
-  --app-vignette: radial-gradient(circle at 50% 30%, rgba(4, 26, 18, 0.02) 0%, rgba(4, 26, 18, 0.35) 76%, rgba(4, 26, 18, 0.52) 100%);
+    radial-gradient(1100px 520px at 88% -5%, rgba(34, 197, 94, 0.14), transparent 72%),
+    radial-gradient(900px 480px at 8% 0%, rgba(167, 243, 208, 0.35), transparent 70%),
+    linear-gradient(180deg, #f7fcf9 0%, #f0f9f4 45%, #e8f5ee 100%);
+  --app-vignette: radial-gradient(circle at 50% 20%, transparent 0%, rgba(15, 41, 28, 0.04) 85%);
 }
 
 [data-theme="dark"] {
   --app-bg:
-    radial-gradient(1200px 520px at 85% -10%, rgba(34, 197, 94, 0.20), transparent 75%),
-    radial-gradient(1000px 480px at 10% 0%, rgba(15, 118, 110, 0.20), transparent 72%),
-    radial-gradient(900px 420px at 55% 10%, rgba(34, 197, 94, 0.10), transparent 72%),
-    linear-gradient(180deg, rgba(2, 26, 18, 0.92) 0%, rgba(2, 12, 9, 0.98) 55%, rgba(2, 10, 7, 1) 100%);
-  --app-vignette: radial-gradient(circle at 50% 30%, rgba(4, 26, 18, 0.06) 0%, rgba(4, 26, 18, 0.68) 76%, rgba(4, 26, 18, 0.92) 100%);
-}
-
-[data-theme="dark"] .text-slate-100,
-[data-theme="dark"] .text-slate-200,
-[data-theme="dark"] .text-slate-300,
-[data-theme="dark"] .text-slate-400,
-[data-theme="dark"] .text-slate-500 {
-  color: #f8fafc !important;
+    radial-gradient(1100px 520px at 88% -5%, rgba(34, 197, 94, 0.12), transparent 72%),
+    radial-gradient(900px 480px at 8% 0%, rgba(167, 243, 208, 0.08), transparent 70%),
+    linear-gradient(180deg, #f4faf6 0%, #ecfdf5 100%);
+  --app-vignette: radial-gradient(circle at 50% 25%, transparent 0%, rgba(15, 41, 28, 0.06) 80%);
 }
 
 [data-theme="light"] .text-slate-100,
-[data-theme="light"] .text-slate-200,
+[data-theme="light"] .text-slate-200 {
+  color: #0f2920 !important;
+}
+
 [data-theme="light"] .text-slate-300,
-[data-theme="light"] .text-slate-400,
+[data-theme="light"] .text-slate-400 {
+  color: #3d5c50 !important;
+}
+
 [data-theme="light"] .text-slate-500 {
-  color: #f8fafc !important;
+  color: #6b8a7a !important;
+}
+
+[data-theme="dark"] .text-slate-100,
+[data-theme="dark"] .text-slate-200 {
+  color: #0f2920 !important;
+}
+
+[data-theme="dark"] .text-slate-300,
+[data-theme="dark"] .text-slate-400,
+[data-theme="dark"] .text-slate-500 {
+  color: #3d5c50 !important;
 }
 
 body {
@@ -48,7 +56,7 @@ body {
   margin: 0;
   min-height: 100vh;
   background: var(--app-bg);
-  color: #e2e8f0;
+  color: var(--taj-color-text);
 }
 
 button,
@@ -2234,26 +2242,26 @@ select:focus,
 }
 
 /* ==========================================================================
-   TajStay brand palette lock — emerald green (PR-2.1)
+   TajStay brand palette lock — PR-2.2 fresh emerald (light-first)
    ========================================================================== */
 :root,
 [data-theme="light"],
 [data-theme="dark"] {
-  --bg-base: #041a12 !important;
-  --bg-surface: #0a2418 !important;
-  --bg-elevated: #0f2a1c !important;
-  --bg-input: #0f1c13 !important;
+  --bg-base: #f0f9f4 !important;
+  --bg-surface: #ffffff !important;
+  --bg-elevated: #ffffff !important;
+  --bg-input: #ffffff !important;
 
-  --green-primary: #22c55e !important;
-  --green-hover: #4ade80 !important;
-  --green-dim: #16a34a !important;
-  --green-glow: rgba(34, 197, 94, 0.18) !important;
-  --green-border: rgba(52, 211, 153, 0.28) !important;
+  --green-primary: #16a34a !important;
+  --green-hover: #22c55e !important;
+  --green-dim: #15803d !important;
+  --green-glow: rgba(34, 197, 94, 0.14) !important;
+  --green-border: rgba(16, 120, 88, 0.18) !important;
 
-  --text-primary: #f0f7f2 !important;
-  --text-secondary: #b8d4c4 !important;
-  --text-muted: #7a9f8a !important;
-  --border: rgba(52, 211, 153, 0.14) !important;
+  --text-primary: #0f2920 !important;
+  --text-secondary: #3d5c50 !important;
+  --text-muted: #6b8a7a !important;
+  --border: rgba(16, 120, 88, 0.12) !important;
   --border-focus: rgba(52, 211, 153, 0.45) !important;
 
   --brand-bg: var(--bg-base) !important;
@@ -2265,15 +2273,15 @@ select:focus,
   --brand-border: var(--border) !important;
   --brand-text: var(--text-primary) !important;
   --brand-muted: var(--text-secondary) !important;
-  --brand-star: #e0c27b !important;
+  --brand-star: #c9a227 !important;
 }
 
 body,
 html,
 #__next {
   background:
-    radial-gradient(980px 560px at 84% -8%, rgba(34, 197, 94, 0.12), transparent 72%),
-    radial-gradient(920px 520px at 12% 6%, rgba(15, 118, 110, 0.1), transparent 70%),
+    radial-gradient(980px 560px at 84% -8%, rgba(34, 197, 94, 0.1), transparent 72%),
+    radial-gradient(920px 520px at 12% 6%, rgba(167, 243, 208, 0.25), transparent 70%),
     var(--bg-base) !important;
 }
 
@@ -2291,22 +2299,21 @@ html,
 .page-backdrop--subtle,
 .page-backdrop--default {
   background:
-    radial-gradient(980px 560px at 84% -8%, rgba(34, 197, 94, 0.1), transparent 72%),
-    radial-gradient(920px 520px at 12% 6%, rgba(15, 118, 110, 0.08), transparent 70%),
-    radial-gradient(860px 520px at 50% 95%, rgba(34, 197, 94, 0.06), transparent 75%),
+    radial-gradient(980px 560px at 84% -8%, rgba(34, 197, 94, 0.08), transparent 72%),
+    radial-gradient(920px 520px at 12% 6%, rgba(167, 243, 208, 0.2), transparent 70%),
     var(--bg-base) !important;
 }
 
 .page-vignette {
-  background: radial-gradient(circle at 50% 28%, rgba(4, 26, 18, 0.02), rgba(4, 26, 18, 0.32) 70%, rgba(4, 26, 18, 0.5)) !important;
+  background: radial-gradient(circle at 50% 28%, transparent 0%, rgba(15, 41, 28, 0.03) 70%, rgba(15, 41, 28, 0.06) 100%) !important;
 }
 
 /* ---- Home hero premium polish ---- */
 .home-chapter--band-hero {
   background:
-    linear-gradient(165deg, rgba(10, 46, 31, 0.5) 0%, rgba(4, 26, 18, 0.92) 50%, rgba(4, 26, 18, 1) 100%),
-    radial-gradient(ellipse 90% 70% at 18% 20%, rgba(34, 197, 94, 0.12), transparent 58%),
-    radial-gradient(ellipse 70% 55% at 82% 30%, rgba(21, 128, 61, 0.08), transparent 52%);
+    linear-gradient(165deg, rgba(255, 255, 255, 0.92) 0%, rgba(236, 253, 245, 0.88) 45%, rgba(240, 249, 244, 1) 100%),
+    radial-gradient(ellipse 90% 70% at 18% 20%, rgba(34, 197, 94, 0.1), transparent 58%),
+    radial-gradient(ellipse 70% 55% at 82% 30%, rgba(212, 184, 122, 0.08), transparent 52%);
 }
 
 .home-chapter--band-hero::before {
@@ -2314,7 +2321,7 @@ html,
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(180deg, transparent 0%, rgba(2, 8, 6, 0.35) 100%);
+  background: linear-gradient(180deg, transparent 0%, rgba(240, 249, 244, 0.4) 100%);
   z-index: 0;
 }
 
@@ -2323,23 +2330,23 @@ html,
   align-items: center;
   gap: 0.35rem;
   border-radius: 9999px;
-  border: 1px solid rgba(110, 231, 183, 0.28);
-  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 120, 88, 0.2);
+  background: rgba(255, 255, 255, 0.85);
   padding: 0.35rem 0.75rem;
   font-size: 0.68rem;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(209, 250, 229, 0.92);
+  color: #15803d;
 }
 
 .home-hero-title {
-  color: #f8faf6;
-  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.35);
+  color: var(--taj-color-text);
+  text-shadow: none;
 }
 
 .home-hero-subtitle {
-  color: rgba(226, 240, 232, 0.88);
+  color: var(--taj-color-text-secondary);
   line-height: 1.55;
 }
 

@@ -80,12 +80,13 @@ export function PwaInstallPrompt({ labels }: { labels: PwaInstallLabels }) {
     >
       <div className="flex gap-3">
         <Image
-          src="/icons/icon-192.png"
+          src="/logo-mark.svg"
           alt=""
           width={48}
           height={48}
-          className="h-12 w-12 shrink-0 rounded-xl shadow-lg ring-1 ring-white/15"
+          className="h-12 w-12 shrink-0 rounded-2xl shadow-md ring-1 ring-[var(--taj-color-border)]"
           unoptimized
+          priority
         />
         <div className="min-w-0 flex-1">
           <p id="pwa-install-title" className="text-sm font-bold text-white">

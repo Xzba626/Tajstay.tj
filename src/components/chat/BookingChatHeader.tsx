@@ -17,26 +17,21 @@ export type BookingChatHeaderProps = {
   paymentStatus: string;
   publicCode?: string | null;
   sticky?: boolean;
+  compact?: boolean;
 };
 
 function statusPillClass(status: string): string {
-  if (status === "CONFIRMED" || status === "CHECKED_IN" || status === "COMPLETED") {
-    return "bg-gradient-to-r from-emerald-500/25 to-teal-500/15 text-emerald-100 ring-emerald-400/30";
-  }
-  if (status === "ON_REVIEW") return "bg-gradient-to-r from-indigo-500/25 to-violet-500/15 text-indigo-100 ring-indigo-400/30";
-  if (status === "WAITING_PAYMENT" || status === "WAIT_PROOF" || status === "PENDING_OWNER") {
-    return "bg-gradient-to-r from-amber-500/20 to-orange-500/10 text-amber-100 ring-amber-400/30";
-  }
-  if (status === "REJECTED" || status === "CANCELLED" || status === "EXPIRED") {
-    return "bg-gradient-to-r from-red-500/20 to-rose-500/10 text-red-100 ring-red-400/30";
-  }
-  return "bg-white/10 text-slate-200 ring-white/10";
+  if (status === "CONFIRMED" || status === "CHECKED_IN" || status === "COMPLETED") return "chat-pill chat-pill--ok";
+  if (status === "ON_REVIEW") return "chat-pill chat-pill--review";
+  if (status === "WAITING_PAYMENT" || status === "WAIT_PROOF" || status === "PENDING_OWNER") return "chat-pill chat-pill--wait";
+  if (status === "REJECTED" || status === "CANCELLED" || status === "EXPIRED") return "chat-pill chat-pill--bad";
+  return "chat-pill";
 }
 
 function paymentPillClass(paymentStatus: string): string {
-  if (paymentStatus === "PAID") return "bg-emerald-500/15 text-emerald-100";
-  if (paymentStatus === "FAILED" || paymentStatus === "REFUNDED") return "bg-red-500/15 text-red-100";
-  return "bg-slate-500/20 text-slate-200";
+  if (paymentStatus === "PAID") return "chat-pill chat-pill--ok";
+  if (paymentStatus === "FAILED" || paymentStatus === "REFUNDED") return "chat-pill chat-pill--bad";
+  return "chat-pill chat-pill--wait";
 }
 
 export function BookingChatHeader({
@@ -52,48 +47,46 @@ export function BookingChatHeader({
   bookingStatus,
   paymentStatus,
   publicCode,
-  sticky = false
+  compact = true
 }: BookingChatHeaderProps) {
   const checkIn = checkInIso.slice(0, 10);
   const checkOut = checkOutIso.slice(0, 10);
   const cover = coverImageUrl || "/logo-mark.svg";
+  const statusLabel =
+    m(locale, `status.${bookingStatus}`) !== `status.${bookingStatus}` ? m(locale, `status.${bookingStatus}`) : bookingStatus;
 
   return (
-    <section
-      className={`rounded-2xl border border-white/10 bg-white/[0.04] p-4 shadow-lg backdrop-blur-xl ${
-        sticky ? "ring-1 ring-white/5 shadow-2xl" : ""
-      }`}
-    >
-      <div className="flex gap-4">
-        <div className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl ring-1 ring-white/15">
+    <section className={`chat-header ${compact ? "chat-header--compact" : ""}`}>
+      <div className="chat-header__row">
+        <div className={`chat-header__thumb ${compact ? "" : "h-16 w-16"}`}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={cover} alt="" className="h-full w-full object-cover" />
         </div>
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-lg font-semibold text-white">{hotelName}</h1>
-          <p className="truncate text-sm text-slate-400">{roomTitle}</p>
-          {publicCode ? (
-            <p className="mt-1 text-xs font-mono text-slate-500">{publicCode}</p>
-          ) : null}
-          <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-300">
+          <h1 className="chat-header__title truncate">{hotelName}</h1>
+          <p className="chat-header__sub truncate">{roomTitle}</p>
+          <div className="chat-header__meta">
             <span>
-              {m(locale, "bookingRoom.header.dates")}: {checkIn} — {checkOut}
+              {checkIn} — {checkOut}
             </span>
-            <span>·</span>
+            <span aria-hidden>·</span>
             <span>
-              {m(locale, "bookingRoom.header.guests")}: {guestCount}
+              {guestCount} {m(locale, "bookingRoom.header.guests").toLowerCase()}
             </span>
+            {publicCode ? (
+              <>
+                <span aria-hidden>·</span>
+                <span className="font-mono">{publicCode}</span>
+              </>
+            ) : null}
           </div>
-          <div className="mt-2 text-base font-semibold tabular-nums text-white">
-            {Number(totalPrice)} {currency}
-          </div>
-          <div className="mt-2 flex flex-wrap gap-2">
-            <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase ring-1 ring-inset ${statusPillClass(bookingStatus)}`}>
-              {m(locale, `status.${bookingStatus}`) !== `status.${bookingStatus}` ? m(locale, `status.${bookingStatus}`) : bookingStatus}
-            </span>
-            <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase ${paymentPillClass(paymentStatus)}`}>
-              {m(locale, "bookingRoom.header.payment")}:{" "}
+          <div className="mt-1 flex flex-wrap items-center gap-1.5">
+            <span className={statusPillClass(bookingStatus)}>{statusLabel}</span>
+            <span className={paymentPillClass(paymentStatus)}>
               {m(locale, `status.${paymentStatus}`) !== `status.${paymentStatus}` ? m(locale, `status.${paymentStatus}`) : paymentStatus}
+            </span>
+            <span className="chat-header__price ml-auto sm:ml-0">
+              {Number(totalPrice)} {currency}
             </span>
           </div>
         </div>
@@ -101,5 +94,3 @@ export function BookingChatHeader({
     </section>
   );
 }
-
-

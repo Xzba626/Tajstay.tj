@@ -196,7 +196,7 @@ a.taj-btn--icon {
   width: 100%;
   border-radius: var(--taj-radius-lg);
   border: 1px solid var(--taj-color-border-strong);
-  background: rgba(8, 28, 20, 0.75);
+  background: #ffffff;
   padding: 0 var(--taj-control-px);
   font-family: var(--taj-font-ui);
   font-size: var(--taj-text-sm);
@@ -211,7 +211,7 @@ a.taj-btn--icon {
 .taj-input:focus {
   outline: none;
   border-color: rgba(52, 211, 153, 0.55);
-  background: rgba(12, 36, 26, 0.9);
+  background: #ffffff;
   box-shadow: var(--taj-shadow-focus);
 }
 
@@ -298,7 +298,7 @@ a.taj-btn--icon {
   padding: var(--taj-space-3);
   border-radius: var(--taj-radius-2xl);
   border: 1px solid var(--taj-color-border);
-  background: rgba(4, 26, 18, 0.94);
+  background: rgba(255, 255, 255, 0.96);
   backdrop-filter: blur(12px);
   box-shadow: var(--taj-shadow-lg);
 }
