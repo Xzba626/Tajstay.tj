@@ -5,7 +5,7 @@ import { cn } from "@/lib/cn";
 
 const STYLES: Record<string, string> = {
   phoneVerified: "bg-emerald-500/15 text-emerald-200 ring-emerald-400/30",
-  emailVerified: "bg-sky-500/15 text-sky-200 ring-sky-400/30",
+  emailVerified: "bg-teal-500/15 text-teal-200 ring-teal-400/30",
   ownerVerified: "bg-amber-500/15 text-amber-100 ring-amber-400/30"
 };
 

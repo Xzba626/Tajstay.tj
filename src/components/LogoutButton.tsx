@@ -2,8 +2,14 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Button } from "@/components/ds/Button";
 
-export default function LogoutButton() {
+type Props = {
+  label: string;
+  loadingLabel?: string;
+};
+
+export default function LogoutButton({ label, loadingLabel = "…" }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -17,8 +23,8 @@ export default function LogoutButton() {
       if (!res.ok) throw new Error(json?.error ?? "Logout failed");
       router.refresh();
       window.location.href = "/";
-    } catch (e: any) {
-      setError(e?.message ?? "Ошибка");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Error");
     } finally {
       setLoading(false);
     }
@@ -26,11 +32,11 @@ export default function LogoutButton() {
 
   return (
     <div>
-      <button disabled={loading} onClick={logout} className="rounded-xl border px-4 py-2 text-sm hover:bg-slate-50">
-        {loading ? "..." : "Выйти"}
-      </button>
-      {error && <div className="mt-2 text-xs text-red-700">{error}</div>}
+      <Button type="button" variant="danger" size="sm" loading={loading} onClick={() => void logout()}>
+        {label}
+      </Button>
+      {error ? <p className="mt-2 text-xs text-red-300" role="alert">{error}</p> : null}
+      {loading ? <span className="sr-only">{loadingLabel}</span> : null}
     </div>
   );
 }
-

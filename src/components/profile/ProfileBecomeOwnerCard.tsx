@@ -11,7 +11,7 @@ type Props = {
 
 function StepItem({ n, text }: { n: number; text: string }) {
   return (
-    <li className="flex gap-3 text-sm leading-snug text-slate-300">
+    <li className="flex gap-3 text-sm leading-snug text-emerald-100/75">
       <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-xs font-bold text-emerald-300 ring-1 ring-emerald-400/30">
         {n}
       </span>
@@ -48,7 +48,7 @@ export function ProfileBecomeOwnerCard({ locale, role, ownerNav }: Props) {
   if (role === "OWNER") {
     return (
       <section
-        className="relative overflow-hidden rounded-2xl border border-emerald-400/25 bg-gradient-to-br from-emerald-950/80 via-slate-900/90 to-slate-950 p-5 sm:p-6"
+        className="relative overflow-hidden rounded-2xl border border-emerald-400/25 bg-gradient-to-br from-emerald-950/80 via-[#041a12]/95 to-[#041a12] p-5 sm:p-6"
         aria-labelledby="profile-owner-card-title"
       >
         <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-emerald-500/10 blur-2xl" />
@@ -60,15 +60,12 @@ export function ProfileBecomeOwnerCard({ locale, role, ownerNav }: Props) {
           <h2 id="profile-owner-card-title" className="mt-3 text-lg font-bold tracking-tight text-white sm:text-xl">
             {t("titleOwner")}
           </h2>
-          <p className="mt-2 max-w-prose text-sm leading-relaxed text-slate-300">{t("descOwner")}</p>
+          <p className="mt-2 max-w-prose text-sm leading-relaxed text-emerald-100/75">{t("descOwner")}</p>
           <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-            <Link href="/dashboard/owner" className="ds-primary-btn inline-flex min-h-[44px] items-center justify-center px-5 text-sm font-semibold">
+            <Link href="/dashboard/owner" className="taj-btn taj-btn--primary inline-flex min-h-[44px] items-center justify-center px-5 text-sm font-semibold">
               {t("ctaOwnerDashboard")}
             </Link>
-            <Link
-              href="/dashboard/owner?section=properties"
-              className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-white/15 bg-white/5 px-5 text-sm font-semibold text-white transition hover:bg-white/10"
-            >
+            <Link href="/dashboard/owner?section=properties" className="taj-btn taj-btn--secondary inline-flex min-h-[44px] items-center justify-center px-5 text-sm font-semibold">
               {t("ctaAddProperty")}
             </Link>
           </div>
@@ -82,7 +79,7 @@ export function ProfileBecomeOwnerCard({ locale, role, ownerNav }: Props) {
   if (ownerNav.kind === "pending") {
     return (
       <section
-        className="relative overflow-hidden rounded-2xl border border-amber-400/25 bg-gradient-to-br from-amber-950/50 via-slate-900/90 to-slate-950 p-5 sm:p-6"
+        className="relative overflow-hidden rounded-2xl border border-amber-400/25 bg-gradient-to-br from-amber-950/50 via-[#041a12]/95 to-[#041a12] p-5 sm:p-6"
         aria-labelledby="profile-owner-card-title"
       >
         <div className="pointer-events-none absolute -left-6 top-0 h-24 w-24 rounded-full bg-amber-500/10 blur-2xl" />
@@ -110,7 +107,7 @@ export function ProfileBecomeOwnerCard({ locale, role, ownerNav }: Props) {
     const reason = ownerNav.comment;
     return (
       <section
-        className="relative overflow-hidden rounded-2xl border border-red-400/20 bg-gradient-to-br from-red-950/40 via-slate-900/90 to-slate-950 p-5 sm:p-6"
+        className="relative overflow-hidden rounded-2xl border border-red-400/20 bg-gradient-to-br from-red-950/40 via-[#041a12]/95 to-[#041a12] p-5 sm:p-6"
         aria-labelledby="profile-owner-card-title"
       >
         <div className="relative">
@@ -123,7 +120,7 @@ export function ProfileBecomeOwnerCard({ locale, role, ownerNav }: Props) {
               {reason}
             </div>
           ) : null}
-          <Link href="/profile/become-owner" className="ds-primary-btn mt-5 inline-flex min-h-[44px] w-full items-center justify-center sm:w-auto">
+          <Link href="/profile/become-owner" className="taj-btn taj-btn--primary mt-5 inline-flex min-h-[44px] w-full items-center justify-center sm:w-auto">
             {t("ctaResubmit")}
           </Link>
         </div>
@@ -134,7 +131,7 @@ export function ProfileBecomeOwnerCard({ locale, role, ownerNav }: Props) {
   if (ownerNav.kind === "approved") {
     return (
       <section
-        className="relative overflow-hidden rounded-2xl border border-emerald-400/25 bg-gradient-to-br from-emerald-950/60 via-slate-900/90 to-slate-950 p-5 sm:p-6"
+        className="relative overflow-hidden rounded-2xl border border-emerald-400/25 bg-gradient-to-br from-emerald-950/60 via-[#041a12]/95 to-[#041a12] p-5 sm:p-6"
         aria-labelledby="profile-owner-card-title"
       >
         <div className="relative">
@@ -142,7 +139,7 @@ export function ProfileBecomeOwnerCard({ locale, role, ownerNav }: Props) {
             {t("titleApproved")}
           </h2>
           <p className="mt-2 text-sm leading-relaxed text-emerald-200/90">{t("descApproved")}</p>
-          <Link href="/dashboard/owner" className="ds-primary-btn mt-5 inline-flex min-h-[44px] w-full items-center justify-center sm:w-auto">
+          <Link href="/dashboard/owner" className="taj-btn taj-btn--primary mt-5 inline-flex min-h-[44px] w-full items-center justify-center sm:w-auto">
             {t("ctaOwnerDashboard")}
           </Link>
         </div>
@@ -154,7 +151,7 @@ export function ProfileBecomeOwnerCard({ locale, role, ownerNav }: Props) {
 
   return (
     <section
-      className="relative overflow-hidden rounded-2xl border border-emerald-400/20 bg-gradient-to-br from-emerald-950/70 via-slate-900/95 to-slate-950 p-5 sm:p-6"
+      className="relative overflow-hidden rounded-2xl border border-emerald-400/20 bg-gradient-to-br from-emerald-950/70 via-[#041a12]/95 to-[#041a12] p-5 sm:p-6"
       aria-labelledby="profile-owner-card-title"
     >
       <div className="pointer-events-none absolute -right-10 bottom-0 h-36 w-36 rounded-full bg-emerald-500/10 blur-3xl" />
@@ -163,13 +160,13 @@ export function ProfileBecomeOwnerCard({ locale, role, ownerNav }: Props) {
         <h2 id="profile-owner-card-title" className="mt-2 text-[clamp(1.125rem,4vw,1.35rem)] font-bold leading-tight text-white">
           {t("titleInvite")}
         </h2>
-        <p className="mt-2 text-sm leading-relaxed text-slate-300">{t("descInvite")}</p>
+        <p className="mt-2 text-sm leading-relaxed text-emerald-100/75">{t("descInvite")}</p>
         <ol className="mt-5 space-y-3">
           <StepItem n={1} text={t("step1")} />
           <StepItem n={2} text={t("step2")} />
           <StepItem n={3} text={t("step3")} />
         </ol>
-        <Link href="/profile/become-owner" className="ds-primary-btn mt-6 inline-flex min-h-[48px] w-full items-center justify-center text-sm font-semibold sm:w-auto">
+        <Link href="/profile/become-owner" className="taj-btn taj-btn--primary mt-6 inline-flex min-h-[48px] w-full items-center justify-center text-sm font-semibold sm:w-auto">
           {t("ctaBecomeOwner")}
         </Link>
       </div>

@@ -7,6 +7,8 @@ import { signIn } from "next-auth/react";
 import type { Locale } from "@/lib/i18n/locale";
 import { postLoginRedirect, safeReturnPath } from "@/lib/auth/postLoginRedirect";
 import { TelegramLoginPanel } from "@/components/auth/TelegramLoginPanel";
+import { Button } from "@/components/ds/Button";
+import { Input } from "@/components/ds/Input";
 
 type ApiUser = { id: number; role: string; name: string; phone: string; email?: string | null };
 
@@ -249,7 +251,7 @@ export function SignInClient({
         {telegramLoginEnabled ? (
           <>
             {isRegister ? (
-              <p className="text-center text-xs text-brand-300">{L.telegramRegisterHint}</p>
+              <p className="text-center text-xs text-emerald-200/60">{L.telegramRegisterHint}</p>
             ) : null}
             <TelegramLoginPanel
               locale={locale}
@@ -277,11 +279,7 @@ export function SignInClient({
         ) : null}
 
         {googleOAuthEnabled ? (
-          <button
-            type="button"
-            onClick={() => handleGoogleAuth().catch(() => setFormError(L.googleSignInError))}
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-brand-700 bg-brand-800 px-4 text-sm font-semibold text-white transition hover:bg-brand-700"
-          >
+          <button type="button" onClick={() => handleGoogleAuth().catch(() => setFormError(L.googleSignInError))} className="auth-google-btn">
             <GoogleIcon />
             {isRegister ? L.googleRegister : L.googleSignIn}
           </button>
@@ -293,162 +291,147 @@ export function SignInClient({
   const subtitle = isRegister ? L.registerSubtitle : L.signInSubtitle;
 
   return (
-    <div className="mx-auto flex w-[94%] max-w-6xl justify-center px-0 py-6 sm:w-full sm:px-6 sm:py-10 lg:px-8">
-      <div className="grid gap-5 sm:gap-8 lg:grid-cols-2 lg:items-stretch">
-        <section className="surface-1 relative overflow-hidden rounded-3xl p-5 sm:rounded-[28px] sm:p-8 lg:p-10" data-reveal data-stagger="20">
-          <Link href="/" className="inline-flex min-w-0 items-center gap-3 rounded-2xl outline-none transition hover:opacity-90">
+    <div className="auth-page">
+      <div className="auth-shell">
+        <section className="auth-panel auth-panel--promo" data-reveal data-stagger="20">
+          <Link href="/" className="inline-flex min-w-0 items-center gap-3 rounded-2xl outline-none transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-emerald-400/50">
             <Image src="/logo-mark.svg" alt="TajStay" width={56} height={56} className="h-12 w-12 rounded-2xl sm:h-14 sm:w-14" unoptimized priority />
             <div className="min-w-0">
               <div className="truncate text-lg font-semibold tracking-tight text-white sm:text-xl">TajStay</div>
-              <div className="text-sm text-brand-200">{L.title}</div>
+              <div className="text-sm text-emerald-200/90">{L.title}</div>
             </div>
           </Link>
           <h1 className="mt-6 text-[clamp(1.6rem,7vw,2.25rem)] font-extrabold leading-tight tracking-tight text-white sm:mt-8">{L.leftTitle}</h1>
-          <p className="mt-4 max-w-xl text-base leading-relaxed text-brand-200">{L.leftSubtitle}</p>
+          <p className="mt-4 max-w-xl text-base leading-relaxed text-emerald-100/75">{L.leftSubtitle}</p>
           <div className="mt-6 grid gap-3 sm:grid-cols-3">
             {[L.promo1, L.promo2, L.promo3].map((item) => (
-              <div key={item} className="liquid-glass rounded-xl px-3 py-2 text-xs font-semibold text-white">
+              <div key={item} className="rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-50">
                 {item}
               </div>
             ))}
           </div>
-          <ul className="mt-8 space-y-3 text-sm text-brand-200">
+          <ul className="mt-8 space-y-3 text-sm text-emerald-100/80">
             {[L.leftBenefit1, L.leftBenefit2, L.leftBenefit3].map((b) => (
               <li key={b} className="flex items-start gap-3">
-                <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-brand-700 text-white ring-1 ring-brand-600">✓</span>
+                <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-200 ring-1 ring-emerald-400/30">✓</span>
                 <span className="leading-snug">{b}</span>
               </li>
             ))}
           </ul>
         </section>
 
-        <section className="auth-form-panel surface-1 rounded-3xl p-4 sm:rounded-[28px] sm:p-8" data-reveal data-stagger="80">
+        <section className="auth-panel" data-reveal data-stagger="80">
           <div>
             <div className="text-sm font-semibold text-white">{L.heading}</div>
-            <div className="mt-1 text-xs text-brand-200">{subtitle}</div>
+            <div className="mt-1 text-xs text-emerald-200/70">{subtitle}</div>
           </div>
 
-          <div className="mt-5 rounded-2xl bg-brand-900 p-1">
-            <div className="grid grid-cols-2">
-              {(["signIn", "register"] as const).map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => {
-                    setMainTab(t);
-                    setFormError(null);
-                  }}
-                  className={`rounded-[14px] px-2 py-2 text-xs font-semibold transition sm:px-4 sm:text-sm ${
-                    mainTab === t ? "bg-brand-500 text-white shadow-sm" : "text-brand-200 hover:text-white"
-                  }`}
-                >
-                  {t === "signIn" ? L.tabsSignIn : L.tabsRegister}
-                </button>
-              ))}
-            </div>
+          <div className="auth-tabs mt-5" role="tablist" aria-label={L.heading}>
+            {(["signIn", "register"] as const).map((t) => (
+              <button
+                key={t}
+                type="button"
+                role="tab"
+                aria-selected={mainTab === t}
+                onClick={() => {
+                  setMainTab(t);
+                  setFormError(null);
+                }}
+                className={`auth-tab ${mainTab === t ? "is-active" : ""}`}
+              >
+                {t === "signIn" ? L.tabsSignIn : L.tabsRegister}
+              </button>
+            ))}
           </div>
 
-          {formError ? (
-            <div className="mt-4 rounded-2xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200">{formError}</div>
-          ) : null}
+          {formError ? <div className="auth-error" role="alert">{formError}</div> : null}
 
           <div className="mt-6 space-y-5">
             <PrimarySocialAuth />
 
-            <div className="flex items-center gap-3 text-xs text-brand-300">
-              <span className="h-px flex-1 bg-brand-700" />
-              <span>{L.orUseEmail}</span>
-              <span className="h-px flex-1 bg-brand-700" />
-            </div>
+            <div className="auth-divider">{L.orUseEmail}</div>
 
             {isRegister ? (
               <form onSubmit={handleRegisterEmail} className="space-y-4">
                 <div>
-                  <label className="mb-1.5 block text-sm font-semibold text-white">{L.fullName}</label>
-                  <input
-                    value={regName}
-                    onChange={(e) => setRegName(e.target.value)}
-                    className="h-12 w-full rounded-2xl border border-brand-700 bg-brand-900 px-4 text-sm text-white outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30"
-                    autoComplete="name"
-                  />
+                  <label htmlFor="reg-name" className="auth-field-label">{L.fullName}</label>
+                  <Input id="reg-name" tone="public" value={regName} onChange={(e) => setRegName(e.target.value)} autoComplete="name" />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-sm font-semibold text-white">{L.email}</label>
-                  <input
-                    value={regEmail}
-                    onChange={(e) => setRegEmail(e.target.value)}
-                    type="email"
-                    className="h-12 w-full rounded-2xl border border-brand-700 bg-brand-900 px-4 text-sm text-white outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30"
-                    autoComplete="email"
-                  />
+                  <label htmlFor="reg-email" className="auth-field-label">{L.email}</label>
+                  <Input id="reg-email" tone="public" type="email" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} autoComplete="email" />
                 </div>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="mb-1.5 block text-sm font-semibold text-white">{L.password}</label>
-                    <input
+                    <label htmlFor="reg-password" className="auth-field-label">{L.password}</label>
+                    <Input
+                      id="reg-password"
+                      tone="public"
                       value={regPassword}
                       onChange={(e) => setRegPassword(e.target.value)}
                       type={regShowPassword ? "text" : "password"}
                       placeholder={L.passwordPlaceholder}
-                      className="h-12 w-full rounded-2xl border border-brand-700 bg-brand-900 px-4 text-sm text-white outline-none"
                       minLength={6}
                       autoComplete="new-password"
                     />
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-sm font-semibold text-white">{L.confirmPassword}</label>
-                    <input
+                    <label htmlFor="reg-confirm" className="auth-field-label">{L.confirmPassword}</label>
+                    <Input
+                      id="reg-confirm"
+                      tone="public"
                       value={regConfirmPassword}
                       onChange={(e) => setRegConfirmPassword(e.target.value)}
                       type={regShowPassword ? "text" : "password"}
                       placeholder={L.confirmPasswordPlaceholder}
-                      className="h-12 w-full rounded-2xl border border-brand-700 bg-brand-900 px-4 text-sm text-white outline-none"
                       minLength={6}
                       autoComplete="new-password"
                     />
                   </div>
                 </div>
-                <button type="button" onClick={() => setRegShowPassword((v) => !v)} className="text-xs font-semibold text-brand-200 hover:text-white">
+                <button type="button" onClick={() => setRegShowPassword((v) => !v)} className="text-xs font-semibold text-emerald-200/80 hover:text-white">
                   {regShowPassword ? L.hidePassword : L.showPassword}
                 </button>
                 <TermsCheckbox checked={regAgree} onChange={setRegAgree} label={L.agreeTerms} />
-                <button type="submit" disabled={isRegisterSubmitting} className="brand-gradient h-12 w-full rounded-2xl text-sm font-semibold text-white disabled:opacity-60">
-                  {isRegisterSubmitting ? `${L.createAccount}…` : L.createAccount}
-                </button>
+                <Button type="submit" variant="primary" loading={isRegisterSubmitting} fullWidth>
+                  {L.createAccount}
+                </Button>
               </form>
             ) : (
               <form onSubmit={handleSignInEmail} className="space-y-4">
                 <div>
-                  <label className="mb-1.5 block text-sm font-semibold text-white">{L.email}</label>
-                  <input
+                  <label htmlFor="login-email" className="auth-field-label">{L.email}</label>
+                  <Input
+                    id="login-email"
+                    tone="public"
                     value={loginEmail}
                     onChange={(e) => setLoginEmail(e.target.value)}
                     type="email"
                     placeholder={L.emailPlaceholder}
-                    className="h-12 w-full rounded-2xl border border-brand-700 bg-brand-900 px-4 text-sm text-white outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30"
                     autoComplete="email"
                   />
                 </div>
                 <div>
-                  <div className="flex items-center justify-between gap-3">
-                    <label className="mb-1.5 block text-sm font-semibold text-white">{L.password}</label>
-                    <button type="button" onClick={() => setLoginShowPassword((v) => !v)} className="text-xs font-semibold text-brand-200 hover:text-white">
+                  <div className="mb-1.5 flex items-center justify-between gap-3">
+                    <label htmlFor="login-password" className="auth-field-label mb-0">{L.password}</label>
+                    <button type="button" onClick={() => setLoginShowPassword((v) => !v)} className="text-xs font-semibold text-emerald-200/80 hover:text-white">
                       {loginShowPassword ? L.hidePassword : L.showPassword}
                     </button>
                   </div>
-                  <input
+                  <Input
+                    id="login-password"
+                    tone="public"
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
                     type={loginShowPassword ? "text" : "password"}
                     placeholder={L.passwordPlaceholder}
-                    className="h-12 w-full rounded-2xl border border-brand-700 bg-brand-900 px-4 text-sm text-white outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30"
                     autoComplete="current-password"
                   />
                 </div>
-                <button type="submit" disabled={isLoginSubmitting} className="brand-gradient h-12 w-full rounded-2xl text-sm font-semibold text-white disabled:opacity-60">
-                  {isLoginSubmitting ? `${L.signIn}…` : L.signIn}
-                </button>
-                <Link href="/auth/reset-password" className="block text-center text-sm font-semibold text-brand-200 hover:text-white">
+                <Button type="submit" variant="primary" loading={isLoginSubmitting} fullWidth>
+                  {L.signIn}
+                </Button>
+                <Link href="/auth/reset-password" className="block text-center text-sm font-semibold text-emerald-200/80 hover:text-white">
                   {L.forgotPassword}
                 </Link>
               </form>
@@ -473,14 +456,14 @@ function GoogleIcon() {
 
 function TermsCheckbox({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
   return (
-    <label className="flex items-start gap-3 rounded-2xl border border-brand-700 bg-brand-900 px-4 py-3">
+    <label className="flex min-h-[var(--taj-control-h)] cursor-pointer items-start gap-3 rounded-xl border border-[var(--taj-color-border)] bg-[rgba(4,26,18,0.5)] px-4 py-3">
       <input
         type="checkbox"
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        className="mt-1 h-4 w-4 rounded border-brand-600 text-brand-500"
+        className="mt-1 h-4 w-4 shrink-0 rounded border-emerald-600/50 text-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-400/50"
       />
-      <span className="text-sm font-medium text-brand-200">{label}</span>
+      <span className="text-sm font-medium text-emerald-100/80">{label}</span>
     </label>
   );
 }

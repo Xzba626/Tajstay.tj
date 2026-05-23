@@ -1,0 +1,264 @@
+/**
+ * TajStay — PR-3 auth / profile polish (emerald DS)
+ */
+
+.auth-page {
+  min-height: calc(100vh - 4rem);
+  padding-block: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+.auth-shell {
+  display: grid;
+  gap: 1.25rem;
+  width: 100%;
+  max-width: var(--taj-page-max);
+  margin-inline: auto;
+  padding-inline: var(--taj-page-px);
+}
+
+@media (min-width: 1024px) {
+  .auth-shell {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 1.75rem;
+    align-items: stretch;
+  }
+}
+
+.auth-panel {
+  border-radius: var(--taj-radius-2xl);
+  border: 1px solid var(--taj-color-border);
+  background: var(--taj-public-surface-strong);
+  box-shadow: var(--taj-shadow-md);
+  padding: clamp(1.25rem, 3vw, 2rem);
+}
+
+.auth-panel--promo {
+  background: linear-gradient(145deg, rgba(10, 46, 31, 0.85), rgba(4, 26, 18, 0.95));
+}
+
+.auth-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.25rem;
+  border-radius: var(--taj-radius-xl);
+  border: 1px solid var(--taj-color-border);
+  background: rgba(4, 26, 18, 0.6);
+  padding: 0.25rem;
+}
+
+.auth-tab {
+  min-height: var(--taj-control-h-sm);
+  border-radius: var(--taj-radius-lg);
+  font-size: var(--taj-text-sm);
+  font-weight: 600;
+  color: var(--taj-color-text-secondary);
+  transition: background 0.18s, color 0.18s;
+}
+
+.auth-tab.is-active {
+  background: rgba(34, 197, 94, 0.2);
+  color: var(--taj-color-text);
+  box-shadow: inset 0 0 0 1px rgba(52, 211, 153, 0.25);
+}
+
+.auth-tab:focus-visible {
+  outline: none;
+  box-shadow: var(--taj-shadow-focus);
+}
+
+.auth-field-label {
+  display: block;
+  margin-bottom: 0.375rem;
+  font-size: var(--taj-text-sm);
+  font-weight: 600;
+  color: var(--taj-color-text);
+}
+
+.auth-error {
+  margin-top: 1rem;
+  border-radius: var(--taj-radius-lg);
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  background: rgba(127, 29, 29, 0.25);
+  padding: 0.75rem 1rem;
+  font-size: var(--taj-text-sm);
+  color: #fecaca;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: var(--taj-text-xs);
+  font-weight: 600;
+  color: var(--taj-color-text-muted);
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--taj-color-border);
+}
+
+.auth-telegram-card {
+  border-radius: var(--taj-radius-xl);
+  border: 1px solid rgba(52, 211, 153, 0.22);
+  background: rgba(16, 185, 129, 0.06);
+  padding: 1rem;
+}
+
+.auth-telegram-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: var(--taj-text-xs);
+  color: var(--taj-color-text-secondary);
+}
+
+.auth-telegram-step.is-active {
+  color: var(--taj-color-text);
+  font-weight: 600;
+}
+
+.auth-google-btn {
+  display: flex;
+  min-height: var(--taj-control-h);
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: var(--taj-radius-xl);
+  border: 1px solid var(--taj-color-border-strong);
+  background: rgba(8, 28, 20, 0.85);
+  font-size: var(--taj-text-sm);
+  font-weight: 600;
+  color: var(--taj-color-text);
+  transition: background 0.18s, border-color 0.18s, transform 0.12s;
+}
+
+.auth-google-btn:hover {
+  background: rgba(15, 42, 28, 0.95);
+  border-color: rgba(110, 231, 183, 0.35);
+}
+
+.auth-google-btn:active {
+  transform: scale(0.98);
+}
+
+/* Profile */
+.profile-card {
+  border-radius: var(--taj-radius-card-lg);
+  border: 1px solid var(--taj-color-border);
+  background: var(--taj-public-surface-strong);
+  padding: 1.25rem 1.5rem;
+  box-shadow: var(--taj-shadow-sm);
+}
+
+.profile-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  border-radius: var(--taj-radius-card-lg);
+  border: 1px solid var(--taj-color-border);
+  background: var(--taj-color-bg-card-solid);
+  padding: 0.5rem;
+}
+
+.profile-nav a {
+  display: flex;
+  min-height: var(--taj-control-h);
+  align-items: center;
+  border-radius: var(--taj-radius-lg);
+  padding: 0 0.875rem;
+  font-size: var(--taj-text-sm);
+  font-weight: 600;
+  color: var(--taj-color-text-secondary);
+  transition: background 0.18s, color 0.18s;
+}
+
+.profile-nav a:hover {
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--taj-color-text);
+}
+
+/* User menu dropdown — emerald glass on dark header */
+.user-menu-trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: var(--taj-control-h);
+  border-radius: 9999px;
+  border: 1px solid var(--taj-color-border-strong);
+  background: var(--taj-public-surface);
+  padding: 0.25rem 0.75rem 0.25rem 0.25rem;
+  font-size: var(--taj-text-sm);
+  font-weight: 600;
+  color: var(--taj-color-text);
+  transition: border-color 0.18s, background 0.18s, box-shadow 0.18s;
+}
+
+.user-menu-trigger:hover,
+.user-menu-trigger[aria-expanded="true"] {
+  border-color: rgba(110, 231, 183, 0.4);
+  background: var(--taj-public-surface-strong);
+  box-shadow: var(--taj-shadow-focus);
+}
+
+.user-menu-dropdown {
+  position: absolute;
+  right: 0;
+  z-index: 100;
+  margin-top: 0.5rem;
+  width: min(calc(100vw - 2rem), 17rem);
+  max-height: min(70vh, 28rem);
+  overflow: hidden;
+  border-radius: var(--taj-radius-xl);
+  border: 1px solid var(--taj-color-border-strong);
+  background: rgba(4, 26, 18, 0.97);
+  box-shadow: var(--taj-shadow-lg);
+  backdrop-filter: blur(14px);
+}
+
+.user-menu-item {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
+  border-radius: var(--taj-radius-lg);
+  padding: 0 0.75rem;
+  font-size: var(--taj-text-sm);
+  font-weight: 500;
+  color: var(--taj-color-text-secondary);
+  transition: background 0.15s, color 0.15s;
+}
+
+.user-menu-item:hover {
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--taj-color-text);
+}
+
+.user-menu-item--owner {
+  color: #a7f3d0;
+  font-weight: 600;
+}
+
+.user-menu-item--danger {
+  color: #fca5a5;
+}
+
+.user-menu-item--danger:hover {
+  background: rgba(127, 29, 29, 0.35);
+  color: #fecaca;
+}
+
+.user-menu-notifications-compact {
+  font-size: var(--taj-text-xs);
+  color: var(--taj-color-text-muted);
+  padding: 0.25rem 0.75rem 0.5rem;
+}
+
+@media (max-width: 639px) {
+  .user-menu-dropdown {
+    right: -0.5rem;
+  }
+}

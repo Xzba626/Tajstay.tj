@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Locale } from "@/lib/i18n/locale";
 import { OtpCodeInput } from "@/components/auth/OtpCodeInput";
+import { Button } from "@/components/ds/Button";
 
 export type TelegramLoginLabels = {
   signIn: string;
@@ -40,6 +41,13 @@ type PollStatus = "pending" | "awaiting_phone" | "code_sent" | "expired" | "used
 
 const EMPTY_OTP = ["", "", "", "", "", ""];
 
+function stepIndex(status: PollStatus | null, active: boolean): number {
+  if (!active) return 0;
+  if (status === "code_sent") return 3;
+  if (status === "awaiting_phone") return 2;
+  return 1;
+}
+
 export function TelegramLoginPanel({ labels: L, onSuccess, onError }: Props) {
   const [active, setActive] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -52,6 +60,7 @@ export function TelegramLoginPanel({ labels: L, onSuccess, onError }: Props) {
   const verifying = useRef(false);
 
   const otpComplete = otp.every((d) => d.trim().length === 1);
+  const currentStep = stepIndex(status, active);
 
   const verifyCode = useCallback(
     async (code: string) => {
@@ -159,37 +168,52 @@ export function TelegramLoginPanel({ labels: L, onSuccess, onError }: Props) {
 
   if (!active) {
     return (
-      <button
+      <Button
         type="button"
-        disabled={loading}
+        variant="secondary"
+        fullWidth
+        loading={loading}
         onClick={() => void startChallenge()}
-        className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-sky-500/40 bg-sky-500/10 px-4 text-sm font-semibold text-sky-100 transition hover:bg-sky-500/20 disabled:opacity-60"
+        className="gap-2"
       >
         <TelegramIcon />
-        {loading ? `${L.signIn}…` : L.signIn}
-      </button>
+        {L.signIn}
+      </Button>
     );
   }
 
   return (
-    <div className="space-y-3 rounded-2xl border border-sky-500/25 bg-sky-500/5 p-4">
-      <p className="text-xs text-brand-200">{L.step1}</p>
+    <div className="auth-telegram-card space-y-4">
+      <ol className="auth-telegram-steps" aria-label="Telegram sign-in steps">
+        <li className={currentStep >= 1 ? "auth-telegram-step is-active" : "auth-telegram-step"}>
+          <span className="mr-1.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500/20 text-[10px] font-bold text-emerald-200">1</span>
+          {L.step1}
+        </li>
+        <li className={currentStep >= 2 ? "auth-telegram-step is-active" : "auth-telegram-step"}>
+          <span className="mr-1.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500/20 text-[10px] font-bold text-emerald-200">2</span>
+          {L.step2}
+        </li>
+        <li className={currentStep >= 3 ? "auth-telegram-step is-active" : "auth-telegram-step"}>
+          <span className="mr-1.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500/20 text-[10px] font-bold text-emerald-200">3</span>
+          {L.step3}
+        </li>
+      </ol>
+
       <a
         href={challenge?.deepLink}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-[#229ED9] text-sm font-semibold text-white transition hover:opacity-90"
+        className="flex min-h-[var(--taj-control-h)] w-full items-center justify-center gap-2 rounded-xl bg-[#229ED9] text-sm font-semibold text-white transition hover:opacity-90 active:scale-[0.98]"
       >
         <TelegramIcon />
         {L.openBot}
       </a>
-      <p className="text-xs text-brand-300">{L.step2}</p>
+
       {statusText ? <p className="text-sm font-medium text-white">{statusText}</p> : null}
-      {phoneMasked ? <p className="text-xs text-brand-400">{phoneMasked}</p> : null}
+      {phoneMasked ? <p className="text-xs text-emerald-200/60">{phoneMasked}</p> : null}
 
       {status === "code_sent" ? (
-        <div className="space-y-3 border-t border-white/10 pt-3">
-          <p className="text-xs text-brand-200">{L.step3}</p>
+        <div className="space-y-3 border-t border-emerald-400/15 pt-3">
           <p className="text-sm font-semibold text-white">{L.enterCode}</p>
           <OtpCodeInput
             value={otp}
@@ -200,24 +224,19 @@ export function TelegramLoginPanel({ labels: L, onSuccess, onError }: Props) {
             shake={otpShake}
             autoFocus
           />
-          <button
-            type="button"
-            disabled={loading || !otpComplete}
-            onClick={() => void verifyCode(otp.join(""))}
-            className="brand-gradient min-h-[48px] w-full rounded-xl text-sm font-semibold text-white disabled:opacity-50"
-          >
-            {loading ? `${L.verify}…` : L.verify}
-          </button>
+          <Button type="button" variant="primary" fullWidth loading={loading} disabled={!otpComplete} onClick={() => void verifyCode(otp.join(""))}>
+            {L.verify}
+          </Button>
         </div>
       ) : null}
 
       {secondsLeft > 0 ? (
-        <p className="text-xs text-brand-400">{L.expiresIn.replace("{n}", String(secondsLeft))}</p>
+        <p className="text-xs text-emerald-200/50">{L.expiresIn.replace("{n}", String(secondsLeft))}</p>
       ) : null}
 
       <button
         type="button"
-        className="text-xs font-semibold text-brand-300 underline-offset-2 hover:text-white hover:underline"
+        className="text-xs font-semibold text-emerald-200/70 underline-offset-2 hover:text-white hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50"
         onClick={() => {
           setActive(false);
           setChallenge(null);
@@ -233,7 +252,7 @@ export function TelegramLoginPanel({ labels: L, onSuccess, onError }: Props) {
 
 function TelegramIcon() {
   return (
-    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+    <svg className="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
       <path d="M9.78 15.28 9.5 19.5c.43 0 .62-.19.84-.41l2.02-1.93 4.19 3.07c.77.43 1.32.2 1.53-.72l2.78-13.05c.28-1.31-.47-1.82-1.28-1.5L3.9 9.78c-1.27.5-1.25 1.22-.23 1.54l4.47 1.39 10.37-6.55c.49-.32.93-.14.57.18" />
     </svg>
   );

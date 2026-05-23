@@ -19,8 +19,8 @@ export default async function ProfilePage() {
   if (!user) {
     return (
       <PageContainer width="narrow" className="space-y-3">
-        <h1 className="text-2xl font-semibold text-slate-100">{m(locale, "profile.title")}</h1>
-        <p className="text-slate-300">{m(locale, "profile.signInPrompt")}</p>
+        <h1 className="text-2xl font-semibold text-[var(--taj-color-text)]">{m(locale, "profile.title")}</h1>
+        <p className="text-emerald-100/75">{m(locale, "profile.signInPrompt")}</p>
         <a className="taj-btn taj-btn--primary" href="/auth/sign-in">
           {m(locale, "profile.signInCta")}
         </a>
@@ -50,78 +50,64 @@ export default async function ProfilePage() {
 
   return (
     <PageContainer width="narrow" className="space-y-6">
-      <h1 className="text-2xl font-semibold text-slate-100">{m(locale, "profile.title")}</h1>
+      <h1 className="text-2xl font-semibold text-[var(--taj-color-text)]">{m(locale, "profile.title")}</h1>
 
-      <div className="liquid-glass rounded-2xl border border-white/10 p-5 shadow-sm sm:p-6">
+      <div className="profile-card">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0 flex-1">
-            <div className="text-lg font-semibold text-slate-100">{full?.name}</div>
-            <div className="mt-1 text-sm text-slate-300">{full?.email ?? "—"}</div>
+            <div className="text-lg font-semibold text-white">{full?.name}</div>
+            <div className="mt-1 text-sm text-emerald-100/75">{full?.email ?? "—"}</div>
             <TrustBadges locale={locale} badges={trustBadges} size="md" className="mt-3" />
           </div>
-          <div className="shrink-0 rounded-xl bg-brand-900/80 px-3 py-2 text-right text-xs text-slate-300 ring-1 ring-white/10">
+          <div className="shrink-0 rounded-xl border border-emerald-400/15 bg-emerald-950/50 px-3 py-2 text-right text-xs text-emerald-200/70">
             <div>
               {m(locale, "profile.phone")}:{" "}
-              <span className="font-medium text-slate-100">
+              <span className="font-medium text-white">
                 {full?.phone && !isPlaceholderAccountPhone(full.phone) ? full.phone : m(locale, "profile.phoneNotSet")}
               </span>
             </div>
             <div className="mt-1">
-              <span className="inline-flex rounded-full bg-white/10 px-2 py-0.5 font-semibold text-slate-200">
+              <span className="inline-flex rounded-full bg-emerald-500/15 px-2 py-0.5 font-semibold text-emerald-100 ring-1 ring-emerald-400/25">
                 {full?.role === "OWNER" ? m(locale, "profile.roleOwner") : full?.role === "ADMIN" ? m(locale, "profile.roleAdmin") : m(locale, "profile.roleGuest")}
               </span>
             </div>
           </div>
         </div>
         {full?.role === "GUEST" && (
-          <p className="mt-3 text-sm text-slate-300">
+          <p className="mt-3 text-sm text-emerald-100/70">
             {m(locale, "profile.statsGuest", { favorites: full.favorites.length, bookings: full.bookings.length })}
           </p>
         )}
-        {full?.role === "OWNER" && <p className="mt-3 text-sm text-slate-300">{m(locale, "profile.statsOwner", { count: full.hotels.length })}</p>}
+        {full?.role === "OWNER" && <p className="mt-3 text-sm text-emerald-100/70">{m(locale, "profile.statsOwner", { count: full.hotels.length })}</p>}
       </div>
 
       <ProfileBecomeOwnerCard locale={locale} role={full?.role ?? "GUEST"} ownerNav={ownerNav} />
 
-      <nav className="quiet-card flex flex-col gap-2 rounded-2xl p-4 text-sm shadow-sm">
-        <Link href="/dashboard/guest" className="text-emerald-300 hover:underline">
-          {m(locale, "profile.navBookings")}
-        </Link>
-        <Link href="/dashboard/messages" className="text-emerald-300 hover:underline">
-          {m(locale, "profile.navMessages")}
-        </Link>
-        <Link href="/favorites" className="text-emerald-300 hover:underline">
-          {m(locale, "profile.navFavorites")}
-        </Link>
-        {full?.role === "OWNER" && (
-          <Link href="/dashboard/owner" className="text-emerald-300 hover:underline">
-            {m(locale, "profile.navOwner")}
-          </Link>
-        )}
-        {full?.role === "ADMIN" && (
-          <Link href="/dashboard/admin" className="text-emerald-300 hover:underline">
-            {m(locale, "profile.navAdmin")}
-          </Link>
-        )}
+      <nav className="profile-nav" aria-label={m(locale, "profile.title")}>
+        <Link href="/dashboard/guest">{m(locale, "profile.navBookings")}</Link>
+        <Link href="/dashboard/messages">{m(locale, "profile.navMessages")}</Link>
+        <Link href="/favorites">{m(locale, "profile.navFavorites")}</Link>
+        {full?.role === "OWNER" && <Link href="/dashboard/owner">{m(locale, "profile.navOwner")}</Link>}
+        {full?.role === "ADMIN" && <Link href="/dashboard/admin">{m(locale, "profile.navAdmin")}</Link>}
       </nav>
 
       <section id="reviews" className="scroll-mt-24">
-        <h2 className="mb-3 text-lg font-semibold text-slate-100">{m(locale, "profile.reviewsTitle")}</h2>
+        <h2 className="mb-3 text-lg font-semibold text-white">{m(locale, "profile.reviewsTitle")}</h2>
         {reviews.length === 0 ? (
-          <p className="text-sm text-slate-400">{m(locale, "profile.reviewsEmpty")}</p>
+          <p className="text-sm text-emerald-200/50">{m(locale, "profile.reviewsEmpty")}</p>
         ) : (
           <ul className="space-y-3">
             {reviews.map((r) => (
-              <li key={r.id} className="quiet-card rounded-xl p-4 text-sm">
-                <div className="font-medium text-slate-100">{r.booking.room.hotel.name}</div>
-                <div className="text-slate-300">{r.rating} ★ · {r.comment}</div>
+              <li key={r.id} className="profile-card text-sm">
+                <div className="font-medium text-white">{r.booking.room.hotel.name}</div>
+                <div className="text-emerald-100/70">{r.rating} ★ · {r.comment}</div>
               </li>
             ))}
           </ul>
         )}
       </section>
 
-      <LogoutButton />
+      <LogoutButton label={m(locale, "userMenu.logout")} />
     </PageContainer>
   );
 }
