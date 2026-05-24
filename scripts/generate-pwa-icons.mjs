@@ -1,5 +1,5 @@
 /**
- * Generate TajStay PWA icons from public/brand/tajstay-icon.png
+ * Generate TajStay PWA + favicon assets from public/brand/tajstay-icon.png
  * Usage: node scripts/generate-pwa-icons.mjs
  */
 import fs from "fs";
@@ -11,8 +11,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
 const iconPath = path.join(root, "public", "brand", "tajstay-icon.png");
 const iconsDir = path.join(root, "public", "icons");
+const appDir = path.join(root, "src", "app");
 
-const BRAND_BG = { r: 6, g: 36, b: 24, alpha: 1 };
+const BRAND_BG = { r: 2, g: 15, b: 10, alpha: 1 };
 
 if (!fs.existsSync(iconPath)) {
   console.error("Run node scripts/generate-brand-assets.mjs first");
@@ -59,10 +60,44 @@ for (const [name, buf] of outputs) {
   console.log("Wrote", out, buf.length, "bytes");
 }
 
-fs.writeFileSync(path.join(root, "public", "apple-touch-icon.png"), await renderIcon(180));
+const favicon48 = await renderIcon(48);
+const favicon32 = await renderIcon(32);
+const apple180 = await renderIcon(180);
+
+fs.writeFileSync(path.join(root, "public", "apple-touch-icon.png"), apple180);
 console.log("Wrote public/apple-touch-icon.png");
 
-fs.writeFileSync(path.join(root, "public", "favicon.png"), await renderIcon(32));
+fs.writeFileSync(path.join(root, "public", "favicon.png"), favicon32);
 console.log("Wrote public/favicon.png");
+
+/** Next.js App Router — auto-serves /favicon.ico and link rel=icon for Google */
+if (!fs.existsSync(appDir)) fs.mkdirSync(appDir, { recursive: true });
+fs.writeFileSync(path.join(appDir, "icon.png"), favicon48);
+fs.writeFileSync(path.join(appDir, "apple-icon.png"), apple180);
+console.log("Wrote src/app/icon.png (48px)");
+console.log("Wrote src/app/apple-icon.png");
+
+/** PNG embedded in ICO (supported by modern browsers + Google) */
+function pngToIco(pngBuffer, size = 32) {
+  const header = Buffer.alloc(6);
+  header.writeUInt16LE(0, 0);
+  header.writeUInt16LE(1, 2);
+  header.writeUInt16LE(1, 4);
+
+  const entry = Buffer.alloc(16);
+  entry[0] = size >= 256 ? 0 : size;
+  entry[1] = size >= 256 ? 0 : size;
+  entry.writeUInt16LE(1, 4);
+  entry.writeUInt16LE(32, 6);
+  entry.writeUInt32LE(pngBuffer.length, 8);
+  entry.writeUInt32LE(22, 12);
+
+  return Buffer.concat([header, entry, pngBuffer]);
+}
+
+const faviconIco = pngToIco(favicon32, 32);
+fs.writeFileSync(path.join(root, "public", "favicon.ico"), faviconIco);
+fs.writeFileSync(path.join(appDir, "favicon.ico"), faviconIco);
+console.log("Wrote public/favicon.ico + src/app/favicon.ico");
 
 console.log("Done.");

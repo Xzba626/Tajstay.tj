@@ -28,11 +28,12 @@ export async function generateMetadata(): Promise<Metadata> {
     description: "Национальная платформа бронирования жилья в Таджикистане",
     icons: {
       icon: [
-        { url: BRAND.favicon, sizes: "32x32", type: "image/png" },
+        { url: "/favicon.ico", sizes: "48x48" },
+        { url: "/favicon.png", sizes: "32x32", type: "image/png" },
         { url: BRAND.favicon, sizes: "512x512", type: "image/png" },
         { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }
       ],
-      apple: [{ url: BRAND.favicon, sizes: "180x180", type: "image/png" }]
+      apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }]
     },
     manifest: "/manifest.webmanifest",
     openGraph: {
@@ -68,8 +69,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     <html lang={locale} className="scroll-smooth" data-theme="dark">
       <head>
         <link rel="manifest" href="/manifest.webmanifest" />
-        <link rel="apple-touch-icon" href={BRAND.favicon} sizes="180x180" />
-        <link rel="icon" href={BRAND.favicon} type="image/png" sizes="32x32" />
+        <link rel="icon" href="/favicon.ico" sizes="48x48" />
+        <link rel="icon" href="/favicon.png" type="image/png" sizes="32x32" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-title" content={BRAND.name} />
       </head>
