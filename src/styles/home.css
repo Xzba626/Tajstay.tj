@@ -5,8 +5,8 @@
 
 /* ---- Page rhythm ---- */
 .home-page {
-  --home-section-py: clamp(2rem, 5vw, 3.5rem);
-  --home-section-py-compact: clamp(1.5rem, 3.5vw, 2.5rem);
+  --home-section-py: clamp(1.75rem, 4vw, 2.75rem);
+  --home-section-py-compact: clamp(1.25rem, 3vw, 2rem);
 }
 
 .home-section {

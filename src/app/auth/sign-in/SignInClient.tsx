@@ -251,7 +251,7 @@ export function SignInClient({
         {telegramLoginEnabled ? (
           <>
             {isRegister ? (
-              <p className="text-center text-xs text-emerald-200/60">{L.telegramRegisterHint}</p>
+              <p className="text-center text-xs text-emerald-200">{L.telegramRegisterHint}</p>
             ) : null}
             <TelegramLoginPanel
               locale={locale}
@@ -298,11 +298,11 @@ export function SignInClient({
             <Image src="/logo-mark.svg" alt="TajStay" width={56} height={56} className="h-12 w-12 rounded-2xl sm:h-14 sm:w-14" unoptimized priority />
             <div className="min-w-0">
               <div className="truncate text-lg font-semibold tracking-tight text-white sm:text-xl">TajStay</div>
-              <div className="text-sm text-emerald-200/90">{L.title}</div>
+              <div className="text-sm text-emerald-200">{L.title}</div>
             </div>
           </Link>
           <h1 className="mt-6 text-[clamp(1.6rem,7vw,2.25rem)] font-extrabold leading-tight tracking-tight text-white sm:mt-8">{L.leftTitle}</h1>
-          <p className="mt-4 max-w-xl text-base leading-relaxed text-emerald-100/75">{L.leftSubtitle}</p>
+          <p className="mt-4 max-w-xl text-base leading-relaxed text-emerald-100">{L.leftSubtitle}</p>
           <div className="mt-6 grid gap-3 sm:grid-cols-3">
             {[L.promo1, L.promo2, L.promo3].map((item) => (
               <div key={item} className="rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-50">
@@ -310,7 +310,7 @@ export function SignInClient({
               </div>
             ))}
           </div>
-          <ul className="mt-8 space-y-3 text-sm text-emerald-100/80">
+          <ul className="mt-8 space-y-3 text-sm text-emerald-100">
             {[L.leftBenefit1, L.leftBenefit2, L.leftBenefit3].map((b) => (
               <li key={b} className="flex items-start gap-3">
                 <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-200 ring-1 ring-emerald-400/30">✓</span>
@@ -323,7 +323,7 @@ export function SignInClient({
         <section className="auth-panel" data-reveal data-stagger="80">
           <div>
             <div className="text-sm font-semibold text-white">{L.heading}</div>
-            <div className="mt-1 text-xs text-emerald-200/70">{subtitle}</div>
+            <div className="mt-1 text-xs text-emerald-200">{subtitle}</div>
           </div>
 
           <div className="auth-tabs mt-5" role="tablist" aria-label={L.heading}>
@@ -389,7 +389,7 @@ export function SignInClient({
                     />
                   </div>
                 </div>
-                <button type="button" onClick={() => setRegShowPassword((v) => !v)} className="text-xs font-semibold text-emerald-200/80 hover:text-white">
+                <button type="button" onClick={() => setRegShowPassword((v) => !v)} className="text-xs font-semibold text-emerald-200 hover:text-white">
                   {regShowPassword ? L.hidePassword : L.showPassword}
                 </button>
                 <TermsCheckbox checked={regAgree} onChange={setRegAgree} label={L.agreeTerms} />
@@ -414,7 +414,7 @@ export function SignInClient({
                 <div>
                   <div className="mb-1.5 flex items-center justify-between gap-3">
                     <label htmlFor="login-password" className="auth-field-label mb-0">{L.password}</label>
-                    <button type="button" onClick={() => setLoginShowPassword((v) => !v)} className="text-xs font-semibold text-emerald-200/80 hover:text-white">
+                    <button type="button" onClick={() => setLoginShowPassword((v) => !v)} className="text-xs font-semibold text-emerald-200 hover:text-white">
                       {loginShowPassword ? L.hidePassword : L.showPassword}
                     </button>
                   </div>
@@ -431,7 +431,7 @@ export function SignInClient({
                 <Button type="submit" variant="primary" loading={isLoginSubmitting} fullWidth>
                   {L.signIn}
                 </Button>
-                <Link href="/auth/reset-password" className="block text-center text-sm font-semibold text-emerald-200/80 hover:text-white">
+                <Link href="/auth/reset-password" className="block text-center text-sm font-semibold text-emerald-200 hover:text-white">
                   {L.forgotPassword}
                 </Link>
               </form>
@@ -463,7 +463,7 @@ function TermsCheckbox({ checked, onChange, label }: { checked: boolean; onChang
         onChange={(e) => onChange(e.target.checked)}
         className="mt-1 h-4 w-4 shrink-0 rounded border-emerald-600/50 text-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-400/50"
       />
-      <span className="text-sm font-medium text-emerald-100/80">{label}</span>
+      <span className="text-sm font-medium text-emerald-100">{label}</span>
     </label>
   );
 }

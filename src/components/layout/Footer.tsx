@@ -44,7 +44,7 @@ export async function Footer() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-emerald-100/75 transition hover:text-white hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#041a12]"
+                className="text-emerald-100 transition hover:text-white hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#041a12]"
               >
                 {link.label}
               </Link>
@@ -52,7 +52,7 @@ export async function Footer() {
           </nav>
         </div>
 
-        <p className="mt-5 border-t border-white/8 pt-4 text-center text-xs text-emerald-200/60 sm:text-left">
+        <p className="mt-4 border-t border-white/10 pt-4 text-center text-xs text-emerald-200 sm:text-left">
           © {year} {m(locale, "footer.rights")}
         </p>
       </div>
