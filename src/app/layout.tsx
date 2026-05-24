@@ -16,6 +16,7 @@ import { getUnreadNotificationsCount } from "@/lib/notifications/unread";
 import { getSessionUser } from "@/lib/auth/session";
 import { m } from "@/lib/i18n/messages";
 import { getLocale } from "@/lib/i18n/get-locale";
+import { BRAND } from "@/lib/brand";
 import { getSiteContent } from "@/lib/site-content";
 import { AuthProvider } from "@/providers/auth-provider";
 import { assertProdSecrets } from "@/lib/security/envGuard";
@@ -23,25 +24,25 @@ import { assertProdSecrets } from "@/lib/security/envGuard";
 export async function generateMetadata(): Promise<Metadata> {
   const content = await getSiteContent();
   return {
-    title: `${content.brand.siteName} — Tajikistan stays`,
+    title: BRAND.title,
     description: "Национальная платформа бронирования жилья в Таджикистане",
     icons: {
       icon: [
-        { url: "/favicon.png", sizes: "32x32", type: "image/png" },
-        { url: "/brand/tajstay-icon.png", sizes: "512x512", type: "image/png" },
+        { url: BRAND.favicon, sizes: "32x32", type: "image/png" },
+        { url: BRAND.favicon, sizes: "512x512", type: "image/png" },
         { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }
       ],
-      apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }]
+      apple: [{ url: BRAND.favicon, sizes: "180x180", type: "image/png" }]
     },
     manifest: "/manifest.webmanifest",
     openGraph: {
-      title: `${content.brand.siteName} — Tajikistan stays`,
+      title: BRAND.title,
       description: "Национальная платформа бронирования жилья в Таджикистане",
-      images: [{ url: "/brand/tajstay-og.png", width: 1200, height: 630, alt: content.brand.siteName }]
+      images: [{ url: BRAND.ogImage, width: 1200, height: 630, alt: content.brand.siteName }]
     },
     twitter: {
       card: "summary_large_image",
-      images: ["/brand/tajstay-og.png"]
+      images: [BRAND.ogImage]
     },
     appleWebApp: {
       capable: true,
@@ -55,7 +56,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#0b6d5e"
+  themeColor: "#0a281c"
 };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
@@ -64,13 +65,13 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const user = await getSessionUser();
   const unreadCount = user ? await getUnreadNotificationsCount(user.id) : 0;
   return (
-    <html lang={locale} className="scroll-smooth" data-theme="light">
+    <html lang={locale} className="scroll-smooth" data-theme="dark">
       <head>
         <link rel="manifest" href="/manifest.webmanifest" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
-        <link rel="icon" href="/favicon.png" type="image/png" sizes="32x32" />
+        <link rel="apple-touch-icon" href={BRAND.favicon} sizes="180x180" />
+        <link rel="icon" href={BRAND.favicon} type="image/png" sizes="32x32" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-title" content="TajStay" />
+        <meta name="apple-mobile-web-app-title" content={BRAND.name} />
       </head>
       <body className="min-h-screen bg-[var(--brand-bg)] text-[var(--brand-text)] antialiased font-sans">
         <AuthProvider>

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { BRAND } from "@/lib/brand";
 
 const STORAGE_KEY = "tajstay_splash_seen";
 const SHOW_MS = 900;
@@ -54,8 +55,8 @@ export function SplashScreenClient({ subtitle }: Props) {
     >
       <div className={fadeOut ? "taj-splash-logo-out flex flex-col items-center gap-6" : "animate-splash-in flex flex-col items-center gap-6"}>
         <Image
-          src="/brand/tajstay-logo-full.png"
-          alt="TajStay"
+          src={BRAND.logoFull}
+          alt={BRAND.name}
           width={280}
           height={280}
           className="h-auto w-52 max-w-[min(280px,80vw)] object-contain drop-shadow-2xl"

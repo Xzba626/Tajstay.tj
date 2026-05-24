@@ -296,8 +296,8 @@ a.taj-btn--icon {
   gap: var(--taj-space-3);
   padding: var(--taj-space-3);
   border-radius: var(--taj-radius-2xl);
-  border: 1px solid var(--taj-color-border);
-  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid var(--taj-border);
+  background: var(--taj-card-strong);
   backdrop-filter: blur(12px);
   box-shadow: var(--taj-shadow-lg);
 }

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { BRAND } from "@/lib/brand";
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -80,11 +81,11 @@ export function PwaInstallPrompt({ labels }: { labels: PwaInstallLabels }) {
     >
       <div className="flex gap-3">
         <Image
-          src="/brand/tajstay-icon.png"
+          src={BRAND.favicon}
           alt=""
           width={48}
           height={48}
-          className="h-12 w-12 shrink-0 object-contain"
+          className="h-12 w-12 shrink-0 rounded-2xl object-contain"
           unoptimized
           priority
         />

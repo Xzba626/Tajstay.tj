@@ -340,8 +340,8 @@
 /* ---- Trust cards ---- */
 .home-trust-card {
   border-radius: var(--taj-radius-card-lg);
-  border: 1px solid var(--taj-color-border);
-  background: var(--taj-public-surface);
+  border: 1px solid var(--taj-border);
+  background: var(--taj-card);
   padding: var(--taj-space-5);
   text-align: center;
   transition: border-color 0.2s ease, background 0.2s ease;
@@ -349,7 +349,7 @@
 
 .home-trust-card:hover {
   border-color: rgba(52, 211, 153, 0.28);
-  background: rgba(16, 45, 34, 0.85);
+  background: var(--taj-card-strong);
 }
 
 .home-trust-card__icon {
@@ -366,8 +366,8 @@
 /* ---- Review cards ---- */
 .home-review-card {
   border-radius: var(--taj-radius-card-lg);
-  border: 1px solid var(--taj-color-border);
-  background: var(--taj-color-bg-card-solid);
+  border: 1px solid var(--taj-border);
+  background: var(--taj-card);
   padding: var(--taj-space-6);
   box-shadow: var(--taj-shadow-sm);
 }
@@ -405,8 +405,8 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--taj-radius-xl);
-  border: 1px solid var(--taj-color-border);
-  background: var(--taj-public-surface);
+  border: 1px solid var(--taj-border);
+  background: var(--taj-card);
   padding: 0.75rem;
   text-align: center;
   transition: border-color 0.2s ease, background 0.2s ease, transform 0.15s ease;
@@ -428,7 +428,7 @@
 /* ---- Site header ---- */
 .site-header {
   border-bottom: 1px solid rgba(52, 211, 153, 0.16);
-  background: rgba(3, 31, 24, 0.92);
+  background: rgba(10, 40, 28, 0.94);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);

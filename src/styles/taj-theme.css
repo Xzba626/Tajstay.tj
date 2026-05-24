@@ -1,0 +1,147 @@
+/**
+ * TajStay unified emerald theme tokens and surfaces.
+ * Brand assets: see src/lib/brand.ts
+ */
+
+:root,
+[data-theme="light"],
+[data-theme="dark"] {
+  --taj-bg: #28713e;
+  --taj-bg-deep: #185532;
+  --taj-bg-dark: #0b2f20;
+  --taj-header: #0a281c;
+  --taj-card: rgba(7, 48, 37, 0.72);
+  --taj-card-strong: rgba(8, 58, 44, 0.86);
+  --taj-card-inner: rgba(8, 58, 44, 0.72);
+  --taj-section: rgba(24, 85, 50, 0.42);
+  --taj-border: rgba(52, 211, 153, 0.18);
+  --taj-text: #f8fafc;
+  --taj-text-secondary: #d8f1e2;
+  --taj-text-muted: #b7d8c4;
+  --taj-accent: #22c55e;
+  --taj-accent-hover: #34d399;
+  --taj-gold: #d4af37;
+  --taj-badge-bg: #f3f8f5;
+  --taj-badge-border: rgba(212, 175, 55, 0.35);
+
+  --taj-app-bg:
+    radial-gradient(circle at 20% 15%, rgba(54, 143, 82, 0.38), transparent 34%),
+    radial-gradient(circle at 85% 25%, rgba(212, 175, 55, 0.08), transparent 30%),
+    linear-gradient(135deg, #28713e 0%, #185532 42%, #0b2f20 100%);
+
+  --taj-color-bg: var(--taj-bg-dark);
+  --taj-color-bg-elevated: var(--taj-card-strong);
+  --taj-color-bg-card: var(--taj-card);
+  --taj-color-bg-card-solid: var(--taj-card-strong);
+  --taj-color-border: var(--taj-border);
+  --taj-color-border-strong: rgba(52, 211, 153, 0.28);
+  --taj-color-text: var(--taj-text);
+  --taj-color-text-secondary: var(--taj-text-secondary);
+  --taj-color-text-muted: var(--taj-text-muted);
+  --taj-color-primary: var(--taj-accent);
+  --taj-color-primary-hover: var(--taj-accent-hover);
+  --taj-public-surface: var(--taj-card);
+  --taj-public-surface-strong: var(--taj-card-strong);
+
+  --bg-base: var(--taj-bg);
+  --bg-deep: var(--taj-bg-deep);
+  --bg-soft: var(--taj-bg-dark);
+  --bg-surface: var(--taj-section);
+  --bg-elevated: var(--taj-card);
+  --bg-input: var(--taj-card-inner);
+  --text-primary: var(--taj-text);
+  --text-secondary: var(--taj-text-secondary);
+  --text-muted: var(--taj-text-muted);
+  --border: var(--taj-border);
+  --brand-bg: var(--taj-bg-dark);
+  --brand-text: var(--taj-text);
+  --brand-muted: var(--taj-text-muted);
+}
+
+.taj-surface-section {
+  background: var(--taj-section);
+  border: 1px solid rgba(52, 211, 153, 0.16);
+}
+
+.taj-surface-card {
+  background: var(--taj-card);
+  border: 1px solid var(--taj-border);
+}
+
+.taj-surface-card-inner {
+  background: var(--taj-card-inner);
+  border: 1px solid var(--taj-border);
+}
+
+.taj-surface-ai {
+  background:
+    radial-gradient(circle at 20% 10%, rgba(34, 197, 94, 0.14), transparent 34%),
+    linear-gradient(135deg, rgba(24, 85, 50, 0.82), rgba(11, 47, 32, 0.88));
+  border: 1px solid var(--taj-border);
+}
+
+.brand-mark-badge,
+.site-header__logo-badge {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  height: 2.75rem;
+  width: 2.75rem;
+  border-radius: 0.875rem;
+  background: var(--taj-badge-bg);
+  border: 1px solid var(--taj-badge-border);
+  padding: 0.35rem;
+}
+
+.brand-mark-badge--sm {
+  height: 2.5rem;
+  width: 2.5rem;
+  border-radius: 0.75rem;
+}
+
+.brand-mark-name {
+  font-size: 1.125rem;
+  line-height: 1.2;
+}
+
+.mobile-menu-panel {
+  border-left: 1px solid var(--taj-border);
+  background: linear-gradient(180deg, rgba(10, 40, 28, 0.98), rgba(7, 31, 22, 0.99));
+  color: var(--taj-text);
+  box-shadow: -12px 0 40px rgba(0, 0, 0, 0.35);
+}
+
+.mobile-menu-panel__header {
+  border-bottom: 1px solid var(--taj-border);
+}
+
+.mobile-menu-panel__close {
+  border: 1px solid var(--taj-border);
+  background: var(--taj-card-inner);
+  color: var(--taj-text-secondary);
+}
+
+.mobile-menu-panel__close:hover {
+  background: rgba(52, 211, 153, 0.12);
+  color: var(--taj-text);
+}
+
+.mobile-menu-panel__locale {
+  border: 1px solid var(--taj-border);
+  background: var(--taj-card);
+}
+
+.mobile-menu-panel__link {
+  color: var(--taj-text-secondary);
+}
+
+.mobile-menu-panel__link:hover,
+.mobile-menu-panel__link:active {
+  background: rgba(52, 211, 153, 0.12);
+  color: var(--taj-text);
+}
+
+.mobile-menu-panel__divider {
+  border-color: var(--taj-border);
+}

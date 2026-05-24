@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { Prisma } from "@prisma/client";
+import { BRAND } from "@/lib/brand";
 import { prisma } from "@/lib/prisma";
 
 export type HomeBanner = {
@@ -57,10 +58,10 @@ const defaultContent: SiteContent = {
     ctaHref: "/search"
   },
   brand: {
-    siteName: "TajStay",
-    logoMainUrl: "/brand/tajstay-logo-full.png",
-    logoMarkUrl: "/brand/tajstay-mark.png",
-    faviconUrl: "/brand/tajstay-icon.png"
+    siteName: BRAND.name,
+    logoMainUrl: BRAND.logoFull,
+    logoMarkUrl: BRAND.logoMark,
+    faviconUrl: BRAND.favicon
   },
   paymentCatalog: {
     methods: ["Visa", "Mastercard", "Humo", "Dushanbe City Wallet", "Alif Mobi"]

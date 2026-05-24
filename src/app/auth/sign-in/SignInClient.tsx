@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
+import { BrandMark } from "@/components/brand/BrandMark";
 import { useEffect, useState } from "react";
 import { signIn } from "next-auth/react";
 import type { Locale } from "@/lib/i18n/locale";
@@ -294,13 +294,8 @@ export function SignInClient({
     <div className="auth-page">
       <div className="auth-shell">
         <section className="auth-panel auth-panel--promo" data-reveal data-stagger="20">
-          <Link href="/" className="inline-flex min-w-0 items-center gap-3 rounded-2xl outline-none transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-emerald-400/50">
-            <Image src="/brand/tajstay-mark.png" alt="" width={40} height={40} className="h-10 w-10 shrink-0 object-contain" unoptimized priority />
-            <div className="min-w-0">
-              <div className="truncate text-lg font-bold text-white sm:text-xl">TajStay</div>
-              <div className="text-sm text-emerald-200">{L.title}</div>
-            </div>
-          </Link>
+          <BrandMark href="/" nameClassName="text-lg text-white sm:text-xl" className="rounded-2xl" />
+          <div className="mt-1 text-sm text-emerald-200">{L.title}</div>
           <h1 className="mt-6 text-[clamp(1.6rem,7vw,2.25rem)] font-extrabold leading-tight tracking-tight text-white sm:mt-8">{L.leftTitle}</h1>
           <p className="mt-4 max-w-xl text-base leading-relaxed text-emerald-100">{L.leftSubtitle}</p>
           <div className="mt-6 grid gap-3 sm:grid-cols-3">

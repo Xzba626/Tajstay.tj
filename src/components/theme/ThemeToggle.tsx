@@ -5,14 +5,14 @@ import { useEffect, useState } from "react";
 type Theme = "light" | "dark";
 
 function getInitialTheme(): Theme {
-  if (typeof window === "undefined") return "light";
+  if (typeof window === "undefined") return "dark";
   const stored = window.localStorage.getItem("tajstay-theme");
   if (stored === "light" || stored === "dark") return stored;
-  return "light";
+  return "dark";
 }
 
 export function ThemeToggle({ compact = false }: { compact?: boolean }) {
-  const [theme, setTheme] = useState<Theme>("light");
+  const [theme, setTheme] = useState<Theme>("dark");
 
   useEffect(() => {
     const t = getInitialTheme();

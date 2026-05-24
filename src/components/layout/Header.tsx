@@ -1,5 +1,4 @@
-import Image from "next/image";
-import Link from "next/link";
+import { BrandMark } from "@/components/brand/BrandMark";
 import { ViewTransitionLink } from "@/components/effects/ViewTransitionLink";
 import { getSessionUser } from "@/lib/auth/session";
 import { getOwnerApplicationNavState } from "@/lib/navigation/getNavContext";
@@ -77,28 +76,13 @@ export async function Header() {
   return (
     <header className="site-header sticky top-0 z-[100] transition-[background-color] duration-300">
       <div className="site-header__inner mx-auto flex max-w-[var(--taj-page-max)] items-center justify-between gap-2 px-[var(--taj-page-px)] sm:gap-3">
-        <ViewTransitionLink
+        <BrandMark
           href="/"
-          className="flex min-w-0 max-w-[74vw] shrink items-center gap-2 rounded-xl outline-none ring-emerald-300/0 transition hover:opacity-90 focus-visible:ring-2 sm:max-w-none sm:gap-3"
-          data-magnetic
-        >
-          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-            <span className="site-header__logo-badge">
-              <Image
-                src={content.brand.logoMarkUrl}
-                alt=""
-                width={32}
-                height={32}
-                className="h-8 w-8 shrink-0 object-contain"
-                priority
-                unoptimized
-              />
-            </span>
-            <div className="min-w-0 leading-tight">
-              <div className="brand-wordmark truncate text-lg font-bold text-[#F8FAFC] sm:text-xl">{content.brand.siteName}</div>
-            </div>
-          </div>
-        </ViewTransitionLink>
+          name={content.brand.siteName}
+          markSrc={content.brand.logoMarkUrl}
+          className="max-w-[74vw] shrink sm:max-w-none"
+          nameClassName="text-lg sm:text-xl"
+        />
 
         <HeaderNav
           items={[
@@ -140,7 +124,15 @@ export async function Header() {
               />
             </div>
           ) : null}
-          <MobileMenu user={user} ownerApp={ownerApp} locale={locale} labels={mobileLabels} unreadCount={unreadCount} />
+          <MobileMenu
+            user={user}
+            ownerApp={ownerApp}
+            locale={locale}
+            labels={mobileLabels}
+            unreadCount={unreadCount}
+            brandName={content.brand.siteName}
+            brandMarkUrl={content.brand.logoMarkUrl}
+          />
           {!user ? (
             <>
               <ViewTransitionLink href="/auth/sign-in" className="header-auth-signin">

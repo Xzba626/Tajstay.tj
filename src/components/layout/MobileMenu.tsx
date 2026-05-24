@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { BrandMark } from "@/components/brand/BrandMark";
 import { createPortal } from "react-dom";
 import { useEffect, useMemo, useState } from "react";
 import type { OwnerAppNavState } from "@/lib/navigation/getNavContext";
@@ -51,12 +52,14 @@ type Props = {
   locale: Locale;
   labels: MobileMenuLabels;
   unreadCount?: number;
+  brandName: string;
+  brandMarkUrl: string;
 };
 
 type Item = { kind: "link"; href: string; label: string } | { kind: "text"; label: string } | { kind: "divider" };
 
 function Icon({ name }: { name: string }) {
-  const common = "h-5 w-5 shrink-0 text-slate-500";
+  const common = "h-5 w-5 shrink-0 text-[var(--taj-text-muted)]";
   switch (name) {
     case "home":
       return (
@@ -143,13 +146,13 @@ function Icon({ name }: { name: string }) {
 
 function sectionTitle(title: string) {
   return (
-    <div className="px-3 pt-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+    <div className="px-3 pt-2 text-[11px] font-semibold uppercase tracking-wide text-[var(--taj-text-muted)]">
       {title}
     </div>
   );
 }
 
-export function MobileMenu({ user, ownerApp, locale, labels: L, unreadCount = 0 }: Props) {
+export function MobileMenu({ user, ownerApp, locale, labels: L, unreadCount = 0, brandName, brandMarkUrl }: Props) {
   const [open, setOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -258,24 +261,24 @@ export function MobileMenu({ user, ownerApp, locale, labels: L, unreadCount = 0 
       />
       <div
         className={cn(
-          "absolute right-0 top-0 flex h-dvh max-h-dvh w-[min(94vw,380px)] flex-col border-l border-white/10 bg-white/95 shadow-2xl shadow-slate-950/40 backdrop-blur-xl transition-transform duration-200 ease-out",
+          "mobile-menu-panel absolute right-0 top-0 flex h-dvh max-h-dvh w-[min(94vw,380px)] flex-col backdrop-blur-xl transition-transform duration-200 ease-out",
           open ? "translate-x-0" : "translate-x-full"
         )}
       >
-        <div className="flex shrink-0 items-center justify-between border-b border-slate-200/90 px-4 py-4 pt-[max(1rem,env(safe-area-inset-top))]">
-          <div className="text-sm font-semibold text-slate-900">TajStay</div>
+        <div className="mobile-menu-panel__header flex shrink-0 items-center justify-between px-4 py-4 pt-[max(1rem,env(safe-area-inset-top))]">
+          <BrandMark name={brandName} markSrc={brandMarkUrl} size="sm" nameClassName="text-sm" />
           <button
             type="button"
             onClick={() => setOpen(false)}
-            className="min-h-[44px] min-w-[44px] rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 transition active:scale-[0.98] hover:bg-slate-50"
+            className="mobile-menu-panel__close min-h-[44px] min-w-[44px] rounded-xl px-3 text-sm font-semibold transition active:scale-[0.98]"
           >
             {L.close}
           </button>
         </div>
 
         <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto overscroll-contain p-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
-          <div className="mb-2 rounded-2xl border border-slate-200 bg-slate-50 p-3">
-            <div className="mb-2 flex items-center justify-between gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+          <div className="mobile-menu-panel__locale mb-2 rounded-2xl p-3">
+            <div className="mb-2 flex items-center justify-between gap-2 text-xs font-semibold uppercase tracking-wide text-[var(--taj-text-muted)]">
               <span>{L.language}</span>
               <ThemeToggle compact />
             </div>
@@ -283,14 +286,14 @@ export function MobileMenu({ user, ownerApp, locale, labels: L, unreadCount = 0 
           </div>
 
           {items.map((it, idx) => {
-            if (it.kind === "divider") return <div key={`d-${idx}`} className="my-2 border-t border-slate-100" />;
+            if (it.kind === "divider") return <div key={`d-${idx}`} className="mobile-menu-panel__divider my-2 border-t" />;
             if (it.kind === "text") return <div key={`t-${idx}`}>{sectionTitle(it.label)}</div>;
             return (
               <Link
                 key={`${it.href}:${it.label}`}
                 href={it.href}
                 onClick={() => setOpen(false)}
-                className="flex min-h-[44px] items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-800 transition active:bg-slate-200/80 hover:bg-slate-100"
+                className="mobile-menu-panel__link flex min-h-[44px] items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition"
               >
                 <Icon
                   name={

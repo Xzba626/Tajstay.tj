@@ -77,16 +77,16 @@
   --taj-sand-400: #d4b87a;
   --taj-sand-500: #c9a227;
 
-  /* Light-first surfaces */
-  --taj-color-bg: #f0f9f4;
-  --taj-color-bg-elevated: #ffffff;
-  --taj-color-bg-card: rgba(255, 255, 255, 0.82);
-  --taj-color-bg-card-solid: #ffffff;
-  --taj-color-border: rgba(16, 120, 88, 0.12);
-  --taj-color-border-strong: rgba(16, 120, 88, 0.22);
-  --taj-color-text: #0f2920;
-  --taj-color-text-secondary: #3d5c50;
-  --taj-color-text-muted: #6b8a7a;
+  /* Public surfaces — dark emerald (overridden in taj-theme.css) */
+  --taj-color-bg: #0b2f20;
+  --taj-color-bg-elevated: rgba(8, 58, 44, 0.86);
+  --taj-color-bg-card: rgba(7, 48, 37, 0.72);
+  --taj-color-bg-card-solid: rgba(8, 58, 44, 0.86);
+  --taj-color-border: rgba(52, 211, 153, 0.18);
+  --taj-color-border-strong: rgba(52, 211, 153, 0.28);
+  --taj-color-text: #f8fafc;
+  --taj-color-text-secondary: #d8f1e2;
+  --taj-color-text-muted: #b7d8c4;
   --taj-color-primary: #16a34a;
   --taj-color-primary-hover: #22c55e;
   --taj-color-primary-active: #15803d;
@@ -101,8 +101,8 @@
   --taj-color-on-dark: #f0fdf4;
   --taj-color-on-dark-muted: #a7d4bc;
 
-  --taj-public-surface: rgba(255, 255, 255, 0.78);
-  --taj-public-surface-strong: rgba(255, 255, 255, 0.94);
+  --taj-public-surface: rgba(7, 48, 37, 0.72);
+  --taj-public-surface-strong: rgba(8, 58, 44, 0.86);
 
   /* Chat */
   --taj-chat-bg: #f7fcf9;

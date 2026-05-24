@@ -1,4 +1,5 @@
 @import "../styles/tokens.css";
+@import "../styles/taj-theme.css";
 
 @tailwind base;
 @tailwind components;
@@ -1355,60 +1356,14 @@ footer {
     transform: none;
   }
 
-  [data-theme="light"] {
-    --app-bg:
-      radial-gradient(980px 460px at 85% -10%, rgba(34, 197, 94, 0.18), transparent 70%),
-      radial-gradient(840px 420px at 10% 0%, rgba(20, 184, 166, 0.16), transparent 70%),
-      linear-gradient(180deg, #184236 0%, #1f5042 52%, #2a6250 100%);
-    --app-vignette: radial-gradient(circle at 50% 30%, rgba(2, 6, 23, 0) 0%, rgba(2, 6, 23, 0.16) 76%, rgba(2, 6, 23, 0.24) 100%);
-  }
-
-  [data-theme="light"] header {
-    background: rgba(255, 255, 255, 0.86) !important;
-    border-bottom: 1px solid rgba(15, 23, 42, 0.14) !important;
-    box-shadow: 0 8px 26px rgba(2, 6, 23, 0.16) !important;
-  }
-
-  [data-theme="light"] .brand-wordmark {
-    color: #0f172a !important;
-    background: none !important;
-    -webkit-text-fill-color: #0f172a;
-    text-shadow: none;
-  }
-
-  [data-theme="light"] .page-vignette {
-    background: var(--app-vignette) !important;
-  }
-
   [data-theme="light"] .glass-panel,
   [data-theme="light"] .surface-1,
   [data-theme="light"] .liquid-glass,
   [data-theme="light"] .quiet-card {
-    background: linear-gradient(145deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.72)) !important;
-    border-color: rgba(15, 23, 42, 0.16) !important;
-    box-shadow: 0 8px 22px rgba(2, 6, 23, 0.18) !important;
-    backdrop-filter: blur(8px) !important;
-    -webkit-backdrop-filter: blur(8px) !important;
-  }
-
-  [data-theme="light"] .text-slate-100,
-  [data-theme="light"] .text-slate-200,
-  [data-theme="light"] .text-slate-300,
-  [data-theme="light"] .text-slate-400,
-  [data-theme="light"] .text-slate-500 {
-    color: #f8fafc !important;
-  }
-
-  [data-theme="light"] .bg-slate-950\/40,
-  [data-theme="light"] .bg-slate-900\/55,
-  [data-theme="light"] .bg-slate-900\/40 {
-    background: rgba(255, 255, 255, 0.7) !important;
-  }
-
-  [data-theme="light"] .brand-gradient,
-  [data-theme="light"] .ds-primary-btn {
-    border: 1px solid rgba(16, 185, 129, 0.45);
-    box-shadow: 0 10px 24px rgba(16, 185, 129, 0.25), 0 2px 8px rgba(2, 6, 23, 0.18) !important;
+    background:
+      radial-gradient(circle at 20% 10%, rgba(34, 197, 94, 0.14), transparent 34%),
+      linear-gradient(135deg, rgba(24, 85, 50, 0.82), rgba(11, 47, 32, 0.88)) !important;
+    border-color: var(--taj-border) !important;
   }
 }
 
@@ -2242,15 +2197,15 @@ select:focus,
 }
 
 /* ==========================================================================
-   TajStay brand palette lock — premium dark emerald (balanced green depth)
+   TajStay brand palette lock — rich dark emerald (see src/lib/brand.ts)
    ========================================================================== */
 :root,
 [data-theme="light"],
 [data-theme="dark"] {
-  --bg-base: #06281f !important;
-  --bg-deep: #021a14 !important;
-  --bg-soft: #0b3a2d !important;
-  --bg-surface: #0b3a2d !important;
+  --bg-base: #28713e !important;
+  --bg-deep: #185532 !important;
+  --bg-soft: #0b2f20 !important;
+  --bg-surface: rgba(24, 85, 50, 0.42) !important;
   --bg-elevated: rgba(7, 48, 37, 0.72) !important;
   --bg-input: rgba(8, 58, 44, 0.72) !important;
 
@@ -2261,34 +2216,36 @@ select:focus,
   --green-border: rgba(52, 211, 153, 0.18) !important;
 
   --text-primary: #f8fafc !important;
-  --text-secondary: #cde7da !important;
-  --text-muted: #9fcdb8 !important;
+  --text-secondary: #d8f1e2 !important;
+  --text-muted: #b7d8c4 !important;
   --border: rgba(52, 211, 153, 0.16) !important;
-  --border-focus: rgba(74, 222, 128, 0.45) !important;
+  --border-focus: rgba(52, 211, 153, 0.55) !important;
 
-  --brand-bg: #06281f !important;
-  --brand-surface: #0b3a2d !important;
+  --brand-bg: #0b2f20 !important;
+  --brand-surface: rgba(24, 85, 50, 0.42) !important;
   --brand-surface-2: rgba(7, 48, 37, 0.72) !important;
   --brand-green: #22c55e !important;
   --brand-green-light: #34d399 !important;
   --brand-green-dark: #16a34a !important;
   --brand-border: var(--border) !important;
   --brand-text: #f8fafc !important;
-  --brand-muted: #9fcdb8 !important;
+  --brand-muted: #b7d8c4 !important;
   --brand-star: #d4af37 !important;
 
   --taj-color-text: #f8fafc !important;
-  --taj-color-text-secondary: #cde7da !important;
-  --taj-color-text-muted: #9fcdb8 !important;
+  --taj-color-text-secondary: #d8f1e2 !important;
+  --taj-color-text-muted: #b7d8c4 !important;
   --taj-color-border: rgba(52, 211, 153, 0.18) !important;
   --taj-color-border-strong: rgba(52, 211, 153, 0.28) !important;
+  --taj-color-bg-card: rgba(7, 48, 37, 0.72) !important;
+  --taj-color-bg-card-solid: rgba(8, 58, 44, 0.86) !important;
   --taj-public-surface: rgba(7, 48, 37, 0.72) !important;
-  --taj-public-surface-strong: rgba(7, 48, 37, 0.82) !important;
+  --taj-public-surface-strong: rgba(8, 58, 44, 0.86) !important;
 
   --taj-app-bg:
-    radial-gradient(circle at 25% 20%, rgba(20, 120, 85, 0.32), transparent 36%),
-    radial-gradient(circle at 80% 30%, rgba(212, 175, 55, 0.08), transparent 34%),
-    linear-gradient(135deg, #06281f 0%, #04231b 42%, #021a14 100%) !important;
+    radial-gradient(circle at 20% 15%, rgba(54, 143, 82, 0.38), transparent 34%),
+    radial-gradient(circle at 85% 25%, rgba(212, 175, 55, 0.08), transparent 30%),
+    linear-gradient(135deg, #28713e 0%, #185532 42%, #0b2f20 100%) !important;
 }
 
 body,
@@ -2315,7 +2272,21 @@ html,
 }
 
 .page-vignette {
-  background: radial-gradient(circle at 50% 28%, transparent 0%, rgba(6, 40, 31, 0.12) 72%, rgba(2, 26, 20, 0.22) 100%) !important;
+  background: radial-gradient(circle at 50% 28%, transparent 0%, rgba(24, 85, 50, 0.14) 72%, rgba(11, 47, 32, 0.22) 100%) !important;
+}
+
+[data-theme="light"] header,
+[data-theme="dark"] header {
+  background: rgba(10, 40, 28, 0.94) !important;
+  border-bottom-color: rgba(52, 211, 153, 0.16) !important;
+}
+
+[data-theme="light"] .glass-panel,
+[data-theme="dark"] .glass-panel {
+  border-color: var(--taj-border) !important;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(34, 197, 94, 0.14), transparent 34%),
+    linear-gradient(135deg, rgba(24, 85, 50, 0.82), rgba(11, 47, 32, 0.88)) !important;
 }
 
 /* ---- Home hero premium polish ---- */

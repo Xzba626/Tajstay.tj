@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { BRAND } from "@/lib/brand";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
 import type { InboxFilter } from "@/lib/chat/inbox";
@@ -114,7 +115,7 @@ export function MessagesInbox({ locale, role }: { locale: Locale; role: string }
           {items.map((item) => {
             const preview =
               item.lastMessage.length > 80 ? `${item.lastMessage.slice(0, 80)}…` : item.lastMessage;
-            const cover = item.coverImageUrl || "/brand/tajstay-mark.png";
+            const cover = item.coverImageUrl || BRAND.logoMark;
             const statusLabel =
               m(locale, `status.${item.status}`) !== `status.${item.status}`
                 ? m(locale, `status.${item.status}`)

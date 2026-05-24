@@ -1,5 +1,6 @@
 "use client";
 
+import { BRAND } from "@/lib/brand";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
 
@@ -51,7 +52,7 @@ export function BookingChatHeader({
 }: BookingChatHeaderProps) {
   const checkIn = checkInIso.slice(0, 10);
   const checkOut = checkOutIso.slice(0, 10);
-  const cover = coverImageUrl || "/brand/tajstay-mark.png";
+  const cover = coverImageUrl || BRAND.logoMark;
   const statusLabel =
     m(locale, `status.${bookingStatus}`) !== `status.${bookingStatus}` ? m(locale, `status.${bookingStatus}`) : bookingStatus;
 

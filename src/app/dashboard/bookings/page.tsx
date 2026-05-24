@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { BRAND } from "@/lib/brand";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/requireAuth";
 import { BookingChatLauncher } from "@/components/chat/BookingChatPanel";
@@ -54,7 +55,7 @@ function BookingDialogRow({
 }) {
   const last = b.chatMessages[0]?.body?.trim() || "Нет сообщений";
   const preview = last.length > 72 ? `${last.slice(0, 72)}…` : last;
-  const cover = b.room.hotel.coverImageUrl || "/brand/tajstay-mark.png";
+  const cover = b.room.hotel.coverImageUrl || BRAND.logoMark;
   const rowHref = bookingRowHref(user.role, b);
 
   return (

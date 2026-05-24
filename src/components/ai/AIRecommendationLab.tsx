@@ -97,7 +97,7 @@ export function AIRecommendationLab({ hotels, labels, locale }: Props) {
 
   return (
     <section data-reveal className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div className="glass-panel overflow-hidden rounded-[2rem] p-6 sm:p-8">
+      <div className="glass-panel taj-surface-ai overflow-hidden rounded-[2rem] p-6 sm:p-8">
         <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
           <div>
             <div className="mb-2 inline-flex items-center rounded-full border border-emerald-300/20 bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-200">
@@ -116,7 +116,7 @@ export function AIRecommendationLab({ hotels, labels, locale }: Props) {
         </div>
 
         <div className="mb-6 grid gap-4 md:grid-cols-2">
-          <label className="rounded-2xl border border-slate-700 bg-slate-900/70 p-4">
+          <label className="taj-surface-card-inner rounded-2xl p-4">
             <div className="mb-2 text-sm font-medium text-slate-200">
               {labels.budget}: {budget}
             </div>
@@ -130,12 +130,12 @@ export function AIRecommendationLab({ hotels, labels, locale }: Props) {
               className="w-full accent-emerald-400"
             />
           </label>
-          <label className="rounded-2xl border border-slate-700 bg-slate-900/70 p-4">
+          <label className="taj-surface-card-inner rounded-2xl p-4">
             <div className="mb-2 text-sm font-medium text-slate-200">{labels.tripStyle}</div>
             <select
               value={mode}
               onChange={(e) => setMode(e.target.value as TravelMode)}
-              className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100"
+              className="w-full rounded-xl border border-[var(--taj-border)] bg-[var(--taj-card-inner)] px-3 py-2 text-sm text-[var(--taj-text)]"
             >
               {modeOptions.map((m) => (
                 <option key={m} value={m}>
@@ -153,7 +153,7 @@ export function AIRecommendationLab({ hotels, labels, locale }: Props) {
               href={`/hotel/${hotel.id}`}
               data-ai-card
               data-tilt
-              className="group relative overflow-hidden rounded-2xl border border-emerald-300/20 bg-slate-900/80 p-5 transition hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-900/40"
+              className="taj-surface-card-inner group relative overflow-hidden rounded-2xl p-5 transition hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-900/40"
             >
               <div className="pointer-events-none absolute -right-12 -top-12 h-28 w-28 rounded-full bg-emerald-500/25 blur-2xl" />
               <div className="text-xs text-emerald-200">
