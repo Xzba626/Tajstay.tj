@@ -33,7 +33,7 @@
 }
 
 .auth-panel--promo {
-  background: linear-gradient(145deg, #083528 0%, #06281f 100%);
+  background: linear-gradient(180deg, rgba(3, 27, 18, 0.96), rgba(2, 15, 10, 0.98));
   border-color: rgba(52, 211, 153, 0.18);
 }
 

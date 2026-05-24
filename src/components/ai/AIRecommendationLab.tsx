@@ -104,7 +104,7 @@ export function AIRecommendationLab({ hotels, labels, locale }: Props) {
               {labels.badge}
             </div>
             <h2 className="aurora-text text-2xl font-bold tracking-tight sm:text-3xl">{labels.title}</h2>
-            {labels.subtitle ? <p className="mt-2 max-w-2xl text-sm text-slate-300">{labels.subtitle}</p> : null}
+            {labels.subtitle ? <p className="mt-2 max-w-2xl text-sm text-[var(--taj-text-secondary)]">{labels.subtitle}</p> : null}
           </div>
           <button
             type="button"
@@ -117,7 +117,7 @@ export function AIRecommendationLab({ hotels, labels, locale }: Props) {
 
         <div className="mb-6 grid gap-4 md:grid-cols-2">
           <label className="taj-surface-card-inner rounded-2xl p-4">
-            <div className="mb-2 text-sm font-medium text-slate-200">
+            <div className="mb-2 text-sm font-medium text-[var(--taj-text)]">
               {labels.budget}: {budget}
             </div>
             <input
@@ -131,7 +131,7 @@ export function AIRecommendationLab({ hotels, labels, locale }: Props) {
             />
           </label>
           <label className="taj-surface-card-inner rounded-2xl p-4">
-            <div className="mb-2 text-sm font-medium text-slate-200">{labels.tripStyle}</div>
+            <div className="mb-2 text-sm font-medium text-[var(--taj-text)]">{labels.tripStyle}</div>
             <select
               value={mode}
               onChange={(e) => setMode(e.target.value as TravelMode)}
@@ -159,11 +159,11 @@ export function AIRecommendationLab({ hotels, labels, locale }: Props) {
               <div className="text-xs text-emerald-200">
                 {labels.match} {Math.round(hotel.aiScore * 100)}%
               </div>
-              <h3 className="mt-2 text-lg font-semibold text-slate-100">{hotel.name}</h3>
-              <p className="mt-1 text-sm text-slate-400">{cityMap[hotel.city.toLowerCase()] ?? hotel.city}</p>
+              <h3 className="mt-2 text-lg font-semibold text-[var(--taj-text)]">{hotel.name}</h3>
+              <p className="mt-1 text-sm text-[var(--taj-text-muted)]">{cityMap[hotel.city.toLowerCase()] ?? hotel.city}</p>
               <div className="mt-4 flex items-center justify-between">
-                <div className="text-sm text-slate-300">
-                  ★ {hotel.rating.toFixed(1)} · <span className="font-semibold text-slate-100">{hotel.minPrice} TJS</span>
+                <div className="text-sm text-[var(--taj-text-secondary)]">
+                  ★ {hotel.rating.toFixed(1)} · <span className="font-semibold text-[var(--taj-text)]">{hotel.minPrice} TJS</span>
                 </div>
                 <span className="text-sm font-semibold text-emerald-300 transition group-hover:text-emerald-200">
                   {labels.open}

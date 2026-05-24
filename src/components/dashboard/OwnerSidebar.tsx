@@ -62,8 +62,8 @@ export function OwnerSidebar({ labels }: { labels: OwnerSidebarLabels }) {
   const items = buildItems(labels);
 
   return (
-    <aside className="sticky top-0 z-30 hidden h-[calc(100vh-3.5rem)] w-56 shrink-0 flex-col border-r border-white/10 bg-[#0f1c11] py-6 pl-4 pr-2 shadow-[0_0_0_1px_rgba(255,255,255,0.04)] backdrop-blur-xl lg:flex">
-      <div className="mb-4 px-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-[rgba(240,237,232,0.3)]">
+    <aside className="dashboard-sidebar sticky top-0 z-30 hidden h-[calc(100vh-3.5rem)] w-56 shrink-0 flex-col py-6 pl-4 pr-2 lg:flex">
+      <div className="dashboard-sidebar__title mb-4 px-2 text-[10px] font-semibold uppercase tracking-[0.15em]">
         {labels.sectionTitle}
       </div>
       <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto pr-1 text-sm" aria-label={labels.navLabel}>
@@ -76,10 +76,8 @@ export function OwnerSidebar({ labels }: { labels: OwnerSidebarLabels }) {
               href={href}
               scroll={!item.href}
               className={cn(
-                "rounded-xl px-3 py-2.5 font-medium transition-colors",
-                active
-                  ? "bg-[rgba(34,197,94,0.1)] text-[var(--brand-green)] shadow-sm ring-1 ring-emerald-400/25 border-l-2 border-l-[var(--brand-green)]"
-                  : "text-[rgba(240,237,232,0.55)] hover:bg-white/5 hover:text-slate-100"
+                "dashboard-sidebar__link rounded-xl px-3 py-2.5 font-medium transition-colors",
+                active && "is-active"
               )}
             >
               {item.label}

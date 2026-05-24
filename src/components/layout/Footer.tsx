@@ -19,7 +19,7 @@ export async function Footer() {
   ];
 
   return (
-    <footer className="mt-auto border-t border-emerald-900/40 bg-[var(--taj-bg-dark)]">
+    <footer className="site-footer mt-auto">
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-center gap-3">
@@ -36,7 +36,7 @@ export async function Footer() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-[var(--taj-text-secondary)] transition hover:text-[var(--taj-text)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--taj-bg-dark)]"
+                className="text-[var(--taj-text-secondary)] transition hover:text-[var(--taj-text)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--taj-bg)]"
               >
                 {link.label}
               </Link>

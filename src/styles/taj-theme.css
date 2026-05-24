@@ -1,35 +1,46 @@
 /**
- * TajStay unified emerald theme tokens and surfaces.
- * Brand assets: see src/lib/brand.ts
+ * TajStay unified black-emerald theme (premium dark, not flat green).
+ * Brand assets: src/lib/brand.ts
  */
 
 :root,
 [data-theme="light"],
 [data-theme="dark"] {
-  --taj-bg: #28713e;
-  --taj-bg-deep: #185532;
-  --taj-bg-dark: #0b2f20;
-  --taj-header: #0a281c;
-  --taj-card: rgba(7, 48, 37, 0.72);
-  --taj-card-strong: rgba(8, 58, 44, 0.86);
-  --taj-card-inner: rgba(8, 58, 44, 0.72);
-  --taj-section: rgba(24, 85, 50, 0.42);
+  /* Core palette — almost black with emerald tint */
+  --taj-bg: #020f0a;
+  --taj-bg-2: #031b12;
+  --taj-bg-deep: #02110c;
+  --taj-bg-dark: #02110c;
+  --taj-header: #020f0a;
+  --taj-surface: rgba(3, 31, 22, 0.78);
+  --taj-surface-2: rgba(6, 78, 59, 0.45);
   --taj-border: rgba(52, 211, 153, 0.18);
-  --taj-text: #f8fafc;
-  --taj-text-secondary: #d8f1e2;
-  --taj-text-muted: #b7d8c4;
+  --taj-text: #ecfdf5;
+  --taj-text-secondary: #d1fae5;
+  --taj-text-muted: #a7f3d0;
+  --taj-muted: #a7f3d0;
+  --taj-primary: #22c55e;
+  --taj-primary-hover: #16a34a;
   --taj-accent: #22c55e;
   --taj-accent-hover: #34d399;
   --taj-gold: #d4af37;
   --taj-badge-bg: #f3f8f5;
   --taj-badge-border: rgba(212, 175, 55, 0.35);
 
-  --taj-app-bg:
-    radial-gradient(circle at 20% 15%, rgba(54, 143, 82, 0.38), transparent 34%),
-    radial-gradient(circle at 85% 25%, rgba(212, 175, 55, 0.08), transparent 30%),
-    linear-gradient(135deg, #28713e 0%, #185532 42%, #0b2f20 100%);
+  /* Cards & sections */
+  --taj-card: rgba(3, 31, 22, 0.72);
+  --taj-card-strong: rgba(3, 31, 22, 0.88);
+  --taj-card-inner: rgba(3, 31, 22, 0.82);
+  --taj-section: rgba(3, 31, 22, 0.55);
 
-  --taj-color-bg: var(--taj-bg-dark);
+  /* Global page background — black emerald gradient */
+  --taj-app-bg:
+    radial-gradient(circle at 0% 0%, rgba(16, 185, 129, 0.14), transparent 30%),
+    radial-gradient(circle at 100% 0%, rgba(6, 95, 70, 0.18), transparent 35%),
+    linear-gradient(180deg, #020f0a 0%, #031b12 45%, #02110c 100%);
+
+  /* DS aliases */
+  --taj-color-bg: var(--taj-bg);
   --taj-color-bg-elevated: var(--taj-card-strong);
   --taj-color-bg-card: var(--taj-card);
   --taj-color-bg-card-solid: var(--taj-card-strong);
@@ -38,48 +49,66 @@
   --taj-color-text: var(--taj-text);
   --taj-color-text-secondary: var(--taj-text-secondary);
   --taj-color-text-muted: var(--taj-text-muted);
-  --taj-color-primary: var(--taj-accent);
+  --taj-color-primary: var(--taj-primary);
   --taj-color-primary-hover: var(--taj-accent-hover);
   --taj-public-surface: var(--taj-card);
   --taj-public-surface-strong: var(--taj-card-strong);
 
   --bg-base: var(--taj-bg);
-  --bg-deep: var(--taj-bg-deep);
-  --bg-soft: var(--taj-bg-dark);
-  --bg-surface: var(--taj-section);
+  --bg-deep: var(--taj-bg-2);
+  --bg-soft: var(--taj-bg-deep);
+  --bg-surface: var(--taj-surface);
   --bg-elevated: var(--taj-card);
-  --bg-input: var(--taj-card-inner);
+  --bg-input: rgba(3, 31, 22, 0.92);
   --text-primary: var(--taj-text);
   --text-secondary: var(--taj-text-secondary);
   --text-muted: var(--taj-text-muted);
   --border: var(--taj-border);
-  --brand-bg: var(--taj-bg-dark);
+  --brand-bg: var(--taj-bg);
   --brand-text: var(--taj-text);
   --brand-muted: var(--taj-text-muted);
+  --brand-surface: var(--taj-surface);
+  --brand-surface-2: var(--taj-card);
+
+  --ds-bg-main: var(--taj-bg);
+  --ds-bg-section: var(--taj-bg-2);
+  --ds-card: rgba(3, 31, 22, 0.78);
+  --ds-card-2: rgba(2, 17, 12, 0.92);
+  --ds-input-bg: rgba(3, 31, 22, 0.92);
+  --ds-border: var(--taj-border);
+  --ds-text-primary: var(--taj-text);
+  --ds-text-secondary: var(--taj-text-secondary);
+  --ds-text-muted: var(--taj-text-muted);
 }
 
+/* Shared surfaces */
 .taj-surface-section {
-  background: var(--taj-section);
+  background: var(--taj-surface);
   border: 1px solid rgba(52, 211, 153, 0.16);
 }
 
 .taj-surface-card {
   background: var(--taj-card);
   border: 1px solid var(--taj-border);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.32);
 }
 
 .taj-surface-card-inner {
   background: var(--taj-card-inner);
   border: 1px solid var(--taj-border);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.28);
 }
 
 .taj-surface-ai {
   background:
-    radial-gradient(circle at 20% 10%, rgba(34, 197, 94, 0.14), transparent 34%),
-    linear-gradient(135deg, rgba(24, 85, 50, 0.82), rgba(11, 47, 32, 0.88));
+    radial-gradient(circle at 8% 6%, rgba(16, 185, 129, 0.14), transparent 30%),
+    radial-gradient(circle at 92% 8%, rgba(6, 95, 70, 0.12), transparent 32%),
+    linear-gradient(180deg, rgba(3, 27, 18, 0.94), rgba(2, 15, 10, 0.98));
   border: 1px solid var(--taj-border);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.38);
 }
 
+/* Brand mark badge */
 .brand-mark-badge,
 .site-header__logo-badge {
   display: flex;
@@ -105,11 +134,12 @@
   line-height: 1.2;
 }
 
+/* Mobile menu */
 .mobile-menu-panel {
   border-left: 1px solid var(--taj-border);
-  background: linear-gradient(180deg, rgba(10, 40, 28, 0.98), rgba(7, 31, 22, 0.99));
+  background: linear-gradient(180deg, rgba(2, 15, 10, 0.99), rgba(3, 27, 18, 0.99));
   color: var(--taj-text);
-  box-shadow: -12px 0 40px rgba(0, 0, 0, 0.35);
+  box-shadow: -12px 0 40px rgba(0, 0, 0, 0.45);
 }
 
 .mobile-menu-panel__header {
@@ -144,4 +174,91 @@
 
 .mobile-menu-panel__divider {
   border-color: var(--taj-border);
+}
+
+/* Footer — part of page gradient, not a green strip */
+.site-footer {
+  border-top: 1px solid var(--taj-border);
+  background: linear-gradient(180deg, transparent, rgba(2, 15, 10, 0.72));
+}
+
+.site-footer a {
+  color: var(--taj-text-secondary);
+}
+
+.site-footer a:hover {
+  color: var(--taj-text);
+}
+
+/* Dashboard / admin / owner — same black emerald system */
+.dashboard-sidebar {
+  border-right: 1px solid var(--taj-border);
+  background: linear-gradient(180deg, rgba(2, 15, 10, 0.96), rgba(3, 27, 18, 0.94));
+  backdrop-filter: blur(12px);
+  box-shadow: inset -1px 0 0 rgba(52, 211, 153, 0.06);
+}
+
+.dashboard-sidebar__title {
+  color: var(--taj-text-muted);
+}
+
+.dashboard-sidebar__link {
+  color: var(--taj-text-secondary);
+}
+
+.dashboard-sidebar__link:hover {
+  background: rgba(52, 211, 153, 0.08);
+  color: var(--taj-text);
+}
+
+.dashboard-sidebar__link.is-active {
+  background: rgba(34, 197, 94, 0.14);
+  color: var(--taj-text);
+  box-shadow: inset 0 0 0 1px rgba(52, 211, 153, 0.22);
+}
+
+.dashboard-skin {
+  color: var(--taj-text);
+}
+
+.dashboard-skin .glass-panel,
+.dashboard-skin .quiet-card,
+.dashboard-skin .surface-1,
+.dashboard-skin .surface-2 {
+  background: var(--taj-surface) !important;
+  border: 1px solid var(--taj-border) !important;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.38) !important;
+  backdrop-filter: blur(8px);
+}
+
+.dashboard-skin .text-slate-100,
+.dashboard-skin .text-slate-200 {
+  color: var(--taj-text) !important;
+}
+
+.dashboard-skin .text-slate-300 {
+  color: var(--taj-text-secondary) !important;
+}
+
+.dashboard-skin .text-slate-400,
+.dashboard-skin .text-slate-500 {
+  color: var(--taj-text-muted) !important;
+}
+
+.dashboard-skin .quiet-card .text-3xl,
+.dashboard-skin .text-3xl.font-bold {
+  color: var(--taj-text) !important;
+}
+
+.dashboard-skin input,
+.dashboard-skin textarea,
+.dashboard-skin select {
+  background: rgba(3, 31, 22, 0.92) !important;
+  border-color: rgba(148, 220, 185, 0.22) !important;
+  color: var(--taj-text) !important;
+}
+
+.dashboard-skin input::placeholder,
+.dashboard-skin textarea::placeholder {
+  color: var(--taj-text-muted) !important;
 }

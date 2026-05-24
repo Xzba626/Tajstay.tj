@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/cn";
 
@@ -48,8 +48,8 @@ export function AdminSidebar({ labels }: { labels: AdminSidebarLabels }) {
   const items = buildItems(labels);
 
   return (
-    <aside className="sticky top-0 z-30 hidden h-[calc(100vh-3.5rem)] w-56 shrink-0 flex-col border-r border-white/10 bg-slate-950/60 py-6 pl-4 pr-2 shadow-sm backdrop-blur-md lg:flex">
-      <div className="mb-4 px-2 text-xs font-semibold uppercase tracking-wider text-slate-400">{labels.sectionTitle}</div>
+    <aside className="dashboard-sidebar sticky top-0 z-30 hidden h-[calc(100vh-3.5rem)] w-56 shrink-0 flex-col py-6 pl-4 pr-2 lg:flex">
+      <div className="dashboard-sidebar__title mb-4 px-2 text-xs font-semibold uppercase tracking-wider">{labels.sectionTitle}</div>
       <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto pr-1 text-sm" aria-label={labels.navLabel}>
         {items.map((item) => {
           const itemSection = item.href.slice(1);
@@ -60,8 +60,8 @@ export function AdminSidebar({ labels }: { labels: AdminSidebarLabels }) {
               href={`${pathname}?section=${itemSection}`}
               scroll
               className={cn(
-                "rounded-xl px-3 py-2.5 font-medium transition-colors",
-                active ? "bg-emerald-500/15 text-emerald-200 shadow-sm ring-1 ring-emerald-300/30" : "text-slate-300 hover:bg-white/5 hover:text-slate-100"
+                "dashboard-sidebar__link rounded-xl px-3 py-2.5 font-medium transition-colors",
+                active && "is-active"
               )}
             >
               {item.label}
@@ -69,7 +69,7 @@ export function AdminSidebar({ labels }: { labels: AdminSidebarLabels }) {
           );
         })}
       </nav>
-      <p className="mt-4 px-2 text-[11px] leading-snug text-slate-400">{labels.navHint}</p>
+      <p className="dashboard-sidebar__title mt-4 px-2 text-[11px] leading-snug">{labels.navHint}</p>
     </aside>
   );
 }
@@ -84,19 +84,19 @@ export function AdminMobileNav({ labels }: { labels: AdminSidebarLabels }) {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-left text-sm font-semibold text-slate-200 shadow-sm"
+        className="taj-surface-card flex w-full items-center justify-between rounded-xl px-4 py-3 text-left text-sm font-semibold text-[var(--taj-text)] shadow-sm"
       >
         {labels.mobileNav}
-        <span className="text-slate-400">{open ? "▲" : "▼"}</span>
+        <span className="text-[var(--taj-text-muted)]">{open ? "▲" : "▼"}</span>
       </button>
       {open && (
-        <nav className="mt-2 flex flex-col gap-1 rounded-xl border border-white/10 bg-slate-950/70 p-2 shadow-lg">
+        <nav className="taj-surface-card mt-2 flex flex-col gap-1 rounded-xl p-2 shadow-lg">
           {items.map((item) => (
             <Link
               key={item.href}
               href={`${pathname}?section=${item.href.slice(1)}`}
               onClick={() => setOpen(false)}
-              className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-emerald-500/15 hover:text-emerald-200"
+              className="dashboard-sidebar__link rounded-lg px-3 py-2.5 text-sm font-medium"
             >
               {item.label}
             </Link>
