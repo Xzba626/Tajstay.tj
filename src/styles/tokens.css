@@ -45,7 +45,8 @@
   --taj-shadow-lg: 0 16px 40px rgba(15, 41, 28, 0.1), 0 4px 16px rgba(16, 120, 88, 0.08);
   --taj-shadow-card: 0 10px 28px rgba(15, 41, 28, 0.07);
   --taj-shadow-glow: 0 0 24px rgba(34, 197, 94, 0.14);
-  --taj-shadow-focus: 0 0 0 3px rgba(52, 211, 153, 0.35);
+  --taj-shadow-focus: 0 0 0 3px rgba(52, 211, 153, 0.14);
+  --taj-shadow-card: 0 24px 70px rgba(0, 0, 0, 0.22);
 
   --taj-font-ui: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   --taj-font-display: "Playfair Display", Georgia, serif;
@@ -77,16 +78,16 @@
   --taj-sand-400: #d4b87a;
   --taj-sand-500: #c9a227;
 
-  /* Public surfaces — black emerald */
-  --taj-color-bg: #020f0a;
-  --taj-color-bg-elevated: rgba(3, 31, 22, 0.88);
-  --taj-color-bg-card: rgba(3, 31, 22, 0.72);
-  --taj-color-bg-card-solid: rgba(3, 31, 22, 0.88);
+  /* Public surfaces — rich emerald #004724 */
+  --taj-color-bg: #004724;
+  --taj-color-bg-elevated: rgba(1, 47, 26, 0.86);
+  --taj-color-bg-card: rgba(1, 47, 26, 0.72);
+  --taj-color-bg-card-solid: rgba(1, 47, 26, 0.86);
   --taj-color-border: rgba(52, 211, 153, 0.18);
   --taj-color-border-strong: rgba(52, 211, 153, 0.28);
-  --taj-color-text: #ecfdf5;
-  --taj-color-text-secondary: #d1fae5;
-  --taj-color-text-muted: #a7f3d0;
+  --taj-color-text: #f8fafc;
+  --taj-color-text-secondary: #d8f1e2;
+  --taj-color-text-muted: #b7d8c4;
   --taj-color-primary: #16a34a;
   --taj-color-primary-hover: #22c55e;
   --taj-color-primary-active: #15803d;
@@ -101,8 +102,8 @@
   --taj-color-on-dark: #f0fdf4;
   --taj-color-on-dark-muted: #a7d4bc;
 
-  --taj-public-surface: rgba(3, 31, 22, 0.72);
-  --taj-public-surface-strong: rgba(3, 31, 22, 0.88);
+  --taj-public-surface: rgba(1, 47, 26, 0.72);
+  --taj-public-surface-strong: rgba(1, 47, 26, 0.86);
 
   /* Chat */
   --taj-chat-bg: #f7fcf9;

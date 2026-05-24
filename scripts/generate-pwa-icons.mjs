@@ -13,7 +13,7 @@ const iconPath = path.join(root, "public", "brand", "tajstay-icon.png");
 const iconsDir = path.join(root, "public", "icons");
 const appDir = path.join(root, "src", "app");
 
-const BRAND_BG = { r: 2, g: 15, b: 10, alpha: 1 };
+const BRAND_BG = { r: 0, g: 71, b: 36, alpha: 1 }; /* #004724 */
 
 if (!fs.existsSync(iconPath)) {
   console.error("Run node scripts/generate-brand-assets.mjs first");

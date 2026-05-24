@@ -51,7 +51,7 @@
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(110, 231, 183, 0.9);
+  color: var(--taj-icon-active);
 }
 
 .home-section__title {
@@ -96,12 +96,12 @@
   gap: 0.35rem;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #a7f3d0;
+  color: var(--taj-text-secondary);
 }
 
 .home-hero-trust__item svg {
   flex-shrink: 0;
-  color: #34d399;
+  color: var(--taj-icon-success);
 }
 
 /* ---- Hero visual ---- */
@@ -340,11 +340,12 @@
 /* ---- Trust cards ---- */
 .home-trust-card {
   border-radius: var(--taj-radius-card-lg);
-  border: 1px solid var(--taj-border);
+  border: 1px solid var(--taj-card-border);
   background: var(--taj-card);
   padding: var(--taj-space-5);
   text-align: center;
-  transition: border-color 0.2s ease, background 0.2s ease;
+  box-shadow: var(--taj-card-shadow);
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
 }
 
 .home-trust-card:hover {
@@ -359,26 +360,27 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--taj-radius-lg);
-  background: rgba(16, 185, 129, 0.14);
+  background: rgba(34, 197, 94, 0.12);
   font-size: 1.125rem;
+  color: var(--taj-icon-success);
 }
 
 /* ---- Review cards ---- */
 .home-review-card {
   border-radius: var(--taj-radius-card-lg);
-  border: 1px solid var(--taj-border);
+  border: 1px solid var(--taj-card-border);
   background: var(--taj-card);
   padding: var(--taj-space-6);
-  box-shadow: var(--taj-shadow-sm);
+  box-shadow: var(--taj-card-shadow);
 }
 
 /* ---- Owner partner CTA ---- */
 .home-owner-cta {
   border-radius: var(--taj-radius-2xl);
-  border: 1px solid rgba(52, 211, 153, 0.2);
-  background: linear-gradient(145deg, rgba(10, 46, 31, 0.95), rgba(4, 26, 18, 0.98));
+  border: 1px solid var(--taj-card-strong-border);
+  background: var(--taj-card-strong);
   padding: clamp(1.5rem, 4vw, 2.5rem);
-  box-shadow: var(--taj-shadow-md);
+  box-shadow: var(--taj-card-shadow);
 }
 
 .home-owner-cta__trust {
@@ -387,7 +389,7 @@
   gap: 0.5rem 1rem;
   font-size: var(--taj-text-xs);
   font-weight: 600;
-  color: rgba(167, 243, 208, 0.85);
+  color: var(--taj-text-secondary);
 }
 
 .home-owner-cta__trust li {
@@ -428,7 +430,7 @@
 /* ---- Site header ---- */
 .site-header {
   border-bottom: 1px solid rgba(52, 211, 153, 0.16);
-  background: rgba(2, 15, 10, 0.94);
+  background: rgba(0, 53, 29, 0.94);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);

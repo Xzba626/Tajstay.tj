@@ -11,16 +11,16 @@ module.exports = {
       },
       colors: {
         brand: {
-          50: "#e8f1ee",
-          100: "#cfdfd9",
-          200: "#b5c9c3",
-          300: "#8fb0a6",
-          400: "#6f8f86",
-          500: "#145c43",
-          600: "#0f4b37",
-          700: "#0f3d2e",
-          800: "#0f2d24",
-          900: "#0b0f0e"
+          50: "#d8f1e2",
+          100: "#b7d8c4",
+          200: "#86c9a0",
+          300: "#4ade80",
+          400: "#22c55e",
+          500: "#006b38",
+          600: "#004724",
+          700: "#00351d",
+          800: "#012f1a",
+          900: "#012f1a"
         }
       },
       boxShadow: {
@@ -42,8 +42,8 @@ module.exports = {
         "taj-page": "var(--taj-page-px)"
       },
       backgroundImage: {
-        "brand-gradient": "linear-gradient(135deg, #145c43 0%, #0f3d2e 100%)",
-        "brand-gradient-soft": "linear-gradient(135deg, rgba(20,92,67,0.26) 0%, rgba(15,61,46,0.18) 100%)"
+        "brand-gradient": "linear-gradient(135deg, #006B38 0%, #004724 45%, #012F1A 100%)",
+        "brand-gradient-soft": "linear-gradient(135deg, rgba(0,107,56,0.26) 0%, rgba(0,71,36,0.18) 100%)"
       }
     }
   },

@@ -1,114 +1,268 @@
 /**
- * TajStay unified black-emerald theme (premium dark, not flat green).
- * Brand assets: src/lib/brand.ts
+ * TajStay unified rich emerald theme — brand #004724
+ * UI surfaces, text, buttons, inputs, dropdowns, icons
  */
 
 :root,
 [data-theme="light"],
 [data-theme="dark"] {
-  /* Core palette — almost black with emerald tint */
-  --taj-bg: #020f0a;
-  --taj-bg-2: #031b12;
-  --taj-bg-deep: #02110c;
-  --taj-bg-dark: #02110c;
-  --taj-header: #020f0a;
-  --taj-surface: rgba(3, 31, 22, 0.78);
-  --taj-surface-2: rgba(6, 78, 59, 0.45);
-  --taj-border: rgba(52, 211, 153, 0.18);
-  --taj-text: #ecfdf5;
-  --taj-text-secondary: #d1fae5;
-  --taj-text-muted: #a7f3d0;
-  --taj-muted: #a7f3d0;
+  --taj-brand: #004724;
+  --taj-bg: #004724;
+  --taj-bg-light: #006b38;
+  --taj-bg-dark: #012f1a;
+  --taj-header: #00351d;
+
+  --taj-app-bg:
+    radial-gradient(circle at 20% 15%, rgba(34, 197, 94, 0.18), transparent 34%),
+    radial-gradient(circle at 85% 20%, rgba(212, 175, 55, 0.07), transparent 32%),
+    linear-gradient(135deg, #006b38 0%, #004724 45%, #012f1a 100%);
+
+  /* Sections */
+  --taj-section-bg: rgba(0, 71, 36, 0.38);
+  --taj-section-border: rgba(52, 211, 153, 0.14);
+
+  /* Cards / panels */
+  --taj-card: rgba(1, 47, 26, 0.72);
+  --taj-card-border: rgba(52, 211, 153, 0.18);
+  --taj-card-shadow: 0 24px 70px rgba(0, 0, 0, 0.22);
+
+  /* Strong cards */
+  --taj-card-strong: rgba(1, 47, 26, 0.86);
+  --taj-card-strong-border: rgba(212, 175, 55, 0.18);
+
+  /* Legacy aliases */
+  --taj-surface: var(--taj-section-bg);
+  --taj-surface-2: var(--taj-card);
+  --taj-surface-strong: var(--taj-card-strong);
+  --taj-card-inner: var(--taj-card);
+  --taj-border: var(--taj-card-border);
+  --taj-section: var(--taj-section-bg);
+
+  /* Text */
+  --taj-text: #f8fafc;
+  --taj-text-secondary: #d8f1e2;
+  --taj-text-muted: #b7d8c4;
+  --taj-muted: var(--taj-text-muted);
+
+  /* Brand accents */
   --taj-primary: #22c55e;
-  --taj-primary-hover: #16a34a;
+  --taj-primary-hover: #34d399;
   --taj-accent: #22c55e;
   --taj-accent-hover: #34d399;
   --taj-gold: #d4af37;
+
+  /* Inputs */
+  --taj-input: rgba(1, 47, 26, 0.72);
+  --taj-input-border: rgba(183, 216, 196, 0.24);
+  --taj-input-focus-border: rgba(52, 211, 153, 0.62);
+  --taj-input-focus-ring: 0 0 0 3px rgba(52, 211, 153, 0.14);
+
+  /* Primary button */
+  --taj-btn-primary-bg: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  --taj-btn-primary-bg-hover: linear-gradient(135deg, #34d399 0%, #22c55e 100%);
+  --taj-btn-primary-text: #052e1a;
+  --taj-btn-primary-border: rgba(187, 247, 208, 0.32);
+  --taj-btn-primary-shadow: 0 16px 36px rgba(34, 197, 94, 0.26);
+  --taj-btn-primary-shadow-hover: 0 20px 42px rgba(34, 197, 94, 0.34);
+  --taj-btn-primary-shadow-active: 0 8px 18px rgba(34, 197, 94, 0.22);
+
+  /* Secondary button */
+  --taj-btn-secondary-bg: rgba(1, 47, 26, 0.72);
+  --taj-btn-secondary-text: #f8fafc;
+  --taj-btn-secondary-border: rgba(52, 211, 153, 0.24);
+  --taj-btn-secondary-bg-hover: rgba(34, 197, 94, 0.12);
+  --taj-btn-secondary-border-hover: rgba(52, 211, 153, 0.42);
+
+  /* Dropdown */
+  --taj-dropdown-bg: rgba(1, 47, 26, 0.94);
+  --taj-dropdown-border: rgba(52, 211, 153, 0.18);
+  --taj-dropdown-shadow: 0 20px 60px rgba(0, 0, 0, 0.28);
+  --taj-dropdown-item: #d8f1e2;
+  --taj-dropdown-item-hover-bg: rgba(34, 197, 94, 0.12);
+  --taj-dropdown-item-hover-text: #f8fafc;
+
+  /* Icons */
+  --taj-icon: #d8f1e2;
+  --taj-icon-active: #34d399;
+  --taj-icon-success: #22c55e;
+  --taj-icon-gold: #d4af37;
+  --taj-icon-warning: #fbbf24;
+  --taj-icon-error: #f87171;
+
+  /* Logo badge on dark green */
   --taj-badge-bg: #f3f8f5;
   --taj-badge-border: rgba(212, 175, 55, 0.35);
 
-  /* Cards & sections */
-  --taj-card: rgba(3, 31, 22, 0.72);
-  --taj-card-strong: rgba(3, 31, 22, 0.88);
-  --taj-card-inner: rgba(3, 31, 22, 0.82);
-  --taj-section: rgba(3, 31, 22, 0.55);
-
-  /* Global page background — black emerald gradient */
-  --taj-app-bg:
-    radial-gradient(circle at 0% 0%, rgba(16, 185, 129, 0.14), transparent 30%),
-    radial-gradient(circle at 100% 0%, rgba(6, 95, 70, 0.18), transparent 35%),
-    linear-gradient(180deg, #020f0a 0%, #031b12 45%, #02110c 100%);
-
-  /* DS aliases */
+  /* DS / public aliases */
   --taj-color-bg: var(--taj-bg);
   --taj-color-bg-elevated: var(--taj-card-strong);
   --taj-color-bg-card: var(--taj-card);
   --taj-color-bg-card-solid: var(--taj-card-strong);
-  --taj-color-border: var(--taj-border);
+  --taj-color-border: var(--taj-card-border);
   --taj-color-border-strong: rgba(52, 211, 153, 0.28);
   --taj-color-text: var(--taj-text);
   --taj-color-text-secondary: var(--taj-text-secondary);
   --taj-color-text-muted: var(--taj-text-muted);
   --taj-color-primary: var(--taj-primary);
-  --taj-color-primary-hover: var(--taj-accent-hover);
+  --taj-color-primary-hover: var(--taj-primary-hover);
   --taj-public-surface: var(--taj-card);
   --taj-public-surface-strong: var(--taj-card-strong);
 
   --bg-base: var(--taj-bg);
-  --bg-deep: var(--taj-bg-2);
-  --bg-soft: var(--taj-bg-deep);
-  --bg-surface: var(--taj-surface);
-  --bg-elevated: var(--taj-card);
-  --bg-input: rgba(3, 31, 22, 0.92);
+  --bg-deep: var(--taj-bg-dark);
+  --bg-soft: var(--taj-bg-light);
+  --bg-surface: var(--taj-card);
+  --bg-elevated: var(--taj-card-strong);
+  --bg-input: var(--taj-input);
   --text-primary: var(--taj-text);
   --text-secondary: var(--taj-text-secondary);
   --text-muted: var(--taj-text-muted);
-  --border: var(--taj-border);
+  --border: var(--taj-card-border);
   --brand-bg: var(--taj-bg);
   --brand-text: var(--taj-text);
   --brand-muted: var(--taj-text-muted);
-  --brand-surface: var(--taj-surface);
-  --brand-surface-2: var(--taj-card);
+  --brand-surface: var(--taj-card);
+  --brand-surface-2: var(--taj-card-strong);
 
   --ds-bg-main: var(--taj-bg);
-  --ds-bg-section: var(--taj-bg-2);
-  --ds-card: rgba(3, 31, 22, 0.78);
-  --ds-card-2: rgba(2, 17, 12, 0.92);
-  --ds-input-bg: rgba(3, 31, 22, 0.92);
-  --ds-border: var(--taj-border);
+  --ds-bg-section: var(--taj-section-bg);
+  --ds-card: var(--taj-card);
+  --ds-card-2: var(--taj-card-strong);
+  --ds-input-bg: var(--taj-input);
+  --ds-border: var(--taj-card-border);
   --ds-text-primary: var(--taj-text);
   --ds-text-secondary: var(--taj-text-secondary);
   --ds-text-muted: var(--taj-text-muted);
 }
 
-/* Shared surfaces */
+/* ---- Surfaces ---- */
 .taj-surface-section {
-  background: var(--taj-surface);
-  border: 1px solid rgba(52, 211, 153, 0.16);
+  background: var(--taj-section-bg);
+  border: 1px solid var(--taj-section-border);
+  border-radius: var(--taj-radius-card-lg);
 }
 
-.taj-surface-card {
+.taj-surface-card,
+.glass-panel:not(.taj-surface-ai) {
   background: var(--taj-card);
-  border: 1px solid var(--taj-border);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.32);
+  border: 1px solid var(--taj-card-border);
+  box-shadow: var(--taj-card-shadow);
+}
+
+.taj-surface-card-strong {
+  background: var(--taj-card-strong);
+  border: 1px solid var(--taj-card-strong-border);
+  box-shadow: var(--taj-card-shadow);
 }
 
 .taj-surface-card-inner {
-  background: var(--taj-card-inner);
-  border: 1px solid var(--taj-border);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.28);
+  background: var(--taj-input);
+  border: 1px solid var(--taj-input-border);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
 }
 
 .taj-surface-ai {
   background:
-    radial-gradient(circle at 8% 6%, rgba(16, 185, 129, 0.14), transparent 30%),
-    radial-gradient(circle at 92% 8%, rgba(6, 95, 70, 0.12), transparent 32%),
-    linear-gradient(180deg, rgba(3, 27, 18, 0.94), rgba(2, 15, 10, 0.98));
-  border: 1px solid var(--taj-border);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.38);
+    radial-gradient(circle at 12% 8%, rgba(34, 197, 94, 0.14), transparent 32%),
+    radial-gradient(circle at 88% 12%, rgba(212, 175, 55, 0.08), transparent 30%),
+    var(--taj-card-strong);
+  border: 1px solid var(--taj-card-strong-border);
+  box-shadow: var(--taj-card-shadow);
 }
 
-/* Brand mark badge */
+/* Home section bands — separate from hero gradient */
+.home-section.home-chapter:not(.home-section--hero) {
+  background: var(--taj-section-bg);
+  border-block: 1px solid var(--taj-section-border);
+}
+
+/* ---- Dropdowns ---- */
+.taj-dropdown-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: var(--taj-control-h-sm);
+  border-radius: var(--taj-radius-lg);
+  border: 1px solid var(--taj-btn-secondary-border);
+  background: var(--taj-btn-secondary-bg);
+  padding: 0 0.75rem;
+  font-size: var(--taj-text-xs);
+  font-weight: 600;
+  color: var(--taj-text);
+  transition: background 0.18s, border-color 0.18s, box-shadow 0.18s;
+}
+
+.taj-dropdown-trigger:hover,
+.taj-dropdown-trigger[aria-expanded="true"] {
+  background: var(--taj-btn-secondary-bg-hover);
+  border-color: var(--taj-btn-secondary-border-hover);
+}
+
+.taj-dropdown-trigger svg {
+  color: var(--taj-icon);
+}
+
+.taj-dropdown {
+  border-radius: var(--taj-radius-xl);
+  border: 1px solid var(--taj-dropdown-border);
+  background: var(--taj-dropdown-bg);
+  color: var(--taj-text);
+  box-shadow: var(--taj-dropdown-shadow);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.taj-dropdown__item {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: var(--taj-radius-lg);
+  padding: 0.5rem 0.75rem;
+  font-size: var(--taj-text-sm);
+  font-weight: 500;
+  color: var(--taj-dropdown-item);
+  transition: background 0.15s, color 0.15s;
+}
+
+.taj-dropdown__item:hover,
+.taj-dropdown__item:focus-visible {
+  background: var(--taj-dropdown-item-hover-bg);
+  color: var(--taj-dropdown-item-hover-text);
+  outline: none;
+}
+
+.taj-dropdown__item.is-active {
+  background: rgba(34, 197, 94, 0.14);
+  color: var(--taj-text);
+}
+
+/* ---- Icons (utility) ---- */
+.taj-icon {
+  color: var(--taj-icon);
+}
+
+.taj-icon--active {
+  color: var(--taj-icon-active);
+}
+
+.taj-icon--success {
+  color: var(--taj-icon-success);
+}
+
+.taj-icon--gold {
+  color: var(--taj-icon-gold);
+}
+
+.taj-icon--warning {
+  color: var(--taj-icon-warning);
+}
+
+.taj-icon--error {
+  color: var(--taj-icon-error);
+}
+
+/* ---- Logo badge ---- */
 .brand-mark-badge,
 .site-header__logo-badge {
   display: flex;
@@ -132,33 +286,34 @@
 .brand-mark-name {
   font-size: 1.125rem;
   line-height: 1.2;
+  color: var(--taj-text);
 }
 
-/* Mobile menu */
+/* ---- Mobile menu ---- */
 .mobile-menu-panel {
-  border-left: 1px solid var(--taj-border);
-  background: linear-gradient(180deg, rgba(2, 15, 10, 0.99), rgba(3, 27, 18, 0.99));
+  border-left: 1px solid var(--taj-dropdown-border);
+  background: var(--taj-dropdown-bg);
   color: var(--taj-text);
-  box-shadow: -12px 0 40px rgba(0, 0, 0, 0.45);
+  box-shadow: -12px 0 40px rgba(0, 0, 0, 0.35);
 }
 
 .mobile-menu-panel__header {
-  border-bottom: 1px solid var(--taj-border);
+  border-bottom: 1px solid var(--taj-dropdown-border);
 }
 
 .mobile-menu-panel__close {
-  border: 1px solid var(--taj-border);
-  background: var(--taj-card-inner);
+  border: 1px solid var(--taj-dropdown-border);
+  background: var(--taj-card);
   color: var(--taj-text-secondary);
 }
 
 .mobile-menu-panel__close:hover {
-  background: rgba(52, 211, 153, 0.12);
+  background: var(--taj-dropdown-item-hover-bg);
   color: var(--taj-text);
 }
 
 .mobile-menu-panel__locale {
-  border: 1px solid var(--taj-border);
+  border: 1px solid var(--taj-dropdown-border);
   background: var(--taj-card);
 }
 
@@ -168,18 +323,18 @@
 
 .mobile-menu-panel__link:hover,
 .mobile-menu-panel__link:active {
-  background: rgba(52, 211, 153, 0.12);
+  background: var(--taj-dropdown-item-hover-bg);
   color: var(--taj-text);
 }
 
 .mobile-menu-panel__divider {
-  border-color: var(--taj-border);
+  border-color: var(--taj-dropdown-border);
 }
 
-/* Footer — part of page gradient, not a green strip */
+/* ---- Footer ---- */
 .site-footer {
-  border-top: 1px solid var(--taj-border);
-  background: linear-gradient(180deg, transparent, rgba(2, 15, 10, 0.72));
+  border-top: 1px solid var(--taj-section-border);
+  background: linear-gradient(180deg, transparent, rgba(1, 47, 26, 0.75));
 }
 
 .site-footer a {
@@ -190,10 +345,10 @@
   color: var(--taj-text);
 }
 
-/* Dashboard / admin / owner — same black emerald system */
+/* ---- Dashboard ---- */
 .dashboard-sidebar {
-  border-right: 1px solid var(--taj-border);
-  background: linear-gradient(180deg, rgba(2, 15, 10, 0.96), rgba(3, 27, 18, 0.94));
+  border-right: 1px solid var(--taj-card-border);
+  background: linear-gradient(180deg, rgba(0, 53, 29, 0.98), rgba(0, 71, 36, 0.94));
   backdrop-filter: blur(12px);
   box-shadow: inset -1px 0 0 rgba(52, 211, 153, 0.06);
 }
@@ -207,7 +362,7 @@
 }
 
 .dashboard-sidebar__link:hover {
-  background: rgba(52, 211, 153, 0.08);
+  background: var(--taj-dropdown-item-hover-bg);
   color: var(--taj-text);
 }
 
@@ -225,9 +380,9 @@
 .dashboard-skin .quiet-card,
 .dashboard-skin .surface-1,
 .dashboard-skin .surface-2 {
-  background: var(--taj-surface) !important;
-  border: 1px solid var(--taj-border) !important;
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.38) !important;
+  background: var(--taj-card) !important;
+  border: 1px solid var(--taj-card-border) !important;
+  box-shadow: var(--taj-card-shadow) !important;
   backdrop-filter: blur(8px);
 }
 
@@ -253,12 +408,19 @@
 .dashboard-skin input,
 .dashboard-skin textarea,
 .dashboard-skin select {
-  background: rgba(3, 31, 22, 0.92) !important;
-  border-color: rgba(148, 220, 185, 0.22) !important;
+  background: var(--taj-input) !important;
+  border-color: var(--taj-input-border) !important;
   color: var(--taj-text) !important;
 }
 
 .dashboard-skin input::placeholder,
 .dashboard-skin textarea::placeholder {
   color: var(--taj-text-muted) !important;
+}
+
+.dashboard-skin input:focus,
+.dashboard-skin textarea:focus,
+.dashboard-skin select:focus {
+  border-color: var(--taj-input-focus-border) !important;
+  box-shadow: var(--taj-input-focus-ring) !important;
 }

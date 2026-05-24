@@ -56,16 +56,13 @@ export function LocaleSwitcher({ current, className }: Props) {
         type="button"
         disabled={pending}
         onClick={() => setOpen((o) => !o)}
-        className={cn(
-          "inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-50",
-          open && "ring-2 ring-green-800/15"
-        )}
+        className={cn("taj-dropdown-trigger disabled:opacity-50", open && "ring-2 ring-emerald-400/25")}
         aria-expanded={open}
         aria-haspopup="menu"
       >
-        <span className="font-extrabold tracking-wide text-slate-900">{localeShort[current]}</span>
+        <span className="font-extrabold tracking-wide">{localeShort[current]}</span>
         <svg
-          className={cn("h-4 w-4 text-slate-500 transition-transform", open && "rotate-180")}
+          className={cn("h-4 w-4 transition-transform", open && "rotate-180")}
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -77,7 +74,7 @@ export function LocaleSwitcher({ current, className }: Props) {
 
       <div
         className={cn(
-          "absolute right-0 top-full z-[120] mt-2 w-44 origin-top-right rounded-2xl border border-slate-200/90 bg-white/95 p-1 shadow-2xl shadow-slate-900/15 ring-1 ring-black/5 backdrop-blur-md transition-all duration-150",
+          "taj-dropdown absolute right-0 top-full z-[120] mt-2 w-44 origin-top-right p-1 transition-all duration-150",
           open ? "pointer-events-auto translate-y-0 scale-100 opacity-100" : "pointer-events-none -translate-y-1 scale-[0.98] opacity-0"
         )}
         style={{ visibility: open ? "visible" : "hidden" }}
@@ -89,10 +86,7 @@ export function LocaleSwitcher({ current, className }: Props) {
             type="button"
             disabled={pending}
             onClick={() => void change(loc)}
-            className={cn(
-              "flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm font-medium text-slate-800 transition hover:bg-slate-100 disabled:opacity-50",
-              loc === current && "bg-green-50 text-green-900"
-            )}
+            className={cn("taj-dropdown__item disabled:opacity-50", loc === current && "is-active")}
             role="menuitem"
           >
             <span>{localeLabels[loc]}</span>

@@ -76,7 +76,7 @@
 
 button.taj-btn--primary.is-loading::after,
 a.taj-btn--primary.is-loading::after {
-  border-color: #052e16;
+  border-color: var(--taj-btn-primary-text);
   border-right-color: transparent;
 }
 
@@ -95,42 +95,44 @@ a.taj-btn--primary.is-loading::after {
 
 button.taj-btn--primary,
 a.taj-btn--primary {
-  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
-  color: #031b15 !important;
-  border-color: rgba(52, 211, 153, 0.35) !important;
-  box-shadow: 0 16px 36px rgba(34, 197, 94, 0.26) !important;
+  background: var(--taj-btn-primary-bg) !important;
+  color: var(--taj-btn-primary-text) !important;
+  font-weight: 700 !important;
+  border-color: var(--taj-btn-primary-border) !important;
+  box-shadow: var(--taj-btn-primary-shadow) !important;
 }
 
 button.taj-btn--primary:hover:not(:disabled):not(.is-loading),
 a.taj-btn--primary:hover {
-  background: linear-gradient(135deg, #34d399 0%, #22c55e 100%) !important;
-  box-shadow: 0 18px 40px rgba(34, 197, 94, 0.32) !important;
+  background: var(--taj-btn-primary-bg-hover) !important;
+  transform: translateY(-1px);
+  box-shadow: var(--taj-btn-primary-shadow-hover) !important;
 }
 
 button.taj-btn--primary:active:not(:disabled),
 a.taj-btn--primary:active {
   transform: scale(0.98);
-  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
+  background: var(--taj-btn-primary-bg) !important;
+  box-shadow: var(--taj-btn-primary-shadow-active) !important;
 }
 
 button.taj-btn--secondary,
 a.taj-btn--secondary {
-  background: var(--taj-public-surface) !important;
-  color: var(--taj-color-text) !important;
-  border-color: var(--taj-color-border-strong) !important;
+  background: var(--taj-btn-secondary-bg) !important;
+  color: var(--taj-btn-secondary-text) !important;
+  border-color: var(--taj-btn-secondary-border) !important;
   box-shadow: none !important;
 }
 
 button.taj-btn--secondary:hover:not(:disabled),
 a.taj-btn--secondary:hover {
-  background: var(--taj-public-surface-strong) !important;
-  border-color: rgba(110, 231, 183, 0.4) !important;
+  background: var(--taj-btn-secondary-bg-hover) !important;
+  border-color: var(--taj-btn-secondary-border-hover) !important;
 }
 
 button.taj-btn--secondary:active:not(:disabled),
 a.taj-btn--secondary:active {
   transform: scale(0.98);
-  background: rgba(15, 42, 28, 0.95) !important;
 }
 
 button.taj-btn--ghost,
@@ -194,24 +196,23 @@ a.taj-btn--icon {
   min-height: var(--taj-control-h);
   width: 100%;
   border-radius: var(--taj-radius-lg);
-  border: 1px solid var(--taj-color-border-strong);
-  background: #ffffff;
+  border: 1px solid var(--taj-input-border);
+  background: var(--taj-input);
   padding: 0 var(--taj-control-px);
   font-family: var(--taj-font-ui);
   font-size: var(--taj-text-sm);
-  color: var(--taj-color-text);
+  color: var(--taj-text);
   transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
 }
 
 .taj-input::placeholder {
-  color: var(--taj-color-text-muted);
+  color: var(--taj-text-muted);
 }
 
 .taj-input:focus {
   outline: none;
-  border-color: rgba(52, 211, 153, 0.55);
-  background: #ffffff;
-  box-shadow: var(--taj-shadow-focus);
+  border-color: var(--taj-input-focus-border);
+  box-shadow: var(--taj-input-focus-ring);
 }
 
 .taj-input--error {
@@ -219,9 +220,9 @@ a.taj-btn--icon {
 }
 
 .taj-input--public {
-  background: rgba(255, 255, 255, 0.94);
-  color: #0f291c;
-  border-color: rgba(15, 41, 28, 0.15);
+  background: var(--taj-input);
+  color: var(--taj-text);
+  border-color: var(--taj-input-border);
 }
 
 .ds-input {
@@ -229,18 +230,22 @@ a.taj-btn--icon {
   min-height: var(--taj-control-h);
   width: 100%;
   border-radius: var(--taj-radius-lg);
-  border: 1px solid var(--taj-color-border-strong);
-  background: rgba(8, 28, 20, 0.75);
+  border: 1px solid var(--taj-input-border);
+  background: var(--taj-input);
   padding: 0 var(--taj-control-px);
   font-family: var(--taj-font-ui);
   font-size: var(--taj-text-sm);
-  color: var(--taj-color-text);
+  color: var(--taj-text);
+}
+
+.ds-input::placeholder {
+  color: var(--taj-text-muted);
 }
 
 .ds-input:focus {
   outline: none;
-  border-color: rgba(52, 211, 153, 0.55);
-  box-shadow: var(--taj-shadow-focus);
+  border-color: var(--taj-input-focus-border);
+  box-shadow: var(--taj-input-focus-ring);
 }
 
 .ds-primary-btn {
@@ -256,14 +261,15 @@ a.taj-btn--icon {
 
 .taj-card {
   border-radius: var(--taj-radius-card-lg);
-  border: 1px solid var(--taj-color-border);
-  background: var(--taj-color-bg-card);
-  box-shadow: var(--taj-shadow-sm);
+  border: 1px solid var(--taj-card-border);
+  background: var(--taj-card);
+  box-shadow: var(--taj-card-shadow);
 }
 
 .taj-card--elevated {
-  background: var(--taj-color-bg-card-solid);
-  box-shadow: var(--taj-shadow-md);
+  background: var(--taj-card-strong);
+  border-color: var(--taj-card-strong-border);
+  box-shadow: var(--taj-card-shadow);
 }
 
 .taj-card--public {

@@ -34,8 +34,8 @@ export function ThemeToggle({ compact = false }: { compact?: boolean }) {
       aria-label={theme === "dark" ? "Switch to day mode" : "Switch to night mode"}
       className={
         compact
-          ? "inline-flex h-10 w-10 min-h-[40px] min-w-[40px] items-center justify-center rounded-full border border-brand-500/80 bg-brand-800 p-0 text-white shadow-none transition hover:bg-brand-700"
-          : "inline-flex min-h-[42px] min-w-[42px] items-center justify-center rounded-xl border border-brand-500/80 bg-brand-800 px-2.5 text-white shadow-md transition hover:bg-brand-700"
+          ? "taj-dropdown-trigger inline-flex h-10 w-10 min-h-[40px] min-w-[40px] items-center justify-center rounded-full p-0 shadow-none"
+          : "taj-dropdown-trigger inline-flex min-h-[42px] min-w-[42px] items-center justify-center rounded-xl px-2.5 shadow-none"
       }
     >
       {theme === "dark" ? (

@@ -33,7 +33,7 @@
 }
 
 .auth-panel--promo {
-  background: linear-gradient(180deg, rgba(3, 27, 18, 0.96), rgba(2, 15, 10, 0.98));
+  background: linear-gradient(135deg, rgba(0, 107, 56, 0.92), rgba(0, 71, 36, 0.95));
   border-color: rgba(52, 211, 153, 0.18);
 }
 
@@ -43,7 +43,7 @@
   gap: 0.25rem;
   border-radius: var(--taj-radius-xl);
   border: 1px solid rgba(52, 211, 153, 0.18);
-  background: #0c2419;
+  background: rgba(0, 53, 29, 0.85);
   padding: 0.25rem;
 }
 
@@ -215,9 +215,12 @@
   max-height: min(70vh, 28rem);
   overflow: hidden;
   border-radius: var(--taj-radius-xl);
-  border: 1px solid rgba(52, 211, 153, 0.18);
-  background: #0c2419;
-  box-shadow: var(--taj-shadow-lg);
+  border: 1px solid var(--taj-dropdown-border);
+  background: var(--taj-dropdown-bg);
+  color: var(--taj-text);
+  box-shadow: var(--taj-dropdown-shadow);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
 
 .user-menu-item {
@@ -228,22 +231,22 @@
   padding: 0 0.75rem;
   font-size: var(--taj-text-sm);
   font-weight: 500;
-  color: #d1fae5;
+  color: var(--taj-dropdown-item);
   transition: background 0.15s, color 0.15s;
 }
 
 .user-menu-item:hover {
-  background: rgba(34, 197, 94, 0.12);
-  color: #f0fdf4;
+  background: var(--taj-dropdown-item-hover-bg);
+  color: var(--taj-dropdown-item-hover-text);
 }
 
 .user-menu-item--owner {
-  color: #6ee7b7;
+  color: var(--taj-icon-active);
   font-weight: 600;
 }
 
 .user-menu-item--danger {
-  color: #fca5a5;
+  color: var(--taj-icon-error);
 }
 
 .user-menu-item--danger:hover {
@@ -253,7 +256,7 @@
 
 .user-menu-notifications-compact {
   font-size: var(--taj-text-xs);
-  color: #a7d4bc;
+  color: var(--taj-text-muted);
   padding: 0.25rem 0.75rem 0.5rem;
 }
 

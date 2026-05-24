@@ -1,62 +1,45 @@
 @import "../styles/tokens.css";
 @import "../styles/taj-theme.css";
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 @import "../styles/ds-components.css";
 @import "../styles/home.css";
 @import "../styles/auth.css";
 @import "../styles/chat.css";
 
-:root,
-[data-theme="light"] {
-  --app-bg:
-    radial-gradient(1100px 520px at 88% -5%, rgba(34, 197, 94, 0.14), transparent 72%),
-    radial-gradient(900px 480px at 8% 0%, rgba(167, 243, 208, 0.35), transparent 70%),
-    linear-gradient(180deg, #f7fcf9 0%, #f0f9f4 45%, #e8f5ee 100%);
-  --app-vignette: radial-gradient(circle at 50% 20%, transparent 0%, rgba(15, 41, 28, 0.04) 85%);
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
+:root,
+[data-theme="light"],
 [data-theme="dark"] {
-  --app-bg:
-    radial-gradient(1100px 520px at 88% -5%, rgba(34, 197, 94, 0.12), transparent 72%),
-    radial-gradient(900px 480px at 8% 0%, rgba(167, 243, 208, 0.08), transparent 70%),
-    linear-gradient(180deg, #f4faf6 0%, #ecfdf5 100%);
-  --app-vignette: radial-gradient(circle at 50% 25%, transparent 0%, rgba(15, 41, 28, 0.06) 80%);
+  --app-bg: var(--taj-app-bg);
+  --app-vignette: radial-gradient(circle at 50% 28%, transparent 0%, rgba(0, 71, 36, 0.14) 72%, rgba(1, 47, 26, 0.32) 100%);
 }
 
 [data-theme="light"] .text-slate-100,
-[data-theme="light"] .text-slate-200 {
-  color: #0f2920 !important;
+[data-theme="light"] .text-slate-200,
+[data-theme="dark"] .text-slate-100,
+[data-theme="dark"] .text-slate-200 {
+  color: var(--taj-text, #f8fafc) !important;
 }
 
 [data-theme="light"] .text-slate-300,
-[data-theme="light"] .text-slate-400 {
-  color: #3d5c50 !important;
-}
-
-[data-theme="light"] .text-slate-500 {
-  color: #6b8a7a !important;
-}
-
-[data-theme="dark"] .text-slate-100,
-[data-theme="dark"] .text-slate-200 {
-  color: #0f2920 !important;
-}
-
+[data-theme="light"] .text-slate-400,
 [data-theme="dark"] .text-slate-300,
-[data-theme="dark"] .text-slate-400,
+[data-theme="dark"] .text-slate-400 {
+  color: var(--taj-text-secondary, #d8f1e2) !important;
+}
+
+[data-theme="light"] .text-slate-500,
 [data-theme="dark"] .text-slate-500 {
-  color: #3d5c50 !important;
+  color: var(--taj-text-muted, #b7d8c4) !important;
 }
 
 body {
   font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   margin: 0;
   min-height: 100vh;
-  background: var(--app-bg);
+  background: var(--taj-app-bg, var(--app-bg));
   color: var(--taj-color-text);
 }
 
@@ -714,11 +697,11 @@ html.home-page-snap .home-chapter--snap {
 }
 
 .home-chapter--band-a {
-  background: linear-gradient(180deg, rgba(15, 23, 42, 0.38) 0%, transparent 50%);
+  background: linear-gradient(180deg, rgba(0, 107, 56, 0.22) 0%, transparent 50%);
 }
 
 .home-chapter--band-b {
-  background: linear-gradient(180deg, transparent 0%, rgba(15, 23, 42, 0.35) 48%, transparent 100%);
+  background: linear-gradient(180deg, transparent 0%, rgba(1, 47, 26, 0.28) 48%, transparent 100%);
 }
 
 .home-chapter--destinations {
@@ -729,18 +712,19 @@ html.home-page-snap .home-chapter--snap {
 
 @media (max-width: 767px) {
   body {
-    background: var(--app-bg);
+    background: var(--taj-app-bg, var(--app-bg)) !important;
   }
 
   :root {
-    /* Slightly brighter mobile palette for readability */
-    --brand-bg: #03160f;
-    --brand-bg-2: #07311f;
-    --brand-text-muted: #bfe0c8;
-    --brand-border: rgba(255, 255, 255, 0.18);
+    --brand-bg: #004724;
+    --brand-bg-2: #006b38;
+    --brand-text-muted: #b7d8c4;
+    --brand-border: rgba(52, 211, 153, 0.18);
   }
 
-  .page-vignette { background: var(--app-vignette); }
+  .page-vignette {
+    background: var(--app-vignette) !important;
+  }
 
   .glass-panel,
   .liquid-glass,
@@ -1094,11 +1078,9 @@ h1, h2 {
   position: relative;
   overflow: hidden;
   border-radius: 1.5rem;
-  border: 1px solid rgba(16,185,129,0.15);
-  background: linear-gradient(145deg,
-    rgba(15,23,42,0.8),
-    rgba(12,19,36,0.6)
-  );
+  border: 1px solid var(--taj-card-border);
+  background: var(--taj-card);
+  box-shadow: var(--taj-card-shadow);
   backdrop-filter: blur(16px);
   padding: 1.75rem;
   text-align: center;
@@ -1130,11 +1112,9 @@ h1, h2 {
   position: relative;
   overflow: hidden;
   border-radius: 1.75rem;
-  border: 1px solid rgba(16,185,129,0.15);
-  background: linear-gradient(145deg,
-    rgba(15,23,42,0.9),
-    rgba(2,44,34,0.4)
-  );
+  border: 1px solid var(--taj-card-border);
+  background: var(--taj-card);
+  box-shadow: var(--taj-card-shadow);
   padding: 1.5rem;
   min-height: 180px;
   transition: transform 0.35s cubic-bezier(0.22,1,0.36,1),
@@ -1170,11 +1150,9 @@ h1, h2 {
 .review-card {
   position: relative;
   border-radius: 1.5rem;
-  border: 1px solid rgba(255,255,255,0.07);
-  background: linear-gradient(145deg,
-    rgba(15,23,42,0.9),
-    rgba(10,18,35,0.85)
-  );
+  border: 1px solid var(--taj-card-border);
+  background: var(--taj-card);
+  box-shadow: var(--taj-card-shadow);
   backdrop-filter: blur(16px);
   padding: 1.5rem;
   transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
@@ -1343,7 +1321,7 @@ nav a:hover::after {
 /* ---- Premium footer ---- */
 footer {
   border-top: 1px solid rgba(52, 211, 153, 0.16);
-  background: linear-gradient(180deg, transparent, rgba(2, 15, 10, 0.72));
+  background: linear-gradient(180deg, transparent, rgba(1, 47, 26, 0.75));
 }
 
 /* ---- Mobile responsive polish ---- */
@@ -1372,15 +1350,15 @@ footer {
 /* ========================================================================== */
 
 :root {
-  --ds-primary: #0f3d2e;
-  --ds-secondary: #145c43;
-  --ds-bg-main: #0b0f0e;
-  --ds-bg-section: #0f1f1a;
-  --ds-glow: rgba(0, 255, 150, 0.15);
-  --ds-text-primary: #ffffff;
-  --ds-text-secondary: #b5c9c3;
-  --ds-text-muted: #6f8f86;
-  --ds-border: #2a4a40;
+  --ds-primary: #22c55e;
+  --ds-secondary: #006b38;
+  --ds-bg-main: #004724;
+  --ds-bg-section: #006b38;
+  --ds-glow: rgba(34, 197, 94, 0.18);
+  --ds-text-primary: #f8fafc;
+  --ds-text-secondary: #d8f1e2;
+  --ds-text-muted: #b7d8c4;
+  --ds-border: rgba(52, 211, 153, 0.18);
   --ds-shadow-soft: 0 10px 28px rgba(0, 0, 0, 0.28);
   --ds-radius: 16px;
   --ds-success-bg: rgba(20, 92, 67, 0.22);
@@ -1673,36 +1651,36 @@ footer {
    ========================================================================== */
 [data-theme="light"],
 :root {
-  --ds-bg-main: #071a14;
-  --ds-bg-section: #0b241c;
-  --ds-card: #103529;
-  --ds-card-2: #0f2d24;
-  --ds-input-bg: #123a2d;
-  --ds-border: #2f6b55;
-  --ds-primary: #145c43;
-  --ds-text-primary: #ffffff;
-  --ds-text-secondary: #d6e7e0;
-  --ds-text-muted: #c7ddd4;
-  --ds-glow: rgba(20, 92, 67, 0.18);
+  --ds-bg-main: #004724;
+  --ds-bg-section: #006b38;
+  --ds-card: rgba(1, 47, 26, 0.72);
+  --ds-card-2: rgba(1, 47, 26, 0.86);
+  --ds-input-bg: rgba(1, 47, 26, 0.72);
+  --ds-border: rgba(52, 211, 153, 0.18);
+  --ds-primary: #22c55e;
+  --ds-text-primary: #f8fafc;
+  --ds-text-secondary: #d8f1e2;
+  --ds-text-muted: #b7d8c4;
+  --ds-glow: rgba(34, 197, 94, 0.2);
 }
 
 [data-theme="dark"] {
-  --ds-bg-main: #0b0f0e;
-  --ds-bg-section: #0b241c;
-  --ds-card: #0f2d24;
-  --ds-card-2: #0d271f;
-  --ds-input-bg: #123428;
-  --ds-border: #2f6b55;
-  --ds-primary: #145c43;
-  --ds-text-primary: #ffffff;
-  --ds-text-secondary: #d6e7e0;
-  --ds-text-muted: #bdd5cb;
-  --ds-glow: rgba(20, 92, 67, 0.16);
+  --ds-bg-main: #004724;
+  --ds-bg-section: #006b38;
+  --ds-card: rgba(1, 47, 26, 0.72);
+  --ds-card-2: rgba(1, 47, 26, 0.86);
+  --ds-input-bg: rgba(1, 47, 26, 0.72);
+  --ds-border: rgba(52, 211, 153, 0.18);
+  --ds-primary: #22c55e;
+  --ds-text-primary: #f8fafc;
+  --ds-text-secondary: #d8f1e2;
+  --ds-text-muted: #b7d8c4;
+  --ds-glow: rgba(34, 197, 94, 0.18);
 }
 
 html,
 body {
-  background: var(--ds-bg-main) !important;
+  background: var(--taj-app-bg, var(--ds-bg-main)) !important;
   color: var(--ds-text-primary) !important;
 }
 
@@ -1719,14 +1697,12 @@ body {
 .page-backdrop--particles,
 .page-backdrop--subtle,
 .page-backdrop--default {
-  background:
-    radial-gradient(900px 520px at 88% -12%, rgba(20, 92, 67, 0.26), transparent 72%),
-    radial-gradient(980px 540px at 10% -8%, rgba(47, 107, 85, 0.21), transparent 75%) !important;
+  background: var(--taj-app-bg) !important;
   opacity: 1 !important;
 }
 
 .page-vignette {
-  background: radial-gradient(circle at 50% 35%, rgba(7, 26, 20, 0.08), rgba(7, 26, 20, 0.36) 72%, rgba(7, 26, 20, 0.52)) !important;
+  background: radial-gradient(circle at 50% 35%, transparent 0%, rgba(0, 71, 36, 0.12) 72%, rgba(1, 47, 26, 0.3) 100%) !important;
 }
 
 main,
@@ -1770,7 +1746,7 @@ textarea,
 
 input::placeholder,
 textarea::placeholder {
-  color: var(--ds-text-secondary) !important;
+  color: var(--taj-text-muted, var(--ds-text-muted)) !important;
 }
 
 h1,
@@ -1879,190 +1855,42 @@ textarea {
 }
 
 /* ==========================================================================
-   TajStay Design Spec v1.0 (April 2026)
+   TajStay legacy alias bridge — maps old vars to --taj-* (taj-theme.css)
    ========================================================================== */
 :root {
-  /* TajStay system (requested spec) */
-  --bg-base: #060e0a;
-  --bg-surface: #0c1a11;
-  --bg-elevated: #122018;
-  --bg-input: #0f1c13;
-  --green-primary: #00d46a;
-  --green-hover: #00f077;
-  --green-dim: #00a050;
-  --green-glow: rgba(0, 212, 106, 0.15);
-  --green-border: rgba(0, 212, 106, 0.25);
-  --text-primary: #f0f7f2;
-  --text-secondary: #8ba898;
-  --text-muted: #4a6657;
-  --border: rgba(0, 212, 106, 0.12);
-  --border-focus: rgba(0, 212, 106, 0.5);
-  --error: #ff4d6a;
-  --warning: #ffb830;
-  --success: #00d46a;
+  --bg-base: var(--taj-bg);
+  --bg-surface: var(--taj-card);
+  --bg-elevated: var(--taj-card-strong);
+  --bg-input: var(--taj-input);
+  --green-primary: var(--taj-primary);
+  --green-hover: var(--taj-primary-hover);
+  --green-dim: #16a34a;
+  --green-glow: rgba(34, 197, 94, 0.26);
+  --green-border: var(--taj-card-border);
+  --text-primary: var(--taj-text);
+  --text-secondary: var(--taj-text-secondary);
+  --text-muted: var(--taj-text-muted);
+  --border: var(--taj-card-border);
+  --border-focus: var(--taj-input-focus-border);
+  --error: #f87171;
+  --warning: #fbbf24;
+  --success: var(--taj-primary);
 
-  /* compatibility aliases used across codebase */
-  --brand-bg: var(--bg-base);
-  --brand-surface: var(--bg-surface);
-  --brand-surface-2: var(--bg-elevated);
-  --brand-green: var(--green-primary);
-  --brand-green-dark: var(--green-dim);
-  --brand-green-light: var(--green-hover);
-  --brand-green-glow: var(--green-glow);
-  --brand-text: var(--text-primary);
-  --brand-muted: var(--text-secondary);
-  --brand-border: var(--border);
+  --brand-bg: var(--taj-bg);
+  --brand-surface: var(--taj-card);
+  --brand-surface-2: var(--taj-card-strong);
+  --brand-green: var(--taj-primary);
+  --brand-green-dark: #16a34a;
+  --brand-green-light: var(--taj-primary-hover);
+  --brand-green-glow: rgba(34, 197, 94, 0.26);
+  --brand-text: var(--taj-text);
+  --brand-muted: var(--taj-text-muted);
+  --brand-border: var(--taj-card-border);
   --brand-error: var(--error);
-  --brand-star: var(--warning);
-
-  --brand-bg: #0d1610 !important;
-  --brand-surface: #121f14 !important;
-  --brand-surface-2: #1a2e1c !important;
-  --brand-green: #22c55e !important;
-  --brand-green-dark: #16a34a !important;
-  --brand-green-light: #4ade80 !important;
-  --brand-green-glow: rgba(34, 197, 94, 0.15) !important;
-  --brand-text: #f0ede8 !important;
-  --brand-muted: rgba(240, 237, 232, 0.5) !important;
-  --brand-border: rgba(255, 255, 255, 0.08) !important;
-  --brand-error: #ef4444 !important;
-  --brand-star: #f59e0b !important;
+  --brand-star: var(--taj-gold);
 }
 
-html,
-body {
-  background: var(--brand-bg) !important;
-  color: var(--brand-text) !important;
-}
-
-.page-backdrop,
-.page-backdrop--home,
-.page-backdrop--search,
-.page-backdrop--hotel,
-.page-backdrop--booking,
-.page-backdrop--dashboard,
-.page-backdrop--auth {
-  background:
-    radial-gradient(ellipse at 20% 50%, rgba(34, 197, 94, 0.04) 0%, transparent 60%),
-    var(--brand-bg) !important;
-}
-
-.noise-overlay::after {
-  opacity: 0.03 !important;
-}
-
-.surface-1,
-.surface-2,
-.glass-panel,
-.quiet-card,
-.liquid-glass {
-  background: var(--brand-surface) !important;
-  border: 1px solid var(--brand-border) !important;
-  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.28) !important;
-}
-
-.ds-primary-btn,
-.brand-gradient {
-  background: var(--brand-green) !important;
-  color: #0d1610 !important;
-  font-weight: 700 !important;
-  border-radius: 12px !important;
-  border: 1px solid transparent !important;
-  box-shadow: 0 0 24px rgba(34, 197, 94, 0.3) !important;
-}
-
-.ds-primary-btn:hover,
-.brand-gradient:hover {
-  background: var(--brand-green-dark) !important;
-  transform: translateY(-1px) scale(1.02);
-}
-
-.ds-input {
-  background: rgba(255, 255, 255, 0.04) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  border-radius: 10px !important;
-  color: var(--brand-text) !important;
-}
-
-.ds-input::placeholder {
-  color: rgba(240, 237, 232, 0.35) !important;
-}
-
-.ds-input:focus,
-input:focus,
-select:focus,
-textarea:focus {
-  border-color: var(--brand-green) !important;
-  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15) !important;
-}
-
-/* Windows select dropdown readability fix */
-select {
-  color: var(--brand-text) !important;
-  background-color: var(--brand-surface) !important;
-}
-
-select option {
-  color: #0d1610 !important;
-  background-color: #f0ede8 !important;
-}
-
-/* ==========================================================================
-   Unified background pass: all pages like homepage
-   ========================================================================== */
-html,
-body,
-#__next {
-  background:
-    radial-gradient(1100px 560px at 84% -8%, rgba(34, 197, 94, 0.16), transparent 72%),
-    radial-gradient(980px 540px at 14% 4%, rgba(74, 222, 128, 0.1), transparent 70%),
-    var(--bg-base) !important;
-}
-
-.page-backdrop,
-.page-backdrop--home,
-.page-backdrop--search,
-.page-backdrop--hotel,
-.page-backdrop--booking,
-.page-backdrop--dashboard,
-.page-backdrop--auth {
-  background:
-    radial-gradient(1000px 540px at 82% -8%, rgba(34, 197, 94, 0.14), transparent 74%),
-    radial-gradient(940px 520px at 18% 8%, rgba(74, 222, 128, 0.08), transparent 70%),
-    #0d1610 !important;
-}
-
-.page-vignette {
-  background: radial-gradient(circle at 50% 30%, rgba(13, 22, 16, 0.02), rgba(13, 22, 16, 0.22) 72%, rgba(13, 22, 16, 0.32)) !important;
-}
-
-/* kill pure black blocks */
-[class*="bg-black"],
-[class*="bg-slate-950"],
-[class*="bg-slate-900"] {
-  background-color: #121f14 !important;
-  background-image: none !important;
-}
-
-main,
-section,
-article,
-header,
-footer {
-  background-color: transparent !important;
-}
-
-.surface-1,
-.surface-2,
-.glass-panel,
-.liquid-glass,
-.quiet-card,
-.hotel-card-premium {
-  background: var(--bg-surface) !important;
-  border-color: var(--border) !important;
-}
-
-/* Global page normalization for non-home pages */
+/* Remap accidental light Tailwind surfaces to emerald cards */
 [class*="bg-white"],
 [class*="bg-slate-50"],
 [class*="bg-slate-100"],
@@ -2072,185 +1900,208 @@ footer {
 [class*="bg-brand-800"],
 [class*="bg-brand-700"],
 [class*="bg-brand-600"] {
-  background-color: var(--bg-surface) !important;
+  background-color: var(--taj-card) !important;
   background-image: none !important;
 }
 
 [class*="bg-slate-900"],
 [class*="bg-slate-950"],
 [class*="bg-black"] {
-  background-color: var(--bg-elevated) !important;
+  background-color: var(--taj-card-strong) !important;
   background-image: none !important;
 }
 
 [class*="border-white/"],
 [class*="border-slate-"],
 [class*="border-brand-"] {
-  border-color: var(--border) !important;
+  border-color: var(--taj-card-border) !important;
 }
 
 [class*="text-white"],
 [class*="text-slate-100"] {
-  color: var(--text-primary) !important;
+  color: var(--taj-text) !important;
 }
 
 [class*="text-slate-200"],
 [class*="text-slate-300"],
 [class*="text-slate-400"],
 [class*="text-brand-200"] {
-  color: var(--text-secondary) !important;
+  color: var(--taj-text-secondary) !important;
 }
 
 [class*="text-slate-500"],
 [class*="text-slate-600"],
 [class*="text-brand-300"] {
-  color: var(--text-muted) !important;
+  color: var(--taj-text-muted) !important;
 }
 
-/* Unified controls */
+/* Unified form controls (legacy .ds-* + native fields) */
 input,
 textarea,
 select,
-.ds-input {
-  background: var(--bg-input) !important;
-  border: 1px solid var(--border) !important;
-  color: var(--text-primary) !important;
-  border-radius: 10px !important;
+.ds-input,
+.taj-input {
+  background: var(--taj-input) !important;
+  border: 1px solid var(--taj-input-border) !important;
+  color: var(--taj-text) !important;
+  border-radius: var(--taj-radius-lg, 1rem) !important;
 }
 
 input::placeholder,
 textarea::placeholder {
-  color: var(--text-muted) !important;
+  color: var(--taj-text-muted) !important;
 }
 
 input:focus,
 textarea:focus,
 select:focus,
-.ds-input:focus {
+.ds-input:focus,
+.taj-input:focus {
   outline: none !important;
-  border-color: var(--border-focus) !important;
-  box-shadow: 0 0 0 3px rgba(0, 212, 106, 0.08) !important;
+  border-color: var(--taj-input-focus-border) !important;
+  box-shadow: var(--taj-input-focus-ring) !important;
 }
 
-/* Buttons */
+select option {
+  color: var(--taj-text) !important;
+  background-color: #012f1a !important;
+}
+
+/* Legacy button aliases */
 .btn-primary,
 .ds-primary-btn,
 .brand-gradient {
-  background: var(--green-primary) !important;
-  color: var(--bg-base) !important;
+  background: var(--taj-btn-primary-bg) !important;
+  color: var(--taj-btn-primary-text) !important;
   font-weight: 700 !important;
-  border: none !important;
-  border-radius: 10px !important;
+  border: 1px solid var(--taj-btn-primary-border) !important;
+  border-radius: var(--taj-radius-xl, 1.25rem) !important;
+  box-shadow: var(--taj-btn-primary-shadow) !important;
 }
 
 .btn-primary:hover,
 .ds-primary-btn:hover,
 .brand-gradient:hover {
-  background: var(--green-hover) !important;
-  box-shadow: 0 0 24px rgba(0, 212, 106, 0.3) !important;
+  background: var(--taj-btn-primary-bg-hover) !important;
+  box-shadow: var(--taj-btn-primary-shadow-hover) !important;
 }
 
 .btn-secondary {
-  background: transparent !important;
-  color: var(--text-secondary) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 10px !important;
+  background: var(--taj-btn-secondary-bg) !important;
+  color: var(--taj-btn-secondary-text) !important;
+  border: 1px solid var(--taj-btn-secondary-border) !important;
+  border-radius: var(--taj-radius-xl, 1.25rem) !important;
 }
 
 .btn-secondary:hover {
-  border-color: var(--green-primary) !important;
-  color: var(--text-primary) !important;
+  background: var(--taj-btn-secondary-bg-hover) !important;
+  border-color: var(--taj-btn-secondary-border-hover) !important;
+  color: var(--taj-text) !important;
 }
 
 .btn-danger {
   background: transparent !important;
-  color: var(--error) !important;
-  border: 1px solid rgba(255, 77, 106, 0.3) !important;
+  color: var(--taj-icon-error) !important;
+  border: 1px solid rgba(248, 113, 113, 0.35) !important;
 }
 
 .btn-danger:hover {
-  background: rgba(255, 77, 106, 0.1) !important;
-  border-color: var(--error) !important;
+  background: rgba(127, 29, 29, 0.35) !important;
+  border-color: var(--taj-icon-error) !important;
 }
 
 .btn-ghost {
   background: transparent !important;
-  color: var(--green-primary) !important;
+  color: var(--taj-primary) !important;
   border: none !important;
 }
 
 .btn-ghost:hover {
-  background: rgba(0, 212, 106, 0.08) !important;
-  border-radius: 8px !important;
+  background: rgba(34, 197, 94, 0.12) !important;
+  border-radius: var(--taj-radius-lg, 1rem) !important;
 }
 
 .card {
-  background: var(--bg-surface) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 16px !important;
+  background: var(--taj-card) !important;
+  border: 1px solid var(--taj-card-border) !important;
+  border-radius: var(--taj-radius-card-lg, 1.25rem) !important;
+  box-shadow: var(--taj-card-shadow) !important;
   transition: border-color 0.2s, transform 0.2s;
 }
 
 .card:hover {
-  border-color: var(--green-border) !important;
+  border-color: rgba(52, 211, 153, 0.28) !important;
   transform: translateY(-4px);
 }
 
 /* ==========================================================================
-   TajStay brand palette lock — black emerald premium (see src/lib/brand.ts)
+   TajStay brand palette lock — rich emerald #004724 (see src/lib/brand.ts)
    ========================================================================== */
 :root,
 [data-theme="light"],
 [data-theme="dark"] {
-  --bg-base: #020f0a !important;
-  --bg-deep: #031b12 !important;
-  --bg-soft: #02110c !important;
-  --bg-surface: rgba(3, 31, 22, 0.78) !important;
-  --bg-elevated: rgba(3, 31, 22, 0.72) !important;
-  --bg-input: rgba(3, 31, 22, 0.92) !important;
+  --bg-base: #004724 !important;
+  --bg-deep: #012f1a !important;
+  --bg-soft: #006b38 !important;
+  --bg-surface: rgba(1, 47, 26, 0.72) !important;
+  --bg-elevated: rgba(1, 47, 26, 0.86) !important;
+  --bg-input: rgba(1, 47, 26, 0.72) !important;
 
   --green-primary: #22c55e !important;
   --green-hover: #34d399 !important;
   --green-dim: #16a34a !important;
-  --green-glow: rgba(34, 197, 94, 0.22) !important;
+  --green-glow: rgba(34, 197, 94, 0.26) !important;
   --green-border: rgba(52, 211, 153, 0.18) !important;
 
-  --text-primary: #ecfdf5 !important;
-  --text-secondary: #d1fae5 !important;
-  --text-muted: #a7f3d0 !important;
+  --text-primary: #f8fafc !important;
+  --text-secondary: #d8f1e2 !important;
+  --text-muted: #b7d8c4 !important;
   --border: rgba(52, 211, 153, 0.18) !important;
   --border-focus: rgba(52, 211, 153, 0.55) !important;
 
-  --brand-bg: #020f0a !important;
-  --brand-surface: rgba(3, 31, 22, 0.78) !important;
-  --brand-surface-2: rgba(3, 31, 22, 0.72) !important;
+  --brand-bg: #004724 !important;
+  --brand-surface: rgba(1, 47, 26, 0.72) !important;
+  --brand-surface-2: rgba(1, 47, 26, 0.86) !important;
+  --taj-card: rgba(1, 47, 26, 0.72) !important;
+  --taj-card-border: rgba(52, 211, 153, 0.18) !important;
+  --taj-card-shadow: 0 24px 70px rgba(0, 0, 0, 0.22) !important;
+  --taj-card-strong: rgba(1, 47, 26, 0.86) !important;
+  --taj-card-strong-border: rgba(212, 175, 55, 0.18) !important;
+  --taj-section-bg: rgba(0, 71, 36, 0.38) !important;
+  --taj-section-border: rgba(52, 211, 153, 0.14) !important;
+  --taj-input: rgba(1, 47, 26, 0.72) !important;
+  --taj-input-border: rgba(183, 216, 196, 0.24) !important;
+  --taj-input-focus-border: rgba(52, 211, 153, 0.62) !important;
+  --taj-input-focus-ring: 0 0 0 3px rgba(52, 211, 153, 0.14) !important;
+  --taj-dropdown-bg: rgba(1, 47, 26, 0.94) !important;
   --brand-green: #22c55e !important;
   --brand-green-light: #34d399 !important;
   --brand-green-dark: #16a34a !important;
   --brand-border: var(--border) !important;
-  --brand-text: #ecfdf5 !important;
-  --brand-muted: #a7f3d0 !important;
+  --brand-text: #f8fafc !important;
+  --brand-muted: #b7d8c4 !important;
   --brand-star: #d4af37 !important;
 
-  --taj-color-text: #ecfdf5 !important;
-  --taj-color-text-secondary: #d1fae5 !important;
-  --taj-color-text-muted: #a7f3d0 !important;
+  --taj-color-text: #f8fafc !important;
+  --taj-color-text-secondary: #d8f1e2 !important;
+  --taj-color-text-muted: #b7d8c4 !important;
   --taj-color-border: rgba(52, 211, 153, 0.18) !important;
   --taj-color-border-strong: rgba(52, 211, 153, 0.28) !important;
-  --taj-color-bg-card: rgba(3, 31, 22, 0.72) !important;
-  --taj-color-bg-card-solid: rgba(3, 31, 22, 0.88) !important;
-  --taj-public-surface: rgba(3, 31, 22, 0.72) !important;
-  --taj-public-surface-strong: rgba(3, 31, 22, 0.88) !important;
+  --taj-color-bg-card: rgba(1, 47, 26, 0.72) !important;
+  --taj-color-bg-card-solid: rgba(1, 47, 26, 0.86) !important;
+  --taj-public-surface: rgba(1, 47, 26, 0.72) !important;
+  --taj-public-surface-strong: rgba(1, 47, 26, 0.86) !important;
 
   --taj-app-bg:
-    radial-gradient(circle at 0% 0%, rgba(16, 185, 129, 0.14), transparent 30%),
-    radial-gradient(circle at 100% 0%, rgba(6, 95, 70, 0.18), transparent 35%),
-    linear-gradient(180deg, #020f0a 0%, #031b12 45%, #02110c 100%) !important;
+    radial-gradient(circle at 20% 15%, rgba(34, 197, 94, 0.18), transparent 34%),
+    radial-gradient(circle at 85% 20%, rgba(212, 175, 55, 0.07), transparent 32%),
+    linear-gradient(135deg, #006b38 0%, #004724 45%, #012f1a 100%) !important;
 
-  --ds-bg-main: #020f0a !important;
-  --ds-bg-section: #031b12 !important;
-  --ds-card: rgba(3, 31, 22, 0.78) !important;
-  --ds-card-2: rgba(2, 17, 12, 0.92) !important;
+  --ds-bg-main: #004724 !important;
+  --ds-bg-section: rgba(0, 71, 36, 0.38) !important;
+  --ds-card: rgba(1, 47, 26, 0.72) !important;
+  --ds-card-2: rgba(1, 47, 26, 0.86) !important;
+  --ds-input-bg: rgba(1, 47, 26, 0.72) !important;
 }
 
 body,
@@ -2277,23 +2128,27 @@ html,
 }
 
 .page-vignette {
-  background: radial-gradient(circle at 50% 28%, transparent 0%, rgba(2, 15, 10, 0.18) 72%, rgba(2, 15, 10, 0.42) 100%) !important;
+  background: radial-gradient(circle at 50% 28%, transparent 0%, rgba(0, 71, 36, 0.14) 72%, rgba(1, 47, 26, 0.32) 100%) !important;
 }
 
 [data-theme="light"] header,
 [data-theme="dark"] header {
-  background: rgba(2, 15, 10, 0.94) !important;
+  background: rgba(0, 53, 29, 0.94) !important;
   border-bottom-color: rgba(52, 211, 153, 0.16) !important;
 }
 
 [data-theme="light"] .glass-panel,
 [data-theme="dark"] .glass-panel,
-.glass-panel {
-  border-color: var(--taj-border) !important;
-  background:
-    radial-gradient(circle at 8% 6%, rgba(16, 185, 129, 0.12), transparent 30%),
-    linear-gradient(180deg, rgba(3, 27, 18, 0.92), rgba(2, 15, 10, 0.96)) !important;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35) !important;
+.glass-panel:not(.taj-surface-ai) {
+  background: var(--taj-card) !important;
+  border: 1px solid var(--taj-card-border) !important;
+  box-shadow: var(--taj-card-shadow) !important;
+}
+
+.glass-panel.taj-surface-ai {
+  background: var(--taj-card-strong) !important;
+  border: 1px solid var(--taj-card-strong-border) !important;
+  box-shadow: var(--taj-card-shadow) !important;
 }
 
 .surface-1,
@@ -2302,9 +2157,86 @@ html,
 .liquid-glass,
 .hotel-card-premium,
 .search-premium {
-  background: rgba(3, 31, 22, 0.78) !important;
-  border-color: var(--taj-border) !important;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.32) !important;
+  background: var(--taj-card) !important;
+  border: 1px solid var(--taj-card-border) !important;
+  box-shadow: var(--taj-card-shadow) !important;
+}
+
+/* Palette lock — forms, dropdowns, modals (wins over legacy .ds-* layers) */
+input,
+textarea,
+select,
+.ds-input,
+.taj-input,
+.search-input-premium {
+  background: var(--taj-input) !important;
+  border: 1px solid var(--taj-input-border) !important;
+  color: var(--taj-text) !important;
+}
+
+input::placeholder,
+textarea::placeholder,
+.ds-input::placeholder,
+.taj-input::placeholder {
+  color: var(--taj-text-muted) !important;
+  opacity: 1 !important;
+}
+
+input:focus,
+textarea:focus,
+select:focus,
+.ds-input:focus,
+.taj-input:focus {
+  border-color: var(--taj-input-focus-border) !important;
+  box-shadow: var(--taj-input-focus-ring) !important;
+}
+
+.user-menu-dropdown,
+.taj-dropdown,
+.mobile-menu-panel {
+  background: var(--taj-dropdown-bg) !important;
+  border-color: var(--taj-dropdown-border) !important;
+  color: var(--taj-text) !important;
+  box-shadow: var(--taj-dropdown-shadow) !important;
+}
+
+.modal-surface,
+.liquid-glass.modal-surface,
+[class*="modal-surface"] {
+  background: var(--taj-card-strong) !important;
+  border: 1px solid var(--taj-card-border) !important;
+  box-shadow: var(--taj-card-shadow) !important;
+  color: var(--taj-text) !important;
+}
+
+.modal-surface h3,
+.modal-surface .text-slate-100 {
+  color: var(--taj-text) !important;
+}
+
+.modal-surface button.text-slate-300:hover,
+.modal-surface [class*="hover:bg-white"] {
+  background: var(--taj-dropdown-item-hover-bg) !important;
+  color: var(--taj-text) !important;
+}
+
+.chat-compose {
+  background: var(--taj-card-strong) !important;
+  border-top: 1px solid var(--taj-card-border) !important;
+  color: var(--taj-text) !important;
+}
+
+.chat-compose__row {
+  background: var(--taj-input) !important;
+  border-color: var(--taj-input-border) !important;
+}
+
+.chat-compose__input {
+  color: var(--taj-text) !important;
+}
+
+.chat-compose__input::placeholder {
+  color: var(--taj-text-muted) !important;
 }
 
 /* ---- Home hero premium polish ---- */
@@ -2371,18 +2303,20 @@ html,
   align-items: center;
   justify-content: center;
   border-radius: 1rem;
-  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  background: var(--taj-btn-primary-bg);
+  border: 1px solid var(--taj-btn-primary-border);
   padding: 0.875rem 2rem;
   font-size: 0.875rem;
   font-weight: 700;
-  color: #031b15;
-  box-shadow: 0 16px 36px rgba(34, 197, 94, 0.26);
+  color: var(--taj-btn-primary-text);
+  box-shadow: var(--taj-btn-primary-shadow);
   transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
 .home-hero-cta-primary:hover {
-  background: linear-gradient(135deg, #34d399 0%, #22c55e 100%);
-  box-shadow: 0 18px 40px rgba(34, 197, 94, 0.32);
+  background: var(--taj-btn-primary-bg-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--taj-btn-primary-shadow-hover);
 }
 
 .home-hero-cta-primary:focus-visible {
@@ -2400,20 +2334,20 @@ html,
   align-items: center;
   justify-content: center;
   border-radius: 1rem;
-  border: 1px solid rgba(167, 243, 208, 0.35);
-  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--taj-btn-secondary-border);
+  background: var(--taj-btn-secondary-bg);
   padding: 0.875rem 1.5rem;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #d1fae5;
+  color: var(--taj-btn-secondary-text);
   backdrop-filter: blur(8px);
   transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
 }
 
 .home-hero-cta-secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(167, 243, 208, 0.55);
-  color: #ecfdf5;
+  background: var(--taj-btn-secondary-bg-hover);
+  border-color: var(--taj-btn-secondary-border-hover);
+  color: var(--taj-text);
 }
 
 .home-hero-cta-secondary:focus-visible {
@@ -2429,10 +2363,10 @@ html,
 
 .home-search-card {
   border-radius: 1.5rem;
-  border: 1px solid rgba(52, 211, 153, 0.18);
-  background: rgba(7, 48, 37, 0.72);
+  border: 1px solid var(--taj-card-border);
+  background: var(--taj-card);
   padding: 1.25rem 1.5rem;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.22);
+  box-shadow: var(--taj-card-shadow);
   backdrop-filter: blur(12px);
 }
 
@@ -2441,7 +2375,7 @@ html,
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #cde7da;
+  color: var(--taj-text-secondary);
 }
 
 .home-search-field {
@@ -2450,16 +2384,15 @@ html,
   align-items: center;
   gap: 0.5rem;
   border-radius: 0.875rem;
-  border: 1px solid rgba(148, 220, 185, 0.22);
-  background: rgba(8, 58, 44, 0.72);
+  border: 1px solid var(--taj-input-border);
+  background: var(--taj-input);
   padding: 0 0.75rem;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
 .home-search-field:focus-within {
-  border-color: rgba(52, 211, 153, 0.55);
-  background: rgba(8, 58, 44, 0.88);
-  box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.22);
+  border-color: var(--taj-input-focus-border);
+  box-shadow: var(--taj-input-focus-ring);
 }
 
 .home-search-input {
@@ -2469,12 +2402,12 @@ html,
   background: transparent;
   font-size: 0.875rem;
   line-height: 1.25rem;
-  color: #f8fafc;
+  color: var(--taj-text);
   outline: none;
 }
 
 .home-search-input::placeholder {
-  color: #9fcdb8;
+  color: var(--taj-text-muted);
 }
 
 .home-search-submit {
@@ -2485,18 +2418,20 @@ html,
   justify-content: center;
   gap: 0.5rem;
   border-radius: 0.875rem;
-  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  background: var(--taj-btn-primary-bg);
   font-size: 0.875rem;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.02em;
-  color: #031b15;
-  box-shadow: 0 16px 36px rgba(34, 197, 94, 0.26);
+  color: var(--taj-btn-primary-text);
+  border: 1px solid var(--taj-btn-primary-border);
+  box-shadow: var(--taj-btn-primary-shadow);
   transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
 }
 
 .home-search-submit:hover {
-  background: linear-gradient(135deg, #34d399 0%, #22c55e 100%);
-  box-shadow: 0 18px 40px rgba(34, 197, 94, 0.32);
+  background: var(--taj-btn-primary-bg-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--taj-btn-primary-shadow-hover);
 }
 
 .home-search-submit:focus-visible {

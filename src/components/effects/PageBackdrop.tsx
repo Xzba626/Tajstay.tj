@@ -48,15 +48,16 @@ export function PageBackdrop() {
       const time = t * 0.001;
 
       ctx.clearRect(0, 0, w, h);
-      ctx.fillStyle = "#0D1724";
+      ctx.fillStyle = "#004724";
       ctx.fillRect(0, 0, w, h);
 
       if (variant === "subtle" || variant === "default") return;
 
       if (variant === "mountains") {
         const grad = ctx.createLinearGradient(0, 0, 0, h);
-        grad.addColorStop(0, "#0D1724");
-        grad.addColorStop(1, "#122235");
+        grad.addColorStop(0, "#006b38");
+        grad.addColorStop(0.45, "#004724");
+        grad.addColorStop(1, "#012f1a");
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, w, h);
 
@@ -72,11 +73,11 @@ export function PageBackdrop() {
           }
           ctx.lineTo(w, h);
           ctx.closePath();
-          ctx.fillStyle = `rgba(109,223,149,${0.11 - layer * 0.025})`;
+          ctx.fillStyle = `rgba(34,197,94,${0.11 - layer * 0.025})`;
           ctx.fill();
         }
       } else if (variant === "grid") {
-        ctx.strokeStyle = "rgba(54,207,201,0.14)";
+        ctx.strokeStyle = "rgba(52,211,153,0.14)";
         ctx.lineWidth = 1 * dpr;
         const step = Math.max(36 * dpr, 22);
         for (let y = h * 0.45; y < h; y += step) {
@@ -104,12 +105,12 @@ export function PageBackdrop() {
             if (x === 0) ctx.moveTo(x, y);
             else ctx.lineTo(x, y);
           }
-          ctx.strokeStyle = `rgba(54,207,201,${0.12 - i * 0.018})`;
+          ctx.strokeStyle = `rgba(52,211,153,${0.12 - i * 0.018})`;
           ctx.lineWidth = (18 - i * 3) * dpr;
           ctx.stroke();
         }
       } else if (variant === "particles") {
-        ctx.fillStyle = "#0D1724";
+        ctx.fillStyle = "#012f1a";
         ctx.fillRect(0, 0, w, h);
 
         for (const p of particles) {
@@ -122,7 +123,7 @@ export function PageBackdrop() {
           const py = p.y * h;
           ctx.beginPath();
           ctx.arc(px, py, 2.2 * dpr, 0, Math.PI * 2);
-          ctx.fillStyle = "rgba(109,223,149,0.92)";
+          ctx.fillStyle = "rgba(34,197,94,0.85)";
           ctx.fill();
         }
         for (let i = 0; i < particles.length; i++) {
@@ -131,7 +132,7 @@ export function PageBackdrop() {
             const dy = (particles[i].y - particles[j].y) * h;
             const dist = Math.hypot(dx, dy);
             if (dist < 120 * dpr) {
-              ctx.strokeStyle = `rgba(54,207,201,${0.28 * (1 - dist / (120 * dpr))})`;
+              ctx.strokeStyle = `rgba(52,211,153,${0.28 * (1 - dist / (120 * dpr))})`;
               ctx.lineWidth = 1 * dpr;
               ctx.beginPath();
               ctx.moveTo(particles[i].x * w, particles[i].y * h);

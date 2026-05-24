@@ -346,11 +346,13 @@
   bottom: 0;
   z-index: 10;
   flex-shrink: 0;
-  border-top: 1px solid var(--taj-color-border);
-  background: rgba(255, 255, 255, 0.96);
+  border-top: 1px solid rgba(52, 211, 153, 0.18);
+  background: rgba(1, 47, 26, 0.86);
+  color: #f8fafc;
   padding: 0.5rem 0.65rem;
   padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
 
 .chat-compose__quick {
@@ -366,18 +368,18 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   border-radius: 9999px;
-  border: 1px solid var(--taj-color-border);
-  background: var(--taj-color-bg);
+  border: 1px solid rgba(52, 211, 153, 0.18);
+  background: rgba(1, 47, 26, 0.72);
   padding: 0.3rem 0.6rem;
   font-size: 0.625rem;
   font-weight: 600;
-  color: var(--taj-color-text-secondary);
+  color: var(--taj-text-secondary);
 }
 
 .chat-compose__quick button:hover {
-  border-color: var(--taj-color-border-strong);
-  background: var(--taj-emerald-50);
-  color: var(--taj-color-primary);
+  border-color: rgba(52, 211, 153, 0.28);
+  background: rgba(34, 197, 94, 0.12);
+  color: var(--taj-text);
 }
 
 .chat-compose__row {
@@ -385,8 +387,8 @@
   align-items: flex-end;
   gap: 0.35rem;
   border-radius: 9999px;
-  border: 1px solid var(--taj-color-border-strong);
-  background: var(--taj-chat-input-bg);
+  border: 1px solid rgba(183, 216, 196, 0.24);
+  background: rgba(1, 47, 26, 0.72);
   padding: 0.25rem 0.35rem 0.25rem 0.25rem;
   box-shadow: var(--taj-shadow-sm);
 }
@@ -400,12 +402,12 @@
   justify-content: center;
   border-radius: 9999px;
   font-size: 1rem;
-  color: var(--taj-color-text-muted);
+  color: var(--taj-text-muted);
   transition: background 0.15s;
 }
 
 .chat-compose__attach:hover {
-  background: var(--taj-emerald-50);
+  background: rgba(34, 197, 94, 0.12);
 }
 
 .chat-compose__input {
