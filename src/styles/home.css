@@ -120,12 +120,9 @@
   aspect-ratio: 4 / 3;
   overflow: hidden;
   border-radius: var(--taj-radius-2xl);
-  border: 1px solid rgba(52, 211, 153, 0.2);
-  background: linear-gradient(145deg, #0a2e1f 0%, #041a12 100%);
-  box-shadow:
-    0 24px 48px rgba(0, 0, 0, 0.38),
-    0 0 0 1px rgba(52, 211, 153, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(52, 211, 153, 0.18);
+  background: rgba(7, 48, 37, 0.72);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.22);
 }
 
 /* Hero travel preview */
@@ -430,11 +427,23 @@
 
 /* ---- Site header ---- */
 .site-header {
-  border-bottom: 1px solid rgba(52, 211, 153, 0.12);
-  background: rgba(4, 26, 18, 0.88);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.22);
+  border-bottom: 1px solid rgba(52, 211, 153, 0.16);
+  background: rgba(3, 31, 24, 0.92);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
+}
+
+.site-header__logo-badge {
+  display: flex;
+  height: 2.5rem;
+  width: 2.5rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  background: #f3f8f5;
+  border: 1px solid rgba(212, 175, 55, 0.35);
 }
 
 .site-header__inner {
@@ -453,18 +462,18 @@
   padding: 0.5rem 0.75rem;
   font-size: var(--taj-text-sm);
   font-weight: 600;
-  color: #a7d4bc;
+  color: #9fcdb8;
   transition: background 0.2s ease, color 0.2s ease;
 }
 
 .site-header .header-nav-link:hover {
-  background: rgba(52, 211, 153, 0.1);
-  color: #ecfdf5;
+  background: rgba(52, 211, 153, 0.12);
+  color: #f8fafc;
 }
 
 .site-header .header-nav-link.is-active {
-  background: rgba(16, 185, 129, 0.18);
-  color: #d1fae5;
+  background: rgba(34, 197, 94, 0.18);
+  color: #cde7da;
 }
 
 /* ---- Home hotel cards ---- */

@@ -83,17 +83,19 @@ export async function Header() {
           data-magnetic
         >
           <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-            <Image
-              src={content.brand.logoMarkUrl}
-              alt=""
-              width={40}
-              height={40}
-              className="h-10 w-10 shrink-0 object-contain"
-              priority
-              unoptimized
-            />
+            <span className="site-header__logo-badge">
+              <Image
+                src={content.brand.logoMarkUrl}
+                alt=""
+                width={32}
+                height={32}
+                className="h-8 w-8 shrink-0 object-contain"
+                priority
+                unoptimized
+              />
+            </span>
             <div className="min-w-0 leading-tight">
-              <div className="brand-wordmark truncate text-lg font-bold text-white sm:text-xl">{content.brand.siteName}</div>
+              <div className="brand-wordmark truncate text-lg font-bold text-[#F8FAFC] sm:text-xl">{content.brand.siteName}</div>
             </div>
           </div>
         </ViewTransitionLink>

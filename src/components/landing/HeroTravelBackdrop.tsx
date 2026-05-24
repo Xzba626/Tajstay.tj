@@ -6,7 +6,7 @@ export function HeroTravelBackdrop({ className }: { className?: string }) {
         className="absolute inset-0"
         style={{
           background:
-            "linear-gradient(165deg, #0a2e1f 0%, #062418 42%, #041a12 100%)"
+            "linear-gradient(165deg, #083528 0%, #06281f 48%, #031b15 100%)"
         }}
       />
       <div

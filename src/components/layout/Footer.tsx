@@ -19,7 +19,7 @@ export async function Footer() {
   ];
 
   return (
-    <footer className="mt-auto border-t border-emerald-900/40 bg-[#041a12]">
+    <footer className="mt-auto border-t border-emerald-900/40 bg-[#06281F]">
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-center gap-3">
@@ -44,7 +44,7 @@ export async function Footer() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-emerald-100 transition hover:text-white hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#041a12]"
+                className="text-[#CDE7DA] transition hover:text-[#F8FAFC] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#06281F]"
               >
                 {link.label}
               </Link>
@@ -52,7 +52,7 @@ export async function Footer() {
           </nav>
         </div>
 
-        <p className="mt-4 border-t border-white/10 pt-4 text-center text-xs text-emerald-200 sm:text-left">
+        <p className="mt-4 border-t border-white/10 pt-4 text-center text-xs text-[#9FCDB8] sm:text-left">
           © {year} {m(locale, "footer.rights")}
         </p>
       </div>
