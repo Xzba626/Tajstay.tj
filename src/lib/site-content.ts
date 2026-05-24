@@ -58,9 +58,9 @@ const defaultContent: SiteContent = {
   },
   brand: {
     siteName: "TajStay",
-    logoMainUrl: "/logo.svg",
-    logoMarkUrl: "/logo-mark.svg",
-    faviconUrl: "/logo-mark.svg"
+    logoMainUrl: "/brand/tajstay-logo.png",
+    logoMarkUrl: "/brand/tajstay-mark.png",
+    faviconUrl: "/brand/tajstay-favicon.png"
   },
   paymentCatalog: {
     methods: ["Visa", "Mastercard", "Humo", "Dushanbe City Wallet", "Alif Mobi"]
@@ -83,7 +83,15 @@ const defaultContent: SiteContent = {
 function normalizeBrandUrl(url: string, fallback: string): string {
   const trimmed = url.trim();
   if (!trimmed) return fallback;
-  if (trimmed.includes("tajstay-logo") || trimmed.includes("logo-main.png")) return fallback;
+  const legacy =
+    trimmed.includes("tajstay-logo") ||
+    trimmed.includes("logo-main") ||
+    trimmed.includes("logo-mark") ||
+    trimmed.includes("logo.svg") ||
+    trimmed.includes("logo1") ||
+    trimmed.includes("tajstay-favicon") ||
+    trimmed.includes("tajstay-logo-navbar");
+  if (legacy && !trimmed.startsWith("/brand/")) return fallback;
   return trimmed;
 }
 

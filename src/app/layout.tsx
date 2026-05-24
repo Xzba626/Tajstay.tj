@@ -27,13 +27,22 @@ export async function generateMetadata(): Promise<Metadata> {
     description: "Национальная платформа бронирования жилья в Таджикистане",
     icons: {
       icon: [
-        { url: "/icon.svg", type: "image/svg+xml" },
         { url: "/favicon.png", sizes: "32x32", type: "image/png" },
+        { url: "/brand/tajstay-favicon.png", sizes: "512x512", type: "image/png" },
         { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }
       ],
       apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }]
     },
     manifest: "/manifest.webmanifest",
+    openGraph: {
+      title: `${content.brand.siteName} — Tajikistan stays`,
+      description: "Национальная платформа бронирования жилья в Таджикистане",
+      images: [{ url: "/brand/tajstay-og.png", width: 1200, height: 630, alt: content.brand.siteName }]
+    },
+    twitter: {
+      card: "summary_large_image",
+      images: ["/brand/tajstay-og.png"]
+    },
     appleWebApp: {
       capable: true,
       statusBarStyle: "black-translucent",

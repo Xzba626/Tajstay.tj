@@ -80,11 +80,11 @@ export function PwaInstallPrompt({ labels }: { labels: PwaInstallLabels }) {
     >
       <div className="flex gap-3">
         <Image
-          src="/logo-mark.svg"
+          src="/brand/tajstay-mark.png"
           alt=""
           width={48}
           height={48}
-          className="h-12 w-12 shrink-0 rounded-2xl shadow-md ring-1 ring-[var(--taj-color-border)]"
+          className="h-12 w-auto max-h-12 shrink-0 object-contain"
           unoptimized
           priority
         />

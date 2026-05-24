@@ -114,7 +114,7 @@ export function MessagesInbox({ locale, role }: { locale: Locale; role: string }
           {items.map((item) => {
             const preview =
               item.lastMessage.length > 80 ? `${item.lastMessage.slice(0, 80)}…` : item.lastMessage;
-            const cover = item.coverImageUrl || "/logo-mark.svg";
+            const cover = item.coverImageUrl || "/brand/tajstay-mark.png";
             const statusLabel =
               m(locale, `status.${item.status}`) !== `status.${item.status}`
                 ? m(locale, `status.${item.status}`)

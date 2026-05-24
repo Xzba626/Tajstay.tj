@@ -32,7 +32,7 @@ export async function Footer() {
                 alt=""
                 width={40}
                 height={40}
-                className="h-10 w-10 rounded-xl bg-emerald-950/80 p-1 ring-1 ring-emerald-700/50"
+                className="h-10 w-auto max-h-10 object-contain"
                 unoptimized
               />
               <span className="brand-wordmark text-sm font-bold sm:text-base">{content.brand.siteName}</span>

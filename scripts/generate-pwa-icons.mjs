@@ -1,10 +1,5 @@
 /**
- * Generate TajStay PWA icons from public/logo-mark.svg
- *
- * logo-mark.svg already includes the full app icon (green tile + gold mark).
- * Do NOT composite it onto a second dark background — that caused a black
- * square with a tiny logo on Android home screen.
- *
+ * Generate TajStay PWA icons from public/brand/tajstay-mark.png
  * Usage: node scripts/generate-pwa-icons.mjs
  */
 import fs from "fs";
@@ -14,26 +9,28 @@ import sharp from "sharp";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
-const svgPath = path.join(root, "public", "logo-mark.svg");
+const markPath = path.join(root, "public", "brand", "tajstay-mark.png");
 const iconsDir = path.join(root, "public", "icons");
 
-/** Brand emerald from logo-mark.svg gradient start */
-const BRAND_BG = { r: 11, g: 109, b: 94, alpha: 1 };
+const BRAND_BG = { r: 255, g: 255, b: 255, alpha: 1 };
 
-const svg = fs.readFileSync(svgPath);
+if (!fs.existsSync(markPath)) {
+  console.error("Run node scripts/generate-brand-assets.mjs first");
+  process.exit(1);
+}
 
-/** Standard icon — full bleed, logo fills the canvas */
+const mark = fs.readFileSync(markPath);
+
 async function renderIcon(size) {
-  return sharp(svg)
-    .resize(size, size, { fit: "fill" })
+  return sharp(mark)
+    .resize(size, size, { fit: "contain", background: BRAND_BG })
     .png({ quality: 95, compressionLevel: 9 })
     .toBuffer();
 }
 
-/** Maskable — safe zone ~80%; background matches logo tile, not black */
 async function renderMaskable(size) {
   const inner = Math.round(size * 0.82);
-  const logo = await sharp(svg).resize(inner, inner, { fit: "fill" }).png().toBuffer();
+  const logo = await sharp(mark).resize(inner, inner, { fit: "contain", background: BRAND_BG }).png().toBuffer();
   return sharp({
     create: {
       width: size,
@@ -62,12 +59,10 @@ for (const [name, buf] of outputs) {
   console.log("Wrote", out, buf.length, "bytes");
 }
 
-const apple = await renderIcon(180);
-fs.writeFileSync(path.join(root, "public", "apple-touch-icon.png"), apple);
+fs.writeFileSync(path.join(root, "public", "apple-touch-icon.png"), await renderIcon(180));
 console.log("Wrote public/apple-touch-icon.png");
 
-const fav32 = await renderIcon(32);
-fs.writeFileSync(path.join(root, "public", "favicon.png"), fav32);
+fs.writeFileSync(path.join(root, "public", "favicon.png"), await renderIcon(32));
 console.log("Wrote public/favicon.png");
 
 console.log("Done.");

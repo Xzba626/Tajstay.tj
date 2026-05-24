@@ -8,9 +8,9 @@
   },
   "brand": {
     "siteName": "TajStay",
-    "logoMainUrl": "/logo.svg",
-    "logoMarkUrl": "/logo-mark.svg",
-    "faviconUrl": "/logo-mark.svg"
+    "logoMainUrl": "/brand/tajstay-logo.png",
+    "logoMarkUrl": "/brand/tajstay-mark.png",
+    "faviconUrl": "/brand/tajstay-favicon.png"
   },
   "paymentCatalog": {
     "methods": [

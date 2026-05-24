@@ -54,7 +54,7 @@ function BookingDialogRow({
 }) {
   const last = b.chatMessages[0]?.body?.trim() || "Нет сообщений";
   const preview = last.length > 72 ? `${last.slice(0, 72)}…` : last;
-  const cover = b.room.hotel.coverImageUrl || "/logo-mark.svg";
+  const cover = b.room.hotel.coverImageUrl || "/brand/tajstay-mark.png";
   const rowHref = bookingRowHref(user.role, b);
 
   return (

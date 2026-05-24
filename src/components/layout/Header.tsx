@@ -86,9 +86,9 @@ export async function Header() {
             <Image
               src={content.brand.logoMarkUrl}
               alt={content.brand.siteName}
-              width={64}
-              height={64}
-              className="h-11 w-11 shrink-0 rounded-xl bg-white/5 p-1.5 shadow-lg shadow-emerald-900/30 ring-1 ring-white/10 sm:h-12 sm:w-12 sm:rounded-2xl"
+              width={48}
+              height={48}
+              className="h-11 w-auto max-h-11 shrink-0 object-contain sm:max-h-12"
               priority
               unoptimized
             />

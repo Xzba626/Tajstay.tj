@@ -51,7 +51,7 @@ export function BookingChatHeader({
 }: BookingChatHeaderProps) {
   const checkIn = checkInIso.slice(0, 10);
   const checkOut = checkOutIso.slice(0, 10);
-  const cover = coverImageUrl || "/logo-mark.svg";
+  const cover = coverImageUrl || "/brand/tajstay-mark.png";
   const statusLabel =
     m(locale, `status.${bookingStatus}`) !== `status.${bookingStatus}` ? m(locale, `status.${bookingStatus}`) : bookingStatus;
 
