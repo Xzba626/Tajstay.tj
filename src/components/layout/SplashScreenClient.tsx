@@ -54,7 +54,7 @@ export function SplashScreenClient({ subtitle }: Props) {
     >
       <div className={fadeOut ? "taj-splash-logo-out flex flex-col items-center gap-6" : "animate-splash-in flex flex-col items-center gap-6"}>
         <Image
-          src="/brand/tajstay-logo.png"
+          src="/brand/tajstay-logo-full.png"
           alt="TajStay"
           width={280}
           height={280}

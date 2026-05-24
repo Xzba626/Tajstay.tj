@@ -1,5 +1,5 @@
 /**
- * Generate TajStay PWA icons from public/brand/tajstay-mark.png
+ * Generate TajStay PWA icons from public/brand/tajstay-icon.png
  * Usage: node scripts/generate-pwa-icons.mjs
  */
 import fs from "fs";
@@ -9,28 +9,28 @@ import sharp from "sharp";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
-const markPath = path.join(root, "public", "brand", "tajstay-mark.png");
+const iconPath = path.join(root, "public", "brand", "tajstay-icon.png");
 const iconsDir = path.join(root, "public", "icons");
 
-const BRAND_BG = { r: 255, g: 255, b: 255, alpha: 1 };
+const BRAND_BG = { r: 6, g: 36, b: 24, alpha: 1 };
 
-if (!fs.existsSync(markPath)) {
+if (!fs.existsSync(iconPath)) {
   console.error("Run node scripts/generate-brand-assets.mjs first");
   process.exit(1);
 }
 
-const mark = fs.readFileSync(markPath);
+const icon = fs.readFileSync(iconPath);
 
 async function renderIcon(size) {
-  return sharp(mark)
-    .resize(size, size, { fit: "contain", background: BRAND_BG })
+  return sharp(icon)
+    .resize(size, size, { fit: "fill" })
     .png({ quality: 95, compressionLevel: 9 })
     .toBuffer();
 }
 
 async function renderMaskable(size) {
   const inner = Math.round(size * 0.82);
-  const logo = await sharp(mark).resize(inner, inner, { fit: "contain", background: BRAND_BG }).png().toBuffer();
+  const logo = await sharp(icon).resize(inner, inner, { fit: "contain", background: BRAND_BG }).png().toBuffer();
   return sharp({
     create: {
       width: size,

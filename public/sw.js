@@ -1,6 +1,6 @@
 /* Tajstay PWA service worker — app shell + offline fallback */
 const CACHE_VERSION = "tajstay-shell-v2";
-const SHELL_URLS = ["/", "/offline", "/search", "/about", "/brand/tajstay-mark.png", "/manifest.webmanifest"];
+const SHELL_URLS = ["/", "/offline", "/search", "/about", "/brand/tajstay-icon.png", "/manifest.webmanifest"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

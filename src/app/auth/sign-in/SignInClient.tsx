@@ -295,9 +295,9 @@ export function SignInClient({
       <div className="auth-shell">
         <section className="auth-panel auth-panel--promo" data-reveal data-stagger="20">
           <Link href="/" className="inline-flex min-w-0 items-center gap-3 rounded-2xl outline-none transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-emerald-400/50">
-            <Image src="/brand/tajstay-mark.png" alt="TajStay" width={56} height={56} className="h-12 w-auto max-h-14 object-contain sm:max-h-14" unoptimized priority />
+            <Image src="/brand/tajstay-mark.png" alt="" width={40} height={40} className="h-10 w-10 shrink-0 object-contain" unoptimized priority />
             <div className="min-w-0">
-              <div className="truncate text-lg font-semibold tracking-tight text-white sm:text-xl">TajStay</div>
+              <div className="truncate text-lg font-bold text-white sm:text-xl">TajStay</div>
               <div className="text-sm text-emerald-200">{L.title}</div>
             </div>
           </Link>

@@ -85,15 +85,15 @@ export async function Header() {
           <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             <Image
               src={content.brand.logoMarkUrl}
-              alt={content.brand.siteName}
-              width={48}
-              height={48}
-              className="h-11 w-auto max-h-11 shrink-0 object-contain sm:max-h-12"
+              alt=""
+              width={40}
+              height={40}
+              className="h-10 w-10 shrink-0 object-contain"
               priority
               unoptimized
             />
             <div className="min-w-0 leading-tight">
-              <div className="brand-wordmark truncate text-base font-extrabold tracking-tight sm:text-xl">{content.brand.siteName}</div>
+              <div className="brand-wordmark truncate text-lg font-bold text-white sm:text-xl">{content.brand.siteName}</div>
             </div>
           </div>
         </ViewTransitionLink>
