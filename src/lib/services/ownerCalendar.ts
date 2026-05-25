@@ -1,13 +1,29 @@
 import { addDays } from "date-fns";
 import { prisma } from "@/lib/prisma";
-import { getRoomBookingsInRange } from "@/lib/booking/availability";
-import { BOOKING_SOURCE } from "@/lib/domain/booking";
+import {
+  bookingOccupiesDay,
+  getRoomBookingsInRange,
+  isOccupyingOfflineStatus,
+  isOccupyingOnlineStatus,
+  isPendingOfflineStatus,
+  isPendingOnlineStatus
+} from "@/lib/booking/availability";
+import { BOOKING_SOURCE, getBookingGuestLabel } from "@/lib/domain/booking";
 
 export type CalendarCellKind = "available" | "blocked" | "customPrice" | "online" | "offline" | "onlinePending";
 
 export type CalendarCellMeta = {
   bookingId?: number;
   publicCode?: string | null;
+  status?: string;
+  guestLabel?: string;
+  guestPhone?: string;
+  checkIn?: string;
+  checkOut?: string;
+  totalPrice?: string;
+  hotelName?: string;
+  roomTitle?: string;
+  customPrice?: string | null;
 };
 
 export function toUtcDayStart(input: Date): Date {
@@ -16,6 +32,23 @@ export function toUtcDayStart(input: Date): Date {
 
 export function dayKey(input: Date): string {
   return input.toISOString().slice(0, 10);
+}
+
+function classifyBooking(
+  b: {
+    source: string;
+    status: string;
+    offlineStatus: string | null;
+  }
+): "online" | "offline" | "onlinePending" | null {
+  if (b.source === BOOKING_SOURCE.OWNER_MANUAL) {
+    if (isOccupyingOfflineStatus(b.offlineStatus)) return "offline";
+    if (isPendingOfflineStatus(b.offlineStatus)) return "onlinePending";
+    return null;
+  }
+  if (isOccupyingOnlineStatus(b.status)) return "online";
+  if (isPendingOnlineStatus(b.status)) return "onlinePending";
+  return null;
 }
 
 export async function getOwnerCalendarData(ownerId: number, days = 30) {
@@ -34,11 +67,12 @@ export async function getOwnerCalendarData(ownerId: number, days = 30) {
       rooms: [],
       days: [],
       cells: {} as Record<string, CalendarCellKind>,
-      cellMeta: {} as Record<string, CalendarCellMeta>
+      cellMeta: {} as Record<string, CalendarCellMeta>,
+      bookings: [] as Awaited<ReturnType<typeof prisma.booking.findMany>>
     };
   }
 
-  const [overrides, bookings] = await Promise.all([
+  const [overrides, bookingsRaw] = await Promise.all([
     prisma.roomDateOverride.findMany({
       where: { roomId: { in: roomIds }, date: { gte: start, lt: end } },
       select: { roomId: true, date: true, isBlocked: true, customPrice: true }
@@ -61,15 +95,19 @@ export async function getOwnerCalendarData(ownerId: number, days = 30) {
         guestPhone: true,
         publicCode: true,
         phone: true,
-        room: { select: { title: true, hotel: { select: { name: true } } } }
+        totalPrice: true,
+        room: { select: { title: true, hotel: { select: { name: true } } } },
+        user: { select: { name: true, phone: true } }
       },
       orderBy: { checkIn: "asc" }
     })
   ]);
 
-  const blockingBookingsByRoom = new Map<number, Awaited<ReturnType<typeof getRoomBookingsInRange>>>();
-  for (const roomId of roomIds) {
-    blockingBookingsByRoom.set(roomId, await getRoomBookingsInRange(roomId, start, end));
+  const bookingsByRoom = new Map<number, typeof bookingsRaw>();
+  for (const b of bookingsRaw) {
+    const list = bookingsByRoom.get(b.roomId) ?? [];
+    list.push(b);
+    bookingsByRoom.set(b.roomId, list);
   }
 
   const calendarDays = Array.from({ length: days }, (_, i) => {
@@ -89,7 +127,7 @@ export async function getOwnerCalendarData(ownerId: number, days = 30) {
   const cellMeta: Record<string, CalendarCellMeta> = {};
 
   for (const room of rooms) {
-    const blocking = blockingBookingsByRoom.get(room.id) ?? [];
+    const roomBookings = bookingsByRoom.get(room.id) ?? [];
     for (const { key } of calendarDays) {
       const cellKey = `${room.id}|${key}`;
       const ov = overrideByKey.get(cellKey);
@@ -97,39 +135,51 @@ export async function getOwnerCalendarData(ownerId: number, days = 30) {
         cells[cellKey] = "blocked";
         continue;
       }
-      if (ov?.customPrice != null) {
-        cells[cellKey] = "customPrice";
-      }
 
       const dayDate = new Date(`${key}T00:00:00.000Z`);
-      const nextDay = addDays(dayDate, 1);
+      const hits = roomBookings.filter((b) => bookingOccupiesDay(b.checkIn, b.checkOut, dayDate));
 
-      const hit = blocking.find((b) => {
-        const bIn = toUtcDayStart(new Date(b.checkIn));
-        const bOut = toUtcDayStart(new Date(b.checkOut));
-        return bIn.getTime() < nextDay.getTime() && bOut.getTime() > dayDate.getTime();
+      const occupying = hits.find((b) => {
+        const kind = classifyBooking(b);
+        return kind === "online" || kind === "offline";
       });
+      const pending = !occupying
+        ? hits.find((b) => classifyBooking(b) === "onlinePending")
+        : null;
+      const hit = occupying ?? pending;
 
       if (hit) {
-        cellMeta[cellKey] = { bookingId: hit.id, publicCode: hit.publicCode };
-        if (hit.source === BOOKING_SOURCE.OWNER_MANUAL) {
-          cells[cellKey] = "offline";
-        } else if (
-          hit.status === "WAIT_PROOF" ||
-          hit.status === "ON_REVIEW" ||
-          hit.status === "PENDING_OWNER" ||
-          hit.status === "WAITING_PAYMENT"
-        ) {
-          cells[cellKey] = "onlinePending";
-        } else {
-          cells[cellKey] = "online";
-        }
+        const kind = classifyBooking(hit)!;
+        cells[cellKey] = kind;
+        cellMeta[cellKey] = {
+          bookingId: hit.id,
+          publicCode: hit.publicCode,
+          status: hit.source === BOOKING_SOURCE.OWNER_MANUAL ? hit.offlineStatus ?? hit.status : hit.status,
+          guestLabel: getBookingGuestLabel(hit),
+          guestPhone: hit.guestPhone ?? hit.phone ?? hit.user?.phone ?? undefined,
+          checkIn: hit.checkIn.toISOString().slice(0, 10),
+          checkOut: hit.checkOut.toISOString().slice(0, 10),
+          totalPrice: String(hit.totalPrice),
+          hotelName: hit.room.hotel.name,
+          roomTitle: hit.room.title
+        };
         continue;
       }
 
-      if (!cells[cellKey]) cells[cellKey] = "available";
+      if (ov?.customPrice != null) {
+        cells[cellKey] = "customPrice";
+        cellMeta[cellKey] = { customPrice: String(ov.customPrice) };
+        continue;
+      }
+
+      cells[cellKey] = "available";
     }
   }
+
+  const bookings = bookingsRaw.filter((b) => {
+    const kind = classifyBooking(b);
+    return kind === "online" || kind === "offline";
+  });
 
   return { rooms, days: calendarDays, cells, cellMeta, overrides, bookings };
 }

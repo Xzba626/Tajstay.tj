@@ -25,6 +25,7 @@ import { OwnerDashboardKpis } from "@/components/owner/OwnerDashboardKpis";
 import { OfflineBookingForm } from "@/components/owner/OfflineBookingForm";
 import { OfflineBookingsList } from "@/components/owner/OfflineBookingsList";
 import { OwnerCalendar } from "@/components/owner/OwnerCalendar";
+import { OwnerBookingConfirmButton } from "@/components/owner/OwnerBookingConfirmButton";
 import { OwnerHelpTips } from "@/components/owner/OwnerHelpTips";
 import ReviewReplyForm from "@/components/ReviewReplyForm";
 import { getOwnerDashboardKpis } from "@/lib/services/ownerDashboardKpis";
@@ -1179,11 +1180,7 @@ export default async function OwnerDashboardPage({
                             <div className="mt-1">Пока не загружен</div>
                           )}
                         </div>
-                        <form action={`/api/owner/bookings/${b.id}/confirm`} method="post">
-                          <button type="submit" className="rounded-lg bg-emerald-700 px-3 py-1.5 text-white">
-                            {m(locale, "owner.confirm")}
-                          </button>
-                        </form>
+                        <OwnerBookingConfirmButton bookingId={b.id} locale={locale} />
                         <form action={`/api/owner/bookings/${b.id}/reject`} method="post">
                           <button type="submit" className="rounded-lg border border-red-600 px-3 py-1.5 text-red-700">
                             {m(locale, "owner.decline")}
@@ -1378,6 +1375,7 @@ export default async function OwnerDashboardPage({
                 days={calendarDays}
                 cells={calendarCells}
                 cellMeta={calendarCellMeta}
+                hotels={hotels.map((h: { id: number; name: string }) => ({ id: h.id, name: h.name }))}
               />
               <Pagination page={page} totalPages={totalPages} />
             </>

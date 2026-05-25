@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { BOOKING_STATUS } from "@/lib/domain/booking";
 import { addBookingSystemMessage } from "@/lib/chat/bookingChat";
+import { assertDatesAvailable, DatesUnavailableError } from "@/lib/booking/availability";
 
 const EXTEND_MS = 5 * 60 * 1000;
 
@@ -30,6 +31,18 @@ export async function confirmBookingPaymentAdmin(bookingId: number, adminId: num
 
   const payment = await prisma.payment.findUnique({ where: { bookingId } });
   if (!payment || payment.status !== "PENDING") throw new Error("BAD_PAYMENT");
+
+  try {
+    await assertDatesAvailable({
+      roomId: booking.roomId,
+      checkIn: booking.checkIn,
+      checkOut: booking.checkOut,
+      excludeBookingId: bookingId
+    });
+  } catch (e) {
+    if (e instanceof DatesUnavailableError) throw new Error("DATES_UNAVAILABLE");
+    throw e;
+  }
 
   await prisma.booking.update({
     where: { id: bookingId },

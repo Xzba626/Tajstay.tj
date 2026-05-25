@@ -29,6 +29,9 @@ export async function POST(req: NextRequest) {
     if (code === "BAD_PAYMENT") {
       return NextResponse.json({ error: "Платёж не найден/не ожидает подтверждения" }, { status: 400 });
     }
+    if (code === "DATES_UNAVAILABLE") {
+      return NextResponse.json({ error: "Этот номер уже занят на выбранные даты." }, { status: 409 });
+    }
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

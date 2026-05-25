@@ -5,6 +5,12 @@ import { forbiddenJson } from "@/lib/auth/apiResponses";
 import { publicUrl } from "@/lib/http/publicOrigin";
 import { getBookingForOwner } from "@/lib/auth/ownerBooking";
 import { BOOKING_STATUS } from "@/lib/domain/booking";
+import { assertDatesAvailable, DatesUnavailableError } from "@/lib/booking/availability";
+
+function wantsJson(req: NextRequest): boolean {
+  const accept = req.headers.get("accept") ?? "";
+  return accept.includes("application/json") || req.headers.get("x-requested-with") === "fetch";
+}
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const owner = await getOwnerUser();
@@ -18,10 +24,24 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   if (booking.status !== BOOKING_STATUS.PENDING_OWNER) {
     return NextResponse.json({ error: "Бронь не ожидает подтверждения" }, { status: 400 });
   }
-  // For online transfer flow, confirmation happens only after proof review (ON_REVIEW -> payment-approve).
-  // This endpoint is reserved for "pay on arrival" bookings.
   if (!booking.payOnArrival) {
     return NextResponse.json({ error: "Нельзя подтвердить бронь без оплаты/чека" }, { status: 400 });
+  }
+
+  try {
+    await assertDatesAvailable({
+      roomId: booking.roomId,
+      checkIn: booking.checkIn,
+      checkOut: booking.checkOut,
+      excludeBookingId: id
+    });
+  } catch (e) {
+    if (e instanceof DatesUnavailableError) {
+      const msg = "Этот номер уже занят на выбранные даты.";
+      if (wantsJson(req)) return NextResponse.json({ ok: false, error: msg }, { status: 409 });
+      return NextResponse.redirect(publicUrl(req, `/dashboard/owner?section=bookings&error=dates_conflict`));
+    }
+    throw e;
   }
 
   await prisma.booking.update({
@@ -40,6 +60,15 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         type: "BOOKING_CONFIRMED",
         isRead: false
       }
+    });
+  }
+
+  if (wantsJson(req)) {
+    return NextResponse.json({
+      ok: true,
+      bookingId: id,
+      status: BOOKING_STATUS.CONFIRMED,
+      message: "Бронь подтверждена, даты отмечены как занятые"
     });
   }
 
