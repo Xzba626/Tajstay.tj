@@ -65,6 +65,11 @@ function tryOpenTelegramApp(appUrl: string) {
   window.setTimeout(() => iframe.remove(), 2000);
 }
 
+function parseSteps(stepsCompact: string): [string, string, string] {
+  const parts = stepsCompact.split("→").map((s) => s.trim());
+  return [parts[0] ?? "", parts[1] ?? "Start", parts[2] ?? ""];
+}
+
 export function TelegramLoginPanel({ labels: L, expanded, onExpandedChange, onSuccess, onError }: Props) {
   const [loading, setLoading] = useState(false);
   const [challenge, setChallenge] = useState<ChallengeState | null>(null);
@@ -80,8 +85,10 @@ export function TelegramLoginPanel({ labels: L, expanded, onExpandedChange, onSu
   const [showManualHelp, setShowManualHelp] = useState(false);
   const verifying = useRef(false);
   const openedOnce = useRef(false);
+  const expandStarted = useRef(false);
 
   const otpComplete = otp.every((d) => d.trim().length === 1);
+  const [step1, step2, step3] = parseSteps(L.stepsCompact);
 
   const resetFlow = useCallback(() => {
     setChallenge(null);
@@ -95,6 +102,10 @@ export function TelegramLoginPanel({ labels: L, expanded, onExpandedChange, onSu
     openedOnce.current = false;
     onExpandedChange(false);
   }, [onExpandedChange]);
+
+  const openTelegramBrowser = useCallback(() => {
+    if (webLink) window.open(webLink, "_blank", "noopener,noreferrer");
+  }, [webLink]);
 
   const verifyCode = useCallback(
     async (code: string) => {
@@ -210,7 +221,7 @@ export function TelegramLoginPanel({ labels: L, expanded, onExpandedChange, onSu
     };
   }, [expanded, challenge, appLink]);
 
-  async function startChallenge() {
+  async function startChallenge(activateFlow = true) {
     setLoading(true);
     verifying.current = false;
     setOtp([...EMPTY_OTP]);
@@ -233,12 +244,29 @@ export function TelegramLoginPanel({ labels: L, expanded, onExpandedChange, onSu
       setWebLink(json.deepLink || links.webLink);
       setAppLink(json.appDeepLink || links.appLink);
       setStatus("pending");
-      onExpandedChange(true);
+      if (activateFlow) onExpandedChange(true);
     } catch (err: unknown) {
       onError?.(err instanceof Error ? err.message : L.errorGeneric);
     } finally {
       setLoading(false);
     }
+  }
+
+  useEffect(() => {
+    if (!expanded) {
+      expandStarted.current = false;
+      return;
+    }
+    if (!challenge && !loading && !expandStarted.current) {
+      expandStarted.current = true;
+      void startChallenge(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- start when expanded panel mounts
+  }, [expanded, challenge, loading]);
+
+  function openAgain() {
+    if (appLink) tryOpenTelegramApp(appLink);
+    else openTelegramBrowser();
   }
 
   const statusHint = status === "awaiting_phone" ? L.awaitingPhone : null;
@@ -247,120 +275,145 @@ export function TelegramLoginPanel({ labels: L, expanded, onExpandedChange, onSu
     return (
       <button
         type="button"
-        className="auth-social-btn"
+        className="taj-social-button"
         disabled={loading}
         aria-busy={loading}
-        onClick={() => void startChallenge()}
+        onClick={() => onExpandedChange(true)}
       >
-        <TelegramIcon />
+        <SendIcon />
         <span>{L.signIn}</span>
       </button>
     );
   }
 
   return (
-    <div className="auth-telegram-flow auth-telegram-flow--compact" role="region" aria-labelledby="telegram-flow-title">
-      <div className="auth-telegram-flow__head">
-        <h3 id="telegram-flow-title" className="auth-telegram-flow__title">
-          {L.title}
-        </h3>
-        <p className="auth-telegram-flow__subtitle">{L.subtitle}</p>
+    <div className="taj-telegram-panel" role="region" aria-labelledby="telegram-flow-title">
+      <div className="taj-auth-welcome taj-auth-welcome-compact">
+        <div className="taj-auth-ornament" aria-hidden>
+          ✥
+        </div>
+        <h1 id="telegram-flow-title">{L.title}</h1>
+        <p>{L.subtitle}</p>
       </div>
 
-      <details className="auth-telegram-flow__steps-details">
+      <div className="taj-telegram-steps" aria-label={L.helpHow}>
+        <span>{step1}</span>
+        <span>{step2}</span>
+        <span>{step3}</span>
+      </div>
+
+      <details className="taj-telegram-details">
         <summary>{L.helpHow}</summary>
-        <p className="auth-telegram-flow__steps-inline">{L.stepsCompact}</p>
+        <p>{L.stepsCompact}</p>
       </details>
 
-      <div className="auth-telegram-flow__code">
-        <label className="auth-premium-label" htmlFor="telegram-otp-0">
-          {L.codeLabel}
-        </label>
-        <p className="auth-telegram-flow__placeholder-hint">{L.codePlaceholder}</p>
-        <OtpCodeInput
-          value={otp}
-          onChange={(next) => {
-            setOtp(next);
-            if (codeUi === "error" || codeUi === "success") {
-              setCodeUi("idle");
-              setCodeMessage(null);
-            }
-          }}
-          onComplete={(code) => void verifyCode(code)}
-          disabled={loading || status === "expired"}
-          loading={codeUi === "loading"}
-          error={codeUi === "error"}
-          success={codeUi === "success"}
-          shake={otpShake}
-          autoFocus
-        />
+      <div className="taj-field">
+        <label htmlFor="telegram-otp-0">{L.codeLabel}</label>
+        <div className="taj-otp-wrap">
+          <OtpCodeInput
+            value={otp}
+            onChange={(next) => {
+              setOtp(next);
+              if (codeUi === "error" || codeUi === "success") {
+                setCodeUi("idle");
+                setCodeMessage(null);
+              }
+            }}
+            onComplete={(code) => void verifyCode(code)}
+            disabled={loading || status === "expired"}
+            loading={codeUi === "loading"}
+            error={codeUi === "error"}
+            success={codeUi === "success"}
+            shake={otpShake}
+            autoFocus
+          />
+        </div>
+        <p className="taj-field-hint">{L.codePlaceholder}</p>
         {codeMessage ? (
           <p
-            className={`auth-telegram-flow__code-msg ${
-              codeUi === "success" ? "is-success" : codeUi === "error" ? "is-error" : codeUi === "loading" ? "is-loading" : ""
+            className={`taj-code-message ${
+              codeUi === "success"
+                ? "taj-code-message-success"
+                : codeUi === "error"
+                  ? "taj-code-message-error"
+                  : ""
             }`}
             role={codeUi === "error" ? "alert" : "status"}
           >
+            {codeUi === "success" ? <CheckIcon /> : null}
             {codeMessage}
           </p>
         ) : null}
-        {secondsLeft > 0 ? (
-          <p className="auth-telegram-flow__expires">{L.expiresIn.replace("{n}", String(secondsLeft))}</p>
-        ) : null}
-        {statusHint ? <p className="auth-telegram-flow__status-hint">{statusHint}</p> : null}
-        <button
-          type="button"
-          className="auth-premium-submit"
-          disabled={!otpComplete || loading || status === "expired"}
-          aria-busy={loading}
-          onClick={() => void verifyCode(otp.join(""))}
-        >
-          {L.verify}
-        </button>
+        {secondsLeft > 0 ? <p className="taj-timer">{L.expiresIn.replace("{n}", String(secondsLeft))}</p> : null}
+        {statusHint ? <p className="taj-timer">{statusHint}</p> : null}
       </div>
 
-      <div className="auth-telegram-flow__links">
-        {showBrowserFallback ? (
-          <a
-            href={webLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="auth-telegram-flow__helper-link"
-          >
+      <button
+        type="button"
+        className="taj-primary-button"
+        disabled={!otpComplete || loading || status === "expired"}
+        aria-busy={loading}
+        onClick={() => void verifyCode(otp.join(""))}
+      >
+        <span>{loading ? L.verifying : L.verify}</span>
+        <ArrowIcon />
+      </button>
+
+      {showBrowserFallback ? (
+        <p className="taj-telegram-help">
+          <button type="button" onClick={ openTelegramBrowser}>
             {L.browserFallback}
-          </a>
-        ) : null}
+          </button>
+        </p>
+      ) : null}
 
-        {showManualHelp ? (
-          <details className="auth-telegram-flow__manual-details">
-            <summary>{L.cantOpenHelp}</summary>
-            <p>{L.manualHelp}</p>
-          </details>
-        ) : null}
+      {showManualHelp ? (
+        <details className="taj-telegram-details">
+          <summary>{L.cantOpenHelp}</summary>
+          <p>{L.manualHelp}</p>
+        </details>
+      ) : null}
 
-        <button
-          type="button"
-          className="auth-telegram-flow__helper-link"
-          onClick={() => {
-            openedOnce.current = false;
-            void startChallenge();
-          }}
-        >
-          {L.resendOpen}
-        </button>
-      </div>
+      <button
+        type="button"
+        className="taj-telegram-help-link"
+        onClick={() => {
+          openedOnce.current = false;
+          expandStarted.current = false;
+          void startChallenge(false);
+        }}
+      >
+        {L.resendOpen}
+      </button>
 
-      <button type="button" className="auth-telegram-flow__back" onClick={resetFlow}>
+      <button type="button" className="taj-back-button" onClick={resetFlow}>
         {L.backToSignIn}
       </button>
     </div>
   );
 }
 
-function TelegramIcon() {
+function SendIcon() {
   return (
-    <svg className="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+    <svg className="taj-social-icon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
       <path d="M9.78 15.28 9.5 19.5c.43 0 .62-.19.84-.41l2.02-1.93 4.19 3.07c.77.43 1.32.2 1.53-.72l2.78-13.05c.28-1.31-.47-1.82-1.28-1.5L3.9 9.78c-1.27.5-1.25 1.22-.23 1.54l4.47 1.39 10.37-6.55c.49-.32.93-.14.57.18" />
+    </svg>
+  );
+}
+
+function ArrowIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <path d="M5 12h14" />
+      <path d="m13 6 6 6-6 6" />
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <path d="M20 6 9 17l-5-5" />
     </svg>
   );
 }

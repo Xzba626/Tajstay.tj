@@ -7,7 +7,7 @@ import type { Locale } from "@/lib/i18n/locale";
 import { postLoginRedirect, safeReturnPath } from "@/lib/auth/postLoginRedirect";
 import { AuthPromoPanel, type AuthPromoLabels } from "@/components/auth/AuthPromoPanel";
 import { AuthSocialButtons } from "@/components/auth/AuthSocialButtons";
-import { BrandMark } from "@/components/brand/BrandMark";
+import { TelegramLoginPanel } from "@/components/auth/TelegramLoginPanel";
 
 type ApiUser = { id: number; role: string; name: string; phone: string; email?: string | null };
 
@@ -168,8 +168,8 @@ export function SignInClient({
   const regConfirmId = useId();
 
   const isRegister = mode === "register";
-  const cardTitle = isRegister ? L.welcomeTitleRegister : L.cardTitleLogin;
-  const cardSubtitle = isRegister ? L.welcomeSubtitleRegister : L.cardSubtitleLogin;
+  const welcomeTitle = isRegister ? L.welcomeTitleRegister : L.welcomeTitleLogin;
+  const welcomeSubtitle = isRegister ? L.welcomeSubtitleRegister : L.welcomeSubtitleLogin;
 
   function switchMode(next: MainTab) {
     setMode(next);
@@ -281,43 +281,64 @@ export function SignInClient({
     }
   }
 
-  return (
-    <div className="auth-premium-page">
-      <div className="auth-premium-aurora" aria-hidden />
-      <div className="auth-premium-stars" aria-hidden />
+  const telegramLabels = {
+    signIn: L.telegramContinue,
+    title: L.telegramFlowTitle,
+    subtitle: L.telegramFlowSubtitle,
+    stepsCompact: L.telegramStepsCompact,
+    helpHow: L.telegramHelpHow,
+    browserFallback: L.telegramBrowserFallback,
+    cantOpenHelp: L.telegramCantOpenHelp,
+    manualHelp: L.telegramManualHelp,
+    backToSignIn: L.telegramBackToSignIn,
+    codeLabel: L.telegramEnterCode,
+    codePlaceholder: L.telegramCodePlaceholder,
+    verify: L.telegramVerify,
+    verifying: L.telegramVerifying,
+    codeSuccess: L.telegramCodeSuccess,
+    codeInvalid: L.telegramCodeInvalid,
+    codeExpired: L.telegramCodeExpired,
+    awaitingPhone: L.telegramAwaitingPhone,
+    errorGeneric: L.errorGeneric,
+    expiresIn: L.telegramExpiresIn,
+    tooManyAttempts: L.telegramTooManyAttempts,
+    resendOpen: L.telegramResendOpen
+  };
 
-      <div className="auth-premium-shell">
+  return (
+    <main className="taj-auth-page">
+      <section className="taj-auth-shell">
         <AuthPromoPanel labels={promoLabels} />
 
-        <div className="auth-premium-main">
-          <div className="auth-premium-mobile-head lg:hidden">
-            <BrandMark href="/" nameClassName="text-base text-white" className="mx-auto justify-center" />
-            <p className="mt-3 text-sm text-[var(--auth-text-secondary)]">{promoLabels.subtitle}</p>
-            <div className="auth-premium-mobile-chips" role="list">
-              {[L.mobileChip1, L.mobileChip2, L.mobileChip3].map((chip) => (
-                <span key={chip} className="auth-premium-chip" role="listitem">
-                  {chip}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <article className="auth-premium-card">
-            <div className="auth-premium-card__icon" aria-hidden>
-              <UserCircleIcon />
-            </div>
-            <h2 className="auth-premium-card__title">{cardTitle}</h2>
-            <p className="auth-premium-card__subtitle">{cardSubtitle}</p>
-
-            {formError ? (
-              <div className="auth-premium-error" role="alert">
-                {formError}
+        <section className="taj-auth-card">
+          {telegramFlowActive && telegramLoginEnabled ? (
+            <TelegramLoginPanel
+              locale={locale}
+              expanded
+              onExpandedChange={setTelegramFlowActive}
+              labels={telegramLabels}
+              onSuccess={() => refreshMe()}
+              onError={(msg) => setFormError(mapApiErrorMessage(msg))}
+            />
+          ) : (
+            <div className="taj-auth-inner">
+              <div className="taj-auth-welcome">
+                <div className="taj-auth-ornament" aria-hidden>
+                  ✥
+                </div>
+                <h1>{welcomeTitle}</h1>
+                <p>{welcomeSubtitle}</p>
               </div>
-            ) : null}
 
-            <div className={`auth-premium-form${telegramFlowActive ? " auth-premium-form--telegram" : ""}`}>
-              {!telegramFlowActive && isRegister ? (
-                <form onSubmit={handleRegisterEmail} className="auth-premium-form-fields" noValidate>
+              {formError ? (
+                <div className="taj-form-error" role="alert">
+                  {formError}
+                </div>
+              ) : null}
+
+              <div className="taj-form">
+              {isRegister ? (
+                <form onSubmit={handleRegisterEmail} className="taj-form-stack" noValidate>
                   <AuthField
                     id={regNameId}
                     label={L.fullName}
@@ -365,7 +386,7 @@ export function SignInClient({
                     icon={<LockIcon />}
                     invalid={!!formError && regPassword !== regConfirmPassword}
                   />
-                  <label className="auth-premium-terms">
+                  <label className="taj-check-row taj-check-row--terms">
                     <input
                       type="checkbox"
                       checked={regAgree}
@@ -376,16 +397,16 @@ export function SignInClient({
                   </label>
                   <button
                     type="submit"
-                    className="auth-premium-submit"
+                    className="taj-primary-button"
                     disabled={isRegisterSubmitting}
                     aria-busy={isRegisterSubmitting}
                   >
-                    {L.createAccount}
+                    <span>{L.createAccount}</span>
                     <ArrowIcon />
                   </button>
                 </form>
-              ) : !telegramFlowActive ? (
-                <form onSubmit={handleSignInEmail} className="auth-premium-form-fields" noValidate>
+              ) : (
+                <form onSubmit={handleSignInEmail} className="taj-form-stack" noValidate>
                   <AuthField
                     id={loginEmailId}
                     label={L.loginLabel}
@@ -394,14 +415,14 @@ export function SignInClient({
                     onChange={setLoginEmail}
                     autoComplete="username"
                     placeholder={L.emailPlaceholder}
-                    icon={<UserIcon />}
+                    icon={<MailIcon />}
                     invalid={!!formError && !loginEmail.trim()}
                   />
                   <AuthField
                     id={loginPasswordId}
                     label={L.password}
                     labelExtra={
-                      <Link href="/auth/reset-password" className="auth-premium-link">
+                      <Link href="/auth/reset-password" className="taj-link-button">
                         {L.forgotPassword}
                       </Link>
                     }
@@ -419,7 +440,7 @@ export function SignInClient({
                     }}
                     invalid={!!formError && !loginPassword}
                   />
-                  <label className="auth-premium-check">
+                  <label className="taj-check-row">
                     <input
                       type="checkbox"
                       checked={rememberMe}
@@ -429,21 +450,24 @@ export function SignInClient({
                   </label>
                   <button
                     type="submit"
-                    className="auth-premium-submit"
+                    className="taj-primary-button"
                     disabled={isLoginSubmitting}
                     aria-busy={isLoginSubmitting}
                   >
-                    {L.signInCta}
+                    <span>{isLoginSubmitting ? "..." : L.signInCta}</span>
                     <ArrowIcon />
                   </button>
                 </form>
-              ) : null}
+              )}
 
-              {!telegramFlowActive ? <div className="auth-premium-divider">{L.orContinueSocial}</div> : null}
+              <div className="taj-divider">
+                <span />
+                <p>{L.orContinueSocial}</p>
+                <span />
+              </div>
 
               <AuthSocialButtons
                 locale={locale}
-                layout="row"
                 isRegister={isRegister}
                 googleOAuthEnabled={googleOAuthEnabled}
                 telegramLoginEnabled={telegramLoginEnabled}
@@ -458,67 +482,37 @@ export function SignInClient({
                   telegramContinue: L.telegramContinue,
                   telegramRegister: L.telegramRegister,
                   telegramRegisterHint: L.telegramRegisterHint,
-                  badgeFast: L.badgeFast,
                   telegramConfigWarning: L.telegramConfigWarning,
-                  telegram: {
-                    signIn: L.telegramContinue,
-                    title: L.telegramFlowTitle,
-                    subtitle: L.telegramFlowSubtitle,
-                    stepsCompact: L.telegramStepsCompact,
-                    helpHow: L.telegramHelpHow,
-                    browserFallback: L.telegramBrowserFallback,
-                    cantOpenHelp: L.telegramCantOpenHelp,
-                    manualHelp: L.telegramManualHelp,
-                    backToSignIn: L.telegramBackToSignIn,
-                    codeLabel: L.telegramEnterCode,
-                    codePlaceholder: L.telegramCodePlaceholder,
-                    verify: L.telegramVerify,
-                    verifying: L.telegramVerifying,
-                    codeSuccess: L.telegramCodeSuccess,
-                    codeInvalid: L.telegramCodeInvalid,
-                    codeExpired: L.telegramCodeExpired,
-                    awaitingPhone: L.telegramAwaitingPhone,
-                    errorGeneric: L.errorGeneric,
-                    expiresIn: L.telegramExpiresIn,
-                    tooManyAttempts: L.telegramTooManyAttempts,
-                    resendOpen: L.telegramResendOpen
-                  }
+                  telegram: telegramLabels
                 }}
                 onGoogle={() => handleGoogleAuth().catch(() => setFormError(L.googleSignInError))}
                 onTelegramSuccess={() => refreshMe()}
                 onError={(msg) => setFormError(mapApiErrorMessage(msg))}
               />
 
-              {!telegramFlowActive ? (
-              <p className="auth-premium-switch">
+              <p className="taj-bottom-text">
                 {isRegister ? (
                   <>
-                    <span>{L.hasAccount}</span>{" "}
-                    <button type="button" className="auth-premium-switch__action" onClick={() => switchMode("signIn")}>
+                    {L.hasAccount}{" "}
+                    <button type="button" onClick={() => switchMode("signIn")}>
                       {L.switchToSignIn}
                     </button>
                   </>
                 ) : (
                   <>
-                    <span>{L.noAccount}</span>{" "}
-                    <button type="button" className="auth-premium-switch__action" onClick={() => switchMode("register")}>
+                    {L.noAccount}{" "}
+                    <button type="button" onClick={() => switchMode("register")}>
                       {L.switchToRegister}
                     </button>
                   </>
                 )}
               </p>
-              ) : null}
+              </div>
             </div>
-          </article>
-
-          <footer className="auth-premium-page-footer">
-            <span>{L.footerCopyright}</span>
-            <Link href="/policy">{L.footerPrivacy}</Link>
-            <Link href="/terms">{L.footerTerms}</Link>
-          </footer>
-        </div>
-      </div>
-    </div>
+          )}
+        </section>
+      </section>
+    </main>
   );
 }
 
@@ -549,17 +543,17 @@ function AuthField({
 }) {
   const helperId = `${id}-helper`;
   return (
-    <div className="auth-premium-field">
-      <div className="auth-premium-label-row">
-        <label htmlFor={id} className="auth-premium-label">
-          {label}
-        </label>
-        {labelExtra}
-      </div>
-      <div className="auth-premium-input-wrap">
-        <span className="auth-premium-input-icon" aria-hidden>
-          {icon}
-        </span>
+    <div className="taj-field">
+      {labelExtra ? (
+        <div className="taj-label-row">
+          <label htmlFor={id}>{label}</label>
+          {labelExtra}
+        </div>
+      ) : (
+        <label htmlFor={id}>{label}</label>
+      )}
+      <div className={`taj-input-wrap${invalid ? " taj-input-wrap--invalid" : ""}`}>
+        {icon}
         <input
           id={id}
           type={type}
@@ -569,13 +563,11 @@ function AuthField({
           autoComplete={autoComplete}
           aria-invalid={invalid || undefined}
           aria-describedby={helperId}
-          className="auth-premium-input"
-          style={toggle ? { paddingRight: "3rem" } : undefined}
         />
         {toggle ? (
           <button
             type="button"
-            className="auth-premium-input-toggle"
+            className="taj-input-icon-button"
             onClick={toggle.onToggle}
             aria-label={toggle.show ? toggle.hideLabel : toggle.showLabel}
           >
@@ -583,19 +575,10 @@ function AuthField({
           </button>
         ) : null}
       </div>
-      <p id={helperId} className="auth-premium-helper" style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0,0,0,0)" }}>
+      <p id={helperId} className="sr-only">
         {label}
       </p>
     </div>
-  );
-}
-
-function UserCircleIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
-      <circle cx="12" cy="8" r="4" />
-      <path d="M5 20c1.5-3 4.5-5 7-5s5.5 2 7 5" />
-    </svg>
   );
 }
 
