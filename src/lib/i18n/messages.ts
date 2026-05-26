@@ -35,15 +35,24 @@ const ru: Tree = {
     language: "Язык",
     nav: "Навигация",
     account: "Аккаунт",
-    system: "Информация"
+    system: "Информация",
+    forOwners: "Для владельцев",
+    contactUs: "Связаться с нами"
   },
   footer: {
     rights: "Все права защищены.",
     about: "О сервисе",
     contacts: "Контакты",
+    contactUs: "Связаться с нами",
+    helpCenter: "Центр помощи",
     policy: "Политика конфиденциальности",
     terms: "Условия использования",
     faq: "Помощь / FAQ"
+  },
+  cookies: {
+    text: "Мы используем cookie для безопасности, аналитики и улучшения сервиса.",
+    accept: "Принять",
+    more: "Подробнее"
   },
   legal: {
     aboutText:
@@ -117,7 +126,7 @@ const ru: Tree = {
     }
   },
   home: {
-    heroBadge: "Бронирование жилья в Таджикистане",
+    heroBadge: "TajStay для путешествий",
     heroTitle: "Найди идеальное жильё",
     heroSubtitle: "Жильё в одном поиске",
     ctaSearch: "Начать поиск",
@@ -1199,15 +1208,24 @@ const tg: Tree = {
     language: "Забон",
     nav: "Навигатсия",
     account: "Ҳисоб",
-    system: "Маълумот"
+    system: "Маълумот",
+    forOwners: "Барои соҳибон",
+    contactUs: "Бо мо тамос гиред"
   },
   footer: {
     rights: "Ҳуқуқҳо ҳифз шудаанд.",
     about: "Дар бораи хизматрасонӣ",
     contacts: "Тамос",
+    contactUs: "Бо мо тамос гиред",
+    helpCenter: "Маркази кӯмак",
     policy: "Сиёсати махфият",
     terms: "Шартҳои истифода",
     faq: "Кумак / FAQ"
+  },
+  cookies: {
+    text: "Мо cookie-ро барои бехатарӣ, таҳлил ва беҳбудии хизматрасонӣ истифода мебарем.",
+    accept: "Қабул",
+    more: "Бештар"
   },
   legal: {
     aboutText:
@@ -1281,7 +1299,7 @@ const tg: Tree = {
     }
   },
   home: {
-    heroBadge: "Банди манзил дар Тоҷикистон",
+    heroBadge: "TajStay барои сафар",
     heroTitle: "Манзили идеалии худро пайдо кунед",
     heroSubtitle: "Ҳама дар як ҷустуҷӯ",
     ctaSearch: "Ҷустуҷӯро оғоз кунед",
@@ -2324,15 +2342,24 @@ const en: Tree = {
     language: "Language",
     nav: "Navigation",
     account: "Account",
-    system: "Info"
+    system: "Info",
+    forOwners: "For hosts",
+    contactUs: "Contact us"
   },
   footer: {
     rights: "All rights reserved.",
     about: "About",
     contacts: "Contact",
+    contactUs: "Contact us",
+    helpCenter: "Help center",
     policy: "Privacy policy",
     terms: "Terms of use",
     faq: "Help / FAQ"
+  },
+  cookies: {
+    text: "We use cookies for security, analytics and to improve the service.",
+    accept: "Accept",
+    more: "Learn more"
   },
   legal: {
     aboutText:
@@ -2405,7 +2432,7 @@ const en: Tree = {
     }
   },
   home: {
-    heroBadge: "Accommodation booking in Tajikistan",
+    heroBadge: "TajStay for travel",
     heroTitle: "Find your perfect stay",
     heroSubtitle: "Stays in one search",
     ctaSearch: "Start search",
