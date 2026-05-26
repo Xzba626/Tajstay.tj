@@ -36,6 +36,7 @@ export function AuthPromoPanel({ labels: L }: Props) {
           <div className="auth-promo__mountains" />
         </div>
         <div className="auth-promo__overlay" aria-hidden />
+        <div className="auth-promo__bottom-glow" aria-hidden />
       </div>
 
       <div className="auth-promo__inner">

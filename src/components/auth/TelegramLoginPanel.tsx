@@ -9,12 +9,11 @@ export type TelegramLoginLabels = {
   signIn: string;
   title: string;
   subtitle: string;
-  stepOpen: string;
-  stepStart: string;
-  stepEnterCode: string;
-  openTelegram: string;
-  openTelegramBrowser: string;
+  stepsCompact: string;
+  helpHow: string;
+  browserFallback: string;
   manualHelp: string;
+  cantOpenHelp: string;
   codeLabel: string;
   codePlaceholder: string;
   verify: string;
@@ -23,13 +22,10 @@ export type TelegramLoginLabels = {
   codeInvalid: string;
   codeExpired: string;
   awaitingPhone: string;
-  codeSentHint: string;
-  waitingBot: string;
-  expired: string;
   errorGeneric: string;
   expiresIn: string;
   tooManyAttempts: string;
-  back: string;
+  backToSignIn: string;
   resendOpen: string;
 };
 
@@ -56,8 +52,8 @@ type CodeUiState = "idle" | "loading" | "success" | "error";
 
 const EMPTY_OTP = ["", "", "", "", "", ""];
 
-const APP_OPEN_DELAY_MS = 1300;
-const MANUAL_HELP_DELAY_MS = 4500;
+const BROWSER_FALLBACK_DELAY_MS = 1500;
+const MANUAL_HELP_DELAY_MS = 5000;
 
 function tryOpenTelegramApp(appUrl: string) {
   if (typeof window === "undefined") return;
@@ -67,12 +63,6 @@ function tryOpenTelegramApp(appUrl: string) {
   iframe.src = appUrl;
   document.body.appendChild(iframe);
   window.setTimeout(() => iframe.remove(), 2000);
-}
-
-function stepActive(status: PollStatus | null, step: 1 | 2 | 3): boolean {
-  if (step === 1) return true;
-  if (step === 2) return status === "awaiting_phone" || status === "code_sent";
-  return status === "code_sent";
 }
 
 export function TelegramLoginPanel({ labels: L, expanded, onExpandedChange, onSuccess, onError }: Props) {
@@ -86,7 +76,6 @@ export function TelegramLoginPanel({ labels: L, expanded, onExpandedChange, onSu
   const [otpShake, setOtpShake] = useState(false);
   const [codeUi, setCodeUi] = useState<CodeUiState>("idle");
   const [codeMessage, setCodeMessage] = useState<string | null>(null);
-  const [phoneMasked, setPhoneMasked] = useState<string | null>(null);
   const [showBrowserFallback, setShowBrowserFallback] = useState(false);
   const [showManualHelp, setShowManualHelp] = useState(false);
   const verifying = useRef(false);
@@ -106,15 +95,6 @@ export function TelegramLoginPanel({ labels: L, expanded, onExpandedChange, onSu
     openedOnce.current = false;
     onExpandedChange(false);
   }, [onExpandedChange]);
-
-  const openTelegram = useCallback(
-    (preferApp: boolean) => {
-      if (!webLink && !appLink) return;
-      if (preferApp && appLink) tryOpenTelegramApp(appLink);
-      else if (webLink) window.open(webLink, "_blank", "noopener,noreferrer");
-    },
-    [appLink, webLink]
-  );
 
   const verifyCode = useCallback(
     async (code: string) => {
@@ -197,11 +177,10 @@ export function TelegramLoginPanel({ labels: L, expanded, onExpandedChange, onSu
         const res = await fetch(`/api/auth/telegram/status/${encodeURIComponent(challenge!.token)}`, {
           cache: "no-store"
         });
-        const json = (await res.json()) as { status?: PollStatus; phoneMasked?: string };
+        const json = (await res.json()) as { status?: PollStatus };
         if (cancelled) return;
         const s = json.status ?? "not_found";
         setStatus(s);
-        if (json.phoneMasked) setPhoneMasked(json.phoneMasked);
         if (s === "expired") {
           setCodeUi("error");
           setCodeMessage(L.codeExpired);
@@ -223,7 +202,7 @@ export function TelegramLoginPanel({ labels: L, expanded, onExpandedChange, onSu
     if (!expanded || !challenge || openedOnce.current) return;
     openedOnce.current = true;
     tryOpenTelegramApp(appLink);
-    const t1 = window.setTimeout(() => setShowBrowserFallback(true), APP_OPEN_DELAY_MS);
+    const t1 = window.setTimeout(() => setShowBrowserFallback(true), BROWSER_FALLBACK_DELAY_MS);
     const t2 = window.setTimeout(() => setShowManualHelp(true), MANUAL_HELP_DELAY_MS);
     return () => {
       clearTimeout(t1);
@@ -262,22 +241,13 @@ export function TelegramLoginPanel({ labels: L, expanded, onExpandedChange, onSu
     }
   }
 
-  const statusHint =
-    status === "awaiting_phone"
-      ? L.awaitingPhone
-      : status === "code_sent"
-        ? L.codeSentHint
-        : status === "expired"
-          ? L.codeExpired
-          : status === "pending"
-            ? L.waitingBot
-            : null;
+  const statusHint = status === "awaiting_phone" ? L.awaitingPhone : null;
 
   if (!expanded) {
     return (
       <button
         type="button"
-        className="auth-social-btn auth-social-btn--telegram"
+        className="auth-social-btn"
         disabled={loading}
         aria-busy={loading}
         onClick={() => void startChallenge()}
@@ -289,7 +259,7 @@ export function TelegramLoginPanel({ labels: L, expanded, onExpandedChange, onSu
   }
 
   return (
-    <div className="auth-telegram-flow" role="region" aria-labelledby="telegram-flow-title">
+    <div className="auth-telegram-flow auth-telegram-flow--compact" role="region" aria-labelledby="telegram-flow-title">
       <div className="auth-telegram-flow__head">
         <h3 id="telegram-flow-title" className="auth-telegram-flow__title">
           {L.title}
@@ -297,51 +267,10 @@ export function TelegramLoginPanel({ labels: L, expanded, onExpandedChange, onSu
         <p className="auth-telegram-flow__subtitle">{L.subtitle}</p>
       </div>
 
-      <ol className="auth-telegram-flow__steps" aria-label={L.title}>
-        <li className={stepActive(status, 1) ? "is-active" : ""}>
-          <span className="auth-telegram-flow__step-num">1</span>
-          {L.stepOpen}
-        </li>
-        <li className={stepActive(status, 2) ? "is-active" : ""}>
-          <span className="auth-telegram-flow__step-num">2</span>
-          {L.stepStart}
-        </li>
-        <li className={stepActive(status, 3) ? "is-active" : ""}>
-          <span className="auth-telegram-flow__step-num">3</span>
-          {L.stepEnterCode}
-        </li>
-      </ol>
-
-      <div className="auth-telegram-flow__actions">
-        <button
-          type="button"
-          className="auth-telegram-flow__btn auth-telegram-flow__btn--primary"
-          onClick={() => openTelegram(true)}
-        >
-          <TelegramIcon />
-          {L.openTelegram}
-        </button>
-
-        {showBrowserFallback ? (
-          <a
-            href={webLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="auth-telegram-flow__btn auth-telegram-flow__btn--secondary"
-          >
-            {L.openTelegramBrowser}
-          </a>
-        ) : null}
-      </div>
-
-      {showManualHelp ? (
-        <p className="auth-telegram-flow__manual" role="note">
-          {L.manualHelp}
-        </p>
-      ) : null}
-
-      {statusHint ? <p className="auth-telegram-flow__status">{statusHint}</p> : null}
-      {phoneMasked ? <p className="auth-telegram-flow__phone">{phoneMasked}</p> : null}
+      <details className="auth-telegram-flow__steps-details">
+        <summary>{L.helpHow}</summary>
+        <p className="auth-telegram-flow__steps-inline">{L.stepsCompact}</p>
+      </details>
 
       <div className="auth-telegram-flow__code">
         <label className="auth-premium-label" htmlFor="telegram-otp-0">
@@ -375,6 +304,10 @@ export function TelegramLoginPanel({ labels: L, expanded, onExpandedChange, onSu
             {codeMessage}
           </p>
         ) : null}
+        {secondsLeft > 0 ? (
+          <p className="auth-telegram-flow__expires">{L.expiresIn.replace("{n}", String(secondsLeft))}</p>
+        ) : null}
+        {statusHint ? <p className="auth-telegram-flow__status-hint">{statusHint}</p> : null}
         <button
           type="button"
           className="auth-premium-submit"
@@ -386,13 +319,28 @@ export function TelegramLoginPanel({ labels: L, expanded, onExpandedChange, onSu
         </button>
       </div>
 
-      <div className="auth-telegram-flow__footer">
-        {secondsLeft > 0 ? (
-          <p className="auth-telegram-flow__expires">{L.expiresIn.replace("{n}", String(secondsLeft))}</p>
+      <div className="auth-telegram-flow__links">
+        {showBrowserFallback ? (
+          <a
+            href={webLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="auth-telegram-flow__helper-link"
+          >
+            {L.browserFallback}
+          </a>
         ) : null}
+
+        {showManualHelp ? (
+          <details className="auth-telegram-flow__manual-details">
+            <summary>{L.cantOpenHelp}</summary>
+            <p>{L.manualHelp}</p>
+          </details>
+        ) : null}
+
         <button
           type="button"
-          className="auth-telegram-flow__link-btn"
+          className="auth-telegram-flow__helper-link"
           onClick={() => {
             openedOnce.current = false;
             void startChallenge();
@@ -400,10 +348,11 @@ export function TelegramLoginPanel({ labels: L, expanded, onExpandedChange, onSu
         >
           {L.resendOpen}
         </button>
-        <button type="button" className="auth-telegram-flow__link-btn" onClick={resetFlow}>
-          ← {L.back}
-        </button>
       </div>
+
+      <button type="button" className="auth-telegram-flow__back" onClick={resetFlow}>
+        {L.backToSignIn}
+      </button>
     </div>
   );
 }

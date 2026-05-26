@@ -14,7 +14,7 @@
   --auth-text: #f3fff8;
   --auth-text-secondary: #b8d4c4;
   --auth-muted: #789587;
-  --auth-input-h: 3rem;
+  --auth-input-h: 3.25rem;
   --auth-card-radius: 1.5rem;
 
   position: relative;
@@ -147,6 +147,15 @@
   background: linear-gradient(135deg, rgba(3, 20, 15, 0.55) 0%, rgba(4, 120, 87, 0.25) 50%, rgba(3, 20, 15, 0.75) 100%);
 }
 
+.auth-promo__bottom-glow {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 45%;
+  background: radial-gradient(ellipse 90% 70% at 50% 100%, rgba(16, 185, 129, 0.22), transparent 68%),
+    linear-gradient(to top, rgba(3, 20, 15, 0.55), transparent);
+  pointer-events: none;
+}
+
 .auth-promo__inner {
   position: relative;
   z-index: 2;
@@ -235,7 +244,8 @@
 }
 
 .auth-promo__preview {
-  margin-top: 1rem;
+  margin-top: auto;
+  margin-bottom: 0.65rem;
   display: grid;
   grid-template-columns: 4.25rem 1fr;
   gap: 0.65rem;
@@ -305,8 +315,8 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.35rem 0.75rem;
-  margin-top: auto;
-  padding-top: 0.65rem;
+  margin-top: 0;
+  padding-top: 0.55rem;
   border-top: 1px solid rgba(56, 189, 130, 0.15);
   font-size: 0.65rem;
   color: var(--auth-muted);
@@ -365,7 +375,7 @@
 /* —— Auth card —— */
 .auth-premium-card {
   width: 100%;
-  max-width: 40rem;
+  max-width: 36rem;
   margin-inline: auto;
   border-radius: var(--auth-card-radius);
   border: 1px solid var(--auth-border);
@@ -373,7 +383,7 @@
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.04);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  padding: clamp(1.15rem, 2.5vw, 1.75rem);
+  padding: clamp(1.1rem, 2vw, 1.35rem) clamp(1.15rem, 2.5vw, 1.5rem);
 }
 
 .auth-premium-card__icon {
@@ -389,8 +399,8 @@
 }
 
 .auth-premium-card__title {
-  margin-top: 0.65rem;
-  font-size: clamp(1.2rem, 3vw, 1.45rem);
+  margin-top: 0.5rem;
+  font-size: clamp(1.15rem, 2.8vw, 1.35rem);
   font-weight: 800;
   line-height: 1.2;
   color: var(--auth-text);
@@ -403,13 +413,16 @@
 }
 
 .auth-premium-form {
-  margin-top: 1rem;
+  margin-top: 0.75rem;
+  width: 100%;
+  max-width: 35rem;
+  margin-inline: auto;
 }
 
 .auth-premium-form-fields {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .auth-premium-label-row {
@@ -417,7 +430,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.5rem;
 }
 
 .auth-premium-label-row .auth-premium-label {
@@ -431,7 +444,7 @@
 
 .auth-premium-label {
   display: block;
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.5rem;
   font-size: 0.78rem;
   font-weight: 600;
   color: var(--auth-text-secondary);
@@ -549,6 +562,10 @@
   text-underline-offset: 2px;
 }
 
+.auth-premium-form-fields > .auth-premium-submit {
+  margin-top: 0.25rem;
+}
+
 .auth-premium-submit {
   display: flex;
   min-height: var(--auth-input-h);
@@ -556,17 +573,18 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  border-radius: 0.75rem;
-  background: linear-gradient(180deg, var(--auth-emerald) 0%, var(--auth-emerald-deep) 100%);
+  border: none;
+  border-radius: 0.85rem;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   font-size: 0.9rem;
   font-weight: 700;
   color: #ecfdf5;
-  box-shadow: 0 6px 18px rgba(5, 150, 105, 0.22);
+  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.2);
   transition: transform 0.12s, opacity 0.18s, box-shadow 0.18s;
 }
 
 .auth-premium-submit:hover:not(:disabled) {
-  box-shadow: 0 8px 22px rgba(5, 150, 105, 0.28);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.25);
 }
 
 .auth-premium-submit:active:not(:disabled) {
@@ -596,7 +614,7 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  margin: 0.85rem 0;
+  margin: 1.375rem 0 1.125rem;
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--auth-muted);
@@ -615,7 +633,7 @@
 .auth-social {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.45rem;
 }
 
 .auth-social--row {
@@ -637,160 +655,85 @@
   margin-top: 0;
 }
 
-.auth-telegram-flow {
+.auth-telegram-flow--compact {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
-  padding: 0.15rem 0 0.25rem;
+  gap: 0.75rem;
+  padding: 0;
   text-align: left;
 }
 
 .auth-telegram-flow__head {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.3rem;
 }
 
 .auth-telegram-flow__title {
   margin: 0;
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: var(--auth-text);
-  line-height: 1.3;
+  line-height: 1.25;
 }
 
 .auth-telegram-flow__subtitle {
   margin: 0;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   line-height: 1.45;
   color: var(--auth-text-secondary);
 }
 
-.auth-telegram-flow__steps {
-  margin: 0;
-  padding: 0;
+.auth-telegram-flow__steps-details,
+.auth-telegram-flow__manual-details {
+  font-size: 0.75rem;
+  color: var(--auth-muted);
+}
+
+.auth-telegram-flow__steps-details summary,
+.auth-telegram-flow__manual-details summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--auth-text-secondary);
   list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
 }
 
-.auth-telegram-flow__steps li {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  font-size: 0.82rem;
-  color: var(--auth-text-secondary);
-  transition: color 0.2s;
+.auth-telegram-flow__steps-details summary::-webkit-details-marker,
+.auth-telegram-flow__manual-details summary::-webkit-details-marker {
+  display: none;
 }
 
-.auth-telegram-flow__steps li.is-active {
-  color: var(--auth-text);
-  font-weight: 600;
-}
-
-.auth-telegram-flow__step-num {
-  display: inline-flex;
-  flex-shrink: 0;
-  width: 1.35rem;
-  height: 1.35rem;
-  align-items: center;
-  justify-content: center;
-  border-radius: 9999px;
-  border: 1px solid rgba(56, 189, 130, 0.35);
-  background: rgba(8, 40, 28, 0.6);
-  font-size: 0.72rem;
-  font-weight: 700;
+.auth-telegram-flow__steps-details summary:hover,
+.auth-telegram-flow__manual-details summary:hover {
   color: var(--auth-emerald);
 }
 
-.auth-telegram-flow__steps li.is-active .auth-telegram-flow__step-num {
-  border-color: rgba(34, 158, 217, 0.55);
-  background: rgba(34, 158, 217, 0.2);
-  color: #7dd3fc;
-}
-
-.auth-telegram-flow__actions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
-}
-
-.auth-telegram-flow__btn {
-  display: flex;
-  min-height: var(--auth-input-h);
-  width: 100%;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  border-radius: 0.85rem;
-  font-size: 0.9rem;
-  font-weight: 600;
-  text-decoration: none;
-  transition: border-color 0.18s, background 0.18s, transform 0.12s;
-}
-
-.auth-telegram-flow__btn--primary {
-  border: 1px solid rgba(34, 158, 217, 0.45);
-  background: linear-gradient(180deg, rgba(34, 158, 217, 0.22) 0%, rgba(3, 20, 15, 0.7) 100%);
-  color: var(--auth-text);
-}
-
-.auth-telegram-flow__btn--primary:hover {
-  border-color: rgba(34, 158, 217, 0.65);
-}
-
-.auth-telegram-flow__btn--secondary {
-  border: 1px solid rgba(56, 189, 130, 0.28);
-  background: rgba(3, 20, 15, 0.55);
-  color: var(--auth-text-secondary);
-}
-
-.auth-telegram-flow__btn--secondary:hover {
-  border-color: rgba(56, 189, 130, 0.45);
-  color: var(--auth-text);
-}
-
-.auth-telegram-flow__manual {
-  margin: 0;
-  padding: 0.55rem 0.65rem;
-  border-radius: 0.65rem;
-  border: 1px dashed rgba(56, 189, 130, 0.28);
-  background: rgba(3, 20, 15, 0.4);
-  font-size: 0.78rem;
+.auth-telegram-flow__steps-inline,
+.auth-telegram-flow__manual-details p {
+  margin: 0.35rem 0 0;
   line-height: 1.4;
-  color: var(--auth-text-secondary);
-}
-
-.auth-telegram-flow__status,
-.auth-telegram-flow__phone {
-  margin: 0;
-  font-size: 0.8rem;
-  line-height: 1.4;
-  color: var(--auth-emerald);
-}
-
-.auth-telegram-flow__phone {
   color: var(--auth-text-secondary);
 }
 
 .auth-telegram-flow__code {
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
-  padding-top: 0.25rem;
-  border-top: 1px solid rgba(56, 189, 130, 0.12);
+  gap: 0.4rem;
+}
+
+.auth-telegram-flow__code .auth-premium-label {
+  margin-bottom: 0.25rem;
 }
 
 .auth-telegram-flow__placeholder-hint {
-  margin: -0.2rem 0 0.15rem;
-  font-size: 0.75rem;
-  color: var(--auth-text-secondary);
+  margin: -0.15rem 0 0.1rem;
+  font-size: 0.72rem;
+  color: var(--auth-muted);
 }
 
 .auth-telegram-flow__code-msg {
-  margin: 0.15rem 0 0;
-  font-size: 0.8rem;
+  margin: 0.1rem 0 0;
+  font-size: 0.78rem;
   text-align: center;
   line-height: 1.35;
 }
@@ -807,30 +750,60 @@
   color: var(--auth-text-secondary);
 }
 
-.auth-telegram-flow__footer {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.35rem 0.75rem;
-}
-
 .auth-telegram-flow__expires {
   margin: 0;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
+  text-align: center;
+  color: var(--auth-muted);
+}
+
+.auth-telegram-flow__status-hint {
+  margin: 0;
+  font-size: 0.72rem;
+  text-align: center;
   color: var(--auth-text-secondary);
 }
 
-.auth-telegram-flow__link-btn {
-  font-size: 0.8rem;
+.auth-telegram-flow__links {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.auth-telegram-flow__helper-link {
+  font-size: 0.78rem;
   font-weight: 600;
   color: var(--auth-emerald);
+  text-decoration: none;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.auth-telegram-flow__helper-link:hover {
+  color: #6ee7b7;
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 
-.auth-telegram-flow__link-btn:hover {
-  color: #6ee7b7;
+.auth-telegram-flow__back {
+  margin-top: 0.15rem;
+  align-self: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--auth-text-secondary);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.auth-telegram-flow__back:hover {
+  color: var(--auth-emerald);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .auth-social-trigger-wrap--row {
@@ -863,15 +836,6 @@
   transform: scale(0.98);
 }
 
-.auth-social-btn--telegram {
-  border-color: rgba(34, 158, 217, 0.35);
-  background: linear-gradient(180deg, rgba(34, 158, 217, 0.18) 0%, rgba(3, 20, 15, 0.65) 100%);
-}
-
-.auth-social-btn--telegram:hover {
-  border-color: rgba(34, 158, 217, 0.55);
-}
-
 .auth-social-badge {
   position: absolute;
   right: 0.65rem;
@@ -895,38 +859,33 @@
 }
 
 .auth-premium-switch {
-  margin-top: 0.85rem;
+  margin-top: 1.125rem;
   text-align: center;
   font-size: 0.85rem;
   color: var(--auth-text-secondary);
 }
 
 .auth-premium-switch__action {
-  font-weight: 700;
+  font-weight: 600;
   color: var(--auth-emerald);
-  text-decoration: underline;
-  text-underline-offset: 2px;
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
 }
 
 .auth-premium-switch__action:hover {
   color: #6ee7b7;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
 }
 
 .auth-premium-switch__action:focus-visible {
   outline: 2px solid var(--auth-emerald);
   outline-offset: 2px;
   border-radius: 0.25rem;
-}
-
-.auth-social-trigger-wrap .taj-btn,
-.auth-social-trigger-wrap button {
-  min-height: var(--auth-input-h) !important;
-  width: 100%;
-  border-radius: 0.75rem !important;
-  border: 1px solid rgba(34, 158, 217, 0.35) !important;
-  background: linear-gradient(180deg, rgba(34, 158, 217, 0.2) 0%, rgba(3, 20, 15, 0.7) 100%) !important;
-  color: var(--auth-text) !important;
-  font-weight: 600 !important;
 }
 
 /* Trust strip */
@@ -1014,18 +973,26 @@
   }
 }
 
-@media (min-width: 768px) {
-  .auth-premium-page {
-    --auth-input-h: 3.25rem;
-  }
-}
-
 @media (max-height: 820px) and (min-width: 1024px) {
   .auth-promo__preview {
-    display: none;
+    margin-top: 0.75rem;
+    margin-bottom: 0.5rem;
+    padding: 0.55rem 0.6rem;
+  }
+
+  .auth-promo__preview-thumb {
+    min-height: 3.25rem;
   }
 
   .auth-promo__stats {
-    margin-top: 0.75rem;
+    margin-top: 0.65rem;
+  }
+
+  .auth-promo__title {
+    font-size: 1.35rem;
+  }
+
+  .auth-promo__subtitle {
+    font-size: 0.9rem;
   }
 }

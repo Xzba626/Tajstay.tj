@@ -46,17 +46,15 @@ export type SignInLabels = {
   telegramRegisterHint: string;
   telegramFlowTitle: string;
   telegramFlowSubtitle: string;
-  telegramStepOpen: string;
-  telegramStepStart: string;
-  telegramStepEnterCode: string;
-  telegramOpenTelegram: string;
-  telegramOpenBrowser: string;
+  telegramStepsCompact: string;
+  telegramHelpHow: string;
+  telegramBrowserFallback: string;
+  telegramCantOpenHelp: string;
   telegramManualHelp: string;
-  telegramWaitingBot: string;
+  telegramBackToSignIn: string;
   telegramAwaitingPhone: string;
   telegramEnterCode: string;
   telegramCodePlaceholder: string;
-  telegramCodeSentHint: string;
   telegramVerifying: string;
   telegramCodeSuccess: string;
   telegramCodeInvalid: string;
@@ -67,7 +65,6 @@ export type SignInLabels = {
   telegramExpiresIn: string;
   telegramResendOpen: string;
   badgeFast: string;
-  back: string;
   welcomeTitleLogin: string;
   welcomeTitleRegister: string;
   welcomeSubtitleLogin: string;
@@ -467,12 +464,12 @@ export function SignInClient({
                     signIn: L.telegramContinue,
                     title: L.telegramFlowTitle,
                     subtitle: L.telegramFlowSubtitle,
-                    stepOpen: L.telegramStepOpen,
-                    stepStart: L.telegramStepStart,
-                    stepEnterCode: L.telegramStepEnterCode,
-                    openTelegram: L.telegramOpenTelegram,
-                    openTelegramBrowser: L.telegramOpenBrowser,
+                    stepsCompact: L.telegramStepsCompact,
+                    helpHow: L.telegramHelpHow,
+                    browserFallback: L.telegramBrowserFallback,
+                    cantOpenHelp: L.telegramCantOpenHelp,
                     manualHelp: L.telegramManualHelp,
+                    backToSignIn: L.telegramBackToSignIn,
                     codeLabel: L.telegramEnterCode,
                     codePlaceholder: L.telegramCodePlaceholder,
                     verify: L.telegramVerify,
@@ -481,13 +478,9 @@ export function SignInClient({
                     codeInvalid: L.telegramCodeInvalid,
                     codeExpired: L.telegramCodeExpired,
                     awaitingPhone: L.telegramAwaitingPhone,
-                    codeSentHint: L.telegramCodeSentHint,
-                    waitingBot: L.telegramWaitingBot,
-                    expired: L.telegramCodeExpired,
                     errorGeneric: L.errorGeneric,
                     expiresIn: L.telegramExpiresIn,
                     tooManyAttempts: L.telegramTooManyAttempts,
-                    back: L.back,
                     resendOpen: L.telegramResendOpen
                   }
                 }}
