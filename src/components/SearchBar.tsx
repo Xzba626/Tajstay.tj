@@ -97,7 +97,7 @@ export function SearchBar({ locale = "ru" }: Props) {
           </button>
         </div>
 
-        <div className="mt-4 flex flex-wrap items-center gap-2">
+        <div className="mt-4 hidden flex-wrap items-center gap-2 md:flex">
           <span className="text-xs font-semibold text-emerald-200/90">{m(locale, "search.popular")}</span>
           {popularCities.map((city, i) => (
             <Link

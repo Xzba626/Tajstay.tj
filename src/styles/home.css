@@ -70,10 +70,16 @@
 
 @media (max-width: 767px) {
   .home-hero-title {
-    font-size: clamp(2rem, 9vw, 2.5rem);
-    line-height: 1.05;
-    max-width: 14ch;
+    font-size: clamp(2.1rem, 10vw, 2.75rem);
+    line-height: 1.06;
+    max-width: 16ch;
     margin-inline: auto;
+  }
+
+  .home-hero-badge {
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    padding: 0.3rem 0.65rem;
   }
 
   .home-hero-trust-compact {
@@ -86,8 +92,66 @@
   }
 
   .home-search-card {
-    padding: 1rem 1.125rem;
+    padding: 0.85rem 0.85rem 1rem;
+    border-radius: 1.25rem;
   }
+
+  .home-search-card form > div.grid {
+    gap: 0.875rem;
+  }
+
+  .home-search-field {
+    height: 3.375rem;
+    padding: 0 0.85rem;
+  }
+
+  .home-search-submit {
+    height: 3.5rem;
+    font-size: 0.9375rem;
+  }
+
+  .home-search-label {
+    font-size: 0.66rem;
+  }
+}
+
+/* Kill the "block inside block" look — inputs inside .home-search-field
+   share the wrapper's chrome instead of carrying their own border/radius. */
+.home-search-field input {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  height: 100% !important;
+  min-width: 0 !important;
+}
+
+.home-search-field input:focus {
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* Compact mobile-only "Войти" header chip */
+.header-auth-signin-mobile {
+  display: inline-flex;
+  align-items: center;
+  height: 2.25rem;
+  padding: 0 0.75rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+  color: #ecfdf5;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.header-auth-signin-mobile:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(110, 231, 183, 0.32);
 }
 
 .home-section--search {
