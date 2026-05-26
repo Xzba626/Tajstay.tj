@@ -15,8 +15,6 @@ import { SearchBar } from "@/components/SearchBar";
 import { TajstayHero3D } from "@/components/landing/TajstayHero3D";
 import { PageContainer, SectionContainer, ContentGrid, EmptyStateCard } from "@/components/ds";
 import { HomeSectionHeader } from "@/components/home/HomeSectionHeader";
-import { HomeSearchSticky } from "@/components/home/HomeSearchSticky";
-import { HomeOwnerCta } from "@/components/home/HomeOwnerCta";
 import { HomeReviewsSection } from "@/components/home/HomeReviewsSection";
 
 export default async function HomePage() {
@@ -41,12 +39,6 @@ export default async function HomePage() {
     { title: m(locale, "home.trust1Title"), text: m(locale, "home.trust1Text"), icon: "✓" as const },
     { title: m(locale, "home.trust2Title"), text: m(locale, "home.trust2Text"), icon: "🔒" as const },
     { title: m(locale, "home.trust3Title"), text: m(locale, "home.trust3Text"), icon: "💬" as const }
-  ];
-
-  const partnerTrust = [
-    m(locale, "home.trust1Title"),
-    m(locale, "home.trust2Title"),
-    m(locale, "home.trust3Title")
   ];
 
   const latestReviews = await safeDbQuery(
@@ -77,11 +69,10 @@ export default async function HomePage() {
   }));
 
   return (
-    <div className="home-page home-chapters pb-28 md:pb-16">
+    <div className="home-page home-chapters pb-10 md:pb-16">
       <HomeScrollEnhancer />
-      <HomeSearchSticky label={m(locale, "home.ctaSearch")} />
 
-      {/* Hero + search (first screen) */}
+      {/* 1. Hero + search (first screen) */}
       <section className="home-section home-section--hero home-chapter home-chapter--band-hero relative overflow-hidden">
         <PageContainer publicPage className="relative z-[1] flex min-h-[inherit] flex-col justify-center !py-0">
           <TajstayHero3D
@@ -115,23 +106,7 @@ export default async function HomePage() {
         </section>
       ) : null}
 
-      {/* Trust */}
-      <SectionContainer tight className="home-section home-section--compact home-chapter" data-reveal>
-        <PageContainer publicPage className="!py-0">
-          <HomeSectionHeader title={m(locale, "home.trustTitle")} align="center" className="!text-center [&_.home-section__desc]:mx-auto" />
-          <ContentGrid cols={3} gap="md">
-            {trustPoints.map((item) => (
-              <div key={item.title} className="home-trust-card">
-                <div className="home-trust-card__icon">{item.icon}</div>
-                <h3 className="mt-3 text-sm font-semibold text-[var(--taj-color-text)]">{item.title}</h3>
-                <p className="mt-1.5 text-xs leading-relaxed text-[var(--taj-color-text-muted)]">{item.text}</p>
-              </div>
-            ))}
-          </ContentGrid>
-        </PageContainer>
-      </SectionContainer>
-
-      {/* Popular */}
+      {/* 2. Popular hotels */}
       <section className="home-section home-section--compact home-chapter" data-reveal>
         <PageContainer publicPage className="!py-0">
           <HomeSectionHeader
@@ -158,9 +133,37 @@ export default async function HomePage() {
         </PageContainer>
       </section>
 
+      {/* Popular destinations — discovery aid below listings */}
+      <section id="popular-destinations" className="home-section home-section--compact home-chapter scroll-mt-24" data-reveal>
+        <PageContainer publicPage className="!py-0">
+          <HomeSectionHeader
+            eyebrow={m(locale, "home.destinationsBadge")}
+            title={m(locale, "home.destinationsGridTitle")}
+            action={{ href: "/search", label: m(locale, "home.ctaSearch") }}
+          />
+          <div className="mt-2 flex gap-3 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {destinationCards.map((d) => (
+              <ViewTransitionLink key={d.title} href={`/search?city=${encodeURIComponent(d.cityQuery)}`} className="shrink-0">
+                <div className="home-dest-chip">
+                  <span className="text-sm font-semibold text-[var(--taj-color-text)]">{d.title}</span>
+                  <span className="mt-1 line-clamp-2 text-[10px] leading-snug text-[var(--taj-color-text-muted)]">{d.text}</span>
+                </div>
+              </ViewTransitionLink>
+            ))}
+          </div>
+        </PageContainer>
+      </section>
+
       <GuestHomeExtras locale={locale} />
 
-      {/* AI */}
+      {/* 3. Reviews — social proof */}
+      <section className="home-section home-section--compact home-chapter" data-reveal>
+        <PageContainer publicPage className="!py-0">
+          <HomeReviewsSection locale={locale} reviews={latestReviews} />
+        </PageContainer>
+      </section>
+
+      {/* 4. AI generator */}
       <section className="home-section home-section--compact home-chapter" data-reveal>
         <PageContainer publicPage className="!py-0">
           <AIRecommendationLab
@@ -184,46 +187,21 @@ export default async function HomePage() {
         </PageContainer>
       </section>
 
-      {/* Directions */}
-      <section id="popular-destinations" className="home-section home-section--compact home-chapter scroll-mt-24" data-reveal>
+      {/* 5. Info block — Why TajStay (kept last per UX flow) */}
+      <SectionContainer tight className="home-section home-section--compact home-chapter" data-reveal>
         <PageContainer publicPage className="!py-0">
-          <HomeSectionHeader
-            eyebrow={m(locale, "home.destinationsBadge")}
-            title={m(locale, "home.destinationsGridTitle")}
-            action={{ href: "/search", label: m(locale, "home.ctaSearch") }}
-          />
-          <div className="mt-2 flex gap-3 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {destinationCards.map((d) => (
-              <ViewTransitionLink key={d.title} href={`/search?city=${encodeURIComponent(d.cityQuery)}`} className="shrink-0">
-                <div className="home-dest-chip">
-                  <span className="text-sm font-semibold text-[var(--taj-color-text)]">{d.title}</span>
-                  <span className="mt-1 line-clamp-2 text-[10px] leading-snug text-[var(--taj-color-text-muted)]">{d.text}</span>
-                </div>
-              </ViewTransitionLink>
+          <HomeSectionHeader title={m(locale, "home.trustTitle")} align="center" className="!text-center [&_.home-section__desc]:mx-auto" />
+          <ContentGrid cols={3} gap="md">
+            {trustPoints.map((item) => (
+              <div key={item.title} className="home-trust-card">
+                <div className="home-trust-card__icon">{item.icon}</div>
+                <h3 className="mt-3 text-sm font-semibold text-[var(--taj-color-text)]">{item.title}</h3>
+                <p className="mt-1.5 text-xs leading-relaxed text-[var(--taj-color-text-muted)]">{item.text}</p>
+              </div>
             ))}
-          </div>
+          </ContentGrid>
         </PageContainer>
-      </section>
-
-      {/* Reviews */}
-      <section className="home-section home-section--compact home-chapter" data-reveal>
-        <PageContainer publicPage className="!py-0">
-          <HomeReviewsSection locale={locale} reviews={latestReviews} />
-        </PageContainer>
-      </section>
-
-      {/* Owner CTA */}
-      <section className="home-section home-section--compact home-chapter" data-reveal>
-        <PageContainer publicPage className="!py-0">
-          <HomeOwnerCta
-            title={m(locale, "home.ctaOwners")}
-            description={m(locale, "home.ownersShort")}
-            primaryLabel={m(locale, "userMenu.becomeOwner")}
-            secondaryLabel={m(locale, "userMenu.ownerPanel")}
-            trustPoints={partnerTrust}
-          />
-        </PageContainer>
-      </section>
+      </SectionContainer>
     </div>
   );
 }
