@@ -19,6 +19,8 @@
   --taj-shadow: 0 28px 90px rgba(0, 0, 0, 0.45);
 
   min-height: calc(100vh - 76px);
+  width: 100%;
+  max-width: 100%;
   background:
     radial-gradient(circle at 20% 10%, rgba(16, 185, 129, 0.18), transparent 34%),
     radial-gradient(circle at 80% 80%, rgba(5, 150, 105, 0.16), transparent 36%),
@@ -46,7 +48,8 @@
   position: relative;
   z-index: 1;
   width: 100%;
-  max-width: 35rem;
+  max-width: 100%;
+  min-width: 0;
   min-height: auto;
   margin: 0 auto;
   display: grid;
@@ -350,6 +353,8 @@
 /* —— Right auth card —— */
 .taj-auth-card {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   min-height: auto;
   border-radius: 28px;
   border: 1px solid var(--taj-border);
@@ -371,6 +376,7 @@
 .taj-telegram-panel {
   width: 100%;
   max-width: 560px;
+  min-width: 0;
 }
 
 .taj-auth-welcome {
@@ -822,16 +828,36 @@
     display: none !important;
   }
 
+  .taj-auth-page {
+    padding: clamp(16px, 4vw, 28px) clamp(12px, 4vw, 24px);
+  }
+
   .taj-auth-shell {
+    display: grid;
     grid-template-columns: 1fr;
-    max-width: 35rem;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
     min-height: auto;
+    margin: 0 auto;
+    justify-items: stretch;
   }
 
   .taj-auth-card {
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    margin-inline: auto;
     border-radius: 24px;
     padding: 22px 18px;
+  }
+
+  .taj-auth-inner,
+  .taj-telegram-panel {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    margin-inline: auto;
   }
 
   .taj-auth-welcome {
@@ -849,18 +875,59 @@
 
 @media (max-width: 760px) {
   .taj-auth-page {
-    padding: 14px 14px 28px;
+    padding: 16px 14px 28px;
+  }
+
+  .taj-auth-card {
+    padding: 20px 16px;
   }
 }
 
-@media (max-width: 420px) {
+@media (max-width: 480px) {
+  .taj-auth-page {
+    padding: 14px 12px 24px;
+  }
+
   .taj-auth-card {
-    padding: 20px 16px;
+    padding: 18px 14px;
     border-radius: 22px;
+  }
+
+  .taj-auth-welcome {
+    margin-bottom: 20px;
   }
 
   .taj-auth-welcome h1 {
     font-size: 1.75rem;
+  }
+
+  .taj-auth-welcome p {
+    font-size: 14px;
+  }
+
+  .taj-input-wrap {
+    padding: 0 14px;
+  }
+
+  .taj-primary-button,
+  .taj-social-button,
+  .taj-input-wrap {
+    height: 48px;
+  }
+}
+
+@media (max-width: 380px) {
+  .taj-auth-page {
+    padding: 12px 10px 24px;
+  }
+
+  .taj-auth-card {
+    padding: 16px 12px;
+    border-radius: 20px;
+  }
+
+  .taj-auth-welcome h1 {
+    font-size: 1.625rem;
   }
 }
 
