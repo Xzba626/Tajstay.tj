@@ -5,6 +5,7 @@ import { TelegramLoginPanel, type TelegramLoginLabels } from "@/components/auth/
 
 type Props = {
   locale: Locale;
+  layout?: "stack" | "row";
   isRegister: boolean;
   googleOAuthEnabled: boolean;
   telegramLoginEnabled: boolean;
@@ -21,6 +22,8 @@ type Props = {
     telegramConfigWarning: string;
     telegram: TelegramLoginLabels;
   };
+  telegramFlowActive: boolean;
+  onTelegramFlowChange: (active: boolean) => void;
   onTelegramSuccess: () => void | Promise<void>;
   onError: (message: string) => void;
   onGoogle: () => void;
@@ -28,18 +31,24 @@ type Props = {
 
 export function AuthSocialButtons({
   locale,
+  layout = "stack",
   isRegister,
   googleOAuthEnabled,
   telegramLoginEnabled,
   showTelegramConfigWarning,
   telegramBotUsername,
   labels: L,
+  telegramFlowActive,
+  onTelegramFlowChange,
   onTelegramSuccess,
   onError,
   onGoogle
 }: Props) {
+  const row =
+    layout === "row" && googleOAuthEnabled && telegramLoginEnabled && !telegramFlowActive;
+
   return (
-    <div className="auth-social">
+    <div className={`auth-social${row ? " auth-social--row" : ""}`}>
       {showTelegramConfigWarning ? (
         <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-100" role="status">
           {L.telegramConfigWarning}
@@ -52,9 +61,15 @@ export function AuthSocialButtons({
       ) : null}
 
       {telegramLoginEnabled ? (
-        <div className="auth-social-trigger-wrap">
+        <div
+          className={`auth-social-trigger-wrap${row ? " auth-social-trigger-wrap--row" : ""}${
+            telegramFlowActive ? " auth-social-trigger-wrap--flow" : ""
+          }`}
+        >
           <TelegramLoginPanel
             locale={locale}
+            expanded={telegramFlowActive}
+            onExpandedChange={onTelegramFlowChange}
             labels={{
               ...L.telegram,
               signIn: isRegister ? L.telegramRegister : L.telegramContinue
@@ -65,7 +80,7 @@ export function AuthSocialButtons({
         </div>
       ) : null}
 
-      {googleOAuthEnabled ? (
+      {googleOAuthEnabled && !telegramFlowActive ? (
         <button type="button" className="auth-social-btn" onClick={onGoogle}>
           <GoogleIcon />
           <span>{isRegister ? L.googleRegister : L.googleContinue}</span>

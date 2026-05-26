@@ -138,7 +138,7 @@ export async function Header() {
               <ViewTransitionLink href="/auth/sign-in" className="header-auth-signin">
                 {m(locale, "header.signIn")}
               </ViewTransitionLink>
-              <ViewTransitionLink href="/auth/sign-in" className="header-auth-signup">
+              <ViewTransitionLink href="/auth/sign-in?mode=register" className="header-auth-signup">
                 {m(locale, "header.signUp")}
               </ViewTransitionLink>
             </>

@@ -194,7 +194,7 @@ export function MobileMenu({ user, ownerApp, locale, labels: L, unreadCount = 0,
     list.push({ kind: "text", label: L.accountSection });
     if (!user) {
       list.push({ kind: "link", href: "/auth/sign-in", label: L.signIn });
-      list.push({ kind: "link", href: "/auth/sign-in", label: L.signUp });
+      list.push({ kind: "link", href: "/auth/sign-in?mode=register", label: L.signUp });
     } else {
       list.push({ kind: "link", href: "/profile", label: L.profile });
       list.push({

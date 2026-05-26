@@ -7,14 +7,13 @@ import type { Locale } from "@/lib/i18n/locale";
 import { postLoginRedirect, safeReturnPath } from "@/lib/auth/postLoginRedirect";
 import { AuthPromoPanel, type AuthPromoLabels } from "@/components/auth/AuthPromoPanel";
 import { AuthSocialButtons } from "@/components/auth/AuthSocialButtons";
-import { AuthTrustStrip } from "@/components/auth/AuthTrustStrip";
 import { BrandMark } from "@/components/brand/BrandMark";
 
 type ApiUser = { id: number; role: string; name: string; phone: string; email?: string | null };
 
 export type SignInLabels = {
-  tabsSignIn: string;
-  tabsRegister: string;
+  cardTitleLogin: string;
+  cardSubtitleLogin: string;
   loginLabel: string;
   emailPlaceholder: string;
   password: string;
@@ -45,19 +44,28 @@ export type SignInLabels = {
   telegramContinue: string;
   telegramRegister: string;
   telegramRegisterHint: string;
-  telegramOpenBot: string;
+  telegramFlowTitle: string;
+  telegramFlowSubtitle: string;
+  telegramStepOpen: string;
+  telegramStepStart: string;
+  telegramStepEnterCode: string;
+  telegramOpenTelegram: string;
+  telegramOpenBrowser: string;
+  telegramManualHelp: string;
   telegramWaitingBot: string;
   telegramAwaitingPhone: string;
   telegramEnterCode: string;
+  telegramCodePlaceholder: string;
   telegramCodeSentHint: string;
-  telegramExpired: string;
-  telegramStep1: string;
-  telegramStep2: string;
-  telegramStep3: string;
+  telegramVerifying: string;
+  telegramCodeSuccess: string;
+  telegramCodeInvalid: string;
+  telegramCodeExpired: string;
   telegramVerify: string;
   telegramTooManyAttempts: string;
   telegramConfigWarning: string;
   telegramExpiresIn: string;
+  telegramResendOpen: string;
   badgeFast: string;
   back: string;
   welcomeTitleLogin: string;
@@ -65,9 +73,10 @@ export type SignInLabels = {
   welcomeSubtitleLogin: string;
   welcomeSubtitleRegister: string;
   rememberMe: string;
-  trustBooking: string;
-  trustData: string;
-  trustSupport: string;
+  noAccount: string;
+  switchToRegister: string;
+  hasAccount: string;
+  switchToSignIn: string;
   footerCopyright: string;
   footerPrivacy: string;
   footerTerms: string;
@@ -113,6 +122,7 @@ type Props = {
   locale: Locale;
   labels: SignInLabels;
   promoLabels: AuthPromoLabels;
+  initialMode?: "signIn" | "register";
   nextPath?: string | null;
   googleOAuthEnabled?: boolean;
   telegramLoginEnabled?: boolean;
@@ -126,6 +136,7 @@ export function SignInClient({
   locale,
   labels: L,
   promoLabels,
+  initialMode = "signIn",
   nextPath = null,
   googleOAuthEnabled = false,
   telegramLoginEnabled = false,
@@ -133,7 +144,7 @@ export function SignInClient({
   showTelegramConfigWarning = false
 }: Props) {
   const [me, setMe] = useState<ApiUser | null>(null);
-  const [mainTab, setMainTab] = useState<MainTab>("signIn");
+  const [mode, setMode] = useState<MainTab>(initialMode === "register" ? "register" : "signIn");
   const [formError, setFormError] = useState<string | null>(null);
 
   const [loginEmail, setLoginEmail] = useState("");
@@ -150,6 +161,7 @@ export function SignInClient({
 
   const [isLoginSubmitting, setIsLoginSubmitting] = useState(false);
   const [isRegisterSubmitting, setIsRegisterSubmitting] = useState(false);
+  const [telegramFlowActive, setTelegramFlowActive] = useState(false);
 
   const loginEmailId = useId();
   const loginPasswordId = useId();
@@ -158,9 +170,15 @@ export function SignInClient({
   const regPasswordId = useId();
   const regConfirmId = useId();
 
-  const isRegister = mainTab === "register";
-  const cardTitle = isRegister ? L.welcomeTitleRegister : L.welcomeTitleLogin;
-  const cardSubtitle = isRegister ? L.welcomeSubtitleRegister : L.welcomeSubtitleLogin;
+  const isRegister = mode === "register";
+  const cardTitle = isRegister ? L.welcomeTitleRegister : L.cardTitleLogin;
+  const cardSubtitle = isRegister ? L.welcomeSubtitleRegister : L.cardSubtitleLogin;
+
+  function switchMode(next: MainTab) {
+    setMode(next);
+    setFormError(null);
+    setTelegramFlowActive(false);
+  }
 
   function mapApiErrorMessage(raw: string): string {
     const v = (raw || "").toLowerCase();
@@ -294,33 +312,15 @@ export function SignInClient({
             <h2 className="auth-premium-card__title">{cardTitle}</h2>
             <p className="auth-premium-card__subtitle">{cardSubtitle}</p>
 
-            <div className="auth-premium-tabs" role="tablist" aria-label={cardTitle}>
-              {(["signIn", "register"] as const).map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  role="tab"
-                  aria-selected={mainTab === t}
-                  className="auth-premium-tab"
-                  onClick={() => {
-                    setMainTab(t);
-                    setFormError(null);
-                  }}
-                >
-                  {t === "signIn" ? L.tabsSignIn : L.tabsRegister}
-                </button>
-              ))}
-            </div>
-
             {formError ? (
               <div className="auth-premium-error" role="alert">
                 {formError}
               </div>
             ) : null}
 
-            <div className="mt-6">
-              {isRegister ? (
-                <form onSubmit={handleRegisterEmail} className="space-y-4" noValidate>
+            <div className={`auth-premium-form${telegramFlowActive ? " auth-premium-form--telegram" : ""}`}>
+              {!telegramFlowActive && isRegister ? (
+                <form onSubmit={handleRegisterEmail} className="auth-premium-form-fields" noValidate>
                   <AuthField
                     id={regNameId}
                     label={L.fullName}
@@ -387,8 +387,8 @@ export function SignInClient({
                     <ArrowIcon />
                   </button>
                 </form>
-              ) : (
-                <form onSubmit={handleSignInEmail} className="space-y-4" noValidate>
+              ) : !telegramFlowActive ? (
+                <form onSubmit={handleSignInEmail} className="auth-premium-form-fields" noValidate>
                   <AuthField
                     id={loginEmailId}
                     label={L.loginLabel}
@@ -403,6 +403,11 @@ export function SignInClient({
                   <AuthField
                     id={loginPasswordId}
                     label={L.password}
+                    labelExtra={
+                      <Link href="/auth/reset-password" className="auth-premium-link">
+                        {L.forgotPassword}
+                      </Link>
+                    }
                     type={loginShowPassword ? "text" : "password"}
                     value={loginPassword}
                     onChange={setLoginPassword}
@@ -417,19 +422,14 @@ export function SignInClient({
                     }}
                     invalid={!!formError && !loginPassword}
                   />
-                  <div className="auth-premium-row">
-                    <label className="auth-premium-check">
-                      <input
-                        type="checkbox"
-                        checked={rememberMe}
-                        onChange={(e) => setRememberMe(e.target.checked)}
-                      />
-                      {L.rememberMe}
-                    </label>
-                    <Link href="/auth/reset-password" className="auth-premium-link">
-                      {L.forgotPassword}
-                    </Link>
-                  </div>
+                  <label className="auth-premium-check">
+                    <input
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                    />
+                    {L.rememberMe}
+                  </label>
                   <button
                     type="submit"
                     className="auth-premium-submit"
@@ -440,17 +440,20 @@ export function SignInClient({
                     <ArrowIcon />
                   </button>
                 </form>
-              )}
+              ) : null}
 
-              <div className="auth-premium-divider">{L.orContinueSocial}</div>
+              {!telegramFlowActive ? <div className="auth-premium-divider">{L.orContinueSocial}</div> : null}
 
               <AuthSocialButtons
                 locale={locale}
+                layout="row"
                 isRegister={isRegister}
                 googleOAuthEnabled={googleOAuthEnabled}
                 telegramLoginEnabled={telegramLoginEnabled}
                 showTelegramConfigWarning={showTelegramConfigWarning}
                 telegramBotUsername={telegramBotUsername}
+                telegramFlowActive={telegramFlowActive}
+                onTelegramFlowChange={setTelegramFlowActive}
                 labels={{
                   googleContinue: L.googleContinue,
                   googleRegister: L.googleRegister,
@@ -458,39 +461,61 @@ export function SignInClient({
                   telegramContinue: L.telegramContinue,
                   telegramRegister: L.telegramRegister,
                   telegramRegisterHint: L.telegramRegisterHint,
-                  badgeFast: "",
+                  badgeFast: L.badgeFast,
                   telegramConfigWarning: L.telegramConfigWarning,
                   telegram: {
                     signIn: L.telegramContinue,
-                    openBot: L.telegramOpenBot,
-                    waitingBot: L.telegramWaitingBot,
-                    awaitingPhone: L.telegramAwaitingPhone,
-                    enterCode: L.telegramEnterCode,
-                    codeSentHint: L.telegramCodeSentHint,
-                    expired: L.telegramExpired,
-                    errorGeneric: L.errorGeneric,
-                    expiresIn: "",
-                    step1: L.telegramStep1,
-                    step2: L.telegramStep2,
-                    step3: L.telegramStep3,
+                    title: L.telegramFlowTitle,
+                    subtitle: L.telegramFlowSubtitle,
+                    stepOpen: L.telegramStepOpen,
+                    stepStart: L.telegramStepStart,
+                    stepEnterCode: L.telegramStepEnterCode,
+                    openTelegram: L.telegramOpenTelegram,
+                    openTelegramBrowser: L.telegramOpenBrowser,
+                    manualHelp: L.telegramManualHelp,
+                    codeLabel: L.telegramEnterCode,
+                    codePlaceholder: L.telegramCodePlaceholder,
                     verify: L.telegramVerify,
+                    verifying: L.telegramVerifying,
+                    codeSuccess: L.telegramCodeSuccess,
+                    codeInvalid: L.telegramCodeInvalid,
+                    codeExpired: L.telegramCodeExpired,
+                    awaitingPhone: L.telegramAwaitingPhone,
+                    codeSentHint: L.telegramCodeSentHint,
+                    waitingBot: L.telegramWaitingBot,
+                    expired: L.telegramCodeExpired,
+                    errorGeneric: L.errorGeneric,
+                    expiresIn: L.telegramExpiresIn,
                     tooManyAttempts: L.telegramTooManyAttempts,
-                    back: L.back
+                    back: L.back,
+                    resendOpen: L.telegramResendOpen
                   }
                 }}
                 onGoogle={() => handleGoogleAuth().catch(() => setFormError(L.googleSignInError))}
                 onTelegramSuccess={() => refreshMe()}
                 onError={(msg) => setFormError(mapApiErrorMessage(msg))}
               />
-            </div>
 
-            <AuthTrustStrip
-              items={[
-                { id: "1", label: L.trustBooking },
-                { id: "2", label: L.trustData },
-                { id: "3", label: L.trustSupport }
-              ]}
-            />
+              {!telegramFlowActive ? (
+              <p className="auth-premium-switch">
+                {isRegister ? (
+                  <>
+                    <span>{L.hasAccount}</span>{" "}
+                    <button type="button" className="auth-premium-switch__action" onClick={() => switchMode("signIn")}>
+                      {L.switchToSignIn}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <span>{L.noAccount}</span>{" "}
+                    <button type="button" className="auth-premium-switch__action" onClick={() => switchMode("register")}>
+                      {L.switchToRegister}
+                    </button>
+                  </>
+                )}
+              </p>
+              ) : null}
+            </div>
           </article>
 
           <footer className="auth-premium-page-footer">
@@ -507,6 +532,7 @@ export function SignInClient({
 function AuthField({
   id,
   label,
+  labelExtra,
   type = "text",
   value,
   onChange,
@@ -518,6 +544,7 @@ function AuthField({
 }: {
   id: string;
   label: string;
+  labelExtra?: React.ReactNode;
   type?: string;
   value: string;
   onChange: (v: string) => void;
@@ -530,9 +557,12 @@ function AuthField({
   const helperId = `${id}-helper`;
   return (
     <div className="auth-premium-field">
-      <label htmlFor={id} className="auth-premium-label">
-        {label}
-      </label>
+      <div className="auth-premium-label-row">
+        <label htmlFor={id} className="auth-premium-label">
+          {label}
+        </label>
+        {labelExtra}
+      </div>
       <div className="auth-premium-input-wrap">
         <span className="auth-premium-input-icon" aria-hidden>
           {icon}
@@ -569,7 +599,7 @@ function AuthField({
 
 function UserCircleIcon() {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
       <circle cx="12" cy="8" r="4" />
       <path d="M5 20c1.5-3 4.5-5 7-5s5.5 2 7 5" />
     </svg>

@@ -28,6 +28,26 @@ export function buildTelegramDeepLink(token: string): string {
   return `https://t.me/${bot}?start=login_${token}`;
 }
 
+export function buildTelegramAppDeepLink(token: string): string {
+  const bot = getTelegramBotUsername().replace(/^@/, "");
+  return `tg://resolve?domain=${bot}&start=login_${token}`;
+}
+
+/** Client-side fallback when API omits appDeepLink. */
+export function linksFromTelegramDeepLink(deepLink: string): { webLink: string; appLink: string } {
+  try {
+    const url = new URL(deepLink);
+    const bot = url.pathname.replace(/^\//, "");
+    const start = url.searchParams.get("start") ?? "";
+    return {
+      webLink: deepLink,
+      appLink: `tg://resolve?domain=${bot}&start=${encodeURIComponent(start)}`
+    };
+  } catch {
+    return { webLink: deepLink, appLink: deepLink };
+  }
+}
+
 export type TelegramChallengePublicStatus =
   | "pending"
   | "awaiting_phone"
@@ -39,6 +59,7 @@ export type TelegramChallengePublicStatus =
 export async function createTelegramLoginChallenge(): Promise<{
   token: string;
   deepLink: string;
+  appDeepLink: string;
   expiresAt: string;
   expiresInSec: number;
 }> {
@@ -53,10 +74,13 @@ export async function createTelegramLoginChallenge(): Promise<{
   return {
     token,
     deepLink: buildTelegramDeepLink(token),
+    appDeepLink: buildTelegramAppDeepLink(token),
     expiresAt: expiresAt.toISOString(),
     expiresInSec: Math.floor(CHALLENGE_TTL_MS / 1000)
   };
 }
+
+// TODO(PMS-telegram): if user.telegramId is already linked, skip Start and push OTP directly in Telegram.
 
 function isExpired(challenge: { expiresAt: Date; usedAt: Date | null }): boolean {
   return challenge.expiresAt.getTime() < Date.now() || Boolean(challenge.usedAt);

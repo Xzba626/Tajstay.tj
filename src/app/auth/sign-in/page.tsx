@@ -8,7 +8,11 @@ import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
 import { SignInClient } from "./SignInClient";
 
-export default function SignInPage({ searchParams }: { searchParams?: { next?: string } }) {
+export default function SignInPage({
+  searchParams
+}: {
+  searchParams?: { next?: string; mode?: string };
+}) {
   const locale = getLocale();
   const telegramLoginEnabled = isTelegramLoginUiEnabled();
   const telegramApiReady = isTelegramLoginConfigured();
@@ -39,9 +43,11 @@ export default function SignInPage({ searchParams }: { searchParams?: { next?: s
     footerTerms: m(locale, "auth.footerTerms")
   };
 
+  const initialMode = searchParams?.mode === "register" ? "register" : "signIn";
+
   const labels = {
-    tabsSignIn: m(locale, "auth.tabsSignIn"),
-    tabsRegister: m(locale, "auth.tabsRegister"),
+    cardTitleLogin: m(locale, "auth.cardTitleLogin"),
+    cardSubtitleLogin: m(locale, "auth.cardSubtitleLogin"),
     loginLabel: m(locale, "auth.loginLabel"),
     emailPlaceholder: m(locale, "auth.emailPlaceholder"),
     password: m(locale, "auth.password"),
@@ -72,18 +78,27 @@ export default function SignInPage({ searchParams }: { searchParams?: { next?: s
     telegramContinue: m(locale, "auth.telegramContinue"),
     telegramRegister: m(locale, "auth.telegramRegister"),
     telegramRegisterHint: m(locale, "auth.telegramRegisterHint"),
-    telegramOpenBot: m(locale, "auth.telegramOpenBot"),
+    telegramFlowTitle: m(locale, "auth.telegramFlowTitle"),
+    telegramFlowSubtitle: m(locale, "auth.telegramFlowSubtitle"),
+    telegramStepOpen: m(locale, "auth.telegramStepOpen"),
+    telegramStepStart: m(locale, "auth.telegramStepStart"),
+    telegramStepEnterCode: m(locale, "auth.telegramStepEnterCode"),
+    telegramOpenTelegram: m(locale, "auth.telegramOpenTelegram"),
+    telegramOpenBrowser: m(locale, "auth.telegramOpenBrowser"),
+    telegramManualHelp: m(locale, "auth.telegramManualHelp"),
     telegramWaitingBot: m(locale, "auth.telegramWaitingBot"),
     telegramAwaitingPhone: m(locale, "auth.telegramAwaitingPhone"),
     telegramEnterCode: m(locale, "auth.telegramEnterCode"),
+    telegramCodePlaceholder: m(locale, "auth.telegramCodePlaceholder"),
     telegramCodeSentHint: m(locale, "auth.telegramCodeSentHint"),
-    telegramExpired: m(locale, "auth.telegramExpired"),
-    telegramStep1: m(locale, "auth.telegramStep1"),
-    telegramStep2: m(locale, "auth.telegramStep2"),
-    telegramStep3: m(locale, "auth.telegramStep3"),
+    telegramVerifying: m(locale, "auth.telegramVerifying"),
+    telegramCodeSuccess: m(locale, "auth.telegramCodeSuccess"),
+    telegramCodeInvalid: m(locale, "auth.telegramCodeInvalid"),
+    telegramCodeExpired: m(locale, "auth.telegramCodeExpired"),
     telegramVerify: m(locale, "auth.telegramVerify"),
     telegramTooManyAttempts: m(locale, "auth.telegramTooManyAttempts"),
     telegramExpiresIn: m(locale, "auth.telegramExpiresIn"),
+    telegramResendOpen: m(locale, "auth.telegramResendOpen"),
     telegramConfigWarning: m(locale, "auth.telegramConfigWarning"),
     badgeFast: m(locale, "auth.badgeFast"),
     back: m(locale, "common.back"),
@@ -92,9 +107,10 @@ export default function SignInPage({ searchParams }: { searchParams?: { next?: s
     welcomeSubtitleLogin: m(locale, "auth.welcomeSubtitleLogin"),
     welcomeSubtitleRegister: m(locale, "auth.welcomeSubtitleRegister"),
     rememberMe: m(locale, "auth.rememberMe"),
-    trustBooking: m(locale, "auth.trustBooking"),
-    trustData: m(locale, "auth.trustData"),
-    trustSupport: m(locale, "auth.trustSupport"),
+    noAccount: m(locale, "auth.noAccount"),
+    switchToRegister: m(locale, "auth.switchToRegister"),
+    hasAccount: m(locale, "auth.hasAccount"),
+    switchToSignIn: m(locale, "auth.switchToSignIn"),
     footerCopyright: m(locale, "auth.footerCopyright"),
     footerPrivacy: m(locale, "auth.footerPrivacy"),
     footerTerms: m(locale, "auth.footerTerms"),
@@ -108,6 +124,7 @@ export default function SignInPage({ searchParams }: { searchParams?: { next?: s
       locale={locale}
       labels={labels}
       promoLabels={promoLabels}
+      initialMode={initialMode}
       nextPath={searchParams?.next ?? null}
       googleOAuthEnabled={isGoogleOAuthConfigured()}
       telegramLoginEnabled={telegramLoginEnabled}
