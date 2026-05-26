@@ -8,6 +8,7 @@ import type { Viewport } from "next";
 import type { ReactNode } from "react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { CookieConsent } from "@/components/layout/CookieConsent";
 import { SplashScreen } from "@/components/layout/SplashScreen";
 import { PageBackdrop } from "@/components/effects/PageBackdrop";
 import { GlobalToast } from "@/components/layout/GlobalToast";
@@ -104,6 +105,12 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             </main>
             <Footer />
           </div>
+          <CookieConsent
+            text={m(locale, "cookies.text")}
+            acceptLabel={m(locale, "cookies.accept")}
+            moreLabel={m(locale, "cookies.more")}
+            moreHref="/policy"
+          />
         </AuthProvider>
       </body>
     </html>
