@@ -46,16 +46,19 @@ function BookingDialogRow({
     publicCode: string | null;
     checkIn: Date;
     checkOut: Date;
-    room: { title: string; hotel: { name: string; coverImageUrl: string | null } };
+    room: { title: string; hotel: { name: string; coverImageUrl: string | null } } | null;
+    roomType?: { name: string; hotel: { name: string; coverImageUrl: string | null } } | null;
     user?: { name: string; phone: string } | null;
     chatMessages: { body: string }[];
   };
   user: { id: number; role: string };
   showAdminGuest: boolean;
 }) {
+  const hotel = b.room?.hotel ?? b.roomType?.hotel;
+  const roomTitle = b.room?.title ?? b.roomType?.name ?? "—";
   const last = b.chatMessages[0]?.body?.trim() || "Нет сообщений";
   const preview = last.length > 72 ? `${last.slice(0, 72)}…` : last;
-  const cover = b.room.hotel.coverImageUrl || BRAND.logoMark;
+  const cover = hotel?.coverImageUrl || BRAND.logoMark;
   const rowHref = bookingRowHref(user.role, b);
 
   return (
@@ -70,14 +73,14 @@ function BookingDialogRow({
       <div className="min-w-0 flex-1">
         <Link href={rowHref} className="block min-w-0">
           <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0 truncate font-semibold text-white">{b.room.hotel.name}</div>
+            <div className="min-w-0 truncate font-semibold text-white">{hotel?.name ?? "—"}</div>
             <span
               className={`mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full ${statusDotClass(b.status)}`}
               title={b.status}
               aria-hidden
             />
           </div>
-          <div className="truncate text-xs text-slate-400">{b.room.title}</div>
+          <div className="truncate text-xs text-slate-400">{roomTitle}</div>
           <div className="mt-1 truncate text-sm text-slate-500">{preview}</div>
           {showAdminGuest && b.user ? (
             <div className="mt-1 truncate text-[11px] text-slate-600">
@@ -95,8 +98,8 @@ function BookingDialogRow({
             checkInIso={b.checkIn.toISOString()}
             paymentCode={b.publicCode ?? undefined}
             title={user.role === "ADMIN" ? `Чат · ${b.id}` : "Чат"}
-            hotelName={b.room.hotel.name}
-            roomTitle={b.room.title}
+            hotelName={hotel?.name ?? "—"}
+            roomTitle={roomTitle}
             openLabel="Окно"
           />
         </div>
@@ -129,6 +132,7 @@ export default async function MyBookingsPage() {
     where: user.role === "ADMIN" ? {} : { userId: user.id },
     include: {
       room: { include: { hotel: true } },
+      roomType: { include: { hotel: true } },
       ...(user.role === "ADMIN" ? { user: { select: { id: true, name: true, phone: true } } } : {}),
       chatMessages: {
         where: { deletedAt: null, isArchived: false },

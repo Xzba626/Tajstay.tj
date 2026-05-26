@@ -14,7 +14,8 @@ type ReviewRow = {
     guestName?: string | null;
     guestPhone?: string | null;
     user?: { name: string | null; phone?: string | null; email?: string | null } | null;
-    room: { hotel: { name: string; city: string } };
+    room: { hotel: { name: string; city: string } } | null;
+    roomType?: { hotel: { name: string; city: string } } | null;
   };
 };
 
@@ -41,7 +42,10 @@ export function HomeReviewsSection({ locale, reviews }: Props) {
               <p className="mt-4 text-sm leading-relaxed text-[var(--taj-color-text-secondary)]">&ldquo;{r.comment}&rdquo;</p>
               <footer className="mt-4 border-t border-[var(--taj-color-border)] pt-4 text-sm">
                 <span className="font-semibold text-[var(--taj-color-text)]">{getBookingGuestLabel(r.booking)}</span>
-                <span className="text-[var(--taj-color-text-muted)]"> · {r.booking.room.hotel.city}</span>
+                <span className="text-[var(--taj-color-text-muted)]">
+                  {" "}
+                  · {(r.booking.room?.hotel ?? r.booking.roomType?.hotel)?.city ?? ""}
+                </span>
               </footer>
             </blockquote>
           ))}

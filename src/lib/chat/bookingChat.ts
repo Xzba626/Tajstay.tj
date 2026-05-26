@@ -222,9 +222,14 @@ export async function deleteChatMessageById(messageId: number): Promise<{ ok: bo
 export async function ownerSoftDeleteBookingChat(bookingId: number, ownerUserId: number): Promise<boolean> {
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
-    include: { room: { include: { hotel: true } } }
+    include: {
+      room: { include: { hotel: true } },
+      roomType: { include: { hotel: true } },
+      assignedRoom: { include: { hotel: true } }
+    }
   });
-  if (!booking || booking.room.hotel.ownerId !== ownerUserId) return false;
+  const { bookingHotel } = await import("@/lib/pms/bookingContext");
+  if (!booking || bookingHotel(booking).ownerId !== ownerUserId) return false;
   await prisma.chatMessage.updateMany({
     where: { bookingId },
     data: { deletedAt: new Date() }

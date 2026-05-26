@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/requireAuth";
 import { initializeBookingChatRoom } from "@/lib/chat/initializeBookingChat";
 import { canAccessBookingChat } from "@/lib/chat/bookingAccess";
+import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
 
 export async function POST(req: NextRequest, { params }: { params: { bookingId: string } }) {
   const user = await requireUser(["GUEST", "OWNER", "ADMIN"]);
@@ -26,7 +27,7 @@ export async function POST(req: NextRequest, { params }: { params: { bookingId: 
 
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
-    select: { userId: true, room: { select: { hotel: { select: { ownerId: true } } } } }
+    include: bookingWithHotelInclude
   });
   if (!booking) return NextResponse.json({ error: "Not found" }, { status: 404 });
 

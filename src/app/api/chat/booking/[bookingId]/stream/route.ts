@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/requireAuth";
 import { canAccessBookingChat } from "@/lib/chat/bookingAccess";
+import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +16,7 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ bookingId: 
 
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
-    include: { room: { include: { hotel: true } } }
+    include: bookingWithHotelInclude
   });
   if (!booking || !canAccessBookingChat(booking, user)) {
     return new Response("Forbidden", { status: 403 });

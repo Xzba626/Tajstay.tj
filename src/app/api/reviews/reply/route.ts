@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/requireAuth";
+import { bookingHotel } from "@/lib/pms/bookingContext";
 
 const schema = z.object({
   reviewId: z.number().int(),
@@ -33,7 +34,7 @@ export async function POST(req: Request) {
 
   if (!review) return NextResponse.json({ error: "Review not found" }, { status: 404 });
 
-  const hotelOwnerId = review.booking.room.hotel.ownerId;
+  const hotelOwnerId = bookingHotel(review.booking).ownerId;
   const canReply = user.role === "ADMIN" || user.id === hotelOwnerId;
   if (!canReply) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 

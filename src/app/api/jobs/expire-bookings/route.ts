@@ -18,7 +18,13 @@ export async function POST(req: NextRequest) {
       expiresAt: { lt: now },
       paymentTimerPaused: false
     },
-    select: { id: true, userId: true, room: { select: { hotel: { select: { ownerId: true } } } }, payment: { select: { id: true } } }
+    select: {
+      id: true,
+      userId: true,
+      room: { select: { hotel: { select: { ownerId: true } } } },
+      roomType: { select: { hotel: { select: { ownerId: true } } } },
+      payment: { select: { id: true } }
+    }
   });
 
   const reviewTimedOut = await prisma.booking.findMany({
@@ -41,7 +47,7 @@ export async function POST(req: NextRequest) {
     // Notify owner that booking expired and is removed from active flow
     await prisma.notification.createMany({
       data: expired.map((b) => ({
-        userId: b.room.hotel.ownerId,
+        userId: b.room?.hotel?.ownerId ?? b.roomType?.hotel?.ownerId ?? 0,
         bookingId: b.id,
         type: "BOOKING_EXPIRED",
         isRead: false

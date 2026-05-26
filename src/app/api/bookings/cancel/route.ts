@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/requireAuth";
 import { BOOKING_STATUS } from "@/lib/domain/booking";
 import { publicUrl } from "@/lib/http/publicOrigin";
+import { bookingHotel } from "@/lib/pms/bookingContext";
+import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
 
 function canCancel(status: string): boolean {
   return (
@@ -22,7 +24,7 @@ export async function POST(req: NextRequest) {
 
   const booking = await prisma.booking.findUnique({
     where: { publicCode: code },
-    include: { room: { include: { hotel: true } } }
+    include: bookingWithHotelInclude
   });
   if (!booking || booking.userId !== user.id) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -31,6 +33,8 @@ export async function POST(req: NextRequest) {
   if (!canCancel(booking.status)) {
     return NextResponse.redirect(publicUrl(req, `/payment/${encodeURIComponent(code)}`));
   }
+
+  const hotel = bookingHotel(booking);
 
   await prisma.booking.update({
     where: { id: booking.id },
@@ -42,7 +46,7 @@ export async function POST(req: NextRequest) {
 
   await prisma.notification.create({
     data: {
-      userId: booking.room.hotel.ownerId,
+      userId: hotel.ownerId,
       bookingId: booking.id,
       type: "BOOKING_CANCELLED_BY_GUEST",
       isRead: false

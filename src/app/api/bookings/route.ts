@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/requireAuth";
-import { computeRoomTotalPrice } from "@/lib/services/bookingPricing";
+import { computeRoomTotalPrice, computeRoomTypeTotalPrice } from "@/lib/services/bookingPricing";
 import { BOOKING_STATUS } from "@/lib/domain/booking";
 import { hashPassword } from "@/lib/auth/password";
 import { createSessionCookie } from "@/lib/auth/session";
@@ -38,6 +38,7 @@ export async function POST(req: NextRequest) {
     req.nextUrl.searchParams.get("json") === "1";
 
   const form = await req.formData();
+  const roomTypeId = Number(form.get("roomTypeId"));
   const roomId = Number(form.get("roomId"));
   const checkInRaw = String(form.get("checkIn") ?? "");
   const checkOutRaw = String(form.get("checkOut") ?? "");
@@ -68,7 +69,7 @@ export async function POST(req: NextRequest) {
   const checkIn = new Date(checkInRaw);
   const checkOut = new Date(checkOutRaw);
 
-  if (!roomId || !phone || Number.isNaN(checkIn.getTime()) || Number.isNaN(checkOut.getTime())) {
+  if ((!roomId && !roomTypeId) || !phone || Number.isNaN(checkIn.getTime()) || Number.isNaN(checkOut.getTime())) {
     if (wantsJson) return NextResponse.json({ error: "invalid" }, { status: 400 });
     return bookingFormRedirect(req, { roomId: roomId || 0, checkIn: checkInRaw, checkOut: checkOutRaw, code: "invalid" });
   }
@@ -105,7 +106,19 @@ export async function POST(req: NextRequest) {
       return bookingFormRedirect(req, { roomId, checkIn: checkInRaw, checkOut: checkOutRaw, code: "failed" });
     }
 
-    const pricing = await computeRoomTotalPrice({ roomId, checkIn, checkOut, guestCount });
+    const pricing = roomTypeId
+      ? await computeRoomTypeTotalPrice({ roomTypeId, checkIn, checkOut, guestCount })
+      : await computeRoomTotalPrice({ roomId, checkIn, checkOut, guestCount });
+
+    let resolvedRoomTypeId = roomTypeId || null;
+    let resolvedRoomId: number | null = roomId || null;
+    if (!resolvedRoomTypeId && resolvedRoomId) {
+      const r = await prisma.room.findUnique({
+        where: { id: resolvedRoomId },
+        select: { roomTypeId: true }
+      });
+      resolvedRoomTypeId = r?.roomTypeId ?? null;
+    }
     // Guest has 15 minutes to submit payment proof after booking creation.
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
     const publicCode = await generateBookingCode("TJ");
@@ -115,7 +128,9 @@ export async function POST(req: NextRequest) {
       data: {
         publicCode,
         userId,
-        roomId,
+        roomTypeId: resolvedRoomTypeId,
+        roomId: resolvedRoomId,
+        assignedRoomId: resolvedRoomId,
         checkIn,
         checkOut,
         totalPrice: pricing.totalPrice,
@@ -169,15 +184,19 @@ export async function POST(req: NextRequest) {
       }
     });
 
-    const roomWithHotel = await prisma.room.findUnique({
-      where: { id: roomId },
-      include: { hotel: true }
-    });
+    const ownerTarget = resolvedRoomId
+      ? await prisma.room.findUnique({ where: { id: resolvedRoomId }, include: { hotel: true } })
+      : resolvedRoomTypeId
+        ? await prisma.roomType.findUnique({ where: { id: resolvedRoomTypeId }, include: { hotel: true } })
+        : null;
 
-    if (roomWithHotel) {
+    const ownerId =
+      ownerTarget && "hotel" in ownerTarget ? ownerTarget.hotel.ownerId : null;
+
+    if (ownerId) {
       await prisma.notification.create({
         data: {
-          userId: roomWithHotel.hotel.ownerId,
+          userId: ownerId,
           bookingId: booking.id,
           type: "NEW_BOOKING",
           isRead: false

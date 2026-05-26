@@ -11,8 +11,12 @@ async function globalAdminId(): Promise<number | null> {
   return admin?.id ?? null;
 }
 
+import { bookingHotel } from "@/lib/pms/bookingContext";
+
 const bookingInclude = {
   room: { include: { hotel: true } },
+  roomType: { include: { hotel: true } },
+  assignedRoom: { include: { hotel: true } },
   user: true
 } as const;
 
@@ -30,11 +34,12 @@ export async function initializeBookingChatRoom(bookingId: number, locale?: stri
     include: bookingInclude
   });
   if (!booking) return { ok: false, reason: "not_found" };
+  if (!booking.userId) return { ok: false, reason: "offline_no_chat" };
 
   const adminId = await globalAdminId();
   if (!adminId) return { ok: false, reason: "no_admin" };
 
-  const ownerId = booking.room.hotel.ownerId;
+  const ownerId = bookingHotel(booking).ownerId;
 
   const legacyCount = await prisma.transactionLog.count({
     where: { bookingId, type: BOOKING_CHAT_LOG_TYPE }

@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { BOOKING_STATUS } from "@/lib/domain/booking";
 import { addBookingSystemMessage } from "@/lib/chat/bookingChat";
 import { assertDatesAvailable, DatesUnavailableError } from "@/lib/booking/availability";
+import { assertRoomTypeAvailable, RoomTypeUnavailableError } from "@/lib/pms/inventory";
+import { bookingHotel } from "@/lib/pms/bookingContext";
 
 const EXTEND_MS = 5 * 60 * 1000;
 
@@ -23,24 +25,41 @@ export async function extendBookingPaymentWindowAdmin(bookingId: number): Promis
 export async function confirmBookingPaymentAdmin(bookingId: number, adminId: number): Promise<void> {
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
-    include: { room: { include: { hotel: true } } }
+    include: {
+      room: { include: { hotel: true } },
+      roomType: { include: { hotel: true } },
+      assignedRoom: { include: { hotel: true } }
+    }
   });
   if (!booking) throw new Error("NOT_FOUND");
   if (booking.status !== BOOKING_STATUS.ON_REVIEW) throw new Error("NOT_ON_REVIEW");
   if (!booking.paymentProofUrl || !booking.proofSubmittedAt) throw new Error("NO_PROOF");
+  const hotel = bookingHotel(booking);
 
   const payment = await prisma.payment.findUnique({ where: { bookingId } });
   if (!payment || payment.status !== "PENDING") throw new Error("BAD_PAYMENT");
 
+  const physicalRoomId = booking.assignedRoomId ?? booking.roomId;
   try {
-    await assertDatesAvailable({
-      roomId: booking.roomId,
-      checkIn: booking.checkIn,
-      checkOut: booking.checkOut,
-      excludeBookingId: bookingId
-    });
+    if (physicalRoomId) {
+      await assertDatesAvailable({
+        roomId: physicalRoomId,
+        checkIn: booking.checkIn,
+        checkOut: booking.checkOut,
+        excludeBookingId: bookingId
+      });
+    } else if (booking.roomTypeId) {
+      await assertRoomTypeAvailable({
+        roomTypeId: booking.roomTypeId,
+        checkIn: booking.checkIn,
+        checkOut: booking.checkOut,
+        excludeBookingId: bookingId
+      });
+    }
   } catch (e) {
-    if (e instanceof DatesUnavailableError) throw new Error("DATES_UNAVAILABLE");
+    if (e instanceof DatesUnavailableError || e instanceof RoomTypeUnavailableError) {
+      throw new Error("DATES_UNAVAILABLE");
+    }
     throw e;
   }
 
@@ -75,7 +94,7 @@ export async function confirmBookingPaymentAdmin(bookingId: number, adminId: num
     });
   }
   await prisma.notification.create({
-    data: { userId: booking.room.hotel.ownerId, bookingId, type: "PAYMENT_APPROVED", isRead: false }
+    data: { userId: hotel.ownerId, bookingId, type: "PAYMENT_APPROVED", isRead: false }
   });
 }
 
@@ -86,10 +105,15 @@ export async function rejectBookingPaymentAdmin(
 ): Promise<void> {
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
-    include: { room: { include: { hotel: true } } }
+    include: {
+      room: { include: { hotel: true } },
+      roomType: { include: { hotel: true } },
+      assignedRoom: { include: { hotel: true } }
+    }
   });
   if (!booking) throw new Error("NOT_FOUND");
   if (booking.status !== BOOKING_STATUS.ON_REVIEW) throw new Error("NOT_ON_REVIEW");
+  const hotel = bookingHotel(booking);
 
   const trimmedReason = reason.trim() || "Причина не указана";
   const payment = await prisma.payment.findUnique({ where: { bookingId } });
@@ -127,6 +151,6 @@ export async function rejectBookingPaymentAdmin(
     });
   }
   await prisma.notification.create({
-    data: { userId: booking.room.hotel.ownerId, bookingId, type: "PAYMENT_REJECTED", isRead: false }
+    data: { userId: hotel.ownerId, bookingId, type: "PAYMENT_REJECTED", isRead: false }
   });
 }

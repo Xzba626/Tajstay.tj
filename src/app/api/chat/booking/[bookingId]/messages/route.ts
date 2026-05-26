@@ -6,6 +6,8 @@ import { markBookingChatMessagesRead } from "@/lib/chat/markMessagesRead";
 import { BOOKING_STATUS } from "@/lib/domain/booking";
 import { saveChatAttachmentFile } from "@/lib/uploads/saveChatAttachment";
 import { canAccessBookingChat } from "@/lib/chat/bookingAccess";
+import { bookingHotel } from "@/lib/pms/bookingContext";
+import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
 
 const TERMINAL_NO_NEW_MESSAGES = new Set<string>([
   BOOKING_STATUS.EXPIRED,
@@ -41,7 +43,7 @@ function bookingChatSnapshot(b: {
 async function ensureAccess(bookingId: number, userId: number) {
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
-    include: { room: { include: { hotel: true } }, user: true }
+    include: { ...bookingWithHotelInclude, user: true }
   });
   if (!booking) return null;
   const roleRow = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
@@ -106,7 +108,7 @@ export async function POST(req: NextRequest, { params }: { params: { bookingId: 
 
   if (!canAccessBookingChat(booking, user)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const isGuest = booking.userId != null && booking.userId === user.id;
-  const isOwner = booking.room.hotel.ownerId === user.id;
+  const isOwner = bookingHotel(booking).ownerId === user.id;
   const isAdmin = user.role === "ADMIN";
 
   if (isBookingChatLocked(booking)) {
@@ -174,7 +176,7 @@ export async function POST(req: NextRequest, { params }: { params: { bookingId: 
     if (proofJustSubmitted) {
       await tx.notification.create({
         data: {
-          userId: booking.room.hotel.ownerId,
+          userId: bookingHotel(booking).ownerId,
           bookingId,
           type: "PAYMENT_PROOF_SUBMITTED",
           isRead: false
@@ -200,7 +202,7 @@ export async function POST(req: NextRequest, { params }: { params: { bookingId: 
     orderBy: { id: "asc" },
     select: { id: true }
   });
-  const ownerId = booking.room.hotel.ownerId;
+  const ownerId = bookingHotel(booking).ownerId;
   const targets = [booking.userId, ownerId, adminRow?.id].filter((v): v is number => typeof v === "number");
   const receivers = targets.filter((uid) => uid !== user.id);
   if (receivers.length) {

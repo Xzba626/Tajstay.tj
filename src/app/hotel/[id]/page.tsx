@@ -12,6 +12,7 @@ import { RoomPhotoCarousel } from "@/components/RoomPhotoCarousel";
 import { AppImage } from "@/components/ui/AppImage";
 import { HotelViewTracker } from "@/components/guest/HotelViewTracker";
 import { getBookingGuestLabel } from "@/lib/domain/booking";
+import { RoomTypeCards } from "@/components/hotel/RoomTypeCards";
 
 function buildAiReviewSummary(comments: string[]) {
   const topicKeywords: Record<string, string[]> = {
@@ -100,7 +101,14 @@ export default async function HotelDetailPage({
   const hotel = await prisma.hotel.findUnique({
     where: { id },
     include: {
-      rooms: { include: { photos: { orderBy: { sortOrder: "asc" } } } }
+      roomTypes: {
+        include: {
+          photos: { orderBy: { sortOrder: "asc" } },
+          _count: { select: { rooms: { where: { availability: true, status: "ACTIVE" } } } }
+        },
+        orderBy: [{ sortOrder: "asc" }, { name: "asc" }]
+      },
+      rooms: { include: { photos: { orderBy: { sortOrder: "asc" } }, roomType: true } }
     }
   });
 
@@ -239,6 +247,14 @@ export default async function HotelDetailPage({
 
       <section className="space-y-3" data-reveal>
         <h2 className="text-xl font-semibold text-white">{m(locale, "owner.rooms")}</h2>
+        {hotel.roomTypes.length > 0 ? (
+          <RoomTypeCards
+            locale={locale}
+            roomTypes={hotel.roomTypes}
+            checkIn={searchParams?.checkIn}
+            checkOut={searchParams?.checkOut}
+          />
+        ) : (
         <div className="space-y-3">
           {hotel.rooms.map((room) => (
             <div
@@ -276,6 +292,7 @@ export default async function HotelDetailPage({
             </div>
           ))}
         </div>
+        )}
       </section>
 
       <section className="space-y-3" data-reveal>

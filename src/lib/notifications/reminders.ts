@@ -1,6 +1,8 @@
 import { addDays, endOfDay, startOfDay } from "date-fns";
 import { prisma } from "@/lib/prisma";
 import { createNotification } from "@/lib/notifications/create";
+import { bookingHotel } from "@/lib/pms/bookingContext";
+import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
 
 async function sentRecently(bookingId: number, type: string, since: Date): Promise<boolean> {
   const count = await prisma.notification.count({
@@ -26,7 +28,7 @@ export async function runBookingReminderJob() {
       checkIn: { gte: tomorrowStart, lte: tomorrowEnd },
       status: { in: ["CONFIRMED", "CHECKED_IN", "PENDING_OWNER"] }
     },
-    include: { user: true, room: { include: { hotel: { include: { owner: true } } } } }
+    include: { user: true, ...bookingWithHotelInclude }
   });
 
   for (const b of checkIns) {
@@ -41,7 +43,7 @@ export async function runBookingReminderJob() {
       });
       created += 1;
     }
-    const ownerId = b.room.hotel.ownerId;
+    const ownerId = bookingHotel(b).ownerId;
     await createNotification({
       userId: ownerId,
       type: "CHECK_IN_REMINDER",
@@ -56,7 +58,7 @@ export async function runBookingReminderJob() {
       checkOut: { gte: tomorrowStart, lte: tomorrowEnd },
       status: { in: ["CONFIRMED", "CHECKED_IN", "COMPLETED"] }
     },
-    include: { user: true, room: { include: { hotel: true } } }
+    include: { user: true, ...bookingWithHotelInclude }
   });
 
   for (const b of checkOuts) {
@@ -71,7 +73,7 @@ export async function runBookingReminderJob() {
       created += 1;
     }
     await createNotification({
-      userId: b.room.hotel.ownerId,
+      userId: bookingHotel(b).ownerId,
       type: "CHECK_OUT_REMINDER",
       bookingId: b.id,
       link: `/dashboard/owner?section=bookings`

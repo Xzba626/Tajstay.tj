@@ -9,6 +9,8 @@ import { getBookingTimeline } from "@/lib/chat/bookingTimeline";
 import { getProofMetaFromLogs } from "@/lib/chat/proofMeta";
 import { m } from "@/lib/i18n/messages";
 import { getUserTrustBadges } from "@/lib/auth/trustBadges";
+import { bookingHotel, bookingRoomTitle } from "@/lib/pms/bookingContext";
+import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +31,7 @@ export default async function BookingChatPage({
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
     include: {
+      ...bookingWithHotelInclude,
       room: { include: { hotel: { include: { owner: true } } } },
       payment: true,
       user: true
@@ -36,9 +39,10 @@ export default async function BookingChatPage({
   });
   if (!booking) notFound();
 
+  const hotel = bookingHotel(booking);
   const isGuest = booking.userId === user.id;
   const guestLabel = getBookingGuestLabel(booking);
-  const isOwner = booking.room.hotel.ownerId === user.id;
+  const isOwner = hotel.ownerId === user.id;
   const isAdmin = user.role === "ADMIN";
   if (!isGuest && !isOwner && !isAdmin) notFound();
 
@@ -62,14 +66,14 @@ export default async function BookingChatPage({
         : m(locale, "bookingRoom.titleOwner");
 
   const [paymentMethods, timeline, proofMeta] = await Promise.all([
-    getOwnerPaymentMethods(booking.room.hotel.ownerId),
+    getOwnerPaymentMethods(hotel.ownerId),
     getBookingTimeline(bookingId),
     getProofMetaFromLogs(bookingId)
   ]);
 
   const proofSent = searchParams?.proofSent === "1";
 
-  const counterpartUser = isGuest ? booking.room.hotel.owner : booking.user;
+  const counterpartUser = isGuest ? booking.room?.hotel?.owner : booking.user;
   const counterpartTrustBadges = counterpartUser ? getUserTrustBadges(counterpartUser) : [];
 
   return (
@@ -84,14 +88,14 @@ export default async function BookingChatPage({
       guestLabel={guestLabel}
       counterpartPreview={
         isAdmin
-          ? `${guestLabel} · ${booking.room.hotel.name}`
+          ? `${guestLabel} · ${hotel.name}`
           : isGuest
             ? m(locale, "bookingRoom.counterpartGuest")
             : `${m(locale, "bookingRoom.counterpartOwner")}: ${guestLabel}`
       }
-      hotelName={booking.room.hotel.name}
-      roomTitle={booking.room.title}
-      coverImageUrl={booking.room.hotel.coverImageUrl}
+      hotelName={hotel.name}
+      roomTitle={bookingRoomTitle(booking)}
+      coverImageUrl={hotel.coverImageUrl ?? null}
       checkInIso={booking.checkIn.toISOString()}
       checkOutIso={booking.checkOut.toISOString()}
       guestCount={booking.guestCount}

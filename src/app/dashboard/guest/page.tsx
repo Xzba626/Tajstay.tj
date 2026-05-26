@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/requireAuth";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
+import { bookingHotel, bookingRoomTitle } from "@/lib/pms/bookingContext";
 import { StatusBadge, bookingStatusVariant, paymentStatusVariant } from "@/components/ui/StatusBadge";
 import LeaveReviewForm from "./leave-review-form";
 import { BookingChatLauncher } from "@/components/chat/BookingChatPanel";
@@ -32,11 +33,8 @@ export default async function GuestDashboardPage({
   const bookings = await prisma.booking.findMany({
     where: { userId: user.id },
     include: {
-      room: {
-        include: {
-          hotel: { include: { owner: true } }
-        }
-      },
+      room: { include: { hotel: { include: { owner: true } } } },
+      roomType: { include: { hotel: { include: { owner: true } } } },
       review: true
     },
     orderBy: { createdAt: "desc" }
@@ -78,12 +76,14 @@ export default async function GuestDashboardPage({
             booking.paymentStatus === "PAID" &&
             booking.checkOut.getTime() < Date.now() &&
             !booking.review;
+          const hotel = bookingHotel(booking);
+          const roomTitle = bookingRoomTitle(booking);
           return (
           <div key={booking.id} className="surface-1 rounded-xl p-4" data-reveal>
             <div className="flex flex-col gap-1 md:flex-row md:items-start md:justify-between md:gap-3">
               <div>
-                <div className="font-semibold text-white">{booking.room.hotel.name}</div>
-                <div className="text-sm text-brand-200">{booking.room.title}</div>
+                <div className="font-semibold text-white">{hotel.name}</div>
+                <div className="text-sm text-brand-200">{roomTitle}</div>
                 <div className="mt-1 text-sm">
                   {booking.checkIn.toISOString().slice(0, 10)} - {booking.checkOut.toISOString().slice(0, 10)}
                 </div>
@@ -125,7 +125,7 @@ export default async function GuestDashboardPage({
             <div className="mt-4 flex flex-wrap gap-2">
               <a
                 className="rounded-xl border border-brand-600 px-3 py-2 text-xs font-semibold text-brand-100 transition hover:bg-brand-700"
-                href={`/hotel/${booking.room.hotel.id}`}
+                href={`/hotel/${hotel.id}`}
               >
                 Открыть отель
               </a>
@@ -228,8 +228,8 @@ export default async function GuestDashboardPage({
                 checkInIso={booking.checkIn.toISOString()}
                 paymentCode={booking.publicCode ?? undefined}
                 title="Чат с владельцем"
-                hotelName={booking.room.hotel.name}
-                roomTitle={booking.room.title}
+                hotelName={hotel.name}
+                roomTitle={roomTitle}
                 openLabel="Открыть чат"
               />
               <Link
@@ -245,7 +245,7 @@ export default async function GuestDashboardPage({
               <div className="mt-4 rounded-2xl border border-brand-700 bg-brand-800 p-4 text-sm text-brand-200">
                 <div className="font-semibold">Контакты владельца</div>
                 <div className="mt-1 text-white">
-                  {booking.room.hotel.owner.name} · {booking.room.hotel.owner.phone}
+                  {booking.room?.hotel?.owner?.name ?? "—"} · {booking.room?.hotel?.owner?.phone ?? "—"}
                 </div>
                 <div className="mt-1 text-xs text-brand-200">
                   Контакты доступны после подтверждения брони владельцем.

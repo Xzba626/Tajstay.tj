@@ -19,7 +19,9 @@ type OfflineBookingRow = {
   remainingAmount: unknown;
   offlinePaymentType: string | null;
   offlineNote: string | null;
-  room: { title: string; hotel: { name: string } };
+  room?: { title: string; hotel: { name: string } } | null;
+  roomType?: { name: string; hotel: { name: string } } | null;
+  assignedRoom?: { title: string; roomNumber?: string | null } | null;
   user?: { name: string | null; phone: string | null } | null;
 };
 
@@ -37,7 +39,8 @@ export function OfflineBookingsList({ locale, bookings }: { locale: Locale; book
             {b.publicCode ? <span className="text-xs text-slate-500">{b.publicCode}</span> : null}
           </div>
           <div className="mt-2 text-slate-600">
-            {b.room.hotel.name} · {b.room.title} · {b.checkIn.toISOString().slice(0, 10)} —{" "}
+            {b.room?.hotel?.name ?? b.roomType?.hotel?.name ?? "—"} ·{" "}
+            {b.assignedRoom?.roomNumber ?? b.room?.title ?? b.roomType?.name ?? "—"} · {b.checkIn.toISOString().slice(0, 10)} —{" "}
             {b.checkOut.toISOString().slice(0, 10)} · {b.guestPhone}
           </div>
           <div className="mt-1 text-slate-500">

@@ -29,7 +29,8 @@ type Props = {
     addPhoneBookingHint: string;
   };
   defaults: {
-    roomId: number;
+    roomId?: number;
+    roomTypeId?: number;
     checkIn?: string;
     checkOut?: string;
     phone?: string;
@@ -181,7 +182,8 @@ export function BookingWizard({ labels, defaults, pricePerNight, finance, dcRetu
         void runBookingSubmit();
       }}
     >
-      <input type="hidden" name="roomId" value={defaults.roomId} />
+      {defaults.roomId ? <input type="hidden" name="roomId" value={defaults.roomId} /> : null}
+      {defaults.roomTypeId ? <input type="hidden" name="roomTypeId" value={defaults.roomTypeId} /> : null}
       <input type="hidden" name="paymentMethod" value={paymentMethod} />
       {persistFields ? (
         <>

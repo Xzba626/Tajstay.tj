@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/requireAuth";
 import { clientIp, rateLimit } from "@/lib/security/rateLimit";
+import { bookingHotel } from "@/lib/pms/bookingContext";
 
 const safeImageUrl = z
   .string()
@@ -53,7 +54,9 @@ export async function POST(req: Request) {
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
     include: {
-      room: { include: { hotel: true } }
+      room: { include: { hotel: true } },
+      roomType: { include: { hotel: true } },
+      assignedRoom: { include: { hotel: true } }
     }
   });
 
@@ -78,7 +81,7 @@ export async function POST(req: Request) {
   });
 
   // Recompute rating for the hotel using all reviews.
-  const hotelId = booking.room.hotel.id;
+  const hotelId = bookingHotel(booking).id;
   const hotelReviews = await prisma.review.findMany({
     where: { booking: { room: { hotelId } } },
     select: { rating: true }

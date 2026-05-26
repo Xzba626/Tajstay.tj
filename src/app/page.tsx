@@ -53,7 +53,15 @@ export default async function HomePage() {
     "home.latestReviews",
     () =>
       prisma.review.findMany({
-        include: { booking: { include: { user: true, room: { include: { hotel: true } } } } },
+        include: {
+          booking: {
+            include: {
+              user: true,
+              room: { include: { hotel: true } },
+              roomType: { include: { hotel: true } }
+            }
+          }
+        },
         orderBy: { createdAt: "desc" },
         take: 6
       }),

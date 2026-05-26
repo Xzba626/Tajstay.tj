@@ -3,6 +3,8 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/requireAuth";
 import { createNotification } from "@/lib/notifications/create";
+import { bookingHotel } from "@/lib/pms/bookingContext";
+import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
 
 const schema = z.object({
   bookingId: z.number().int(),
@@ -19,11 +21,11 @@ export async function POST(req: Request) {
 
   const booking = await prisma.booking.findUnique({
     where: { id: parsed.data.bookingId },
-    include: { room: { include: { hotel: true } }, user: true }
+    include: { ...bookingWithHotelInclude, user: true }
   });
   if (!booking) return NextResponse.json({ error: "Booking not found" }, { status: 404 });
 
-  const ownerId = booking.room.hotel.ownerId;
+  const ownerId = bookingHotel(booking).ownerId;
   const guestId = booking.userId;
   const isGuest = guestId === user.id;
   const isOwner = ownerId === user.id;
@@ -78,14 +80,14 @@ export async function GET(req: Request) {
 
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
-    include: { room: { include: { hotel: true } } }
+    include: bookingWithHotelInclude
   });
   if (!booking) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const canView =
     user.role === "ADMIN" ||
     booking.userId === user.id ||
-    booking.room.hotel.ownerId === user.id;
+    bookingHotel(booking).ownerId === user.id;
   if (!canView) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const disputes = await prisma.dispute.findMany({

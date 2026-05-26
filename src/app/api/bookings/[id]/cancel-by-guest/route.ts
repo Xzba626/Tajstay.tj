@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/requireAuth";
 import { addBookingSystemMessage } from "@/lib/chat/bookingChat";
+import { bookingHotel } from "@/lib/pms/bookingContext";
+import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
 
 type CancelResult = { ok: true } | { ok: false; error: string };
 
@@ -30,7 +32,7 @@ export async function POST(_: NextRequest, { params }: { params: { id: string } 
 
   const booking = await prisma.booking.findUnique({
     where: { id },
-    include: { room: { include: { hotel: true } }, payment: true }
+    include: { ...bookingWithHotelInclude, payment: true }
   });
   if (!booking || booking.userId !== guest.id) return NextResponse.json({ ok: false, error: "Not found" }, { status: 404 });
 
@@ -38,7 +40,7 @@ export async function POST(_: NextRequest, { params }: { params: { id: string } 
     return NextResponse.json({ ok: false, error: "Нельзя отменить после подтверждения оплаты" }, { status: 409 });
   }
 
-  const ownerId = booking.room.hotel.ownerId;
+  const ownerId = bookingHotel(booking).ownerId;
   const adminId = await pickAdminId();
 
   await prisma.$transaction(async (tx) => {

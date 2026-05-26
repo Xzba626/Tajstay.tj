@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/requireAuth";
 import { publicUrl } from "@/lib/http/publicOrigin";
 import { clientIp, rateLimit } from "@/lib/security/rateLimit";
+import { bookingHotel } from "@/lib/pms/bookingContext";
 
 const MAX_FILE_BYTES = 6 * 1024 * 1024; // 6MB
 
@@ -44,7 +45,11 @@ export async function POST(req: NextRequest) {
 
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
-    include: { room: { include: { hotel: true } } }
+    include: {
+      room: { include: { hotel: true } },
+      roomType: { include: { hotel: true } },
+      assignedRoom: { include: { hotel: true } }
+    }
   });
   if (!booking || booking.userId !== user.id) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -65,7 +70,7 @@ export async function POST(req: NextRequest) {
 
   await prisma.notification.create({
     data: {
-      userId: booking.room.hotel.ownerId,
+      userId: bookingHotel(booking).ownerId,
       bookingId: booking.id,
       type: "GUEST_DOCUMENT_SUBMITTED",
       isRead: false

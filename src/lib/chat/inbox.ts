@@ -132,7 +132,13 @@ export async function getInboxConversations(params: {
     const guestLabel = b.guestName?.trim() || b.user?.name?.trim() || b.guestPhone?.trim() || b.phone || "—";
 
     if (searchQ) {
-      const hay = [guestLabel, b.room.hotel.name, b.room.title, b.publicCode ?? "", last?.body ?? ""]
+      const hay = [
+        guestLabel,
+        b.room?.hotel?.name ?? "",
+        b.room?.title ?? "",
+        b.publicCode ?? "",
+        last?.body ?? ""
+      ]
         .join(" ")
         .toLowerCase();
       if (!hay.includes(searchQ)) continue;
@@ -145,9 +151,9 @@ export async function getInboxConversations(params: {
       paymentStatus: b.paymentStatus,
       checkIn: b.checkIn.toISOString(),
       checkOut: b.checkOut.toISOString(),
-      hotelName: b.room.hotel.name,
-      roomTitle: b.room.title,
-      coverImageUrl: b.room.hotel.coverImageUrl,
+      hotelName: b.room?.hotel?.name ?? "",
+      roomTitle: b.room?.title ?? "",
+      coverImageUrl: b.room?.hotel?.coverImageUrl ?? null,
       guestLabel,
       lastMessage: last?.body?.trim() || "",
       lastMessageAt: last?.createdAt?.toISOString() ?? null,

@@ -6,6 +6,9 @@ import { publicUrl } from "@/lib/http/publicOrigin";
 import { getBookingForOwner } from "@/lib/auth/ownerBooking";
 import { BOOKING_STATUS } from "@/lib/domain/booking";
 import { assertDatesAvailable, DatesUnavailableError } from "@/lib/booking/availability";
+import { autoAssignBookingIfPossible } from "@/lib/pms/assignment";
+import { assertRoomTypeAvailable, RoomTypeUnavailableError } from "@/lib/pms/inventory";
+import { getBookingPhysicalRoomId } from "@/lib/pms/types";
 
 function wantsJson(req: NextRequest): boolean {
   const accept = req.headers.get("accept") ?? "";
@@ -28,15 +31,27 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     return NextResponse.json({ error: "Нельзя подтвердить бронь без оплаты/чека" }, { status: 400 });
   }
 
+  const physicalRoomId = getBookingPhysicalRoomId(booking);
   try {
-    await assertDatesAvailable({
-      roomId: booking.roomId,
-      checkIn: booking.checkIn,
-      checkOut: booking.checkOut,
-      excludeBookingId: id
-    });
+    if (physicalRoomId) {
+      await assertDatesAvailable({
+        roomId: physicalRoomId,
+        checkIn: booking.checkIn,
+        checkOut: booking.checkOut,
+        excludeBookingId: id
+      });
+    } else if (booking.roomTypeId) {
+      await assertRoomTypeAvailable({
+        roomTypeId: booking.roomTypeId,
+        checkIn: booking.checkIn,
+        checkOut: booking.checkOut,
+        excludeBookingId: id
+      });
+    } else {
+      return NextResponse.json({ error: "Бронь без категории номера" }, { status: 400 });
+    }
   } catch (e) {
-    if (e instanceof DatesUnavailableError) {
+    if (e instanceof DatesUnavailableError || e instanceof RoomTypeUnavailableError) {
       const msg = "Этот номер уже занят на выбранные даты.";
       if (wantsJson(req)) return NextResponse.json({ ok: false, error: msg }, { status: 409 });
       return NextResponse.redirect(publicUrl(req, `/dashboard/owner?section=bookings&error=dates_conflict`));
@@ -51,6 +66,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       paymentStatus: booking.paymentStatus === "FAILED" ? "PENDING" : booking.paymentStatus
     }
   });
+
+  await autoAssignBookingIfPossible(id);
 
   if (booking.userId != null) {
     await prisma.notification.create({

@@ -110,29 +110,125 @@ model Hotel {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  rooms     Room[]
-  favorites Favorite[]
+  rooms      Room[]
+  roomTypes  RoomType[]
+  staff      HotelStaff[]
+  favorites  Favorite[]
 
   photos    HotelPhoto[]
   amenities HotelAmenity[]
 }
 
+/// Категория номера (то, что видит гость): Стандарт, Полулюкс, …
+model RoomType {
+  id              Int      @id @default(autoincrement())
+  hotel           Hotel    @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  hotelId         Int
+  name            String
+  description     String?
+  basePrice       Decimal
+  weekendPrice    Decimal?
+  minNights       Int      @default(1)
+  extraGuestPrice Decimal?
+  adults          Int      @default(2)
+  children        Int      @default(0)
+  maxGuests       Int
+  bedsCount       Int      @default(1)
+  /// JSON: ["double","twin","sofa",…]
+  bedConfig       String   @default("[]")
+  /// ROOM_ONLY | BREAKFAST | HALF_BOARD | FULL_BOARD
+  mealPlan        String   @default("ROOM_ONLY")
+  /// JSON categorized amenities (see lib/pms/amenities.ts)
+  amenities       String   @default("[]")
+  sortOrder       Int      @default(0)
+  availability    Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  rooms       Room[]
+  bookings    Booking[]    @relation("BookingRoomType")
+  ratePlans   RatePlan[]
+  photos      RoomTypePhoto[]
+
+  @@unique([hotelId, name])
+  @@index([hotelId])
+}
+
+model RoomTypePhoto {
+  id         Int      @id @default(autoincrement())
+  roomTypeId Int
+  roomType   RoomType @relation(fields: [roomTypeId], references: [id], onDelete: Cascade)
+  url        String
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  @@index([roomTypeId])
+}
+
+/// Тариф (MVP: привязан к категории)
+model RatePlan {
+  id          Int      @id @default(autoincrement())
+  roomTypeId  Int
+  roomType    RoomType @relation(fields: [roomTypeId], references: [id], onDelete: Cascade)
+  name        String
+  /// Overrides meal on type when set
+  mealPlan    String?
+  refundable  Boolean  @default(true)
+  isDefault   Boolean  @default(false)
+  priceAdjust Decimal  @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([roomTypeId])
+}
+
+/// Физическая комната (101, 102, A-12) — управление владельцем/ресепшеном
 model Room {
   id           Int     @id @default(autoincrement())
   hotel        Hotel   @relation(fields: [hotelId], references: [id])
   hotelId      Int
+  roomType     RoomType? @relation(fields: [roomTypeId], references: [id])
+  roomTypeId   Int?
+  /// Номер комнаты в отеле (уникален в рамках hotelId)
+  roomNumber   String?
   title        String
   price        Decimal
   weekendPrice Decimal?
   minNights    Int      @default(1)
   extraGuestPrice Decimal?
   capacity     Int
-  amenities    String // JSON stringified array
+  amenities    String // JSON stringified array (legacy + custom)
+  /// JSON: extra amenities only on this physical room
+  customAmenities String @default("[]")
   availability Boolean @default(true)
+  /// ACTIVE | OUT_OF_SERVICE | MAINTENANCE | CLEANING | DIRTY | INSPECTED | HIDDEN | ARCHIVED
+  status       String   @default("ACTIVE")
+  /// CLEAN | DIRTY | CLEANING | INSPECTED
+  housekeepingStatus String @default("CLEAN")
+  staffNote    String?
 
-  overrides RoomDateOverride[]
-  bookings  Booking[]
-  photos    RoomPhoto[]
+  overrides       RoomDateOverride[]
+  bookings        Booking[]
+  assignedBookings Booking[] @relation("AssignedRoom")
+  photos          RoomPhoto[]
+
+  @@unique([hotelId, roomNumber])
+  @@index([hotelId])
+  @@index([roomTypeId])
+  @@index([status])
+}
+
+/// Сотрудники отеля (ресепшен / housekeeping)
+model HotelStaff {
+  id        Int      @id @default(autoincrement())
+  hotelId   Int
+  hotel     Hotel    @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  userId    Int
+  /// RECEPTIONIST | HOUSEKEEPING
+  staffRole String
+  createdAt DateTime @default(now())
+
+  @@unique([hotelId, userId])
+  @@index([userId])
 }
 
 /// Фото номера (галерея / слайдер на карточке и странице отеля).
@@ -178,8 +274,13 @@ model Booking {
   prepayment       Decimal?
   remainingAmount  Decimal?
   offlinePaymentType String?
-  room          Room     @relation(fields: [roomId], references: [id])
-  roomId        Int
+  roomType      RoomType? @relation("BookingRoomType", fields: [roomTypeId], references: [id])
+  roomTypeId    Int?
+  assignedRoom  Room?     @relation("AssignedRoom", fields: [assignedRoomId], references: [id])
+  assignedRoomId Int?
+  /// Legacy / denormalized physical room (assignedRoomId ?? roomId)
+  room          Room?     @relation(fields: [roomId], references: [id])
+  roomId        Int?
   checkIn       DateTime
   checkOut      DateTime
   totalPrice    Decimal
@@ -226,6 +327,8 @@ model Booking {
   @@index([userId])
   @@index([roomId, checkIn, checkOut])
   @@index([roomId, checkIn, checkOut, status])
+  @@index([roomTypeId, checkIn, checkOut])
+  @@index([assignedRoomId])
   @@index([status])
   @@index([source])
   @@index([expiresAt])

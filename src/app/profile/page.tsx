@@ -43,7 +43,14 @@ export default async function ProfilePage() {
 
   const reviews = await prisma.review.findMany({
     where: { booking: { userId: user.id } },
-    include: { booking: { include: { room: { include: { hotel: true } } } } },
+    include: {
+      booking: {
+        include: {
+          room: { include: { hotel: true } },
+          roomType: { include: { hotel: true } }
+        }
+      }
+    },
     orderBy: { id: "desc" },
     take: 20
   });
@@ -99,7 +106,9 @@ export default async function ProfilePage() {
           <ul className="space-y-3">
             {reviews.map((r) => (
               <li key={r.id} className="profile-card text-sm">
-                <div className="font-medium text-white">{r.booking.room.hotel.name}</div>
+                <div className="font-medium text-white">
+                  {r.booking.room?.hotel?.name ?? r.booking.roomType?.hotel?.name ?? "—"}
+                </div>
                 <div className="text-emerald-100/70">{r.rating} ★ · {r.comment}</div>
               </li>
             ))}

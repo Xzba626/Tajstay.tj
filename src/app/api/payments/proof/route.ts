@@ -8,6 +8,7 @@ import { publicUrl } from "@/lib/http/publicOrigin";
 import { clientIp, rateLimit } from "@/lib/security/rateLimit";
 import { isSafePublicHttpsUrl } from "@/lib/security/safeUrl";
 import { addBookingSystemMessage } from "@/lib/chat/bookingChat";
+import { bookingHotel } from "@/lib/pms/bookingContext";
 
 const MAX_FILE_BYTES = 4 * 1024 * 1024;
 
@@ -73,12 +74,20 @@ export async function POST(req: NextRequest) {
   if (bookingIdRaw > 0) {
     booking = await prisma.booking.findUnique({
       where: { id: bookingIdRaw },
-      include: { room: { include: { hotel: true } } }
+      include: {
+        room: { include: { hotel: true } },
+        roomType: { include: { hotel: true } },
+        assignedRoom: { include: { hotel: true } }
+      }
     });
   } else if (code) {
     booking = await prisma.booking.findUnique({
       where: { publicCode: code },
-      include: { room: { include: { hotel: true } } }
+      include: {
+        room: { include: { hotel: true } },
+        roomType: { include: { hotel: true } },
+        assignedRoom: { include: { hotel: true } }
+      }
     });
   }
 
@@ -122,7 +131,7 @@ export async function POST(req: NextRequest) {
   if (transitioned.count > 0) {
     await prisma.notification.create({
       data: {
-        userId: booking.room.hotel.ownerId,
+        userId: bookingHotel(booking).ownerId,
         bookingId: booking.id,
         type: "PAYMENT_PROOF_SUBMITTED",
         isRead: false

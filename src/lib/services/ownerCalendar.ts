@@ -9,8 +9,16 @@ import {
   isPendingOnlineStatus
 } from "@/lib/booking/availability";
 import { BOOKING_SOURCE, getBookingGuestLabel } from "@/lib/domain/booking";
+import { getRoomTypeDaySummary } from "@/lib/pms/inventory";
 
 export type CalendarCellKind = "available" | "blocked" | "customPrice" | "online" | "offline" | "onlinePending";
+
+export type RoomTypeCalendarRow = {
+  id: number;
+  name: string;
+  hotelName: string;
+  cells: Record<string, { available: number; total: number }>;
+};
 
 export type CalendarCellMeta = {
   bookingId?: number;
@@ -57,8 +65,14 @@ export async function getOwnerCalendarData(ownerId: number, days = 30) {
 
   const rooms = await prisma.room.findMany({
     where: { hotel: { ownerId } },
+    include: { hotel: true, roomType: true },
+    orderBy: [{ hotelId: "asc" }, { roomNumber: "asc" }, { id: "asc" }]
+  });
+
+  const roomTypes = await prisma.roomType.findMany({
+    where: { hotel: { ownerId } },
     include: { hotel: true },
-    orderBy: [{ hotelId: "asc" }, { id: "asc" }]
+    orderBy: [{ hotelId: "asc" }, { sortOrder: "asc" }, { name: "asc" }]
   });
 
   const roomIds = rooms.map((r) => r.id);
@@ -79,13 +93,15 @@ export async function getOwnerCalendarData(ownerId: number, days = 30) {
     }),
     prisma.booking.findMany({
       where: {
-        roomId: { in: roomIds },
+        OR: [{ roomId: { in: roomIds } }, { assignedRoomId: { in: roomIds } }],
         checkIn: { lt: end },
         checkOut: { gt: start }
       },
       select: {
         id: true,
         roomId: true,
+        assignedRoomId: true,
+        roomTypeId: true,
         source: true,
         status: true,
         offlineStatus: true,
@@ -105,9 +121,11 @@ export async function getOwnerCalendarData(ownerId: number, days = 30) {
 
   const bookingsByRoom = new Map<number, typeof bookingsRaw>();
   for (const b of bookingsRaw) {
-    const list = bookingsByRoom.get(b.roomId) ?? [];
+    const rid = b.assignedRoomId ?? b.roomId;
+    if (!rid) continue;
+    const list = bookingsByRoom.get(rid) ?? [];
     list.push(b);
-    bookingsByRoom.set(b.roomId, list);
+    bookingsByRoom.set(rid, list);
   }
 
   const calendarDays = Array.from({ length: days }, (_, i) => {
@@ -160,8 +178,8 @@ export async function getOwnerCalendarData(ownerId: number, days = 30) {
           checkIn: hit.checkIn.toISOString().slice(0, 10),
           checkOut: hit.checkOut.toISOString().slice(0, 10),
           totalPrice: String(hit.totalPrice),
-          hotelName: hit.room.hotel.name,
-          roomTitle: hit.room.title
+          hotelName: hit.room?.hotel?.name ?? room.hotel.name,
+          roomTitle: hit.room?.title ?? room.title
         };
         continue;
       }
@@ -181,5 +199,21 @@ export async function getOwnerCalendarData(ownerId: number, days = 30) {
     return kind === "online" || kind === "offline";
   });
 
-  return { rooms, days: calendarDays, cells, cellMeta, overrides, bookings };
+  const typeRows: RoomTypeCalendarRow[] = [];
+  for (const rt of roomTypes) {
+    const cells: Record<string, { available: number; total: number }> = {};
+    for (const { key } of calendarDays) {
+      const dayDate = new Date(`${key}T00:00:00.000Z`);
+      const summary = await getRoomTypeDaySummary(rt.id, dayDate);
+      cells[key] = { available: summary.available, total: summary.total };
+    }
+    typeRows.push({
+      id: rt.id,
+      name: rt.name,
+      hotelName: rt.hotel.name,
+      cells
+    });
+  }
+
+  return { rooms, roomTypes, typeRows, days: calendarDays, cells, cellMeta, overrides, bookings };
 }

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { assertDatesAvailable, DatesUnavailableError } from "@/lib/booking/availability";
 import { calculateCheckoutBreakdown } from "@/lib/services/checkoutFinance";
+import { assertRoomTypeAvailable, RoomTypeUnavailableError } from "@/lib/pms/inventory";
 
 function normalizeDateOnly(d: Date): Date {
   const y = d.getUTCFullYear();
@@ -112,6 +113,76 @@ export async function computeRoomTotalPrice(params: {
 
   const breakdown = calculateCheckoutBreakdown({ subtotal: total });
 
+  return {
+    totalPrice: breakdown.totalToCharge,
+    commission: breakdown.commission,
+    payOnArrival: false,
+    serviceFee: breakdown.serviceFee,
+    taxAmount: breakdown.taxAmount,
+    totalUsd: breakdown.totalUsd,
+    ownerPayoutAfterEscrow: breakdown.ownerPayoutAfterEscrow
+  };
+}
+
+function nightBasePriceFromType(
+  roomType: { basePrice: unknown; weekendPrice: unknown | null },
+  night: Date
+): number {
+  if (isWeekendNight(night) && roomType.weekendPrice != null) {
+    return Number(roomType.weekendPrice);
+  }
+  return Number(roomType.basePrice);
+}
+
+export async function computeRoomTypeTotalPrice(params: {
+  roomTypeId: number;
+  checkIn: Date;
+  checkOut: Date;
+  guestCount?: number;
+}): Promise<{
+  totalPrice: number;
+  commission: number;
+  payOnArrival: boolean;
+  serviceFee: number;
+  taxAmount: number;
+  totalUsd: number;
+  ownerPayoutAfterEscrow: number;
+}> {
+  const { roomTypeId, checkIn, checkOut, guestCount = 1 } = params;
+  const nights = getNightDates(checkIn, checkOut);
+  if (!nights.length) throw new Error("Invalid dates");
+
+  const roomType = await prisma.roomType.findUnique({
+    where: { id: roomTypeId },
+    include: { hotel: true }
+  });
+  if (!roomType) throw new Error("Room type not found");
+  if (roomType.hotel.status !== "APPROVED") throw new Error("Hotel not available");
+  if (!roomType.availability) throw new Error("Room type not available");
+
+  const minNights = Math.max(1, roomType.minNights ?? 1);
+  if (nights.length < minNights) {
+    throw new Error(`Minimum stay is ${minNights} night(s)`);
+  }
+
+  try {
+    await assertRoomTypeAvailable({ roomTypeId, checkIn, checkOut });
+  } catch (e) {
+    if (e instanceof RoomTypeUnavailableError) throw new Error("Requested dates are unavailable");
+    throw e;
+  }
+
+  let total = 0;
+  for (const night of nights) {
+    total += nightBasePriceFromType(roomType, night);
+  }
+
+  const extraGuests = Math.max(0, guestCount - roomType.maxGuests);
+  if (extraGuests > 0 && roomType.extraGuestPrice != null) {
+    total += extraGuests * nights.length * Number(roomType.extraGuestPrice);
+  }
+
+  const breakdown = calculateCheckoutBreakdown({ subtotal: total });
   return {
     totalPrice: breakdown.totalToCharge,
     commission: breakdown.commission,

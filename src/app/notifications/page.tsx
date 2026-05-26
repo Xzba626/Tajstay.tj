@@ -35,7 +35,12 @@ export default async function NotificationsPage({
   const notes = await prisma.notification.findMany({
     where: { userId: user.id },
     include: {
-      booking: { include: { room: { include: { hotel: true } } } }
+      booking: {
+        include: {
+          room: { include: { hotel: true } },
+          roomType: { include: { hotel: true } }
+        }
+      }
     },
     orderBy: { createdAt: "desc" },
     take: 150
@@ -122,7 +127,11 @@ export default async function NotificationsPage({
                   </form>
                 ) : null}
               </div>
-              {n.booking ? <div className="mt-1 text-slate-600">{n.booking.room.hotel.name}</div> : null}
+              {n.booking ? (
+                <div className="mt-1 text-slate-600">
+                  {n.booking.room?.hotel?.name ?? n.booking.roomType?.hotel?.name ?? "—"}
+                </div>
+              ) : null}
               <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-500">
                 <span>{formatDateTimeShort(locale, n.createdAt)}</span>
                 <Link href={href} className="font-semibold text-emerald-800 hover:underline">

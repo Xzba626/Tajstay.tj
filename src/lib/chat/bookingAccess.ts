@@ -1,9 +1,16 @@
+import { bookingHotel, type BookingLike } from "@/lib/pms/bookingContext";
+
 export function canAccessBookingChat(
-  booking: { userId: number | null; room: { hotel: { ownerId: number } } },
+  booking: BookingLike & { userId: number | null },
   user: { id: number; role: string }
 ): boolean {
   const isGuest = booking.userId != null && booking.userId === user.id;
-  const isOwner = booking.room.hotel.ownerId === user.id;
+  let isOwner = false;
+  try {
+    isOwner = bookingHotel(booking).ownerId === user.id;
+  } catch {
+    isOwner = false;
+  }
   const isAdmin = user.role === "ADMIN";
   return isGuest || isOwner || isAdmin;
 }

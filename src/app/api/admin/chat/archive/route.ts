@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth/requireAuth";
 import { prisma } from "@/lib/prisma";
 import { getArchivedChatExport } from "@/lib/chat/bookingChat";
+import { bookingHotel, bookingRoomTitle, bookingPhysicalRoomId } from "@/lib/pms/bookingContext";
+import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
 
 /** Выгрузка архива переписки и метаданных брони (налоги / споры). */
 export async function GET(req: NextRequest) {
@@ -16,13 +18,14 @@ export async function GET(req: NextRequest) {
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
     include: {
-      room: { include: { hotel: true } },
+      ...bookingWithHotelInclude,
       user: { select: { id: true, name: true, phone: true } },
       payment: true
     }
   });
   if (!booking) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
+  const hotel = bookingHotel(booking);
   const archivedMessages = await getArchivedChatExport(bookingId);
 
   return NextResponse.json(
@@ -40,8 +43,8 @@ export async function GET(req: NextRequest) {
         guestDocumentUrl: booking.guestDocumentUrl,
         totalPrice: Number(booking.totalPrice),
         guest: booking.user,
-        hotel: { id: booking.room.hotel.id, name: booking.room.hotel.name },
-        room: { id: booking.room.id, title: booking.room.title }
+        hotel: { id: hotel.id, name: hotel.name },
+        room: { id: bookingPhysicalRoomId(booking), title: bookingRoomTitle(booking) }
       },
       payment: booking.payment
         ? {

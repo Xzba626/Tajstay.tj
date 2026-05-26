@@ -1,15 +1,22 @@
+"use client";
+
+import { useMemo, useState } from "react";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
 import { OFFLINE_STATUS } from "@/lib/domain/booking";
 
+type RoomTypeOption = { id: number; name: string; hotel: { name: string } };
 type RoomOption = {
   id: number;
   title: string;
+  roomNumber?: string | null;
+  roomTypeId?: number | null;
   hotel: { name: string };
 };
 
 export function OfflineBookingForm({
   locale,
+  roomTypes,
   rooms,
   error,
   created,
@@ -18,6 +25,7 @@ export function OfflineBookingForm({
   defaultCheckOut
 }: {
   locale: Locale;
+  roomTypes: RoomTypeOption[];
   rooms: RoomOption[];
   error?: string;
   created?: boolean;
@@ -25,7 +33,19 @@ export function OfflineBookingForm({
   defaultCheckIn?: string;
   defaultCheckOut?: string;
 }) {
-  if (!rooms.length) return null;
+  const defaultTypeId = useMemo(() => {
+    if (!defaultRoomId) return roomTypes[0]?.id ?? 0;
+    return rooms.find((r) => r.id === defaultRoomId)?.roomTypeId ?? roomTypes[0]?.id ?? 0;
+  }, [defaultRoomId, roomTypes, rooms]);
+
+  const [roomTypeId, setRoomTypeId] = useState(defaultTypeId);
+
+  const roomsForType = useMemo(
+    () => rooms.filter((r) => !roomTypeId || r.roomTypeId === roomTypeId),
+    [rooms, roomTypeId]
+  );
+
+  if (!roomTypes.length) return null;
 
   return (
     <form
@@ -50,19 +70,34 @@ export function OfflineBookingForm({
       ) : null}
 
       <div className="md:col-span-2">
-        <label className="mb-1 block text-sm font-semibold text-slate-800">{m(locale, "owner.offline.room")}</label>
+        <label className="mb-1 block text-sm font-semibold text-slate-800">{m(locale, "owner.pms.category")}</label>
         <select
-          name="roomId"
+          name="roomTypeId"
           required
-          defaultValue={defaultRoomId}
+          value={roomTypeId}
+          onChange={(e) => setRoomTypeId(Number(e.target.value))}
           className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm"
         >
-          {rooms.map((r) => (
-            <option key={r.id} value={r.id}>
-              {r.hotel.name} · {r.title}
+          {roomTypes.map((rt) => (
+            <option key={rt.id} value={rt.id}>
+              {rt.hotel.name} · {rt.name}
             </option>
           ))}
         </select>
+      </div>
+
+      <div className="md:col-span-2">
+        <label className="mb-1 block text-sm font-semibold text-slate-800">{m(locale, "owner.offline.room")}</label>
+        <select name="roomId" defaultValue={defaultRoomId ?? ""} className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm">
+          <option value="">{m(locale, "owner.pms.unassigned")}</option>
+          {roomsForType.map((r) => (
+            <option key={r.id} value={r.id}>
+              {r.roomNumber ? `${r.roomNumber} · ` : ""}
+              {r.title}
+            </option>
+          ))}
+        </select>
+        <p className="mt-1 text-xs text-slate-500">{m(locale, "owner.pms.unassigned")} — можно назначить позже.</p>
       </div>
 
       <div>
@@ -140,7 +175,3 @@ export function OfflineBookingForm({
     </form>
   );
 }
-
-
-
-

@@ -6,6 +6,8 @@ import { BOOKING_SOURCE } from "@/lib/domain/booking";
 import { createOwnerOfflineBooking } from "@/lib/services/ownerOfflineBooking";
 import { OFFLINE_STATUS } from "@/lib/domain/booking";
 import { publicUrl } from "@/lib/http/publicOrigin";
+import { ownerOfflineBookingWhere } from "@/lib/pms/ownerQueries";
+import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
 
 function parseDateOnly(value: string): Date | null {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
@@ -22,16 +24,15 @@ export async function GET(req: NextRequest) {
   const pageSize = 20;
 
   const where = {
-    source: BOOKING_SOURCE.OWNER_MANUAL,
-    room: { hotel: { ownerId: owner.id } },
-    ...(roomId ? { roomId } : {})
+    ...ownerOfflineBookingWhere(owner.id),
+    ...(roomId ? { OR: [{ roomId }, { assignedRoomId: roomId }] } : {})
   };
 
   const [total, items] = await Promise.all([
     prisma.booking.count({ where }),
     prisma.booking.findMany({
       where,
-      include: { room: { include: { hotel: true } } },
+      include: { ...bookingWithHotelInclude },
       orderBy: { checkIn: "desc" },
       skip: (page - 1) * pageSize,
       take: pageSize
@@ -69,7 +70,16 @@ export async function POST(req: NextRequest) {
   const offlineNote = String(form.get("offlineNote") ?? "").trim() || null;
   const offlineStatusRaw = String(form.get("offlineStatus") ?? OFFLINE_STATUS.CONFIRMED).toUpperCase();
 
-  if (!roomId || !checkIn || !checkOut || !guestName || !guestPhone || !totalPrice) {
+  const roomTypeIdFromForm = Number(form.get("roomTypeId") || "") || 0;
+  const room = roomId
+    ? await prisma.room.findFirst({
+        where: { id: roomId, hotel: { ownerId: owner.id } },
+        select: { id: true, roomTypeId: true }
+      })
+    : null;
+  const roomTypeId = roomTypeIdFromForm || room?.roomTypeId || 0;
+
+  if (!roomTypeId || !checkIn || !checkOut || !guestName || !guestPhone || !totalPrice) {
     if (wantsJson) return NextResponse.json({ error: "invalid" }, { status: 400 });
     const u = publicUrl(req, "/dashboard/owner");
     u.searchParams.set("section", "offline-bookings");
@@ -80,7 +90,8 @@ export async function POST(req: NextRequest) {
   try {
     const booking = await createOwnerOfflineBooking({
       ownerId: owner.id,
-      roomId,
+      roomTypeId,
+      roomId: room?.id ?? null,
       checkIn,
       checkOut,
       guestName,

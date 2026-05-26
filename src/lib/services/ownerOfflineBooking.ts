@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { assertDatesAvailable, DatesUnavailableError } from "@/lib/booking/availability";
+import { assertRoomTypeAvailable, RoomTypeUnavailableError } from "@/lib/pms/inventory";
 import { BOOKING_SOURCE, BOOKING_STATUS, OFFLINE_STATUS, type OfflineStatus } from "@/lib/domain/booking";
 import { createNotification } from "@/lib/notifications/create";
 import { generateBookingCode } from "@/lib/services/bookingCode";
@@ -18,7 +19,8 @@ export async function assertRoomOwnedByOwner(roomId: number, ownerId: number) {
 
 export type CreateOfflineBookingInput = {
   ownerId: number;
-  roomId: number;
+  roomTypeId: number;
+  roomId?: number | null;
   checkIn: Date;
   checkOut: Date;
   guestName: string;
@@ -36,19 +38,38 @@ export async function createOwnerOfflineBooking(input: CreateOfflineBookingInput
   const guestPhone = normalizePhone(input.guestPhone);
   if (!guestPhone) throw new Error("invalid_phone");
 
-  const room = await assertRoomOwnedByOwner(input.roomId, input.ownerId);
-  if (!room) throw new Error("forbidden");
-  if (room.hotel.status !== "APPROVED") throw new Error("hotel_not_available");
+  const roomType = await prisma.roomType.findFirst({
+    where: { id: input.roomTypeId, hotel: { ownerId: input.ownerId } },
+    include: { hotel: true }
+  });
+  if (!roomType) throw new Error("forbidden");
+  if (roomType.hotel.status !== "APPROVED") throw new Error("hotel_not_available");
 
-  try {
-    await assertDatesAvailable({
-      roomId: input.roomId,
-      checkIn: input.checkIn,
-      checkOut: input.checkOut
-    });
-  } catch (e) {
-    if (e instanceof DatesUnavailableError) throw new Error("dates_unavailable");
-    throw e;
+  let physicalRoomId = input.roomId ?? null;
+  if (physicalRoomId) {
+    const room = await assertRoomOwnedByOwner(physicalRoomId, input.ownerId);
+    if (!room || room.roomTypeId !== roomType.id) throw new Error("room_type_mismatch");
+    try {
+      await assertDatesAvailable({
+        roomId: physicalRoomId,
+        checkIn: input.checkIn,
+        checkOut: input.checkOut
+      });
+    } catch (e) {
+      if (e instanceof DatesUnavailableError) throw new Error("dates_unavailable");
+      throw e;
+    }
+  } else {
+    try {
+      await assertRoomTypeAvailable({
+        roomTypeId: input.roomTypeId,
+        checkIn: input.checkIn,
+        checkOut: input.checkOut
+      });
+    } catch (e) {
+      if (e instanceof RoomTypeUnavailableError) throw new Error("dates_unavailable");
+      throw e;
+    }
   }
 
   const prepayment = input.prepayment != null ? Math.max(0, Number(input.prepayment)) : 0;
@@ -65,7 +86,9 @@ export async function createOwnerOfflineBooking(input: CreateOfflineBookingInput
       source: BOOKING_SOURCE.OWNER_MANUAL,
       createdByOwnerId: input.ownerId,
       userId: null,
-      roomId: input.roomId,
+      roomTypeId: input.roomTypeId,
+      roomId: physicalRoomId,
+      assignedRoomId: physicalRoomId,
       checkIn: input.checkIn,
       checkOut: input.checkOut,
       guestName: input.guestName.trim(),
@@ -96,7 +119,7 @@ export async function createOwnerOfflineBooking(input: CreateOfflineBookingInput
     type: "OWNER_OFFLINE_BOOKING_CREATED",
     bookingId: booking.id,
     link: `/dashboard/owner?section=offline-bookings`,
-    meta: { roomId: input.roomId, publicCode }
+    meta: { roomTypeId: input.roomTypeId, roomId: physicalRoomId, publicCode }
   });
 
   return booking;
@@ -128,16 +151,28 @@ export async function updateOwnerOfflineBooking(input: UpdateOfflineBookingInput
   const checkOut = input.checkOut ?? existing.checkOut;
   if (checkOut.getTime() <= checkIn.getTime()) throw new Error("invalid_dates");
 
+  const physicalId = existing.assignedRoomId ?? existing.roomId;
   if (input.checkIn || input.checkOut) {
     try {
-      await assertDatesAvailable({
-        roomId: existing.roomId,
-        checkIn,
-        checkOut,
-        excludeBookingId: existing.id
-      });
+      if (physicalId) {
+        await assertDatesAvailable({
+          roomId: physicalId,
+          checkIn,
+          checkOut,
+          excludeBookingId: existing.id
+        });
+      } else if (existing.roomTypeId) {
+        await assertRoomTypeAvailable({
+          roomTypeId: existing.roomTypeId,
+          checkIn,
+          checkOut,
+          excludeBookingId: existing.id
+        });
+      }
     } catch (e) {
-      if (e instanceof DatesUnavailableError) throw new Error("dates_unavailable");
+      if (e instanceof DatesUnavailableError || e instanceof RoomTypeUnavailableError) {
+        throw new Error("dates_unavailable");
+      }
       throw e;
     }
   }
@@ -157,6 +192,13 @@ export async function updateOwnerOfflineBooking(input: UpdateOfflineBookingInput
   if (input.offlineStatus) {
     if (!OFFLINE_STATUSES.has(input.offlineStatus)) throw new Error("invalid_status");
     offlineStatus = input.offlineStatus;
+  }
+
+  if (offlineStatus === OFFLINE_STATUS.CHECKED_OUT && physicalId) {
+    await prisma.room.update({
+      where: { id: physicalId },
+      data: { housekeepingStatus: "DIRTY" }
+    });
   }
 
   return prisma.booking.update({

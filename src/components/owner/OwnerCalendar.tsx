@@ -5,11 +5,14 @@ import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
-import type { CalendarCellKind, CalendarCellMeta } from "@/lib/services/ownerCalendar";
+import type { CalendarCellKind, CalendarCellMeta, RoomTypeCalendarRow } from "@/lib/services/ownerCalendar";
 
 type RoomRow = {
   id: number;
   title: string;
+  roomNumber?: string | null;
+  status?: string;
+  housekeepingStatus?: string;
   hotel: { name: string; id?: number };
 };
 
@@ -56,6 +59,7 @@ function cellTooltip(kind: CalendarCellKind, meta: CalendarCellMeta | undefined,
 export function OwnerCalendar({
   locale,
   rooms,
+  typeRows = [],
   days,
   cells,
   cellMeta = {},
@@ -63,12 +67,14 @@ export function OwnerCalendar({
 }: {
   locale: Locale;
   rooms: RoomRow[];
+  typeRows?: RoomTypeCalendarRow[];
   days: DayCol[];
   cells: Record<string, CalendarCellKind>;
   cellMeta?: Record<string, CalendarCellMeta>;
   hotels?: HotelFilter[];
 }) {
   const router = useRouter();
+  const [viewMode, setViewMode] = useState<"room" | "type">("room");
   const [hotelFilter, setHotelFilter] = useState<number | "all">("all");
   const [roomFilter, setRoomFilter] = useState<number | "all">("all");
   const [roomId, setRoomId] = useState<number | null>(null);
@@ -204,6 +210,23 @@ export function OwnerCalendar({
         </div>
       </div>
 
+      <div className="mt-3 flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => setViewMode("type")}
+          className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${viewMode === "type" ? "bg-emerald-700 text-white" : "border border-slate-200 text-slate-700"}`}
+        >
+          {m(locale, "pms.viewByType")}
+        </button>
+        <button
+          type="button"
+          onClick={() => setViewMode("room")}
+          className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${viewMode === "room" ? "bg-emerald-700 text-white" : "border border-slate-200 text-slate-700"}`}
+        >
+          {m(locale, "pms.viewByRoom")}
+        </button>
+      </div>
+
       {(hotels.length > 1 || rooms.length > 1) && (
         <div className="mt-3 flex flex-wrap gap-2">
           {hotels.length > 1 ? (
@@ -321,7 +344,7 @@ export function OwnerCalendar({
           <thead className="sticky top-0 z-20">
             <tr className="bg-slate-50">
               <th className="sticky left-0 z-30 min-w-[7.5rem] border-b border-r bg-slate-50 px-3 py-2 text-left text-slate-700 shadow-[2px_0_6px_rgba(0,0,0,0.06)]">
-                {m(locale, "owner.calendar.roomCol")}
+                {viewMode === "type" ? m(locale, "owner.calendar.roomCol") : m(locale, "owner.calendar.roomCol")}
               </th>
               {days.map((d) => (
                 <th key={d.key} className="min-w-[2.25rem] border-b border-r px-1 py-2 text-center text-slate-600">
@@ -333,11 +356,46 @@ export function OwnerCalendar({
             </tr>
           </thead>
           <tbody>
-            {filteredRooms.map((r) => (
+            {viewMode === "type"
+              ? typeRows.map((rt) => (
+                  <tr key={rt.id}>
+                    <td className="sticky left-0 z-10 min-w-[7.5rem] border-b border-r bg-white px-3 py-2 shadow-[2px_0_6px_rgba(0,0,0,0.05)]">
+                      <div className="font-semibold text-slate-800">{rt.name}</div>
+                      <div className="text-[11px] text-slate-500">{rt.hotelName}</div>
+                    </td>
+                    {days.map((d) => {
+                      const snap = rt.cells[d.key] ?? { available: 0, total: 0 };
+                      const full = snap.total > 0 && snap.available === 0;
+                      return (
+                        <td key={`${rt.id}|${d.key}`} className="border-b border-r px-1 py-1.5 text-center">
+                          <span
+                            className={`inline-flex min-h-[1.75rem] min-w-[2.5rem] items-center justify-center rounded-md px-1 text-[10px] font-semibold ${
+                              full
+                                ? "bg-[rgba(34,197,94,0.35)] text-emerald-900"
+                                : snap.available > 0
+                                  ? "border border-emerald-600/30 bg-emerald-500/[0.08] text-slate-700"
+                                  : "bg-slate-100 text-slate-400"
+                            }`}
+                            title={m(locale, "pms.typeAvailability", {
+                              available: String(snap.available),
+                              total: String(snap.total)
+                            })}
+                          >
+                            {snap.available}/{snap.total}
+                          </span>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))
+              : filteredRooms.map((r) => (
               <tr key={r.id}>
                 <td className="sticky left-0 z-10 min-w-[7.5rem] border-b border-r bg-white px-3 py-2 shadow-[2px_0_6px_rgba(0,0,0,0.05)]">
-                  <div className="font-semibold text-slate-800">{r.title}</div>
-                  <div className="text-[11px] text-slate-500">{r.hotel.name}</div>
+                  <div className="font-semibold text-slate-800">{r.roomNumber ?? r.title}</div>
+                  <div className="text-[11px] text-slate-500">
+                    {r.title}
+                    {r.status && r.status !== "ACTIVE" ? ` · ${r.status}` : ""}
+                  </div>
                 </td>
                 {days.map((d) => {
                   const key = `${r.id}|${d.key}`;

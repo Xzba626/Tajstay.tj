@@ -8,6 +8,8 @@ import { DcNextPaymentCard } from "@/components/payment/DcNextPaymentCard";
 import { getPublicOriginFromHeaders } from "@/lib/http/publicOriginHeaders";
 import { PaymentAfterPay } from "./PaymentAfterPay";
 import { GuestPaymentDealClient } from "./GuestPaymentDealClient";
+import { bookingHotel, bookingRoomTitle } from "@/lib/pms/bookingContext";
+import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
 
 export const dynamic = "force-dynamic";
 
@@ -27,10 +29,12 @@ export default async function PaymentPage({
 
   const booking = await prisma.booking.findUnique({
     where: { publicCode: code },
-    include: { room: { include: { hotel: true } }, payment: true }
+    include: { ...bookingWithHotelInclude, payment: true }
   });
 
   if (!booking || booking.userId !== user.id) notFound();
+  const hotel = bookingHotel(booking);
+  const roomTitle = bookingRoomTitle(booking);
 
   const expiresAt = booking.expiresAt?.toISOString() ?? null;
   const payWindowLiveExpired =
@@ -56,8 +60,8 @@ export default async function PaymentPage({
         bookingId={booking.id}
         userId={user.id}
         code={booking.publicCode ?? code}
-        hotelName={booking.room.hotel.name}
-        roomTitle={booking.room.title}
+        hotelName={hotel.name}
+        roomTitle={roomTitle}
         totalPrice={Number(booking.totalPrice)}
         bookingStatus={booking.status}
         paymentStatus={booking.paymentStatus}
@@ -80,8 +84,8 @@ export default async function PaymentPage({
       <h1 className="text-2xl font-semibold text-white">{m(locale, "checkout.transferTitle")}</h1>
 
       <div className="surface-1 rounded-2xl p-5">
-        <div className="text-sm text-brand-200">{booking.room.hotel.name}</div>
-        <div className="mt-1 text-sm text-brand-200">{booking.room.title}</div>
+        <div className="text-sm text-brand-200">{hotel.name}</div>
+        <div className="mt-1 text-sm text-brand-200">{roomTitle}</div>
         <div className="mt-3 text-sm text-brand-200">
           {m(locale, "checkout.totalCharge")}: <span className="font-semibold">{Number(booking.totalPrice)} TJS</span>
         </div>
