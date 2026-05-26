@@ -77,6 +77,7 @@ export type SignInLabels = {
   footerCopyright: string;
   footerPrivacy: string;
   footerTerms: string;
+  mobileAuthBadge: string;
   mobileChip1: string;
   mobileChip2: string;
   mobileChip3: string;
@@ -311,6 +312,10 @@ export function SignInClient({
         <AuthPromoPanel labels={promoLabels} />
 
         <section className="taj-auth-card">
+          <p className="taj-mobile-auth-badge lg:hidden" role="note">
+            {L.mobileAuthBadge}
+          </p>
+
           {telegramFlowActive && telegramLoginEnabled ? (
             <TelegramLoginPanel
               locale={locale}

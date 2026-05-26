@@ -116,6 +116,7 @@ export default function SignInPage({
     footerCopyright: m(locale, "auth.footerCopyright"),
     footerPrivacy: m(locale, "auth.footerPrivacy"),
     footerTerms: m(locale, "auth.footerTerms"),
+    mobileAuthBadge: m(locale, "auth.mobileAuthBadge"),
     mobileChip1: m(locale, "auth.mobileChip1"),
     mobileChip2: m(locale, "auth.mobileChip2"),
     mobileChip3: m(locale, "auth.mobileChip3")

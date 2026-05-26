@@ -419,6 +419,7 @@ const ru: Tree = {
     footerCopyright: "© 2026 TajStay",
     footerPrivacy: "Конфиденциальность",
     footerTerms: "Условия использования",
+    mobileAuthBadge: "TajStay — безопасное бронирование",
     mobileChip1: "Проверенные объекты",
     mobileChip2: "Безопасная оплата",
     mobileChip3: "Поддержка 24/7"
@@ -1575,6 +1576,7 @@ const tg: Tree = {
     footerCopyright: "© 2026 TajStay",
     footerPrivacy: "Махфият",
     footerTerms: "Шартҳои истифода",
+    mobileAuthBadge: "TajStay — бронкунии бехатар",
     mobileChip1: "Объектҳои санҷида",
     mobileChip2: "Пардохти бехатар",
     mobileChip3: "Дастгирӣ 24/7"
@@ -2698,6 +2700,7 @@ const en: Tree = {
     footerCopyright: "© 2026 TajStay",
     footerPrivacy: "Privacy",
     footerTerms: "Terms of use",
+    mobileAuthBadge: "TajStay — secure booking",
     mobileChip1: "Verified stays",
     mobileChip2: "Secure payments",
     mobileChip3: "24/7 support"

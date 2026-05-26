@@ -7,7 +7,7 @@ type Props = {
 
 export function TajAuthPromoPanel({ labels: L }: Props) {
   return (
-    <aside className="taj-promo-card">
+    <aside className="taj-promo-card hidden lg:block">
       <div className="taj-promo-overlay" aria-hidden />
 
       <div className="taj-promo-content">
