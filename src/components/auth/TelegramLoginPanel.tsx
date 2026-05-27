@@ -395,7 +395,7 @@ export function TelegramLoginPanel({ labels: L, expanded, onExpandedChange, onSu
 
 function SendIcon() {
   return (
-    <svg className="taj-social-icon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+    <svg className="taj-social-icon taj-social-icon--telegram" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
       <path d="M9.78 15.28 9.5 19.5c.43 0 .62-.19.84-.41l2.02-1.93 4.19 3.07c.77.43 1.32.2 1.53-.72l2.78-13.05c.28-1.31-.47-1.82-1.28-1.5L3.9 9.78c-1.27.5-1.25 1.22-.23 1.54l4.47 1.39 10.37-6.55c.49-.32.93-.14.57.18" />
     </svg>
   );
