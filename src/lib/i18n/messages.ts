@@ -368,6 +368,7 @@ const ru: Tree = {
     },
     resetPassword: {
       title: "Сброс пароля",
+      description: "Введите email, код из письма и новый пароль.",
       emailLabel: "Email",
       codeLabel: "6-значный код",
       passwordLabel: "Новый пароль",
@@ -1553,6 +1554,7 @@ const tg: Tree = {
     },
     resetPassword: {
       title: "Барқарорсозии рамз",
+      description: "Email, рамзи аз почта ва рамзи навро ворид кунед.",
       emailLabel: "Email",
       codeLabel: "Рамзи 6-рақама",
       passwordLabel: "Рамзи нав",
@@ -2705,6 +2707,7 @@ const en: Tree = {
     },
     resetPassword: {
       title: "Reset password",
+      description: "Enter your email, the code from the email, and a new password.",
       emailLabel: "Email",
       codeLabel: "6-digit code",
       passwordLabel: "New password",

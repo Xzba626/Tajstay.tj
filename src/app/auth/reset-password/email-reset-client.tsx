@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { AuthField, LockIcon, MailIcon } from "@/components/auth/AuthField";
 
 async function postJson(url: string, payload: unknown) {
   const res = await fetch(url, {
@@ -10,8 +11,16 @@ async function postJson(url: string, payload: unknown) {
     body: JSON.stringify(payload)
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data?.error || "Request failed");
+  if (!res.ok) throw new Error((data?.error as string) || "Request failed");
   return data;
+}
+
+function mapError(message: string, L: { invalidCode: string; expiredCode: string; passwordMismatch: string }) {
+  const m = message.toLowerCase();
+  if (m.includes("mismatch")) return L.passwordMismatch;
+  if (m.includes("expired")) return L.expiredCode;
+  if (m.includes("invalid")) return L.invalidCode;
+  return message;
 }
 
 export function EmailResetPasswordClient({
@@ -22,6 +31,7 @@ export function EmailResetPasswordClient({
   email: string;
   labels: {
     title: string;
+    description: string;
     emailLabel: string;
     codeLabel: string;
     passwordLabel: string;
@@ -38,6 +48,8 @@ export function EmailResetPasswordClient({
   const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [status, setStatus] = useState<"idle" | "saving" | "success" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
 
@@ -57,6 +69,11 @@ export function EmailResetPasswordClient({
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (password !== confirmPassword) {
+      setStatus("error");
+      setError(L.passwordMismatch);
+      return;
+    }
     setStatus("saving");
     setError(null);
     try {
@@ -64,82 +81,92 @@ export function EmailResetPasswordClient({
       setStatus("success");
     } catch (err: unknown) {
       setStatus("error");
-      setError(err instanceof Error ? err.message : "Error");
+      const msg = err instanceof Error ? err.message : "Error";
+      setError(mapError(msg, L));
     }
   }
 
   return (
-    <main className="taj-auth-page">
-      <section className="taj-auth-shell">
+    <main className="taj-auth-page taj-auth-page--solo">
+      <section className="taj-auth-shell taj-auth-shell--solo">
         <section className="taj-auth-card">
           <div className="taj-auth-inner">
-            <div className="taj-auth-welcome">
+            <div className="taj-auth-welcome taj-auth-welcome-compact">
               <h1>{L.title}</h1>
-              <p>{L.emailLabel}</p>
+              <p>{L.description}</p>
             </div>
 
             {status === "success" ? (
-              <div className="taj-form-error taj-form-error--success" role="status">
-                <div className="font-semibold">{L.success}</div>
-                <div className="mt-4">
+              <div className="taj-form-notice" role="status">
+                <div>{L.success}</div>
+                <p className="taj-bottom-text" style={{ marginTop: "1rem" }}>
                   <Link href="/auth/sign-in" className="taj-link-button">
                     {L.goSignIn}
                   </Link>
-                </div>
+                </p>
               </div>
             ) : (
               <form onSubmit={onSubmit} className="taj-form-stack" noValidate>
-                <div className="taj-field">
-                  <label htmlFor="rp-email">{L.emailLabel}</label>
-                  <div className="taj-input-wrap">
-                    <input
-                      id="rp-email"
-                      type="email"
-                      required
-                      value={emailValue}
-                      onChange={(e) => setEmailValue(e.target.value)}
-                      autoComplete="email"
-                      placeholder="name@example.com"
-                    />
-                  </div>
-                </div>
-                <div className="taj-field">
-                  <label htmlFor="rp-code">{L.codeLabel}</label>
-                  <div className="taj-input-wrap">
-                    <input
-                      id="rp-code"
-                      inputMode="numeric"
-                      autoComplete="one-time-code"
-                      placeholder="123456"
-                      value={code}
-                      onChange={(e) => setCode(e.target.value)}
-                      required
-                      minLength={6}
-                      maxLength={6}
-                    />
-                  </div>
-                </div>
-                <div className="taj-field">
-                  <label htmlFor="rp-pass">{L.passwordLabel}</label>
-                  <div className="taj-input-wrap">
-                    <input id="rp-pass" type="password" value={password} onChange={(e) => setPassword(e.target.value)} minLength={8} required />
-                  </div>
-                </div>
-                <div className="taj-field">
-                  <label htmlFor="rp-pass2">{L.confirmPasswordLabel}</label>
-                  <div className="taj-input-wrap">
-                    <input
-                      id="rp-pass2"
-                      type="password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      minLength={8}
-                      required
-                    />
-                  </div>
-                </div>
+                <AuthField
+                  id="rp-email"
+                  label={L.emailLabel}
+                  type="email"
+                  value={emailValue}
+                  onChange={setEmailValue}
+                  autoComplete="email"
+                  placeholder="name@example.com"
+                  icon={<MailIcon />}
+                />
+                <AuthField
+                  id="rp-code"
+                  label={L.codeLabel}
+                  value={code}
+                  onChange={setCode}
+                  placeholder="123456"
+                  autoComplete="one-time-code"
+                  inputMode="numeric"
+                  minLength={6}
+                  maxLength={6}
+                  required
+                />
+                <AuthField
+                  id="rp-pass"
+                  label={L.passwordLabel}
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={setPassword}
+                  minLength={8}
+                  required
+                  icon={<LockIcon />}
+                  toggle={{
+                    show: showPassword,
+                    onToggle: () => setShowPassword((v) => !v),
+                    showLabel: "Show password",
+                    hideLabel: "Hide password"
+                  }}
+                />
+                <AuthField
+                  id="rp-pass2"
+                  label={L.confirmPasswordLabel}
+                  type={showConfirm ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={setConfirmPassword}
+                  minLength={8}
+                  required
+                  icon={<LockIcon />}
+                  toggle={{
+                    show: showConfirm,
+                    onToggle: () => setShowConfirm((v) => !v),
+                    showLabel: "Show password",
+                    hideLabel: "Hide password"
+                  }}
+                />
 
-                {status === "error" ? <div className="taj-form-error" role="alert">{error}</div> : null}
+                {status === "error" ? (
+                  <div className="taj-form-error" role="alert">
+                    {error}
+                  </div>
+                ) : null}
 
                 <button type="submit" className="taj-primary-button" disabled={status === "saving"}>
                   <span>{L.submit}</span>
@@ -152,4 +179,3 @@ export function EmailResetPasswordClient({
     </main>
   );
 }
-

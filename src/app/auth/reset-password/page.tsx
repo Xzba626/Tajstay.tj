@@ -38,6 +38,7 @@ export default function ResetPasswordPage({
       email={email}
       labels={{
         title: m(locale, "auth.resetPassword.title"),
+        description: m(locale, "auth.resetPassword.description"),
         emailLabel: m(locale, "auth.resetPassword.emailLabel"),
         codeLabel: m(locale, "auth.resetPassword.codeLabel"),
         passwordLabel: m(locale, "auth.resetPassword.passwordLabel"),

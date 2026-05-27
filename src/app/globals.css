@@ -2969,3 +2969,27 @@ select:focus,
   }
 }
 
+/* Auth premium — final palette lock (after global input rules) */
+.taj-auth-page .taj-input-wrap {
+  background: rgba(3, 32, 22, 0.72) !important;
+  border: 1px solid rgba(110, 231, 183, 0.22) !important;
+}
+
+.taj-auth-page .taj-input-wrap input,
+.taj-auth-page .taj-input-wrap input:focus {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: #ecfdf5 !important;
+}
+
+.taj-auth-page .taj-input-wrap input::placeholder {
+  color: rgba(236, 253, 245, 0.5) !important;
+}
+
+.taj-auth-page .taj-primary-button {
+  background: linear-gradient(135deg, #10b981 0%, #047857 100%) !important;
+  border: 0 !important;
+  color: #ecfdf5 !important;
+}
+

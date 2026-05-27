@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { AuthField, MailIcon } from "@/components/auth/AuthField";
 
 async function postJson(url: string, payload: unknown) {
   const res = await fetch(url, {
@@ -10,7 +11,11 @@ async function postJson(url: string, payload: unknown) {
     body: JSON.stringify(payload)
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data?.error || "Request failed");
+  if (!res.ok) {
+    const err = new Error((data?.error as string) || "Request failed") as Error & { status?: number };
+    err.status = res.status;
+    throw err;
+  }
   return data as { success?: boolean; message?: string };
 }
 
@@ -25,6 +30,7 @@ export function ForgotPasswordClient({
     submit: string;
     success: string;
     enterCode: string;
+    errTooManyAttempts: string;
   };
 }) {
   const [email, setEmail] = useState("");
@@ -42,43 +48,49 @@ export function ForgotPasswordClient({
       setStatus("sent");
     } catch (err: unknown) {
       setStatus("error");
-      setError(err instanceof Error ? err.message : "Error");
+      const statusCode = (err as { status?: number })?.status;
+      if (statusCode === 429) {
+        setError(L.errTooManyAttempts);
+      } else {
+        setError(err instanceof Error ? err.message : "Error");
+      }
     }
   }
 
   return (
-    <main className="taj-auth-page">
-      <section className="taj-auth-shell">
+    <main className="taj-auth-page taj-auth-page--solo">
+      <section className="taj-auth-shell taj-auth-shell--solo">
         <section className="taj-auth-card">
           <div className="taj-auth-inner">
-            <div className="taj-auth-welcome">
+            <div className="taj-auth-welcome taj-auth-welcome-compact">
               <h1>{L.title}</h1>
               <p>{L.description}</p>
             </div>
 
             {status === "sent" ? (
-              <div className="taj-form-error taj-form-error--success" role="status">
+              <div className="taj-form-notice" role="status">
                 {L.success}
               </div>
             ) : null}
 
             <form onSubmit={onSubmit} className="taj-form-stack" noValidate>
-              <div className="taj-field">
-                <label htmlFor="fp-email">{L.emailLabel}</label>
-                <div className="taj-input-wrap">
-                  <input
-                    id="fp-email"
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="name@example.com"
-                    autoComplete="email"
-                  />
-                </div>
-              </div>
+              <AuthField
+                id="fp-email"
+                label={L.emailLabel}
+                type="email"
+                value={email}
+                onChange={setEmail}
+                placeholder="name@example.com"
+                autoComplete="email"
+                icon={<MailIcon />}
+                invalid={status === "error" && !normalizedEmail}
+              />
 
-              {status === "error" ? <div className="taj-form-error" role="alert">{error}</div> : null}
+              {status === "error" ? (
+                <div className="taj-form-error" role="alert">
+                  {error}
+                </div>
+              ) : null}
 
               <button type="submit" className="taj-primary-button" disabled={status === "sending"}>
                 <span>{L.submit}</span>
@@ -87,7 +99,11 @@ export function ForgotPasswordClient({
 
             <p className="taj-bottom-text">
               <Link
-                href={normalizedEmail ? `/auth/reset-password?email=${encodeURIComponent(normalizedEmail)}` : "/auth/reset-password"}
+                href={
+                  normalizedEmail
+                    ? `/auth/reset-password?email=${encodeURIComponent(normalizedEmail)}`
+                    : "/auth/reset-password"
+                }
                 className="taj-link-button"
               >
                 {L.enterCode}
@@ -99,4 +115,3 @@ export function ForgotPasswordClient({
     </main>
   );
 }
-

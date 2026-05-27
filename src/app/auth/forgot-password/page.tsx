@@ -13,7 +13,8 @@ export default function ForgotPasswordPage() {
         emailLabel: m(locale, "auth.forgotPassword.emailLabel"),
         submit: m(locale, "auth.forgotPassword.submit"),
         success: m(locale, "auth.forgotPassword.success"),
-        enterCode: m(locale, "auth.forgotPassword.enterCode")
+        enterCode: m(locale, "auth.forgotPassword.enterCode"),
+        errTooManyAttempts: m(locale, "auth.errTooManyAttempts")
       }}
     />
   );
