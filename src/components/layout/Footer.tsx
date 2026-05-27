@@ -10,12 +10,10 @@ export async function Footer() {
   const year = new Date().getFullYear();
 
   const links = [
-    { href: "/about", label: m(locale, "footer.about") },
-    { href: "/contacts", label: m(locale, "footer.contacts") },
-    { href: "/faq", label: m(locale, "footer.faq") },
-    { href: "/profile/become-owner", label: m(locale, "userMenu.becomeOwner") },
-    { href: "/terms", label: m(locale, "footer.terms") },
-    { href: "/policy", label: m(locale, "footer.policy") }
+    { href: "/faq", label: m(locale, "footer.helpCenter") },
+    { href: "/contacts", label: m(locale, "footer.contactUs") },
+    { href: "/policy", label: m(locale, "footer.policy") },
+    { href: "/terms", label: m(locale, "footer.terms") }
   ];
 
   return (

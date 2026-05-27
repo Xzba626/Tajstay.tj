@@ -54,6 +54,8 @@ export async function Header() {
     systemSection: m(locale, "mobileMenu.system"),
     about: m(locale, "footer.about"),
     contacts: m(locale, "footer.contacts"),
+    contactUs: m(locale, "mobileMenu.contactUs"),
+    forOwners: m(locale, "mobileMenu.forOwners"),
     policy: m(locale, "footer.policy"),
     terms: m(locale, "footer.terms"),
     faq: m(locale, "footer.faq"),
@@ -94,7 +96,10 @@ export async function Header() {
 
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
           <div className="md:hidden">
-            <LocaleSwitcher current={locale} className="[&_button]:min-h-[44px] [&_button]:rounded-xl [&_button]:border-white/10 [&_button]:bg-white/5 [&_button]:px-2.5 [&_button]:text-white [&_button]:shadow-none [&_button:hover]:bg-white/10" />
+            <LocaleSwitcher
+              current={locale}
+              className="[&_button]:h-9 [&_button]:min-h-[36px] [&_button]:gap-1 [&_button]:rounded-full [&_button]:border-white/12 [&_button]:bg-white/5 [&_button]:px-2.5 [&_button]:py-0 [&_button]:text-[12px] [&_button]:font-semibold [&_button]:text-white [&_button]:shadow-none [&_button:hover]:bg-white/10"
+            />
           </div>
           <div className="hidden md:block">
             <ThemeToggle />
@@ -123,6 +128,11 @@ export async function Header() {
                 }}
               />
             </div>
+          ) : null}
+          {!user ? (
+            <ViewTransitionLink href="/auth/sign-in" className="header-auth-signin-mobile md:hidden">
+              {m(locale, "header.signIn")}
+            </ViewTransitionLink>
           ) : null}
           <MobileMenu
             user={user}

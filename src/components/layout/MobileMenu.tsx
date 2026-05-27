@@ -1,13 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { BrandMark } from "@/components/brand/BrandMark";
 import { createPortal } from "react-dom";
 import { useEffect, useMemo, useState } from "react";
 import type { OwnerAppNavState } from "@/lib/navigation/getNavContext";
 import { cn } from "@/lib/cn";
-import { LocaleSwitcher } from "@/components/layout/LocaleSwitcher";
-import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import type { Locale } from "@/lib/i18n/locale";
 
 export type MobileMenuLabels = {
@@ -21,6 +18,8 @@ export type MobileMenuLabels = {
   systemSection: string;
   about: string;
   contacts: string;
+  contactUs: string;
+  forOwners: string;
   policy: string;
   terms: string;
   faq: string;
@@ -56,9 +55,10 @@ type Props = {
   brandMarkUrl: string;
 };
 
-type Item = { kind: "link"; href: string; label: string } | { kind: "text"; label: string } | { kind: "divider" };
+type NavItem = { href: string; label: string; icon: NavIconName };
+type NavIconName = "home" | "search" | "about" | "owner" | "contact" | "profile" | "bookings" | "favorites" | "admin";
 
-function Icon({ name }: { name: string }) {
+function NavIcon({ name }: { name: NavIconName }) {
   const common = "h-5 w-5 shrink-0 text-[var(--taj-text-muted)]";
   switch (name) {
     case "home":
@@ -82,26 +82,17 @@ function Icon({ name }: { name: string }) {
           <path d="M12 8h.01" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
         </svg>
       );
-    case "contacts":
+    case "owner":
       return (
         <svg className={common} viewBox="0 0 24 24" fill="none" aria-hidden>
-          <path d="M4 4h16v16H4V4Z" stroke="currentColor" strokeWidth="2" />
-          <path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          <path d="M3 10.5 12 4l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-9.5Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+          <path d="M9 21v-7h6v7" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
         </svg>
       );
-    case "faq":
+    case "contact":
       return (
         <svg className={common} viewBox="0 0 24 24" fill="none" aria-hidden>
-          <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-          <path d="M9.5 9a2.5 2.5 0 1 1 4.3 1.7c-.8.8-1.3 1.1-1.3 2.3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          <path d="M12 16h.01" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-        </svg>
-      );
-    case "policy":
-      return (
-        <svg className={common} viewBox="0 0 24 24" fill="none" aria-hidden>
-          <path d="M12 2 20 6v6c0 5-3.5 9.4-8 10-4.5-.6-8-5-8-10V6l8-4Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-          <path d="M9.5 12.5 11 14l3.5-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M21 16.92v3a2 2 0 0 1-2.18 2 19.86 19.86 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.86 19.86 0 0 1 1.12 4.18 2 2 0 0 1 3.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.8a2 2 0 0 1-.45 2.11L7.09 9.9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.84.57 2.8.7A2 2 0 0 1 21 16.92Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       );
     case "profile":
@@ -124,13 +115,6 @@ function Icon({ name }: { name: string }) {
           <path d="M12 21s-7-4.4-9.3-8.6C.9 8.9 3.1 6 6.4 6c1.8 0 3 .9 3.6 1.8C10.6 6.9 11.8 6 13.6 6c3.3 0 5.5 2.9 3.7 6.4C19 16.6 12 21 12 21Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
         </svg>
       );
-    case "owner":
-      return (
-        <svg className={common} viewBox="0 0 24 24" fill="none" aria-hidden>
-          <path d="M3 10.5 12 4l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-9.5Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-          <path d="M9 21v-7h6v7" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-        </svg>
-      );
     case "admin":
       return (
         <svg className={common} viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -139,20 +123,15 @@ function Icon({ name }: { name: string }) {
           <path d="M12 16h.01" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
         </svg>
       );
-    default:
-      return null;
   }
 }
 
-function sectionTitle(title: string) {
-  return (
-    <div className="px-3 pt-2 text-[11px] font-semibold uppercase tracking-wide text-[var(--taj-text-muted)]">
-      {title}
-    </div>
-  );
-}
+const MOBILE_MENU_HISTORY_TAG = "tajstay-mobile-menu";
 
-export function MobileMenu({ user, ownerApp, locale, labels: L, unreadCount = 0, brandName, brandMarkUrl }: Props) {
+export function MobileMenu({ user, ownerApp, locale: _locale, labels: L, unreadCount = 0, brandName: _brandName, brandMarkUrl: _brandMarkUrl }: Props) {
+  void _locale;
+  void _brandName;
+  void _brandMarkUrl;
   const [open, setOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -181,55 +160,62 @@ export function MobileMenu({ user, ownerApp, locale, labels: L, unreadCount = 0,
     };
   }, [open]);
 
-  const items = useMemo<Item[]>(() => {
-    const role = user?.role ?? "GUEST";
-    const list: Item[] = [];
-
-    list.push({ kind: "text", label: L.navSection });
-    list.push({ kind: "link", href: "/", label: L.home });
-    list.push({ kind: "link", href: "/search", label: L.search });
-    list.push({ kind: "link", href: "/about", label: L.about });
-    list.push({ kind: "divider" });
-
-    list.push({ kind: "text", label: L.accountSection });
-    if (!user) {
-      list.push({ kind: "link", href: "/auth/sign-in", label: L.signIn });
-      list.push({ kind: "link", href: "/auth/sign-in?mode=register", label: L.signUp });
-    } else {
-      list.push({ kind: "link", href: "/profile", label: L.profile });
-      list.push({
-        kind: "link",
-        href: "/notifications",
-        label: unreadCount > 0 ? `${L.notifications} (${unreadCount})` : L.notifications
-      });
-      list.push({ kind: "link", href: "/favorites", label: L.favorites });
-      list.push({
-        kind: "link",
-        href: role === "OWNER" ? "/dashboard/owner" : "/dashboard/bookings",
-        label: L.bookings
-      });
-
-      if (role === "GUEST") {
-        if (ownerApp.kind === "none") list.push({ kind: "link", href: "/profile/become-owner", label: L.becomeOwner });
-        if (ownerApp.kind === "pending") list.push({ kind: "text", label: L.ownerPending });
-        if (ownerApp.kind === "rejected") {
-          list.push({ kind: "text", label: L.ownerRejected });
-          list.push({ kind: "link", href: "/profile/become-owner", label: L.applyAgain });
-        }
-      }
-      if (role === "OWNER") list.push({ kind: "link", href: "/dashboard/owner", label: L.ownerPanel });
-      if (role === "ADMIN") list.push({ kind: "link", href: "/dashboard/admin", label: L.adminPanel });
+  // Browser-back / Android-back closes the drawer instead of navigating away.
+  useEffect(() => {
+    if (!open) return;
+    const state = (window.history.state ?? null) as { [k: string]: unknown } | null;
+    if (!state || state[MOBILE_MENU_HISTORY_TAG] !== true) {
+      window.history.pushState({ ...(state ?? {}), [MOBILE_MENU_HISTORY_TAG]: true }, "");
     }
+    function onPop() {
+      setOpen(false);
+    }
+    window.addEventListener("popstate", onPop);
+    return () => {
+      window.removeEventListener("popstate", onPop);
+      const cur = (window.history.state ?? null) as { [k: string]: unknown } | null;
+      if (cur && cur[MOBILE_MENU_HISTORY_TAG] === true) {
+        window.history.back();
+      }
+    };
+  }, [open]);
 
-    list.push({ kind: "divider" });
-    list.push({ kind: "text", label: L.systemSection });
-    list.push({ kind: "link", href: "/contacts", label: L.contacts });
-    list.push({ kind: "link", href: "/policy", label: L.policy });
-    list.push({ kind: "link", href: "/terms", label: L.terms });
-    list.push({ kind: "link", href: "/faq", label: L.faq });
+  const navItems = useMemo<NavItem[]>(() => {
+    const role = user?.role ?? "GUEST";
+    const ownerHref =
+      role === "OWNER"
+        ? "/dashboard/owner"
+        : ownerApp.kind === "approved"
+          ? "/dashboard/owner"
+          : "/profile/become-owner";
 
+    const list: NavItem[] = [
+      { href: "/", label: L.home, icon: "home" },
+      { href: "/search", label: L.search, icon: "search" },
+      { href: "/about", label: L.about, icon: "about" },
+      { href: ownerHref, label: L.forOwners, icon: "owner" },
+      { href: "/contacts", label: L.contactUs, icon: "contact" }
+    ];
     return list;
-  }, [L, ownerApp.kind, user, unreadCount]);
+  }, [L, ownerApp.kind, user]);
+
+  const accountItems = useMemo<NavItem[]>(() => {
+    if (!user) return [];
+    const role = user.role;
+    const list: NavItem[] = [
+      { href: "/profile", label: L.profile, icon: "profile" },
+      {
+        href: role === "OWNER" ? "/dashboard/owner" : "/dashboard/bookings",
+        label: L.bookings,
+        icon: "bookings"
+      },
+      { href: "/favorites", label: L.favorites, icon: "favorites" }
+    ];
+    if (role === "ADMIN") list.push({ href: "/dashboard/admin", label: L.adminPanel, icon: "admin" });
+    return list;
+  }, [L, user]);
+
+  void unreadCount;
 
   async function logout() {
     setLoggingOut(true);
@@ -261,83 +247,67 @@ export function MobileMenu({ user, ownerApp, locale, labels: L, unreadCount = 0,
       />
       <div
         className={cn(
-          "mobile-menu-panel absolute right-0 top-0 flex h-dvh max-h-dvh w-[min(94vw,380px)] flex-col backdrop-blur-xl transition-transform duration-200 ease-out",
+          "mobile-menu-panel absolute right-0 top-0 flex h-dvh max-h-dvh w-[min(85vw,380px)] flex-col backdrop-blur-xl transition-transform duration-200 ease-out",
           open ? "translate-x-0" : "translate-x-full"
         )}
       >
-        <div className="mobile-menu-panel__header flex shrink-0 items-center justify-between px-4 py-4 pt-[max(1rem,env(safe-area-inset-top))]">
-          <BrandMark name={brandName} markSrc={brandMarkUrl} size="sm" nameClassName="text-sm" />
+        <div className="mobile-menu-panel__header flex shrink-0 items-center justify-between px-4 py-3 pt-[max(0.85rem,env(safe-area-inset-top))]">
+          <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--taj-text-muted)]">
+            {L.menu}
+          </span>
           <button
             type="button"
             onClick={() => setOpen(false)}
-            className="mobile-menu-panel__close min-h-[44px] min-w-[44px] rounded-xl px-3 text-sm font-semibold transition active:scale-[0.98]"
+            className="mobile-menu-panel__close inline-flex h-10 w-10 items-center justify-center rounded-full transition active:scale-[0.94]"
+            aria-label={L.close}
           >
-            {L.close}
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
           </button>
         </div>
 
-        <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto overscroll-contain p-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
-          <div className="mobile-menu-panel__locale mb-2 rounded-2xl p-3">
-            <div className="mb-2 flex items-center justify-between gap-2 text-xs font-semibold uppercase tracking-wide text-[var(--taj-text-muted)]">
-              <span>{L.language}</span>
-              <ThemeToggle compact />
-            </div>
-            <LocaleSwitcher current={locale} />
-          </div>
-
-          {items.map((it, idx) => {
-            if (it.kind === "divider") return <div key={`d-${idx}`} className="mobile-menu-panel__divider my-2 border-t" />;
-            if (it.kind === "text") return <div key={`t-${idx}`}>{sectionTitle(it.label)}</div>;
-            return (
-              <Link
-                key={`${it.href}:${it.label}`}
-                href={it.href}
-                onClick={() => setOpen(false)}
-                className="mobile-menu-panel__link flex min-h-[44px] items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition"
-              >
-                <Icon
-                  name={
-                    it.href === "/"
-                      ? "home"
-                      : it.href === "/search"
-                        ? "search"
-                        : it.href === "/about"
-                          ? "about"
-                          : it.href === "/contacts"
-                            ? "contacts"
-                            : it.href === "/faq"
-                              ? "faq"
-                              : it.href === "/policy" || it.href === "/terms"
-                                ? "policy"
-                                : it.href === "/profile"
-                                  ? "profile"
-                                  : it.href === "/favorites"
-                                    ? "favorites"
-                                    : it.href === "/dashboard/bookings" || it.href === "/dashboard/guest"
-                                      ? "bookings"
-                                      : it.href === "/dashboard/owner"
-                                        ? "owner"
-                                        : it.href === "/dashboard/admin"
-                                          ? "admin"
-                                          : ""
-                  }
-                />
-                {it.label}
-              </Link>
-            );
-          })}
-
-          {user && (
-            <button
-              type="button"
-              disabled={loggingOut}
-              onClick={() => void logout()}
-              className="mt-2 min-h-[44px] rounded-xl bg-red-50 px-3 py-2.5 text-left text-sm font-semibold text-red-700 transition hover:bg-red-100 disabled:opacity-60"
+        <nav
+          className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto overscroll-contain px-3 py-3 pb-[max(1rem,env(safe-area-inset-bottom))]"
+          aria-label={L.navSection}
+        >
+          {navItems.map((it) => (
+            <Link
+              key={`${it.href}:${it.label}`}
+              href={it.href}
+              onClick={() => setOpen(false)}
+              className="mobile-menu-panel__link flex min-h-[48px] items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition"
             >
-              {loggingOut ? L.loggingOut : L.logout}
-            </button>
-          )}
-        </div>
+              <NavIcon name={it.icon} />
+              {it.label}
+            </Link>
+          ))}
+
+          {user && accountItems.length > 0 ? (
+            <>
+              <div className="mobile-menu-panel__divider my-3 border-t" />
+              {accountItems.map((it) => (
+                <Link
+                  key={`acc:${it.href}`}
+                  href={it.href}
+                  onClick={() => setOpen(false)}
+                  className="mobile-menu-panel__link flex min-h-[44px] items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition"
+                >
+                  <NavIcon name={it.icon} />
+                  {it.label}
+                </Link>
+              ))}
+              <button
+                type="button"
+                disabled={loggingOut}
+                onClick={() => void logout()}
+                className="mt-2 min-h-[44px] rounded-xl border border-red-400/35 bg-red-500/10 px-3 py-2.5 text-left text-sm font-semibold text-red-200 transition hover:bg-red-500/20 disabled:opacity-60"
+              >
+                {loggingOut ? L.loggingOut : L.logout}
+              </button>
+            </>
+          ) : null}
+        </nav>
       </div>
     </div>
   );

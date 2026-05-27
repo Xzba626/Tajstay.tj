@@ -60,9 +60,19 @@ export function LocaleSwitcher({ current, className }: Props) {
         aria-expanded={open}
         aria-haspopup="menu"
       >
+        <svg
+          className="h-4 w-4 shrink-0"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          aria-hidden
+        >
+          <circle cx="12" cy="12" r="9" strokeWidth={1.7} />
+          <path strokeLinecap="round" strokeWidth={1.7} d="M3 12h18M12 3c2.5 2.7 4 6 4 9s-1.5 6.3-4 9c-2.5-2.7-4-6-4-9s1.5-6.3 4-9Z" />
+        </svg>
         <span className="font-extrabold tracking-wide">{localeShort[current]}</span>
         <svg
-          className={cn("h-4 w-4 transition-transform", open && "rotate-180")}
+          className={cn("h-3.5 w-3.5 transition-transform", open && "rotate-180")}
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
