@@ -5,7 +5,7 @@ import { getOwnerApplicationNavState } from "@/lib/navigation/getNavContext";
 import { UserMenu, type UserMenuLabels } from "@/components/layout/UserMenu";
 import { LocaleSwitcher } from "@/components/layout/LocaleSwitcher";
 import { MobileMenu, type MobileMenuLabels } from "@/components/layout/MobileMenu";
-import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { SiteHeaderFrame } from "@/components/layout/SiteHeaderFrame";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
 import { getSiteContent } from "@/lib/site-content";
@@ -48,35 +48,14 @@ export async function Header() {
     close: m(locale, "mobileMenu.close"),
     home: m(locale, "header.home"),
     search: m(locale, "header.search"),
-    language: m(locale, "mobileMenu.language"),
-    navSection: m(locale, "mobileMenu.nav"),
-    accountSection: m(locale, "mobileMenu.account"),
-    systemSection: m(locale, "mobileMenu.system"),
-    about: m(locale, "footer.about"),
-    contacts: m(locale, "footer.contacts"),
+    about: m(locale, "header.about"),
     contactUs: m(locale, "mobileMenu.contactUs"),
     forOwners: m(locale, "mobileMenu.forOwners"),
-    policy: m(locale, "footer.policy"),
-    terms: m(locale, "footer.terms"),
-    faq: m(locale, "footer.faq"),
-    signIn: m(locale, "header.signIn"),
-    signUp: m(locale, "header.signUp"),
-    profile: m(locale, "userMenu.profile"),
-    bookings: m(locale, "userMenu.bookings"),
-    favorites: m(locale, "userMenu.favorites"),
-    becomeOwner: m(locale, "userMenu.becomeOwner"),
-    ownerPanel: m(locale, "userMenu.ownerPanel"),
-    adminPanel: m(locale, "userMenu.adminPanel"),
-    logout: m(locale, "userMenu.logout"),
-    loggingOut: m(locale, "userMenu.loggingOut"),
-    ownerPending: m(locale, "userMenu.ownerPending"),
-    ownerRejected: m(locale, "userMenu.ownerRejected"),
-    applyAgain: m(locale, "userMenu.applyAgain"),
-    notifications: m(locale, "userMenu.notificationsTitle")
+    navSection: m(locale, "mobileMenu.nav")
   };
 
   return (
-    <header className="site-header sticky top-0 z-[100] transition-[background-color] duration-300">
+    <SiteHeaderFrame>
       <div className="site-header__inner mx-auto flex max-w-[var(--taj-page-max)] items-center justify-between gap-2 px-[var(--taj-page-px)] sm:gap-3">
         <BrandMark
           href="/"
@@ -96,15 +75,7 @@ export async function Header() {
         />
 
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
-          <div className="md:hidden">
-            <LocaleSwitcher current={locale} compact className="locale-switcher--compact" />
-          </div>
-          <div className="hidden md:block">
-            <ThemeToggle />
-          </div>
-          <div className="hidden md:block">
-            <LocaleSwitcher current={locale} />
-          </div>
+          <LocaleSwitcher current={locale} iconOnly className="locale-switcher--icon-only" />
           {user ? (
             <div className="md:hidden">
               <NotificationBell
@@ -137,7 +108,6 @@ export async function Header() {
             ownerApp={ownerApp}
             locale={locale}
             labels={mobileLabels}
-            unreadCount={unreadCount}
             brandName={content.brand.siteName}
             brandMarkUrl={content.brand.logoMarkUrl}
           />
@@ -187,6 +157,6 @@ export async function Header() {
           )}
         </div>
       </div>
-    </header>
+    </SiteHeaderFrame>
   );
 }

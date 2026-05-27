@@ -12,31 +12,10 @@ export type MobileMenuLabels = {
   close: string;
   home: string;
   search: string;
-  language: string;
-  navSection: string;
-  accountSection: string;
-  systemSection: string;
   about: string;
-  contacts: string;
   contactUs: string;
   forOwners: string;
-  policy: string;
-  terms: string;
-  faq: string;
-  signIn: string;
-  signUp: string;
-  profile: string;
-  bookings: string;
-  favorites: string;
-  becomeOwner: string;
-  ownerPanel: string;
-  adminPanel: string;
-  logout: string;
-  loggingOut: string;
-  ownerPending: string;
-  ownerRejected: string;
-  applyAgain: string;
-  notifications: string;
+  navSection: string;
 };
 
 type Props = {
@@ -50,13 +29,12 @@ type Props = {
   ownerApp: OwnerAppNavState;
   locale: Locale;
   labels: MobileMenuLabels;
-  unreadCount?: number;
   brandName: string;
   brandMarkUrl: string;
 };
 
 type NavItem = { href: string; label: string; icon: NavIconName };
-type NavIconName = "home" | "search" | "about" | "owner" | "contact" | "profile" | "bookings" | "favorites" | "admin";
+type NavIconName = "home" | "search" | "about" | "owner" | "contact";
 
 function NavIcon({ name }: { name: NavIconName }) {
   const common = "h-5 w-5 shrink-0 text-[var(--taj-text-muted)]";
@@ -95,45 +73,17 @@ function NavIcon({ name }: { name: NavIconName }) {
           <path d="M21 16.92v3a2 2 0 0 1-2.18 2 19.86 19.86 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.86 19.86 0 0 1 1.12 4.18 2 2 0 0 1 3.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.8a2 2 0 0 1-.45 2.11L7.09 9.9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.84.57 2.8.7A2 2 0 0 1 21 16.92Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       );
-    case "profile":
-      return (
-        <svg className={common} viewBox="0 0 24 24" fill="none" aria-hidden>
-          <path d="M20 21a8 8 0 1 0-16 0" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Z" stroke="currentColor" strokeWidth="2" />
-        </svg>
-      );
-    case "bookings":
-      return (
-        <svg className={common} viewBox="0 0 24 24" fill="none" aria-hidden>
-          <path d="M7 3v3M17 3v3M4 7h16M6 11h4M6 15h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          <path d="M5 5h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" stroke="currentColor" strokeWidth="2" />
-        </svg>
-      );
-    case "favorites":
-      return (
-        <svg className={common} viewBox="0 0 24 24" fill="none" aria-hidden>
-          <path d="M12 21s-7-4.4-9.3-8.6C.9 8.9 3.1 6 6.4 6c1.8 0 3 .9 3.6 1.8C10.6 6.9 11.8 6 13.6 6c3.3 0 5.5 2.9 3.7 6.4C19 16.6 12 21 12 21Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-        </svg>
-      );
-    case "admin":
-      return (
-        <svg className={common} viewBox="0 0 24 24" fill="none" aria-hidden>
-          <path d="M12 2 20 6v6c0 5-3.5 9.4-8 10-4.5-.6-8-5-8-10V6l8-4Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-          <path d="M12 7v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          <path d="M12 16h.01" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-        </svg>
-      );
   }
 }
 
 const MOBILE_MENU_HISTORY_TAG = "tajstay-mobile-menu";
 
-export function MobileMenu({ user, ownerApp, locale: _locale, labels: L, unreadCount = 0, brandName: _brandName, brandMarkUrl: _brandMarkUrl }: Props) {
+export function MobileMenu({ user, ownerApp, locale: _locale, labels: L, brandName: _brandName, brandMarkUrl: _brandMarkUrl }: Props) {
   void _locale;
   void _brandName;
   void _brandMarkUrl;
+  void user;
   const [open, setOpen] = useState(false);
-  const [loggingOut, setLoggingOut] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -160,7 +110,6 @@ export function MobileMenu({ user, ownerApp, locale: _locale, labels: L, unreadC
     };
   }, [open]);
 
-  // Browser-back / Android-back closes the drawer instead of navigating away.
   useEffect(() => {
     if (!open) return;
     const state = (window.history.state ?? null) as { [k: string]: unknown } | null;
@@ -189,44 +138,14 @@ export function MobileMenu({ user, ownerApp, locale: _locale, labels: L, unreadC
           ? "/dashboard/owner"
           : "/profile/become-owner";
 
-    const list: NavItem[] = [
+    return [
       { href: "/", label: L.home, icon: "home" },
       { href: "/search", label: L.search, icon: "search" },
       { href: "/about", label: L.about, icon: "about" },
       { href: ownerHref, label: L.forOwners, icon: "owner" },
       { href: "/contacts", label: L.contactUs, icon: "contact" }
     ];
-    return list;
   }, [L, ownerApp.kind, user]);
-
-  const accountItems = useMemo<NavItem[]>(() => {
-    if (!user) return [];
-    const role = user.role;
-    const list: NavItem[] = [
-      { href: "/profile", label: L.profile, icon: "profile" },
-      {
-        href: role === "OWNER" ? "/dashboard/owner" : "/dashboard/bookings",
-        label: L.bookings,
-        icon: "bookings"
-      },
-      { href: "/favorites", label: L.favorites, icon: "favorites" }
-    ];
-    if (role === "ADMIN") list.push({ href: "/dashboard/admin", label: L.adminPanel, icon: "admin" });
-    return list;
-  }, [L, user]);
-
-  void unreadCount;
-
-  async function logout() {
-    setLoggingOut(true);
-    try {
-      const res = await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
-      if (!res.ok) throw new Error("logout failed");
-      window.location.href = "/";
-    } catch {
-      setLoggingOut(false);
-    }
-  }
 
   const drawer = (
     <div
@@ -237,6 +156,7 @@ export function MobileMenu({ user, ownerApp, locale: _locale, labels: L, unreadC
       aria-hidden={!open}
       role="dialog"
       aria-modal={open ? "true" : undefined}
+      aria-label={L.menu}
     >
       <div
         className={cn(
@@ -247,14 +167,11 @@ export function MobileMenu({ user, ownerApp, locale: _locale, labels: L, unreadC
       />
       <div
         className={cn(
-          "mobile-menu-panel absolute right-0 top-0 flex h-dvh max-h-dvh w-[min(85vw,380px)] flex-col backdrop-blur-xl transition-transform duration-200 ease-out",
+          "mobile-menu-panel absolute right-0 top-0 flex h-dvh max-h-dvh w-[min(88vw,380px)] flex-col backdrop-blur-xl transition-transform duration-200 ease-out",
           open ? "translate-x-0" : "translate-x-full"
         )}
       >
-        <div className="mobile-menu-panel__header flex shrink-0 items-center justify-between px-4 py-3 pt-[max(0.85rem,env(safe-area-inset-top))]">
-          <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--taj-text-muted)]">
-            {L.menu}
-          </span>
+        <div className="mobile-menu-panel__header flex shrink-0 items-center justify-end px-4 py-3 pt-[max(0.85rem,env(safe-area-inset-top))]">
           <button
             type="button"
             onClick={() => setOpen(false)}
@@ -268,7 +185,7 @@ export function MobileMenu({ user, ownerApp, locale: _locale, labels: L, unreadC
         </div>
 
         <nav
-          className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto overscroll-contain px-3 py-3 pb-[max(1rem,env(safe-area-inset-bottom))]"
+          className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto overscroll-contain px-3 py-2 pb-[max(1rem,env(safe-area-inset-bottom))]"
           aria-label={L.navSection}
         >
           {navItems.map((it) => (
@@ -282,31 +199,6 @@ export function MobileMenu({ user, ownerApp, locale: _locale, labels: L, unreadC
               {it.label}
             </Link>
           ))}
-
-          {user && accountItems.length > 0 ? (
-            <>
-              <div className="mobile-menu-panel__divider my-3 border-t" />
-              {accountItems.map((it) => (
-                <Link
-                  key={`acc:${it.href}`}
-                  href={it.href}
-                  onClick={() => setOpen(false)}
-                  className="mobile-menu-panel__link flex min-h-[44px] items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition"
-                >
-                  <NavIcon name={it.icon} />
-                  {it.label}
-                </Link>
-              ))}
-              <button
-                type="button"
-                disabled={loggingOut}
-                onClick={() => void logout()}
-                className="mt-2 min-h-[44px] rounded-xl border border-red-400/35 bg-red-500/10 px-3 py-2.5 text-left text-sm font-semibold text-red-200 transition hover:bg-red-500/20 disabled:opacity-60"
-              >
-                {loggingOut ? L.loggingOut : L.logout}
-              </button>
-            </>
-          ) : null}
         </nav>
       </div>
     </div>
@@ -330,4 +222,3 @@ export function MobileMenu({ user, ownerApp, locale: _locale, labels: L, unreadC
     </>
   );
 }
-

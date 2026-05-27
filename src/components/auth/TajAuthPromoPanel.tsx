@@ -1,11 +1,16 @@
-import Link from "next/link";
+import type { AuthPromoFeaturedHotel } from "@/lib/services/authPromoHotel";
 import type { AuthPromoLabels } from "@/components/auth/AuthPromoPanel";
 
 type Props = {
   labels: AuthPromoLabels;
+  featuredHotel?: AuthPromoFeaturedHotel | null;
 };
 
-export function TajAuthPromoPanel({ labels: L }: Props) {
+export function TajAuthPromoPanel({ labels: L, featuredHotel }: Props) {
+  const priceFrom = featuredHotel
+    ? L.previewPriceFrom.replace("{price}", String(Math.round(featuredHotel.minPrice)))
+    : null;
+
   return (
     <aside className="taj-promo-card hidden lg:block">
       <div className="taj-promo-overlay" aria-hidden />
@@ -48,25 +53,48 @@ export function TajAuthPromoPanel({ labels: L }: Props) {
           </article>
         </div>
 
-        <div className="taj-hotel-preview" aria-hidden>
-          <div className="taj-hotel-image" />
-          <div className="taj-hotel-info">
-            <div className="taj-hotel-title-row">
-              <h3>{L.previewHotel}</h3>
-              <span>{L.previewGuestChoice}</span>
+        {featuredHotel ? (
+          <div className="taj-hotel-preview">
+            <div
+              className="taj-hotel-image"
+              style={
+                featuredHotel.imageUrl
+                  ? { backgroundImage: `url("${featuredHotel.imageUrl}")` }
+                  : undefined
+              }
+            />
+            <div className="taj-hotel-info">
+              <div className="taj-hotel-title-row">
+                <h3>{featuredHotel.name}</h3>
+                <span>{L.previewGuestChoice}</span>
+              </div>
+              <p className="taj-location">
+                <PinIcon />
+                {featuredHotel.city}
+              </p>
+              <p className="taj-rating">
+                <StarIcon />
+                <b>{featuredHotel.rating.toFixed(1)}</b>
+              </p>
+              {priceFrom ? <p className="taj-price">{priceFrom}</p> : null}
             </div>
-            <p className="taj-location">
-              <PinIcon />
-              {L.previewCity}
-            </p>
-            <p className="taj-rating">
-              <StarIcon />
-              <b>{L.previewRating}</b>
-              <span>{L.previewDates}</span>
-            </p>
-            <p className="taj-price" dangerouslySetInnerHTML={{ __html: L.previewPriceHtml }} />
           </div>
-        </div>
+        ) : (
+          <div className="taj-hotel-preview taj-hotel-preview--abstract">
+            <div className="taj-hotel-image taj-hotel-image--abstract" />
+            <div className="taj-hotel-info">
+              <h3 className="taj-hotel-abstract-title">{L.previewAbstractTitle}</h3>
+              <p className="taj-hotel-abstract-line">
+                <StarIcon />
+                {L.previewAbstractRating}
+              </p>
+              <p className="taj-hotel-abstract-line">
+                <ZapIcon />
+                {L.previewAbstractConfirm}
+              </p>
+            </div>
+          </div>
+        )}
 
         <div className="taj-trust-strip">
           <div className="taj-trust-item">
@@ -85,12 +113,6 @@ export function TajAuthPromoPanel({ labels: L }: Props) {
             <ZapIcon />
             <span>{L.trustInstant}</span>
           </div>
-        </div>
-
-        <div className="taj-promo-footer">
-          <span>{L.footerCopyright}</span>
-          <Link href="/policy">{L.footerPrivacy}</Link>
-          <Link href="/terms">{L.footerTerms}</Link>
         </div>
       </div>
     </aside>

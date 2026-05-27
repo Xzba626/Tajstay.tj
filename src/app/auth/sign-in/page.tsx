@@ -6,14 +6,18 @@ import {
 } from "@/lib/telegram/config";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
+import { getSiteContent } from "@/lib/site-content";
+import { getAuthPromoFeaturedHotel } from "@/lib/services/authPromoHotel";
 import { SignInClient } from "./SignInClient";
 
-export default function SignInPage({
+export default async function SignInPage({
   searchParams
 }: {
   searchParams?: { next?: string; mode?: string };
 }) {
   const locale = getLocale();
+  const content = await getSiteContent();
+  const featuredHotel = await getAuthPromoFeaturedHotel();
   const telegramLoginEnabled = isTelegramLoginUiEnabled();
   const telegramApiReady = isTelegramLoginConfigured();
   const telegramBotUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME?.trim() || getTelegramBotUsername();
@@ -32,19 +36,15 @@ export default function SignInPage({
     benefit2Text: m(locale, "auth.promoBenefit2Text"),
     benefit3Title: m(locale, "auth.promoBenefit3Title"),
     benefit3Text: m(locale, "auth.promoBenefit3Text"),
-    previewHotel: m(locale, "auth.previewHotel"),
-    previewCity: m(locale, "auth.previewCity"),
-    previewRating: m(locale, "auth.previewRating"),
-    previewDates: m(locale, "auth.previewDates"),
-    previewPriceHtml: m(locale, "auth.previewPriceHtml"),
     previewGuestChoice: m(locale, "auth.previewGuestChoice"),
+    previewPriceFrom: m(locale, "auth.previewPriceFrom"),
+    previewAbstractTitle: m(locale, "auth.previewAbstractTitle"),
+    previewAbstractRating: m(locale, "auth.previewAbstractRating"),
+    previewAbstractConfirm: m(locale, "auth.previewAbstractConfirm"),
     trustSsl: m(locale, "auth.trustSsl"),
     trustVerified: m(locale, "auth.trustVerified"),
     trustNoFees: m(locale, "auth.trustNoFees"),
-    trustInstant: m(locale, "auth.trustInstant"),
-    footerCopyright: m(locale, "auth.footerCopyright"),
-    footerPrivacy: m(locale, "auth.footerPrivacy"),
-    footerTerms: m(locale, "auth.footerTerms")
+    trustInstant: m(locale, "auth.trustInstant")
   };
 
   const initialMode = searchParams?.mode === "register" ? "register" : "signIn";
@@ -127,6 +127,9 @@ export default function SignInPage({
       locale={locale}
       labels={labels}
       promoLabels={promoLabels}
+      brandMarkUrl={content.brand.logoMarkUrl}
+      brandName={content.brand.siteName}
+      featuredHotel={featuredHotel}
       initialMode={initialMode}
       nextPath={searchParams?.next ?? null}
       googleOAuthEnabled={isGoogleOAuthConfigured()}

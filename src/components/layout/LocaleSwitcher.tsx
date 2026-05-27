@@ -9,11 +9,24 @@ import { cn } from "@/lib/cn";
 type Props = {
   current: Locale;
   className?: string;
-  /** Compact trigger for mobile header: globe + locale code */
-  compact?: boolean;
+  /** Icon-only trigger (globe) — no locale text pill */
+  iconOnly?: boolean;
 };
 
-export function LocaleSwitcher({ current, className, compact = false }: Props) {
+function GlobeIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
+      />
+    </svg>
+  );
+}
+
+export function LocaleSwitcher({ current, className, iconOnly = false }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [err, setErr] = useState<string | null>(null);
@@ -60,33 +73,28 @@ export function LocaleSwitcher({ current, className, compact = false }: Props) {
         onClick={() => setOpen((o) => !o)}
         className={cn(
           "taj-dropdown-trigger disabled:opacity-50",
-          compact && "locale-switcher-trigger--compact",
+          iconOnly && "locale-switcher-trigger--icon",
           open && "ring-2 ring-emerald-400/25"
         )}
         aria-expanded={open}
         aria-haspopup="menu"
         aria-label={localeLabels[current]}
       >
-        {compact ? (
-          <svg className="locale-switcher-trigger__globe h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
-            />
-          </svg>
+        <GlobeIcon className={cn("shrink-0", iconOnly ? "h-[18px] w-[18px]" : "h-4 w-4")} />
+        {!iconOnly ? (
+          <>
+            <span className="font-extrabold tracking-wide">{localeShort[current]}</span>
+            <svg
+              className={cn("h-4 w-4 shrink-0 transition-transform", open && "rotate-180")}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              aria-hidden
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </>
         ) : null}
-        <span className={cn(compact ? "font-semibold tracking-wide" : "font-extrabold tracking-wide")}>{localeShort[current]}</span>
-        <svg
-          className={cn("shrink-0 transition-transform", compact ? "h-3 w-3" : "h-4 w-4", open && "rotate-180")}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          aria-hidden
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
       </button>
 
       <div
@@ -112,7 +120,7 @@ export function LocaleSwitcher({ current, className, compact = false }: Props) {
         ))}
       </div>
 
-      {err && <span className="text-xs font-semibold text-red-600">{err}</span>}
+      {err ? <span className="sr-only">{err}</span> : null}
     </div>
   );
 }

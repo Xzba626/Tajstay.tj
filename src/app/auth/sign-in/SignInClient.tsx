@@ -1,11 +1,13 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useId, useState } from "react";
 import { signIn } from "next-auth/react";
 import type { Locale } from "@/lib/i18n/locale";
 import { postLoginRedirect, safeReturnPath } from "@/lib/auth/postLoginRedirect";
 import { AuthPromoPanel, type AuthPromoLabels } from "@/components/auth/AuthPromoPanel";
+import type { AuthPromoFeaturedHotel } from "@/lib/services/authPromoHotel";
 import { AuthSocialButtons } from "@/components/auth/AuthSocialButtons";
 import { TelegramLoginPanel } from "@/components/auth/TelegramLoginPanel";
 
@@ -120,6 +122,9 @@ type Props = {
   locale: Locale;
   labels: SignInLabels;
   promoLabels: AuthPromoLabels;
+  brandMarkUrl: string;
+  brandName: string;
+  featuredHotel?: AuthPromoFeaturedHotel | null;
   initialMode?: "signIn" | "register";
   nextPath?: string | null;
   googleOAuthEnabled?: boolean;
@@ -134,6 +139,9 @@ export function SignInClient({
   locale,
   labels: L,
   promoLabels,
+  brandMarkUrl,
+  brandName,
+  featuredHotel = null,
   initialMode = "signIn",
   nextPath = null,
   googleOAuthEnabled = false,
@@ -309,13 +317,9 @@ export function SignInClient({
   return (
     <main className="taj-auth-page">
       <section className="taj-auth-shell">
-        <AuthPromoPanel labels={promoLabels} />
+        <AuthPromoPanel labels={promoLabels} featuredHotel={featuredHotel} />
 
         <section className="taj-auth-card">
-          <p className="taj-mobile-auth-badge lg:hidden" role="note">
-            {L.mobileAuthBadge}
-          </p>
-
           {telegramFlowActive && telegramLoginEnabled ? (
             <TelegramLoginPanel
               locale={locale}
@@ -328,8 +332,17 @@ export function SignInClient({
           ) : (
             <div className="taj-auth-inner">
               <div className="taj-auth-welcome">
-                <div className="taj-auth-ornament" aria-hidden>
-                  ✥
+                <div className="taj-auth-logo">
+                  <Image
+                    src={brandMarkUrl}
+                    alt=""
+                    width={44}
+                    height={44}
+                    className="h-11 w-11 object-contain"
+                    unoptimized
+                    priority
+                  />
+                  <span className="sr-only">{brandName}</span>
                 </div>
                 <h1>{welcomeTitle}</h1>
                 <p>{welcomeSubtitle}</p>

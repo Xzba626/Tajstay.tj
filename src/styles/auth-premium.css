@@ -18,7 +18,7 @@
   --taj-emerald: #10b981;
   --taj-shadow: 0 28px 90px rgba(0, 0, 0, 0.45);
 
-  min-height: calc(100vh - 76px);
+  min-height: calc(100vh - 72px);
   width: 100%;
   max-width: 100%;
   background:
@@ -26,7 +26,8 @@
     radial-gradient(circle at 80% 80%, rgba(5, 150, 105, 0.16), transparent 36%),
     linear-gradient(135deg, #03140f 0%, #052016 48%, #062b1d 100%);
   color: var(--taj-text);
-  padding: clamp(16px, 3vw, 32px) clamp(14px, 4vw, 72px);
+  padding: clamp(12px, 2.5vw, 20px) clamp(14px, 4vw, 48px) clamp(20px, 3vw, 32px);
+  padding-top: clamp(20px, 3vw, 48px);
   overflow-x: hidden;
   position: relative;
 }
@@ -55,7 +56,7 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: 0;
-  align-items: start;
+  align-items: stretch;
   justify-items: center;
 }
 
@@ -220,10 +221,45 @@
   height: 122px;
   border-radius: 16px;
   background:
-    linear-gradient(135deg, rgba(5, 150, 105, 0.16), rgba(2, 6, 23, 0.16)),
-    linear-gradient(145deg, #0d3d2c, #052218),
-    url("/images/auth/hotel-preview.webp") center / cover no-repeat;
+    linear-gradient(135deg, rgba(5, 150, 105, 0.22), rgba(2, 6, 23, 0.12)),
+    linear-gradient(145deg, #0d3d2c, #052218);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.taj-hotel-image--abstract {
+  background:
+    radial-gradient(circle at 30% 30%, rgba(52, 211, 153, 0.35), transparent 55%),
+    linear-gradient(145deg, #0d3d2c, #052218);
+}
+
+.taj-hotel-preview--abstract {
+  grid-template-columns: 100px 1fr;
+}
+
+.taj-hotel-abstract-title {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  color: #fffef7;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+}
+
+.taj-hotel-abstract-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 0;
+  color: rgba(236, 253, 245, 0.78);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.taj-hotel-abstract-line svg {
+  color: #facc15;
+  flex-shrink: 0;
 }
 
 .taj-hotel-info {
@@ -312,43 +348,6 @@
   flex-shrink: 0;
 }
 
-.taj-promo-footer {
-  margin-top: 20px;
-  display: flex;
-  gap: 18px;
-  align-items: center;
-  flex-wrap: wrap;
-  color: rgba(236, 253, 245, 0.56);
-  font-size: 12px;
-}
-
-.taj-promo-footer a {
-  color: rgba(236, 253, 245, 0.62);
-  text-decoration: underline;
-  text-underline-offset: 4px;
-}
-
-.taj-promo-footer a:hover {
-  color: #ecfdf5;
-}
-
-/* —— Mobile compact badge —— */
-.taj-mobile-auth-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  margin: 0 0 1rem;
-  padding: 0.5rem 0.85rem;
-  border-radius: 999px;
-  border: 1px solid var(--taj-border);
-  background: rgba(4, 32, 22, 0.65);
-  color: var(--taj-muted);
-  font-size: 0.75rem;
-  font-weight: 650;
-  text-align: center;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-}
 
 /* —— Right auth card —— */
 .taj-auth-card {
@@ -388,15 +387,17 @@
   margin-bottom: 20px;
 }
 
-.taj-auth-ornament {
-  margin: 0 auto 18px;
-  width: 38px;
-  height: 38px;
-  display: grid;
-  place-items: center;
-  color: #d9f99d;
-  font-size: 24px;
-  text-shadow: 0 0 22px rgba(190, 242, 100, 0.42);
+.taj-auth-logo {
+  margin: 0 auto 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  border: 1px solid rgba(110, 231, 183, 0.22);
+  background: rgba(4, 32, 22, 0.55);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
 }
 
 .taj-auth-welcome h1 {
@@ -834,9 +835,9 @@
 
   .taj-auth-shell {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
     width: 100%;
-    max-width: 100%;
+    max-width: 35rem;
     min-width: 0;
     min-height: auto;
     margin: 0 auto;
@@ -933,21 +934,28 @@
 
 /* —— Desktop split layout (lg+) —— */
 @media (min-width: 1024px) {
+  .taj-auth-page {
+    padding-top: clamp(48px, 5vw, 64px);
+  }
+
   .taj-auth-shell {
     max-width: 90rem;
-    min-height: calc(100vh - 140px);
+    min-height: 620px;
     grid-template-columns: minmax(0, 1.08fr) minmax(400px, 0.92fr);
-    gap: clamp(24px, 3vw, 56px);
-    align-items: center;
+    gap: clamp(24px, 3vw, 40px);
+    align-items: stretch;
+  }
+
+  .taj-promo-card,
+  .taj-promo-content,
+  .taj-auth-card {
+    min-height: 620px;
   }
 
   .taj-auth-card {
-    min-height: 560px;
     border-radius: 34px;
-  }
-
-  .taj-mobile-auth-badge {
-    display: none;
+    display: flex;
+    align-items: center;
   }
 }
 
