@@ -4,6 +4,13 @@ import { m } from "@/lib/i18n/messages";
 
 type Props = { locale?: Locale };
 
+const cityIcon = (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0116 0z" />
+    <circle cx="12" cy="10" r="3" />
+  </svg>
+);
+
 export function SearchBar({ locale = "ru" }: Props) {
   const popularCities = [
     m(locale, "cities.dushanbe"),
@@ -22,15 +29,12 @@ export function SearchBar({ locale = "ru" }: Props) {
           ))}
         </datalist>
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5 lg:gap-3">
-          <label className="flex flex-col gap-1.5 sm:col-span-2 lg:col-span-1">
-            <span className="home-search-label hidden md:block">{m(locale, "search.placeholder")}</span>
-            <div className="home-search-field">
-              <span className="shrink-0 text-emerald-400" aria-hidden>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0116 0z" />
-                  <circle cx="12" cy="10" r="3" />
-                </svg>
+        <div className="home-search-form grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 lg:gap-3">
+          <label className="home-search-item sm:col-span-2 lg:col-span-1">
+            <span className="home-search-label">{m(locale, "search.placeholder")}</span>
+            <div className="home-search-control home-search-control--with-icon">
+              <span className="home-search-control__icon text-emerald-400" aria-hidden>
+                {cityIcon}
               </span>
               <input
                 name="city"
@@ -45,23 +49,23 @@ export function SearchBar({ locale = "ru" }: Props) {
             </div>
           </label>
 
-          <label className="flex flex-col gap-1.5">
+          <label className="home-search-item">
             <span className="home-search-label">{m(locale, "search.checkIn")}</span>
-            <div className="home-search-field">
+            <div className="home-search-control">
               <input name="checkIn" type="date" aria-label={m(locale, "search.checkIn")} className="home-search-input" />
             </div>
           </label>
 
-          <label className="flex flex-col gap-1.5">
+          <label className="home-search-item">
             <span className="home-search-label">{m(locale, "search.checkOut")}</span>
-            <div className="home-search-field">
+            <div className="home-search-control">
               <input name="checkOut" type="date" aria-label={m(locale, "search.checkOut")} className="home-search-input" />
             </div>
           </label>
 
-          <label className="flex flex-col gap-1.5">
+          <label className="home-search-item">
             <span className="home-search-label">{m(locale, "search.guests")}</span>
-            <div className="home-search-field">
+            <div className="home-search-control">
               <input
                 name="guests"
                 type="number"
@@ -75,9 +79,9 @@ export function SearchBar({ locale = "ru" }: Props) {
             </div>
           </label>
 
-          <div className="hidden flex-col gap-1.5 lg:flex lg:col-span-1">
+          <div className="home-search-item hidden lg:flex lg:col-span-1">
             <span className="home-search-label">{m(locale, "search.button")}</span>
-            <button type="submit" className="home-search-submit min-h-[var(--taj-control-h)]" aria-label={m(locale, "search.button")}>
+            <button type="submit" className="home-search-submit" aria-label={m(locale, "search.button")}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                 <circle cx="11" cy="11" r="8" />
                 <path d="M21 21l-4.35-4.35" />
@@ -87,8 +91,8 @@ export function SearchBar({ locale = "ru" }: Props) {
           </div>
         </div>
 
-        <div className="mt-3 md:hidden">
-          <button type="submit" className="home-search-submit min-h-[var(--taj-control-h-lg)] w-full" aria-label={m(locale, "search.button")}>
+        <div className="home-search-mobile-submit md:hidden">
+          <button type="submit" className="home-search-submit home-search-submit--mobile w-full" aria-label={m(locale, "search.button")}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <circle cx="11" cy="11" r="8" />
               <path d="M21 21l-4.35-4.35" />
@@ -97,7 +101,7 @@ export function SearchBar({ locale = "ru" }: Props) {
           </button>
         </div>
 
-        <div className="mt-4 hidden flex-wrap items-center gap-2 md:flex">
+        <div className="home-search-popular mt-4 hidden flex-wrap items-center gap-2 md:flex">
           <span className="text-xs font-semibold text-emerald-200/90">{m(locale, "search.popular")}</span>
           {popularCities.map((city, i) => (
             <Link

@@ -2379,7 +2379,8 @@ select:focus,
   color: var(--taj-text-secondary);
 }
 
-.home-search-field {
+.home-search-field,
+.home-search-control {
   display: flex;
   height: 3rem;
   align-items: center;
@@ -2391,9 +2392,26 @@ select:focus,
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
-.home-search-field:focus-within {
+.home-search-field:focus-within,
+.home-search-control:focus-within {
   border-color: var(--taj-input-focus-border);
   box-shadow: var(--taj-input-focus-ring);
+}
+
+.home-search-control--with-icon {
+  position: relative;
+  padding-left: 0.65rem;
+}
+
+.home-search-control__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+}
+
+.home-search-control--with-icon .home-search-input {
+  padding-left: 0.15rem;
 }
 
 .home-search-input {

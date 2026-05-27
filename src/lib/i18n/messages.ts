@@ -126,7 +126,7 @@ const ru: Tree = {
     }
   },
   home: {
-    heroBadge: "TajStay для путешествий",
+    heroBadge: "Жильё в Таджикистане",
     heroTitle: "Найди идеальное жильё",
     heroSubtitle: "Жильё в одном поиске",
     ctaSearch: "Начать поиск",
@@ -1299,7 +1299,7 @@ const tg: Tree = {
     }
   },
   home: {
-    heroBadge: "TajStay барои сафар",
+    heroBadge: "Манзил дар Тоҷикистон",
     heroTitle: "Манзили идеалии худро пайдо кунед",
     heroSubtitle: "Ҳама дар як ҷустуҷӯ",
     ctaSearch: "Ҷустуҷӯро оғоз кунед",
@@ -2432,7 +2432,7 @@ const en: Tree = {
     }
   },
   home: {
-    heroBadge: "TajStay for travel",
+    heroBadge: "Stays in Tajikistan",
     heroTitle: "Find your perfect stay",
     heroSubtitle: "Stays in one search",
     ctaSearch: "Start search",

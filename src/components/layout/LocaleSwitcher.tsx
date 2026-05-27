@@ -9,9 +9,11 @@ import { cn } from "@/lib/cn";
 type Props = {
   current: Locale;
   className?: string;
+  /** Compact trigger for mobile header: globe + locale code */
+  compact?: boolean;
 };
 
-export function LocaleSwitcher({ current, className }: Props) {
+export function LocaleSwitcher({ current, className, compact = false }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [err, setErr] = useState<string | null>(null);
@@ -56,23 +58,28 @@ export function LocaleSwitcher({ current, className }: Props) {
         type="button"
         disabled={pending}
         onClick={() => setOpen((o) => !o)}
-        className={cn("taj-dropdown-trigger disabled:opacity-50", open && "ring-2 ring-emerald-400/25")}
+        className={cn(
+          "taj-dropdown-trigger disabled:opacity-50",
+          compact && "locale-switcher-trigger--compact",
+          open && "ring-2 ring-emerald-400/25"
+        )}
         aria-expanded={open}
         aria-haspopup="menu"
+        aria-label={localeLabels[current]}
       >
+        {compact ? (
+          <svg className="locale-switcher-trigger__globe h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
+            />
+          </svg>
+        ) : null}
+        <span className={cn(compact ? "font-semibold tracking-wide" : "font-extrabold tracking-wide")}>{localeShort[current]}</span>
         <svg
-          className="h-4 w-4 shrink-0"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          aria-hidden
-        >
-          <circle cx="12" cy="12" r="9" strokeWidth={1.7} />
-          <path strokeLinecap="round" strokeWidth={1.7} d="M3 12h18M12 3c2.5 2.7 4 6 4 9s-1.5 6.3-4 9c-2.5-2.7-4-6-4-9s1.5-6.3 4-9Z" />
-        </svg>
-        <span className="font-extrabold tracking-wide">{localeShort[current]}</span>
-        <svg
-          className={cn("h-3.5 w-3.5 transition-transform", open && "rotate-180")}
+          className={cn("shrink-0 transition-transform", compact ? "h-3 w-3" : "h-4 w-4", open && "rotate-180")}
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
