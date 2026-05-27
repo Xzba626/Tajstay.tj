@@ -209,7 +209,7 @@ export function MobileMenu({ user, ownerApp, locale: _locale, labels: L, brandNa
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="relative z-[10002] inline-flex h-11 min-h-[44px] w-11 min-w-[44px] touch-manipulation items-center justify-center rounded-xl border border-emerald-300/45 bg-emerald-600 text-sm font-semibold text-white shadow-lg shadow-emerald-900/35 transition active:scale-[0.97] hover:bg-emerald-500 md:hidden"
+        className="mobile-menu-trigger relative z-[10002] inline-flex touch-manipulation items-center justify-center rounded-xl border border-emerald-300/45 bg-emerald-600 text-sm font-semibold text-white shadow-lg shadow-emerald-900/35 transition active:scale-[0.97] hover:bg-emerald-500 md:hidden"
         aria-label={L.menu}
         aria-expanded={open}
       >

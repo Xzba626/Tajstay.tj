@@ -440,7 +440,7 @@ export function SignInClient({
                     id={loginPasswordId}
                     label={L.password}
                     labelExtra={
-                      <Link href="/auth/reset-password" className="taj-link-button">
+                      <Link href="/auth/forgot-password" className="taj-link-button">
                         {L.forgotPassword}
                       </Link>
                     }

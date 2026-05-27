@@ -99,7 +99,7 @@ export async function Header() {
             </div>
           ) : null}
           {!user ? (
-            <ViewTransitionLink href="/auth/sign-in" className="header-auth-signin-mobile md:hidden">
+            <ViewTransitionLink href="/auth/sign-in" className="header-auth-signin-mobile mobile-login-button md:hidden">
               {m(locale, "header.signIn")}
             </ViewTransitionLink>
           ) : null}

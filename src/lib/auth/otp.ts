@@ -25,6 +25,13 @@ function timingSafeEqualHex(a: string, b: string): boolean {
   return crypto.timingSafeEqual(aBuf, bBuf);
 }
 
+/** Compare a user-entered OTP code against a stored SHA256 hash (hex). */
+export function verifyOtpCodeHash(code: string, storedCodeHash: string): boolean {
+  const normalizedCode = String(code ?? "").trim();
+  const codeHash = hashOtpCode(OTP_CODE_RE.test(normalizedCode) ? normalizedCode : "000000");
+  return timingSafeEqualHex(storedCodeHash, codeHash);
+}
+
 export async function createPhoneOtp(phone: string): Promise<{ otp: string }> {
   const normalizedPhone = normalizePhone(phone);
   if (!normalizedPhone) throw new Error("Invalid phone");

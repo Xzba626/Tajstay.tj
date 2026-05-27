@@ -38,6 +38,7 @@ model User {
   notes               Notification[]      @relation("UserNotifications")
   sessions            Session[]
   passwordResetTokens PasswordResetToken[]
+  emailOtps           EmailOtp[]
   favorites           Favorite[]
   complaints          Complaint[]
   accounts            Account[]
@@ -583,6 +584,23 @@ model PasswordResetToken {
   createdAt DateTime @default(now())
 
   @@index([userId])
+}
+
+model EmailOtp {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  email     String
+  codeHash  String
+  /// PASSWORD_RESET (reserved for future purposes).
+  purpose   String
+  expiresAt DateTime
+  usedAt    DateTime?
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([email, purpose])
+  @@index([userId, purpose])
 }
 
 model OtpChallenge {

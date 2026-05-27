@@ -73,7 +73,7 @@ export default async function SignInPage({
     googleContinue: m(locale, "auth.googleContinue"),
     googleRegister: m(locale, "auth.googleRegister"),
     googleSignInError: m(locale, "auth.googleSignInError"),
-    forgotPassword: m(locale, "auth.forgotPassword"),
+    forgotPassword: m(locale, "auth.forgotPasswordLink"),
     errInvalidCredentials: m(locale, "auth.errInvalidCredentials"),
     errTooManyAttempts: m(locale, "auth.errTooManyAttempts"),
     errEmailInUse: m(locale, "auth.errEmailInUse"),

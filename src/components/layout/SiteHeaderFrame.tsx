@@ -23,14 +23,13 @@ export function SiteHeaderFrame({ children }: Props) {
         return;
       }
       const y = window.scrollY;
-      if (y <= 8) {
+      if (y <= 20) {
         setHidden(false);
-        lastY.current = y;
-        return;
+      } else if (y > lastY.current + 8 && y > 80) {
+        setHidden(true);
+      } else if (y < lastY.current - 8) {
+        setHidden(false);
       }
-      const delta = y - lastY.current;
-      if (delta > 6) setHidden(true);
-      else if (delta < -6) setHidden(false);
       lastY.current = y;
     }
 
@@ -56,7 +55,7 @@ export function SiteHeaderFrame({ children }: Props) {
   return (
     <header
       className={cn(
-        "site-header sticky top-0 z-[100] transition-[background-color,transform] duration-300",
+        "site-header sticky top-0 z-[50] transition-[background-color,transform] duration-[220ms] ease-out",
         hidden && "site-header--scroll-hidden"
       )}
     >

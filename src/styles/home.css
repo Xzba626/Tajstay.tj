@@ -601,10 +601,65 @@
 @media (max-width: 1023px) {
   .site-header {
     will-change: transform;
+    transition:
+      transform 220ms ease,
+      background-color 220ms ease;
   }
 
   .site-header.site-header--scroll-hidden {
     transform: translateY(-100%);
+  }
+}
+
+/* Mobile header proportions */
+@media (max-width: 767px) {
+  .site-header__inner {
+    min-height: 48px;
+    height: 72px;
+    max-height: 72px;
+    padding-block: 0.35rem;
+  }
+
+  .site-header .brand-mark-badge,
+  .site-header .brand-mark-badge--sm {
+    height: 3rem;
+    width: 3rem;
+    padding: 0.4rem;
+  }
+
+  .site-header .brand-mark-badge img {
+    height: 2rem !important;
+    width: 2rem !important;
+  }
+
+  .site-header .brand-mark-name {
+    font-size: clamp(1.125rem, 5.2vw, 1.75rem);
+    line-height: 1.1;
+  }
+
+  .locale-switcher--icon-only .locale-switcher-trigger--icon {
+    min-height: 3rem;
+    min-width: 3rem;
+  }
+
+  .header-auth-signin-mobile {
+    height: 3rem;
+    min-height: 3rem;
+    padding: 0 1rem;
+    font-size: 0.875rem;
+  }
+
+  .mobile-menu-trigger {
+    height: 3rem;
+    width: 3rem;
+    min-height: 3rem;
+    min-width: 3rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .mobile-login-button {
+    display: none !important;
   }
 }
 
