@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import crypto from "node:crypto";
 import { prisma } from "@/lib/prisma";
-import { verifyOtpCodeHash } from "@/lib/auth/otp";
+import { verifyEmailResetOtp, PASSWORD_RESET_PURPOSE } from "@/lib/auth/emailResetOtp";
 import { hashPassword } from "@/lib/auth/password";
 import { clearSessionCookie } from "@/lib/auth/session";
 import { clientIp, rateLimit } from "@/lib/security/rateLimit";
@@ -18,8 +18,6 @@ const otpSchema = z.object({
   password: z.string().min(8),
   confirmPassword: z.string().min(8)
 });
-
-const PURPOSE = "PASSWORD_RESET";
 
 export async function POST(req: Request) {
   const ip = clientIp(req);
@@ -43,6 +41,9 @@ export async function POST(req: Request) {
       return res;
     }
 
+    const verified = await verifyEmailResetOtp(email, code);
+    if (!verified.ok) return NextResponse.json({ error: verified.error }, { status: verified.status });
+
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) return NextResponse.json({ error: "Invalid or expired code" }, { status: 400 });
 
@@ -50,23 +51,13 @@ export async function POST(req: Request) {
       where: {
         userId: user.id,
         email,
-        purpose: PURPOSE,
+        purpose: PASSWORD_RESET_PURPOSE,
         usedAt: null,
         expiresAt: { gt: new Date() }
       },
       orderBy: { createdAt: "desc" }
     });
     if (!otp) return NextResponse.json({ error: "Invalid or expired code" }, { status: 400 });
-    if ((otp.attempts ?? 0) >= 5) return NextResponse.json({ error: "Too many attempts" }, { status: 429 });
-
-    const ok = verifyOtpCodeHash(code, otp.codeHash);
-    if (!ok) {
-      await prisma.emailOtp.update({
-        where: { id: otp.id },
-        data: { attempts: (otp.attempts ?? 0) + 1 }
-      });
-      return NextResponse.json({ error: "Invalid or expired code" }, { status: 400 });
-    }
 
     const passwordHash = await hashPassword(password);
     await prisma.$transaction([

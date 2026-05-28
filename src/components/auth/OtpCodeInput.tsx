@@ -13,6 +13,7 @@ type Props = {
   success?: boolean;
   shake?: boolean;
   autoFocus?: boolean;
+  variant?: "default" | "auth";
 };
 
 export function OtpCodeInput({
@@ -24,7 +25,8 @@ export function OtpCodeInput({
   error,
   success,
   shake,
-  autoFocus
+  autoFocus,
+  variant = "default"
 }: Props) {
   const uid = useId();
   const refs = useRef<(HTMLInputElement | null)[]>([]);
@@ -57,6 +59,13 @@ export function OtpCodeInput({
   }, [autoFocus]);
 
   const boxClass = (filled: boolean) => {
+    if (variant === "auth") {
+      if (loading) return "taj-otp-cell-input taj-otp-cell-input--loading";
+      if (success) return "taj-otp-cell-input taj-otp-cell-input--success";
+      if (error) return "taj-otp-cell-input taj-otp-cell-input--error";
+      if (filled) return "taj-otp-cell-input taj-otp-cell-input--filled";
+      return "taj-otp-cell-input";
+    }
     if (loading) return "border-white/10 bg-white/5 text-transparent animate-pulse";
     if (success) return "border-[var(--brand-green)] bg-[rgba(34,197,94,0.18)] text-[var(--brand-green-light)] otp-success-pop";
     if (error) return "border-red-400/70 bg-red-500/10 text-red-200";
@@ -64,8 +73,19 @@ export function OtpCodeInput({
     return "border-white/15 bg-white/5 text-white";
   };
 
+  const cellBase =
+    variant === "auth"
+      ? "taj-otp-cell-input"
+      : "h-[48px] w-[40px] rounded-[10px] border text-center text-xl font-bold outline-none transition-all duration-200 sm:h-[52px] sm:w-[48px] focus:border-[var(--brand-green)] focus:ring-2 focus:ring-[var(--brand-green)]/25 disabled:opacity-50";
+
   return (
-    <div className={cn("flex justify-center gap-1.5 sm:gap-2", shake && "otp-shake")} onPaste={handlePaste}>
+    <div
+      className={cn(
+        variant === "auth" ? "taj-otp-grid" : "flex justify-center gap-1.5 sm:gap-2",
+        shake && "otp-shake"
+      )}
+      onPaste={handlePaste}
+    >
       {value.map((d, idx) => (
         <input
           key={idx}
@@ -86,12 +106,7 @@ export function OtpCodeInput({
           onKeyDown={(e) => {
             if (e.key === "Backspace" && !value[idx] && idx > 0) refs.current[idx - 1]?.focus();
           }}
-          className={cn(
-            "h-[48px] w-[40px] rounded-[10px] border text-center text-xl font-bold outline-none transition-all duration-200 sm:h-[52px] sm:w-[48px]",
-            boxClass(!!d),
-            "focus:border-[var(--brand-green)] focus:ring-2 focus:ring-[var(--brand-green)]/25",
-            "disabled:opacity-50"
-          )}
+          className={cn(cellBase, boxClass(!!d))}
         />
       ))}
     </div>

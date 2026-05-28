@@ -4,6 +4,7 @@
 @import "../styles/home.css";
 @import "../styles/auth.css";
 @import "../styles/auth-premium.css";
+@import "../styles/mobile-drawer.css";
 @import "../styles/chat.css";
 
 @tailwind base;

@@ -1,90 +1,242 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useState, useTransition } from "react";
+import { BookOpen, Building2, ChevronDown, Heart, HelpCircle, Home, LogOut, User, X } from "lucide-react";
 import type { OwnerAppNavState } from "@/lib/navigation/getNavContext";
+import type { MobileDrawerStats } from "@/lib/navigation/getMobileDrawerStats";
 import { cn } from "@/lib/cn";
 import type { Locale } from "@/lib/i18n/locale";
+import { locales } from "@/lib/i18n/locale";
 
 export type MobileMenuLabels = {
   menu: string;
   close: string;
-  home: string;
-  search: string;
-  about: string;
-  contactUs: string;
-  forOwners: string;
   navSection: string;
+  signIn: string;
+  signUp: string;
+  guestTraveler: string;
+  statBookings: string;
+  statFavorites: string;
+  brandHome: string;
+  favorites: string;
+  bookings: string;
+  bookingsActive: string;
+  bookingsHistory: string;
+  bookingsCancelled: string;
+  bookingsPayments: string;
+  profile: string;
+  profilePersonal: string;
+  profilePhone: string;
+  profileEmail: string;
+  profileTelegram: string;
+  profileSecurity: string;
+  profileChangePassword: string;
+  profileNotifications: string;
+  profileLanguage: string;
+  profileLogout: string;
+  ownerCtaTitle: string;
+  ownerCtaAction: string;
+  ownerBlock: string;
+  ownerAdd: string;
+  ownerList: string;
+  ownerCalendar: string;
+  ownerBookings: string;
+  ownerAnalytics: string;
+  ownerIncome: string;
+  ownerReviews: string;
+  ownerSupport: string;
+  support: string;
+  supportChat: string;
+  supportTelegram: string;
+  supportFaq: string;
+  supportReport: string;
+  supportSafety: string;
+  supportComplaints: string;
+  footerAbout: string;
+  footerPolicy: string;
+  footerTerms: string;
+  loggingOut: string;
 };
 
 type Props = {
-  user:
-    | {
-        name: string;
-        role: string;
-      }
-    | null
-    | undefined;
+  user: { name: string; role: string } | null | undefined;
   ownerApp: OwnerAppNavState;
   locale: Locale;
   labels: MobileMenuLabels;
   brandName: string;
   brandMarkUrl: string;
+  stats: MobileDrawerStats | null;
+  trustStatus: string | null;
 };
-
-type NavItem = { href: string; label: string; icon: NavIconName };
-type NavIconName = "home" | "search" | "about" | "owner" | "contact";
-
-function NavIcon({ name }: { name: NavIconName }) {
-  const common = "h-5 w-5 shrink-0 text-[var(--taj-text-muted)]";
-  switch (name) {
-    case "home":
-      return (
-        <svg className={common} viewBox="0 0 24 24" fill="none" aria-hidden>
-          <path d="M3 11.5L12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1v-8.5Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-        </svg>
-      );
-    case "search":
-      return (
-        <svg className={common} viewBox="0 0 24 24" fill="none" aria-hidden>
-          <path d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" stroke="currentColor" strokeWidth="2" />
-          <path d="M16.5 16.5 21 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-        </svg>
-      );
-    case "about":
-      return (
-        <svg className={common} viewBox="0 0 24 24" fill="none" aria-hidden>
-          <path d="M12 22c5.5 0 10-4.5 10-10S17.5 2 12 2 2 6.5 2 12s4.5 10 10 10Z" stroke="currentColor" strokeWidth="2" />
-          <path d="M12 17v-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          <path d="M12 8h.01" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-        </svg>
-      );
-    case "owner":
-      return (
-        <svg className={common} viewBox="0 0 24 24" fill="none" aria-hidden>
-          <path d="M3 10.5 12 4l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-9.5Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-          <path d="M9 21v-7h6v7" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-        </svg>
-      );
-    case "contact":
-      return (
-        <svg className={common} viewBox="0 0 24 24" fill="none" aria-hidden>
-          <path d="M21 16.92v3a2 2 0 0 1-2.18 2 19.86 19.86 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.86 19.86 0 0 1 1.12 4.18 2 2 0 0 1 3.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.8a2 2 0 0 1-.45 2.11L7.09 9.9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.84.57 2.8.7A2 2 0 0 1 21 16.92Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      );
-  }
-}
 
 const MOBILE_MENU_HISTORY_TAG = "tajstay-mobile-menu";
 
-export function MobileMenu({ user, ownerApp, locale: _locale, labels: L, brandName: _brandName, brandMarkUrl: _brandMarkUrl }: Props) {
-  void _locale;
-  void _brandName;
-  void _brandMarkUrl;
-  void user;
+function initials(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return "TS";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0] ?? ""}${parts[1][0] ?? ""}`.toUpperCase();
+}
+
+function DrawerAccordion({
+  title,
+  icon,
+  children,
+  defaultOpen = false
+}: {
+  title: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+  defaultOpen?: boolean;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  const panelId = useId();
+
+  return (
+    <div className={cn("mdrawer-accordion", open && "is-open")}>
+      <button
+        type="button"
+        className="mdrawer-accordion__trigger"
+        aria-expanded={open}
+        aria-controls={panelId}
+        onClick={() => setOpen((v) => !v)}
+      >
+        <span className="mdrawer-item__icon" aria-hidden>
+          {icon}
+        </span>
+        <span>{title}</span>
+        <ChevronDown className="mdrawer-accordion__chevron" size={18} aria-hidden />
+      </button>
+      <div id={panelId} className="mdrawer-accordion__panel">
+        <div className="mdrawer-accordion__inner">
+          <div className="mdrawer-accordion__content">{children}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DrawerNavLink({
+  href,
+  children,
+  onNavigate,
+  badge,
+  icon
+}: {
+  href: string;
+  children: React.ReactNode;
+  onNavigate: () => void;
+  badge?: number;
+  icon?: React.ReactNode;
+}) {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
+  return (
+    <Link
+      href={href}
+      className={cn("mdrawer-item", loading && "is-loading")}
+      onClick={(e) => {
+        e.preventDefault();
+        if (loading) return;
+        setLoading(true);
+        onNavigate();
+        router.push(href);
+      }}
+    >
+      {icon ? <span className="mdrawer-item__icon">{icon}</span> : null}
+      <span className="mdrawer-item__label">{children}</span>
+      {badge && badge > 0 ? <span className="mdrawer-item__badge">{badge > 99 ? "99+" : badge}</span> : null}
+    </Link>
+  );
+}
+
+function DrawerSubLink({
+  href,
+  children,
+  onNavigate
+}: {
+  href: string;
+  children: React.ReactNode;
+  onNavigate: () => void;
+}) {
+  const router = useRouter();
+
+  return (
+    <Link
+      href={href}
+      className="mdrawer-subitem"
+      onClick={(e) => {
+        e.preventDefault();
+        onNavigate();
+        router.push(href);
+      }}
+    >
+      {children}
+    </Link>
+  );
+}
+
+function DrawerLocaleRow({ current, onChanged }: { current: Locale; onChanged?: () => void }) {
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+
+  async function change(locale: Locale) {
+    if (locale === current || pending) return;
+    try {
+      const res = await fetch("/api/locale", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ locale })
+      });
+      if (!res.ok) return;
+      onChanged?.();
+      startTransition(() => router.refresh());
+    } catch {
+      /* ignore */
+    }
+  }
+
+  return (
+    <div className="mdrawer-locale-row" role="group">
+      {locales.map((loc) => (
+        <button
+          key={loc}
+          type="button"
+          disabled={pending}
+          className={cn("mdrawer-locale-btn", loc === current && "is-active")}
+          onClick={() => void change(loc)}
+        >
+          {loc === "ru" ? "RU" : loc === "tg" ? "TJ" : "EN"}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export function MobileMenu({
+  user,
+  ownerApp,
+  locale,
+  labels: L,
+  brandName,
+  brandMarkUrl,
+  stats,
+  trustStatus
+}: Props) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  const close = useCallback(() => setOpen(false), []);
+
+  const isOwner = user?.role === "OWNER";
+  const isGuest = Boolean(user);
+  const showOwnerCta = user?.role === "GUEST" && ownerApp.kind !== "approved";
 
   useEffect(() => {
     setMounted(true);
@@ -129,77 +281,227 @@ export function MobileMenu({ user, ownerApp, locale: _locale, labels: L, brandNa
     };
   }, [open]);
 
-  const navItems = useMemo<NavItem[]>(() => {
-    const role = user?.role ?? "GUEST";
-    const ownerHref =
-      role === "OWNER"
-        ? "/dashboard/owner"
-        : ownerApp.kind === "approved"
-          ? "/dashboard/owner"
-          : "/profile/become-owner";
+  const bookingsLinks = useMemo(
+    () => [
+      { href: "/dashboard/bookings", label: L.bookingsActive },
+      { href: "/dashboard/guest", label: L.bookingsHistory },
+      { href: "/dashboard/guest", label: L.bookingsCancelled },
+      { href: "/dashboard/guest", label: L.bookingsPayments }
+    ],
+    [L]
+  );
 
-    return [
-      { href: "/", label: L.home, icon: "home" },
-      { href: "/search", label: L.search, icon: "search" },
-      { href: "/about", label: L.about, icon: "about" },
-      { href: ownerHref, label: L.forOwners, icon: "owner" },
-      { href: "/contacts", label: L.contactUs, icon: "contact" }
-    ];
-  }, [L, ownerApp.kind, user]);
+  async function logout() {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try {
+      const res = await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+      if (!res.ok) throw new Error("logout failed");
+      close();
+      window.location.href = "/";
+    } catch {
+      setLoggingOut(false);
+    }
+  }
 
   const drawer = (
     <div
-      className={cn(
-        "fixed inset-0 z-[10001] md:hidden",
-        open ? "pointer-events-auto visible" : "pointer-events-none invisible"
-      )}
+      className={cn("mdrawer-root fixed inset-0 z-[10001] md:hidden", open ? "pointer-events-auto" : "pointer-events-none")}
       aria-hidden={!open}
       role="dialog"
       aria-modal={open ? "true" : undefined}
       aria-label={L.menu}
     >
       <div
-        className={cn(
-          "absolute inset-0 bg-slate-950/55 backdrop-blur-md transition-opacity duration-200",
-          open ? "opacity-100" : "opacity-0"
-        )}
-        onClick={() => setOpen(false)}
+        className="mdrawer-overlay"
+        style={{ opacity: open ? 1 : 0 }}
+        onClick={close}
+        aria-hidden
       />
-      <div
-        className={cn(
-          "mobile-menu-panel absolute right-0 top-0 flex h-dvh max-h-dvh w-[min(88vw,380px)] flex-col backdrop-blur-xl transition-transform duration-200 ease-out",
-          open ? "translate-x-0" : "translate-x-full"
-        )}
-      >
-        <div className="mobile-menu-panel__header flex shrink-0 items-center justify-end px-4 py-3 pt-[max(0.85rem,env(safe-area-inset-top))]">
-          <button
-            type="button"
-            onClick={() => setOpen(false)}
-            className="mobile-menu-panel__close inline-flex h-10 w-10 items-center justify-center rounded-full transition active:scale-[0.94]"
-            aria-label={L.close}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-              <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-            </svg>
-          </button>
+      <div className={cn("mdrawer-panel", open ? "is-open" : "is-closed")}>
+        <header className="mdrawer-top">
+          <div className="mdrawer-top__row">
+            <div className="min-w-0 flex-1">
+              {user ? (
+                <div className="mdrawer-user-card">
+                  <div className="mdrawer-user-card__head">
+                    <div className="mdrawer-avatar" aria-hidden>
+                      {initials(user.name)}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="mdrawer-user-name">{user.name}</p>
+                      <p className="mdrawer-user-status">{trustStatus ?? L.guestTraveler}</p>
+                    </div>
+                  </div>
+                  {stats ? (
+                    <div className="mdrawer-user-stats">
+                      <span>{L.statBookings.replace("{count}", String(stats.bookingsCount))}</span>
+                      <span>{L.statFavorites.replace("{count}", String(stats.favoritesCount))}</span>
+                    </div>
+                  ) : null}
+                </div>
+              ) : (
+                <div className="mdrawer-auth-actions">
+                  <Link href="/auth/sign-in" className="mdrawer-auth-btn mdrawer-auth-btn--primary" onClick={close}>
+                    {L.signIn}
+                  </Link>
+                  <Link href="/auth/sign-in?mode=register" className="mdrawer-auth-btn mdrawer-auth-btn--ghost" onClick={close}>
+                    {L.signUp}
+                  </Link>
+                </div>
+              )}
+            </div>
+            <button type="button" className="mdrawer-close" onClick={close} aria-label={L.close}>
+              <X size={20} aria-hidden />
+            </button>
+          </div>
+        </header>
+
+        <div className="mdrawer-scroll">
+          <p className="mdrawer-section-label">{L.navSection}</p>
+
+          <DrawerNavLink href="/" onNavigate={close}>
+            <span className="mdrawer-brand-row">
+              {brandMarkUrl ? (
+                <Image src={brandMarkUrl} alt="" width={32} height={32} className="mdrawer-brand-mark" unoptimized />
+              ) : (
+                <span className="mdrawer-item__icon" aria-hidden>
+                  <Home size={18} />
+                </span>
+              )}
+              <span>{brandName || L.brandHome}</span>
+            </span>
+          </DrawerNavLink>
+
+          <DrawerNavLink href="/favorites" onNavigate={close} icon={<Heart size={18} aria-hidden />}>
+            {L.favorites}
+          </DrawerNavLink>
+
+          {isGuest ? (
+            <DrawerAccordion title={L.bookings} icon={<BookOpen size={18} aria-hidden />}>
+              {bookingsLinks.map((item) => (
+                <DrawerSubLink key={`${item.href}:${item.label}`} href={item.href} onNavigate={close}>
+                  {item.label}
+                </DrawerSubLink>
+              ))}
+            </DrawerAccordion>
+          ) : null}
+
+          {isGuest ? (
+            <DrawerAccordion title={L.profile} icon={<User size={18} aria-hidden />} defaultOpen>
+              <DrawerSubLink href="/profile" onNavigate={close}>
+                {L.profilePersonal}
+              </DrawerSubLink>
+              <DrawerSubLink href="/profile" onNavigate={close}>
+                {L.profilePhone}
+              </DrawerSubLink>
+              <DrawerSubLink href="/profile" onNavigate={close}>
+                {L.profileEmail}
+              </DrawerSubLink>
+              <DrawerSubLink href="/profile" onNavigate={close}>
+                {L.profileTelegram}
+              </DrawerSubLink>
+              <DrawerSubLink href="/auth/forgot-password" onNavigate={close}>
+                {L.profileChangePassword}
+              </DrawerSubLink>
+              <DrawerSubLink href="/notifications" onNavigate={close}>
+                <span className="flex w-full items-center justify-between gap-2">
+                  {L.profileNotifications}
+                  {stats && stats.unreadCount > 0 ? (
+                    <span className="mdrawer-item__badge">{stats.unreadCount > 99 ? "99+" : stats.unreadCount}</span>
+                  ) : null}
+                </span>
+              </DrawerSubLink>
+              <p className="mdrawer-section-label" style={{ marginTop: "0.35rem" }}>
+                {L.profileLanguage}
+              </p>
+              <DrawerLocaleRow current={locale} onChanged={close} />
+              {showOwnerCta ? (
+                <div className="mdrawer-cta">
+                  <p>{L.ownerCtaTitle}</p>
+                  <Link href="/profile/become-owner" onClick={close}>
+                    {L.ownerCtaAction}
+                  </Link>
+                </div>
+              ) : null}
+              <button
+                type="button"
+                className="mdrawer-subitem mdrawer-logout w-full border-0 bg-transparent text-left"
+                disabled={loggingOut}
+                onClick={() => void logout()}
+              >
+                <LogOut size={16} aria-hidden />
+                {loggingOut ? L.loggingOut : L.profileLogout}
+              </button>
+            </DrawerAccordion>
+          ) : null}
+
+          {isOwner ? (
+            <DrawerAccordion title={L.ownerBlock} icon={<Building2 size={18} aria-hidden />}>
+              <DrawerSubLink href="/dashboard/owner?section=properties" onNavigate={close}>
+                {L.ownerAdd}
+              </DrawerSubLink>
+              <DrawerSubLink href="/dashboard/owner?section=properties" onNavigate={close}>
+                {L.ownerList}
+              </DrawerSubLink>
+              <DrawerSubLink href="/dashboard/owner?section=calendar" onNavigate={close}>
+                {L.ownerCalendar}
+              </DrawerSubLink>
+              <DrawerSubLink href="/dashboard/owner?section=bookings" onNavigate={close}>
+                {L.ownerBookings}
+              </DrawerSubLink>
+              <DrawerSubLink href="/dashboard/owner?section=statistics" onNavigate={close}>
+                {L.ownerAnalytics}
+              </DrawerSubLink>
+              <DrawerSubLink href="/dashboard/owner?section=finances" onNavigate={close}>
+                {L.ownerIncome}
+              </DrawerSubLink>
+              <DrawerSubLink href="/dashboard/owner?section=reviews" onNavigate={close}>
+                {L.ownerReviews}
+              </DrawerSubLink>
+              <DrawerSubLink href="/dashboard/owner?section=help" onNavigate={close}>
+                {L.ownerSupport}
+              </DrawerSubLink>
+            </DrawerAccordion>
+          ) : null}
+
+          <DrawerAccordion title={L.support} icon={<HelpCircle size={18} aria-hidden />}>
+            <DrawerSubLink href={isGuest ? "/dashboard/messages" : "/contacts"} onNavigate={close}>
+              {L.supportChat}
+            </DrawerSubLink>
+            <DrawerSubLink href="/contacts" onNavigate={close}>
+              {L.supportTelegram}
+            </DrawerSubLink>
+            <DrawerSubLink href="/faq" onNavigate={close}>
+              {L.supportFaq}
+            </DrawerSubLink>
+            <DrawerSubLink href={isGuest ? "/dashboard/guest" : "/contacts"} onNavigate={close}>
+              {L.supportReport}
+            </DrawerSubLink>
+            <DrawerSubLink href="/policy" onNavigate={close}>
+              {L.supportSafety}
+            </DrawerSubLink>
+            {isGuest ? (
+              <DrawerSubLink href="/dashboard/guest" onNavigate={close}>
+                {L.supportComplaints}
+              </DrawerSubLink>
+            ) : null}
+          </DrawerAccordion>
         </div>
 
-        <nav
-          className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto overscroll-contain px-3 py-2 pb-[max(1rem,env(safe-area-inset-bottom))]"
-          aria-label={L.navSection}
-        >
-          {navItems.map((it) => (
-            <Link
-              key={`${it.href}:${it.label}`}
-              href={it.href}
-              onClick={() => setOpen(false)}
-              className="mobile-menu-panel__link flex min-h-[48px] items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition"
-            >
-              <NavIcon name={it.icon} />
-              {it.label}
+        <footer className="mdrawer-footer">
+          <nav className="mdrawer-footer__links" aria-label={L.navSection}>
+            <Link href="/about" onClick={close}>
+              {L.footerAbout}
             </Link>
-          ))}
-        </nav>
+            <Link href="/policy" onClick={close}>
+              {L.footerPolicy}
+            </Link>
+            <Link href="/terms" onClick={close}>
+              {L.footerTerms}
+            </Link>
+          </nav>
+        </footer>
       </div>
     </div>
   );

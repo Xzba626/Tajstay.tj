@@ -13,6 +13,7 @@ import { getUnreadNotificationsCount } from "@/lib/notifications/unread";
 import { NotificationBell } from "@/components/layout/NotificationBell";
 import { HeaderNav } from "@/components/layout/HeaderNav";
 import { getUserTrustBadges } from "@/lib/auth/trustBadges";
+import { getMobileDrawerStats } from "@/lib/navigation/getMobileDrawerStats";
 
 export async function Header() {
   const user = await getSessionUser();
@@ -21,6 +22,12 @@ export async function Header() {
   const content = await getSiteContent();
   const unreadCount = user ? await getUnreadNotificationsCount(user.id) : 0;
   const trustBadges = user ? getUserTrustBadges(user) : [];
+  const drawerStats = user ? await getMobileDrawerStats(user.id) : null;
+  const trustStatus = user
+    ? trustBadges.length > 0
+      ? m(locale, trustBadges[0].i18nKey)
+      : m(locale, "mobileDrawer.guestTraveler")
+    : null;
 
   const menuLabels: UserMenuLabels = {
     account: m(locale, "userMenu.account"),
@@ -46,12 +53,51 @@ export async function Header() {
   const mobileLabels: MobileMenuLabels = {
     menu: m(locale, "mobileMenu.menu"),
     close: m(locale, "mobileMenu.close"),
-    home: m(locale, "header.home"),
-    search: m(locale, "header.search"),
-    about: m(locale, "header.about"),
-    contactUs: m(locale, "mobileMenu.contactUs"),
-    forOwners: m(locale, "mobileMenu.forOwners"),
-    navSection: m(locale, "mobileMenu.nav")
+    navSection: m(locale, "mobileMenu.nav"),
+    signIn: m(locale, "header.signIn"),
+    signUp: m(locale, "header.signUp"),
+    guestTraveler: m(locale, "mobileDrawer.guestTraveler"),
+    statBookings: m(locale, "mobileDrawer.statBookings"),
+    statFavorites: m(locale, "mobileDrawer.statFavorites"),
+    brandHome: m(locale, "mobileDrawer.brandHome"),
+    favorites: m(locale, "mobileDrawer.favorites"),
+    bookings: m(locale, "mobileDrawer.bookings"),
+    bookingsActive: m(locale, "mobileDrawer.bookingsActive"),
+    bookingsHistory: m(locale, "mobileDrawer.bookingsHistory"),
+    bookingsCancelled: m(locale, "mobileDrawer.bookingsCancelled"),
+    bookingsPayments: m(locale, "mobileDrawer.bookingsPayments"),
+    profile: m(locale, "mobileDrawer.profile"),
+    profilePersonal: m(locale, "mobileDrawer.profilePersonal"),
+    profilePhone: m(locale, "mobileDrawer.profilePhone"),
+    profileEmail: m(locale, "mobileDrawer.profileEmail"),
+    profileTelegram: m(locale, "mobileDrawer.profileTelegram"),
+    profileSecurity: m(locale, "mobileDrawer.profileSecurity"),
+    profileChangePassword: m(locale, "mobileDrawer.profileChangePassword"),
+    profileNotifications: m(locale, "mobileDrawer.profileNotifications"),
+    profileLanguage: m(locale, "mobileDrawer.profileLanguage"),
+    profileLogout: m(locale, "mobileDrawer.profileLogout"),
+    ownerCtaTitle: m(locale, "mobileDrawer.ownerCtaTitle"),
+    ownerCtaAction: m(locale, "mobileDrawer.ownerCtaAction"),
+    ownerBlock: m(locale, "mobileDrawer.ownerBlock"),
+    ownerAdd: m(locale, "mobileDrawer.ownerAdd"),
+    ownerList: m(locale, "mobileDrawer.ownerList"),
+    ownerCalendar: m(locale, "mobileDrawer.ownerCalendar"),
+    ownerBookings: m(locale, "mobileDrawer.ownerBookings"),
+    ownerAnalytics: m(locale, "mobileDrawer.ownerAnalytics"),
+    ownerIncome: m(locale, "mobileDrawer.ownerIncome"),
+    ownerReviews: m(locale, "mobileDrawer.ownerReviews"),
+    ownerSupport: m(locale, "mobileDrawer.ownerSupport"),
+    support: m(locale, "mobileDrawer.support"),
+    supportChat: m(locale, "mobileDrawer.supportChat"),
+    supportTelegram: m(locale, "mobileDrawer.supportTelegram"),
+    supportFaq: m(locale, "mobileDrawer.supportFaq"),
+    supportReport: m(locale, "mobileDrawer.supportReport"),
+    supportSafety: m(locale, "mobileDrawer.supportSafety"),
+    supportComplaints: m(locale, "mobileDrawer.supportComplaints"),
+    footerAbout: m(locale, "mobileDrawer.footerAbout"),
+    footerPolicy: m(locale, "mobileDrawer.footerPolicy"),
+    footerTerms: m(locale, "mobileDrawer.footerTerms"),
+    loggingOut: m(locale, "mobileDrawer.loggingOut")
   };
 
   return (
@@ -110,6 +156,8 @@ export async function Header() {
             labels={mobileLabels}
             brandName={content.brand.siteName}
             brandMarkUrl={content.brand.logoMarkUrl}
+            stats={drawerStats}
+            trustStatus={trustStatus}
           />
           {!user ? (
             <>
