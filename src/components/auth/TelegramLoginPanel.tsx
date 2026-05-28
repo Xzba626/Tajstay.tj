@@ -1,36 +1,27 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { Locale } from "@/lib/i18n/locale";
 import { OtpCodeInput } from "@/components/auth/OtpCodeInput";
+import { useCountdown } from "@/hooks/useCountdown";
 import { linksFromTelegramDeepLink } from "@/lib/telegram/loginChallenge";
 
 export type TelegramLoginLabels = {
   signIn: string;
   title: string;
-  subtitle: string;
-  stepsCompact: string;
-  helpHow: string;
   browserFallback: string;
-  manualHelp: string;
-  cantOpenHelp: string;
-  codeLabel: string;
-  codePlaceholder: string;
-  verify: string;
+  codeExpired: string;
+  otpExpired: string;
+  expiresIn: string;
+  requestNew: string;
+  backToSignIn: string;
   verifying: string;
   codeSuccess: string;
   codeInvalid: string;
-  codeExpired: string;
-  awaitingPhone: string;
-  errorGeneric: string;
-  expiresIn: string;
   tooManyAttempts: string;
-  backToSignIn: string;
-  resendOpen: string;
+  errorGeneric: string;
 };
 
 type Props = {
-  locale: Locale;
   labels: TelegramLoginLabels;
   expanded: boolean;
   onExpandedChange: (active: boolean) => void;
@@ -52,9 +43,6 @@ type CodeUiState = "idle" | "loading" | "success" | "error";
 
 const EMPTY_OTP = ["", "", "", "", "", ""];
 
-const BROWSER_FALLBACK_DELAY_MS = 1500;
-const MANUAL_HELP_DELAY_MS = 5000;
-
 function tryOpenTelegramApp(appUrl: string) {
   if (typeof window === "undefined") return;
   const iframe = document.createElement("iframe");
@@ -65,9 +53,8 @@ function tryOpenTelegramApp(appUrl: string) {
   window.setTimeout(() => iframe.remove(), 2000);
 }
 
-function parseSteps(stepsCompact: string): [string, string, string] {
-  const parts = stepsCompact.split("→").map((s) => s.trim());
-  return [parts[0] ?? "", parts[1] ?? "Start", parts[2] ?? ""];
+function formatTimerLabel(template: string, formatted: string) {
+  return template.replace("{time}", formatted).replace("{n}", formatted);
 }
 
 export function TelegramLoginPanel({ labels: L, expanded, onExpandedChange, onSuccess, onError }: Props) {
@@ -76,19 +63,20 @@ export function TelegramLoginPanel({ labels: L, expanded, onExpandedChange, onSu
   const [webLink, setWebLink] = useState("");
   const [appLink, setAppLink] = useState("");
   const [status, setStatus] = useState<PollStatus | null>(null);
-  const [secondsLeft, setSecondsLeft] = useState(0);
   const [otp, setOtp] = useState([...EMPTY_OTP]);
   const [otpShake, setOtpShake] = useState(false);
   const [codeUi, setCodeUi] = useState<CodeUiState>("idle");
   const [codeMessage, setCodeMessage] = useState<string | null>(null);
-  const [showBrowserFallback, setShowBrowserFallback] = useState(false);
-  const [showManualHelp, setShowManualHelp] = useState(false);
   const verifying = useRef(false);
   const openedOnce = useRef(false);
   const expandStarted = useRef(false);
 
-  const otpComplete = otp.every((d) => d.trim().length === 1);
-  const [step1, step2, step3] = parseSteps(L.stepsCompact);
+  const { formatted, expired: timerExpired } = useCountdown({
+    expiresAt: challenge?.expiresAt,
+    enabled: expanded && Boolean(challenge)
+  });
+
+  const isExpired = timerExpired || status === "expired";
 
   const resetFlow = useCallback(() => {
     setChallenge(null);
@@ -96,8 +84,6 @@ export function TelegramLoginPanel({ labels: L, expanded, onExpandedChange, onSu
     setOtp([...EMPTY_OTP]);
     setCodeUi("idle");
     setCodeMessage(null);
-    setShowBrowserFallback(false);
-    setShowManualHelp(false);
     verifying.current = false;
     openedOnce.current = false;
     onExpandedChange(false);
@@ -109,12 +95,7 @@ export function TelegramLoginPanel({ labels: L, expanded, onExpandedChange, onSu
 
   const verifyCode = useCallback(
     async (code: string) => {
-      if (!challenge || verifying.current) return;
-      if (status === "expired") {
-        setCodeUi("error");
-        setCodeMessage(L.codeExpired);
-        return;
-      }
+      if (!challenge || verifying.current || isExpired) return;
       verifying.current = true;
       setLoading(true);
       setCodeUi("loading");
@@ -134,7 +115,7 @@ export function TelegramLoginPanel({ labels: L, expanded, onExpandedChange, onSu
           if (reason === "expired") {
             setStatus("expired");
             setCodeUi("error");
-            setCodeMessage(L.codeExpired);
+            setCodeMessage(L.otpExpired);
           } else if (reason === "too_many_attempts") {
             setCodeUi("error");
             setCodeMessage(L.tooManyAttempts);
@@ -157,25 +138,15 @@ export function TelegramLoginPanel({ labels: L, expanded, onExpandedChange, onSu
         setLoading(false);
       }
     },
-    [challenge, L, onError, onSuccess, status]
+    [challenge, isExpired, L, onError, onSuccess]
   );
 
   useEffect(() => {
-    if (!challenge) return;
-    const end = new Date(challenge.expiresAt).getTime();
-    const tick = () => {
-      const left = Math.max(0, Math.floor((end - Date.now()) / 1000));
-      setSecondsLeft(left);
-      if (left <= 0) {
-        setStatus("expired");
-        setCodeUi("error");
-        setCodeMessage(L.codeExpired);
-      }
-    };
-    tick();
-    const id = window.setInterval(tick, 1000);
-    return () => clearInterval(id);
-  }, [challenge, L.codeExpired]);
+    if (!timerExpired || !challenge) return;
+    setStatus("expired");
+    setCodeUi("error");
+    setCodeMessage(L.otpExpired);
+  }, [timerExpired, challenge, L.otpExpired]);
 
   useEffect(() => {
     if (!challenge || !expanded) return;
@@ -194,7 +165,7 @@ export function TelegramLoginPanel({ labels: L, expanded, onExpandedChange, onSu
         setStatus(s);
         if (s === "expired") {
           setCodeUi("error");
-          setCodeMessage(L.codeExpired);
+          setCodeMessage(L.otpExpired);
         }
       } catch {
         if (!cancelled) onError?.(L.errorGeneric);
@@ -207,18 +178,12 @@ export function TelegramLoginPanel({ labels: L, expanded, onExpandedChange, onSu
       cancelled = true;
       clearInterval(id);
     };
-  }, [challenge, expanded, status, L.codeExpired, L.errorGeneric, onError]);
+  }, [challenge, expanded, status, L.otpExpired, L.errorGeneric, onError]);
 
   useEffect(() => {
     if (!expanded || !challenge || openedOnce.current) return;
     openedOnce.current = true;
-    tryOpenTelegramApp(appLink);
-    const t1 = window.setTimeout(() => setShowBrowserFallback(true), BROWSER_FALLBACK_DELAY_MS);
-    const t2 = window.setTimeout(() => setShowManualHelp(true), MANUAL_HELP_DELAY_MS);
-    return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-    };
+    if (appLink) tryOpenTelegramApp(appLink);
   }, [expanded, challenge, appLink]);
 
   async function startChallenge(activateFlow = true) {
@@ -227,8 +192,6 @@ export function TelegramLoginPanel({ labels: L, expanded, onExpandedChange, onSu
     setOtp([...EMPTY_OTP]);
     setCodeUi("idle");
     setCodeMessage(null);
-    setShowBrowserFallback(false);
-    setShowManualHelp(false);
     openedOnce.current = false;
     try {
       const res = await fetch("/api/auth/telegram/challenge", {
@@ -264,13 +227,6 @@ export function TelegramLoginPanel({ labels: L, expanded, onExpandedChange, onSu
     // eslint-disable-next-line react-hooks/exhaustive-deps -- start when expanded panel mounts
   }, [expanded, challenge, loading]);
 
-  function openAgain() {
-    if (appLink) tryOpenTelegramApp(appLink);
-    else openTelegramBrowser();
-  }
-
-  const statusHint = status === "awaiting_phone" ? L.awaitingPhone : null;
-
   if (!expanded) {
     return (
       <button
@@ -287,104 +243,73 @@ export function TelegramLoginPanel({ labels: L, expanded, onExpandedChange, onSu
   }
 
   return (
-    <div className="taj-telegram-panel" role="region" aria-labelledby="telegram-flow-title">
-      <div className="taj-auth-welcome taj-auth-welcome-compact">
-        <div className="taj-auth-ornament" aria-hidden>
-          ✥
-        </div>
+    <div className="taj-telegram-panel taj-telegram-panel--compact" role="region" aria-labelledby="telegram-flow-title">
+      <div className="taj-auth-welcome taj-auth-welcome-compact taj-auth-welcome--minimal">
         <h1 id="telegram-flow-title">{L.title}</h1>
-        <p>{L.subtitle}</p>
       </div>
 
-      <div className="taj-telegram-steps" aria-label={L.helpHow}>
-        <span>{step1}</span>
-        <span>{step2}</span>
-        <span>{step3}</span>
+      {!isExpired ? (
+        <p className="taj-timer taj-timer--mmss" aria-live="polite">
+          {formatTimerLabel(L.expiresIn, formatted)}
+        </p>
+      ) : (
+        <p className="taj-form-error taj-form-error--compact" role="alert">
+          {L.otpExpired}
+        </p>
+      )}
+
+      <div className="taj-otp-wrap">
+        <OtpCodeInput
+          value={otp}
+          onChange={(next) => {
+            setOtp(next);
+            if (codeUi === "error" || codeUi === "success") {
+              setCodeUi("idle");
+              setCodeMessage(null);
+            }
+          }}
+          onComplete={(code) => void verifyCode(code)}
+          disabled={loading || isExpired}
+          loading={codeUi === "loading"}
+          error={codeUi === "error" && !isExpired}
+          success={codeUi === "success"}
+          shake={otpShake}
+          autoFocus
+        />
       </div>
 
-      <details className="taj-telegram-details">
-        <summary>{L.helpHow}</summary>
-        <p>{L.stepsCompact}</p>
-      </details>
-
-      <div className="taj-field">
-        <label htmlFor="telegram-otp-0">{L.codeLabel}</label>
-        <div className="taj-otp-wrap">
-          <OtpCodeInput
-            value={otp}
-            onChange={(next) => {
-              setOtp(next);
-              if (codeUi === "error" || codeUi === "success") {
-                setCodeUi("idle");
-                setCodeMessage(null);
-              }
-            }}
-            onComplete={(code) => void verifyCode(code)}
-            disabled={loading || status === "expired"}
-            loading={codeUi === "loading"}
-            error={codeUi === "error"}
-            success={codeUi === "success"}
-            shake={otpShake}
-            autoFocus
-          />
-        </div>
-        <p className="taj-field-hint">{L.codePlaceholder}</p>
-        {codeMessage ? (
-          <p
-            className={`taj-code-message ${
-              codeUi === "success"
-                ? "taj-code-message-success"
-                : codeUi === "error"
-                  ? "taj-code-message-error"
-                  : ""
-            }`}
-            role={codeUi === "error" ? "alert" : "status"}
-          >
-            {codeUi === "success" ? <CheckIcon /> : null}
-            {codeMessage}
-          </p>
-        ) : null}
-        {secondsLeft > 0 ? <p className="taj-timer">{L.expiresIn.replace("{n}", String(secondsLeft))}</p> : null}
-        {statusHint ? <p className="taj-timer">{statusHint}</p> : null}
-      </div>
-
-      <button
-        type="button"
-        className="taj-primary-button"
-        disabled={!otpComplete || loading || status === "expired"}
-        aria-busy={loading}
-        onClick={() => void verifyCode(otp.join(""))}
-      >
-        <span>{loading ? L.verifying : L.verify}</span>
-        <ArrowIcon />
-      </button>
-
-      {showBrowserFallback ? (
-        <p className="taj-telegram-help">
-          <button type="button" onClick={ openTelegramBrowser}>
-            {L.browserFallback}
-          </button>
+      {codeMessage && !isExpired ? (
+        <p
+          className={`taj-code-message ${
+            codeUi === "success" ? "taj-code-message-success" : codeUi === "error" ? "taj-code-message-error" : ""
+          }`}
+          role={codeUi === "error" ? "alert" : "status"}
+        >
+          {codeUi === "success" ? <CheckIcon /> : null}
+          {codeMessage}
         </p>
       ) : null}
 
-      {showManualHelp ? (
-        <details className="taj-telegram-details">
-          <summary>{L.cantOpenHelp}</summary>
-          <p>{L.manualHelp}</p>
-        </details>
+      {webLink ? (
+        <button type="button" className="taj-secondary-button" disabled={loading} onClick={openTelegramBrowser}>
+          {L.browserFallback}
+        </button>
       ) : null}
 
-      <button
-        type="button"
-        className="taj-telegram-help-link"
-        onClick={() => {
-          openedOnce.current = false;
-          expandStarted.current = false;
-          void startChallenge(false);
-        }}
-      >
-        {L.resendOpen}
-      </button>
+      {isExpired ? (
+        <button
+          type="button"
+          className="taj-primary-button"
+          disabled={loading}
+          onClick={() => {
+            openedOnce.current = false;
+            expandStarted.current = false;
+            void startChallenge(false);
+          }}
+        >
+          {L.requestNew}
+        </button>
+      ) : null}
 
       <button type="button" className="taj-back-button" onClick={resetFlow}>
         {L.backToSignIn}
@@ -397,15 +322,6 @@ function SendIcon() {
   return (
     <svg className="taj-social-icon taj-social-icon--telegram" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
       <path d="M9.78 15.28 9.5 19.5c.43 0 .62-.19.84-.41l2.02-1.93 4.19 3.07c.77.43 1.32.2 1.53-.72l2.78-13.05c.28-1.31-.47-1.82-1.28-1.5L3.9 9.78c-1.27.5-1.25 1.22-.23 1.54l4.47 1.39 10.37-6.55c.49-.32.93-.14.57.18" />
-    </svg>
-  );
-}
-
-function ArrowIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-      <path d="M5 12h14" />
-      <path d="m13 6 6 6-6 6" />
     </svg>
   );
 }

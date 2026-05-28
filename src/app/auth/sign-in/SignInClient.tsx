@@ -65,6 +65,8 @@ export type SignInLabels = {
   telegramTooManyAttempts: string;
   telegramConfigWarning: string;
   telegramExpiresIn: string;
+  otpExpired: string;
+  otpRequestNew: string;
   telegramResendOpen: string;
   badgeFast: string;
   welcomeTitleLogin: string;
@@ -293,25 +295,17 @@ export function SignInClient({
   const telegramLabels = {
     signIn: L.telegramContinue,
     title: L.telegramFlowTitle,
-    subtitle: L.telegramFlowSubtitle,
-    stepsCompact: L.telegramStepsCompact,
-    helpHow: L.telegramHelpHow,
     browserFallback: L.telegramBrowserFallback,
-    cantOpenHelp: L.telegramCantOpenHelp,
-    manualHelp: L.telegramManualHelp,
+    codeExpired: L.telegramCodeExpired,
+    otpExpired: L.otpExpired,
+    expiresIn: L.telegramExpiresIn,
+    requestNew: L.otpRequestNew,
     backToSignIn: L.telegramBackToSignIn,
-    codeLabel: L.telegramEnterCode,
-    codePlaceholder: L.telegramCodePlaceholder,
-    verify: L.telegramVerify,
     verifying: L.telegramVerifying,
     codeSuccess: L.telegramCodeSuccess,
     codeInvalid: L.telegramCodeInvalid,
-    codeExpired: L.telegramCodeExpired,
-    awaitingPhone: L.telegramAwaitingPhone,
-    errorGeneric: L.errorGeneric,
-    expiresIn: L.telegramExpiresIn,
     tooManyAttempts: L.telegramTooManyAttempts,
-    resendOpen: L.telegramResendOpen
+    errorGeneric: L.errorGeneric
   };
 
   return (
@@ -322,7 +316,6 @@ export function SignInClient({
         <section className="taj-auth-card">
           {telegramFlowActive && telegramLoginEnabled ? (
             <TelegramLoginPanel
-              locale={locale}
               expanded
               onExpandedChange={setTelegramFlowActive}
               labels={telegramLabels}

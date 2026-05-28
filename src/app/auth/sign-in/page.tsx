@@ -100,6 +100,8 @@ export default async function SignInPage({
     telegramVerify: m(locale, "auth.telegramVerify"),
     telegramTooManyAttempts: m(locale, "auth.telegramTooManyAttempts"),
     telegramExpiresIn: m(locale, "auth.telegramExpiresIn"),
+    otpExpired: m(locale, "auth.otpExpired"),
+    otpRequestNew: m(locale, "auth.otpRequestNew"),
     telegramResendOpen: m(locale, "auth.telegramResendOpen"),
     telegramConfigWarning: m(locale, "auth.telegramConfigWarning"),
     badgeFast: m(locale, "auth.badgeFast"),

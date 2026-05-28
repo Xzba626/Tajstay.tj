@@ -32,6 +32,8 @@ export default function ForgotPasswordPage({
         signIn: m(locale, "auth.passwordRecovery.signIn"),
         invalidCode: m(locale, "auth.passwordRecovery.invalidCode"),
         expiredCode: m(locale, "auth.passwordRecovery.expiredCode"),
+        codeTimer: m(locale, "auth.passwordRecovery.codeTimer"),
+        requestNewCode: m(locale, "auth.passwordRecovery.requestNewCode"),
         passwordMismatch: m(locale, "auth.passwordRecovery.passwordMismatch"),
         errTooManyAttempts: m(locale, "auth.errTooManyAttempts"),
         strengthWeak: m(locale, "auth.passwordRecovery.strengthWeak"),

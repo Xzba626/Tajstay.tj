@@ -741,6 +741,57 @@ body:has(.taj-auth-page) .taj-auth-page {
   gap: 14px;
 }
 
+.taj-telegram-panel--compact {
+  gap: 10px;
+}
+
+.taj-auth-welcome--minimal h1 {
+  margin: 0;
+}
+
+.taj-auth-welcome--minimal {
+  margin-bottom: 8px !important;
+}
+
+.taj-timer--mmss {
+  margin: 0;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  color: rgba(167, 243, 208, 0.92);
+}
+
+.taj-form-error--compact {
+  margin: 0;
+  text-align: center;
+  font-size: 13px;
+}
+
+.taj-secondary-button {
+  width: 100%;
+  min-height: 48px;
+  border-radius: 14px;
+  border: 1px solid rgba(110, 231, 183, 0.28);
+  background: rgba(3, 32, 22, 0.72);
+  color: rgba(236, 253, 245, 0.92);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.16s ease, border-color 0.16s ease;
+}
+
+.taj-secondary-button:hover:not(:disabled) {
+  background: rgba(3, 40, 28, 0.88);
+  border-color: rgba(110, 231, 183, 0.4);
+}
+
+.taj-secondary-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .taj-telegram-steps {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

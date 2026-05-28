@@ -59,7 +59,6 @@ export function AuthSocialButtons({
       <div className="taj-social-grid">
         {telegramLoginEnabled ? (
           <TelegramLoginPanel
-            locale={locale}
             expanded={false}
             onExpandedChange={onTelegramFlowChange}
             labels={{

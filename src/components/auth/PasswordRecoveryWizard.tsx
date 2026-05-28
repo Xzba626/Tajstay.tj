@@ -5,8 +5,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AuthField, LockIcon, MailIcon } from "@/components/auth/AuthField";
 import { OtpCodeInput } from "@/components/auth/OtpCodeInput";
 import { PasswordStrengthBar } from "@/components/auth/PasswordStrengthBar";
+import { useCountdown } from "@/hooks/useCountdown";
 
 const EMPTY_OTP = ["", "", "", "", "", ""];
+const RESET_OTP_TTL_SEC = 10 * 60;
 
 type Step = "email" | "otp" | "password" | "success";
 
@@ -52,6 +54,8 @@ export type PasswordRecoveryLabels = {
   signIn: string;
   invalidCode: string;
   expiredCode: string;
+  codeTimer: string;
+  requestNewCode: string;
   passwordMismatch: string;
   errTooManyAttempts: string;
   strengthWeak: string;
@@ -82,9 +86,15 @@ export function PasswordRecoveryWizard({
   const [otpError, setOtpError] = useState(false);
   const [otpShake, setOtpShake] = useState(false);
   const [otpSuccess, setOtpSuccess] = useState(false);
+  const [otpExpiresAt, setOtpExpiresAt] = useState<string | null>(null);
   const verifyingOtp = useRef(false);
 
   const normalizedEmail = useMemo(() => email.trim().toLowerCase(), [email]);
+
+  const { formatted: otpTimer, expired: otpExpired } = useCountdown({
+    expiresAt: otpExpiresAt,
+    enabled: step === "otp"
+  });
 
   const goToStep = useCallback((next: Step) => {
     setStep(next);
@@ -109,6 +119,7 @@ export function PasswordRecoveryWizard({
       setVerifiedCode("");
       setOtpError(false);
       setOtpSuccess(false);
+      setOtpExpiresAt(new Date(Date.now() + RESET_OTP_TTL_SEC * 1000).toISOString());
       goToStep("otp");
     } catch (err: unknown) {
       const statusCode = (err as { status?: number })?.status;
@@ -124,7 +135,7 @@ export function PasswordRecoveryWizard({
 
   const verifyOtp = useCallback(
     async (code: string) => {
-      if (verifyingOtp.current || code.length !== 6) return;
+      if (verifyingOtp.current || code.length !== 6 || otpExpired) return;
       verifyingOtp.current = true;
       setBusy(true);
       setOtpError(false);
@@ -150,8 +161,27 @@ export function PasswordRecoveryWizard({
         verifyingOtp.current = false;
       }
     },
-    [normalizedEmail, L, goToStep]
+    [normalizedEmail, L, goToStep, otpExpired]
   );
+
+  async function requestNewOtp() {
+    if (!normalizedEmail || busy) return;
+    setBusy(true);
+    setError(null);
+    setOtpError(false);
+    try {
+      await postJson("/api/auth/forgot-password", { email: normalizedEmail });
+      setOtp([...EMPTY_OTP]);
+      setVerifiedCode("");
+      setOtpSuccess(false);
+      setOtpExpiresAt(new Date(Date.now() + RESET_OTP_TTL_SEC * 1000).toISOString());
+    } catch (err: unknown) {
+      const statusCode = (err as { status?: number })?.status;
+      setError(statusCode === 429 ? L.errTooManyAttempts : err instanceof Error ? err.message : "Error");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function onPasswordSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -187,6 +217,7 @@ export function PasswordRecoveryWizard({
     setVerifiedCode("");
     setOtpError(false);
     setOtpSuccess(false);
+    setOtpExpiresAt(null);
     goToStep("email");
   }
 
@@ -243,11 +274,20 @@ export function PasswordRecoveryWizard({
                     </div>
                   </div>
                   <div className="taj-form-stack">
+                    {!otpExpired ? (
+                      <p className="taj-timer taj-timer--mmss" aria-live="polite">
+                        {L.codeTimer.replace("{time}", otpTimer)}
+                      </p>
+                    ) : (
+                      <div className="taj-form-error" role="alert">
+                        {L.expiredCode}
+                      </div>
+                    )}
                     <OtpCodeInput
                       value={otp}
                       onChange={setOtp}
                       onComplete={(code) => void verifyOtp(code)}
-                      disabled={busy}
+                      disabled={busy || otpExpired}
                       loading={busy && !otpSuccess}
                       error={otpError}
                       success={otpSuccess}
@@ -255,7 +295,12 @@ export function PasswordRecoveryWizard({
                       autoFocus
                       variant="auth"
                     />
-                    {error ? (
+                    {otpExpired ? (
+                      <button type="button" className="taj-primary-button" disabled={busy} onClick={() => void requestNewOtp()}>
+                        <span>{L.requestNewCode}</span>
+                      </button>
+                    ) : null}
+                    {error && !otpExpired ? (
                       <div className="taj-form-error" role="alert">
                         {error}
                       </div>
