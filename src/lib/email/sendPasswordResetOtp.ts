@@ -1,3 +1,4 @@
+import { getEmailFrom } from "@/lib/email/from";
 import { getResendClient } from "@/lib/email/resend";
 
 export type SendPasswordResetOtpResult = { ok: true; skipped?: boolean } | { ok: false };
@@ -17,7 +18,7 @@ export async function sendPasswordResetOtpEmail(input: {
     return { ok: true, skipped: true };
   }
 
-  const from = (process.env.EMAIL_FROM || "Tajstay <no-reply@tajstay.site>").trim();
+  const from = getEmailFrom();
   const to = input.to.trim();
   const codeDisplay = formatCodeDisplay(input.code.trim());
 
