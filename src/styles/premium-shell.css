@@ -1,0 +1,248 @@
+/**
+ * TajStay Premium App Shell — mobile-first chrome, typography, hubs
+ */
+
+/* ---- Typography scale (utility) ---- */
+.taj-display {
+  font-family: var(--taj-font-display);
+  font-size: clamp(1.75rem, 5vw, 2.5rem);
+  font-weight: 700;
+  line-height: var(--taj-leading-tight);
+  letter-spacing: -0.02em;
+  color: var(--taj-text, #ecfdf5);
+}
+
+.taj-title {
+  font-size: var(--taj-text-xl);
+  font-weight: 700;
+  line-height: var(--taj-leading-tight);
+  color: var(--taj-text, #ecfdf5);
+}
+
+.taj-body {
+  font-size: var(--taj-text-base);
+  line-height: var(--taj-leading-normal);
+  color: var(--taj-text-secondary, rgba(236, 253, 245, 0.78));
+}
+
+.taj-caption {
+  font-size: var(--taj-text-xs);
+  line-height: 1.4;
+  color: var(--taj-text-muted, rgba(167, 211, 184, 0.65));
+}
+
+/* ---- Screen header ---- */
+.app-screen-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--taj-space-4);
+  margin-bottom: var(--taj-space-6);
+}
+
+.app-screen-header__title {
+  margin: 0;
+  font-size: clamp(1.5rem, 4.5vw, 1.875rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: var(--taj-text, #f8fafc);
+}
+
+.app-screen-header__subtitle {
+  margin: 0.35rem 0 0;
+  font-size: var(--taj-text-sm);
+  line-height: 1.5;
+  color: var(--taj-text-muted, rgba(167, 211, 184, 0.72));
+  max-width: 36ch;
+}
+
+/* ---- Hub link cards (profile, settings) ---- */
+.app-hub-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.app-hub-card {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  min-height: 3.25rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--taj-radius-xl);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: linear-gradient(145deg, rgba(8, 42, 28, 0.72), rgba(4, 24, 16, 0.55));
+  box-shadow: var(--taj-shadow-sm);
+  transition:
+    transform 160ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.app-hub-card:active {
+  transform: scale(0.985);
+}
+
+.app-hub-card:hover {
+  border-color: rgba(52, 211, 153, 0.22);
+  background: linear-gradient(145deg, rgba(10, 50, 34, 0.82), rgba(5, 28, 19, 0.62));
+}
+
+.app-hub-card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.85rem;
+  background: rgba(16, 185, 129, 0.12);
+  color: #6ee7b7;
+  flex-shrink: 0;
+}
+
+.app-hub-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.app-hub-card__title {
+  font-size: 0.9375rem;
+  font-weight: 650;
+  color: #f0fdf4;
+}
+
+.app-hub-card__desc {
+  font-size: 0.75rem;
+  color: rgba(167, 211, 184, 0.7);
+}
+
+.app-hub-card__badge {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.2);
+  color: #a7f3d0;
+}
+
+.app-hub-card__chevron {
+  color: rgba(167, 211, 184, 0.45);
+  flex-shrink: 0;
+}
+
+/* ---- Premium bottom tab bar ---- */
+.app-tab-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 45;
+  padding: 0 0.5rem calc(0.5rem + env(safe-area-inset-bottom, 0));
+  pointer-events: none;
+}
+
+.app-tab-bar__dock {
+  pointer-events: auto;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0;
+  padding: 0.3rem;
+  border-radius: 1.35rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(4, 22, 14, 0.88);
+  backdrop-filter: blur(20px) saturate(1.2);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  box-shadow:
+    0 -8px 32px rgba(0, 0, 0, 0.38),
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+}
+
+.app-tab-bar__indicator {
+  position: absolute;
+  top: 0.3rem;
+  left: 0.3rem;
+  height: calc(100% - 0.6rem);
+  border-radius: 1rem;
+  background: linear-gradient(180deg, rgba(16, 185, 129, 0.22), rgba(5, 80, 52, 0.35));
+  border: 1px solid rgba(52, 211, 153, 0.2);
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.12);
+  transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+.app-tab-bar__item {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  min-height: 3.1rem;
+  padding: 0.2rem 0.1rem;
+  border-radius: 1rem;
+  color: rgba(148, 190, 165, 0.78);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  transition: color 180ms ease;
+}
+
+.app-tab-bar__item:active {
+  transform: scale(0.94);
+}
+
+.app-tab-bar__item.is-active {
+  color: #ecfdf5;
+}
+
+.app-tab-bar__item.is-active .app-tab-bar__icon {
+  color: #4ade80;
+}
+
+.app-tab-bar__label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Legacy class aliases (mobile-bottom-nav.css) */
+.mobile-bottom-nav {
+  display: none;
+}
+
+/* ---- App shell layout ---- */
+@media (max-width: 767px) {
+  body.app-shell main {
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0));
+  }
+
+  body.app-shell .site-footer {
+    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0));
+    border-top-color: rgba(255, 255, 255, 0.06);
+  }
+
+  body.app-shell .site-footer .footer-trust-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem 1rem;
+  }
+
+  body.app-shell--hidden-nav main {
+    padding-bottom: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-tab-bar__indicator,
+  .app-tab-bar__item,
+  .app-hub-card {
+    transition: none;
+  }
+}

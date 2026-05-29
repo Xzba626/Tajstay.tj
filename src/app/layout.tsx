@@ -9,6 +9,7 @@ import type { ReactNode } from "react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
+import { AppShell } from "@/components/navigation/AppShell";
 import { CookieConsent } from "@/components/layout/CookieConsent";
 import { SplashScreen } from "@/components/layout/SplashScreen";
 import { PageBackdrop } from "@/components/effects/PageBackdrop";
@@ -85,6 +86,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       </head>
       <body className="min-h-screen bg-[var(--brand-bg)] text-[var(--brand-text)] antialiased font-sans">
         <AuthProvider>
+          <AppShell />
           <SplashScreen />
           <PageBackdrop />
           <GlobalToast />

@@ -4,6 +4,7 @@ import { BRAND } from "@/lib/brand";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/requireAuth";
 import { BookingChatLauncher } from "@/components/chat/BookingChatPanel";
+import { ScreenHeader } from "@/components/navigation/ScreenHeader";
 import type { Locale } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
@@ -150,13 +151,10 @@ export default async function MyBookingsPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="font-serif text-2xl font-normal tracking-tight text-white sm:text-3xl">Мои бронирования</h1>
-          <p className="mt-1 text-sm text-slate-400">
-            {user.role === "ADMIN" ? "Диалоги по всем броням" : "Как в мессенджере: превью и статус"}
-          </p>
-        </div>
+      <ScreenHeader
+        title={m(locale, "userMenu.bookings")}
+        subtitle={user.role === "ADMIN" ? m(locale, "tripsHub.subtitleAdmin") : m(locale, "tripsHub.subtitleGuest")}
+        action={
         <div className="flex flex-wrap gap-2">
           <Link
             href="/dashboard/messages"
@@ -173,7 +171,8 @@ export default async function MyBookingsPage() {
             </Link>
           ) : null}
         </div>
-      </div>
+        }
+      />
 
       <div className="space-y-8">
         <section>

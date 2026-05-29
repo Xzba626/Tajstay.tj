@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import { useCallback, useEffect, useId, useMemo, useRef, useState, useTransition } from "react";
-import { BookOpen, Building2, ChevronDown, Heart, HelpCircle, Home, LogOut, User, X } from "lucide-react";
+import { BookOpen, Building2, ChevronDown, Heart, HelpCircle, Home, LogOut, Search, User, X } from "lucide-react";
 import type { OwnerAppNavState } from "@/lib/navigation/getNavContext";
 import type { MobileDrawerStats } from "@/lib/navigation/getMobileDrawerStats";
 import { cn } from "@/lib/cn";
@@ -22,6 +22,7 @@ export type MobileMenuLabels = {
   statBookings: string;
   statFavorites: string;
   brandHome: string;
+  search: string;
   favorites: string;
   bookings: string;
   bookingsActive: string;
@@ -364,6 +365,10 @@ export function MobileMenu({
             </span>
           </DrawerNavLink>
 
+          <DrawerNavLink href="/search" onNavigate={closeForNavigation} icon={<Search size={18} aria-hidden />}>
+            {L.search}
+          </DrawerNavLink>
+
           <DrawerNavLink href="/favorites" onNavigate={closeForNavigation} icon={<Heart size={18} aria-hidden />}>
             {L.favorites}
           </DrawerNavLink>
@@ -379,22 +384,10 @@ export function MobileMenu({
           ) : null}
 
           {isGuest ? (
-            <DrawerAccordion title={L.profile} icon={<User size={18} aria-hidden />} defaultOpen>
-              <DrawerSubLink href="/profile" onNavigate={closeForNavigation}>
-                {L.profilePersonal}
-              </DrawerSubLink>
-              <DrawerSubLink href="/profile" onNavigate={closeForNavigation}>
-                {L.profilePhone}
-              </DrawerSubLink>
-              <DrawerSubLink href="/profile" onNavigate={closeForNavigation}>
-                {L.profileEmail}
-              </DrawerSubLink>
-              <DrawerSubLink href="/profile" onNavigate={closeForNavigation}>
-                {L.profileTelegram}
-              </DrawerSubLink>
-              <DrawerSubLink href="/auth/forgot-password" onNavigate={closeForNavigation}>
-                {L.profileChangePassword}
-              </DrawerSubLink>
+            <>
+              <DrawerNavLink href="/profile" onNavigate={closeForNavigation} icon={<User size={18} aria-hidden />}>
+                {L.profile}
+              </DrawerNavLink>
               <DrawerSubLink href="/notifications" onNavigate={closeForNavigation}>
                 <span className="flex w-full items-center justify-between gap-2">
                   {L.profileNotifications}
@@ -402,6 +395,9 @@ export function MobileMenu({
                     <span className="mdrawer-item__badge">{stats.unreadCount > 99 ? "99+" : stats.unreadCount}</span>
                   ) : null}
                 </span>
+              </DrawerSubLink>
+              <DrawerSubLink href="/auth/forgot-password" onNavigate={closeForNavigation}>
+                {L.profileChangePassword}
               </DrawerSubLink>
               <p className="mdrawer-section-label" style={{ marginTop: "0.35rem" }}>
                 {L.profileLanguage}
@@ -424,7 +420,7 @@ export function MobileMenu({
                 <LogOut size={16} aria-hidden />
                 {loggingOut ? L.loggingOut : L.profileLogout}
               </button>
-            </DrawerAccordion>
+            </>
           ) : null}
 
           {isOwner ? (

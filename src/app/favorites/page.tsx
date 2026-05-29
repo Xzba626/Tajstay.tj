@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/requireAuth";
 import { HotelCard } from "@/components/HotelCard";
+import { ScreenHeader } from "@/components/navigation/ScreenHeader";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
 
@@ -26,12 +27,15 @@ export default async function FavoritesPage() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-5 px-4 py-8 sm:px-6 lg:px-8">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold text-slate-100">{m(locale, "userMenu.favorites")}</h1>
-        <div className="rounded-full border border-slate-700 bg-slate-900/70 px-3 py-1 text-xs font-semibold text-slate-300">
-          {favorites.length} сохранено
-        </div>
-      </div>
+      <ScreenHeader
+        title={m(locale, "userMenu.favorites")}
+        subtitle={m(locale, "profile.navFavoritesDesc")}
+        action={
+          <div className="rounded-full border border-emerald-400/20 bg-emerald-950/50 px-3 py-1 text-xs font-semibold text-emerald-100/80">
+            {favorites.length}
+          </div>
+        }
+      />
       <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
         {favorites.map((f) => (
           <HotelCard key={f.id} hotel={f.hotel} locale={locale} variant="list" />

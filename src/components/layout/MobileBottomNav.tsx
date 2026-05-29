@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ClipboardList, Heart, Home, Search, User } from "lucide-react";
+import { BOTTOM_TABS, getActiveBottomTabIndex, isShellHiddenRoute } from "@/constants/app-navigation";
 import { cn } from "@/lib/cn";
 
 export type MobileBottomNavLabels = {
@@ -14,78 +14,47 @@ export type MobileBottomNavLabels = {
   profile: string;
 };
 
-type NavItem = {
-  href: string;
-  label: string;
-  icon: typeof Home;
-  isActive: (pathname: string) => boolean;
-};
-
-const HIDDEN_PREFIXES = ["/auth", "/dashboard/admin", "/dashboard/owner"];
-
-function shouldHide(pathname: string) {
-  return HIDDEN_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
-}
+const LABEL_BY_TAB = {
+  home: "home",
+  search: "search",
+  favorites: "favorites",
+  trips: "bookings",
+  profile: "profile"
+} as const;
 
 export function MobileBottomNav({ labels }: { labels: MobileBottomNavLabels }) {
   const pathname = usePathname() ?? "/";
 
-  if (shouldHide(pathname)) return null;
+  if (isShellHiddenRoute(pathname)) return null;
 
-  const items: NavItem[] = [
-    {
-      href: "/",
-      label: labels.home,
-      icon: Home,
-      isActive: (p) => p === "/"
-    },
-    {
-      href: "/search",
-      label: labels.search,
-      icon: Search,
-      isActive: (p) => p.startsWith("/search")
-    },
-    {
-      href: "/favorites",
-      label: labels.favorites,
-      icon: Heart,
-      isActive: (p) => p.startsWith("/favorites")
-    },
-    {
-      href: "/dashboard/bookings",
-      label: labels.bookings,
-      icon: ClipboardList,
-      isActive: (p) =>
-        p.startsWith("/dashboard/bookings") ||
-        p.startsWith("/dashboard/guest") ||
-        p.startsWith("/booking") ||
-        p.startsWith("/chat/booking")
-    },
-    {
-      href: "/profile",
-      label: labels.profile,
-      icon: User,
-      isActive: (p) => p.startsWith("/profile")
-    }
-  ];
+  const activeIndex = getActiveBottomTabIndex(pathname);
+  const tabCount = BOTTOM_TABS.length;
 
   return (
-    <nav
-      className="mobile-bottom-nav md:hidden"
-      aria-label={labels.ariaLabel}
-    >
-      <div className="mobile-bottom-nav__inner">
-        {items.map(({ href, label, icon: Icon, isActive }) => {
-          const active = isActive(pathname);
+    <nav className="app-tab-bar md:hidden" aria-label={labels.ariaLabel}>
+      <div className="app-tab-bar__dock">
+        <div
+          className="app-tab-bar__indicator"
+          style={{
+            width: `calc((100% - 0.5rem) / ${tabCount})`,
+            transform: `translateX(calc(${activeIndex} * 100%))`
+          }}
+          aria-hidden
+        />
+        {BOTTOM_TABS.map((tab) => {
+          const active = tab.isActive(pathname);
+          const labelKey = LABEL_BY_TAB[tab.id];
+          const label = labels[labelKey];
+          const Icon = tab.icon;
           return (
             <Link
-              key={href}
-              href={href}
-              className={cn("mobile-bottom-nav__item", active && "is-active")}
+              key={tab.id}
+              href={tab.href}
+              className={cn("app-tab-bar__item", active && "is-active")}
               aria-current={active ? "page" : undefined}
             >
-              <Icon className="mobile-bottom-nav__icon" size={22} strokeWidth={active ? 2.25 : 1.75} aria-hidden />
-              <span className="mobile-bottom-nav__label">{label}</span>
+              <Icon className="app-tab-bar__icon" size={22} strokeWidth={active ? 2.35 : 1.65} aria-hidden />
+              <span className="app-tab-bar__label">{label}</span>
             </Link>
           );
         })}

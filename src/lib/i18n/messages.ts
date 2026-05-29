@@ -87,6 +87,10 @@ const ru: Tree = {
     soon: "Скоро",
     loggingOut: "Выход…"
   },
+  tripsHub: {
+    subtitleGuest: "Активные брони и чаты с отелями",
+    subtitleAdmin: "Диалоги по всем бронированиям"
+  },
   bottomNav: {
     ariaLabel: "Основная навигация",
     home: "Главная",
@@ -712,12 +716,18 @@ const ru: Tree = {
     applyAgain: "Подать снова",
     ownerApproved: "Одобрена. Если роль не обновилась — выйдите и войдите снова.",
     becomeOwner: "Стать владельцем",
+    hubSubtitle: "Брони, сообщения и настройки — в одном месте",
     navTitle: "Разделы",
     navBookings: "Мои бронирования",
+    navBookingsDesc: "Активные поездки и история",
     navMessages: "Сообщения",
+    navMessagesDesc: "Чаты по бронированиям",
     navFavorites: "Избранное",
+    navFavoritesDesc: "Сохранённые объекты",
     navOwner: "Панель владельца",
+    navOwnerDesc: "Объекты, календарь и брони",
     navAdmin: "Админ-панель",
+    navAdminDesc: "Модерация и поддержка",
     reviewsTitle: "Мои отзывы",
     reviewsEmpty: "Пока нет отзывов после завершённых поездок.",
     hotel: "Объект",
@@ -1386,6 +1396,10 @@ const tg: Tree = {
     soon: "Ба зудӣ",
     loggingOut: "Баромад…"
   },
+  tripsHub: {
+    subtitleGuest: "Бронҳои фаъол ва чат бо отелҳо",
+    subtitleAdmin: "Муколамаҳо барои ҳамаи бронҳо"
+  },
   bottomNav: {
     ariaLabel: "Навигатсияи асосӣ",
     home: "Асосӣ",
@@ -2004,12 +2018,18 @@ const tg: Tree = {
     applyAgain: "Аз нав додан",
     ownerApproved: "Қабул шуд. Агар нақш навсозӣ нашавад — бароед ва ворид шавед.",
     becomeOwner: "Соҳиб шудан",
+    hubSubtitle: "Бронҳо, паёмҳо ва танзимот — дар як ҷо",
     navTitle: "Бахшҳо",
     navBookings: "Бронҳои ман",
+    navBookingsDesc: "Сафарҳои фаъол ва таърих",
     navMessages: "Паёмҳо",
+    navMessagesDesc: "Чатҳои брон",
     navFavorites: "Дӯстдоштаҳо",
+    navFavoritesDesc: "Объектҳои нигоҳдошташуда",
     navOwner: "Панели соҳиб",
+    navOwnerDesc: "Объектҳо, тақвим ва бронҳо",
     navAdmin: "Панели админ",
+    navAdminDesc: "Модератсия ва дастгирӣ",
     reviewsTitle: "Назарҳои ман",
     reviewsEmpty: "Ҳанӯз назар нест.",
     hotel: "Объект",
@@ -2646,6 +2666,10 @@ const en: Tree = {
     soon: "Soon",
     loggingOut: "Signing out…"
   },
+  tripsHub: {
+    subtitleGuest: "Active bookings and hotel chats",
+    subtitleAdmin: "Conversations across all bookings"
+  },
   bottomNav: {
     ariaLabel: "Main navigation",
     home: "Home",
@@ -3263,12 +3287,18 @@ const en: Tree = {
     applyAgain: "Apply again",
     ownerApproved: "Approved. If your role did not update, sign out and sign in again.",
     becomeOwner: "Become a host",
+    hubSubtitle: "Trips, messages, and settings in one place",
     navTitle: "Sections",
     navBookings: "My bookings",
+    navBookingsDesc: "Active trips and history",
     navMessages: "Messages",
+    navMessagesDesc: "Booking conversations",
     navFavorites: "Favorites",
+    navFavoritesDesc: "Saved properties",
     navOwner: "Owner dashboard",
+    navOwnerDesc: "Listings, calendar, bookings",
     navAdmin: "Admin panel",
+    navAdminDesc: "Moderation and support",
     reviewsTitle: "My reviews",
     reviewsEmpty: "No reviews yet after completed stays.",
     hotel: "Property",

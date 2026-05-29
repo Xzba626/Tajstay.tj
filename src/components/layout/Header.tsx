@@ -61,6 +61,7 @@ export async function Header() {
     statBookings: m(locale, "mobileDrawer.statBookings"),
     statFavorites: m(locale, "mobileDrawer.statFavorites"),
     brandHome: m(locale, "mobileDrawer.brandHome"),
+    search: m(locale, "bottomNav.search"),
     favorites: m(locale, "mobileDrawer.favorites"),
     bookings: m(locale, "mobileDrawer.bookings"),
     bookingsActive: m(locale, "mobileDrawer.bookingsActive"),
