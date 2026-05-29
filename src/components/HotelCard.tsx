@@ -62,6 +62,7 @@ export function HotelCard({ hotel, locale = "ru", variant = "accent", hrefQuery 
     badakhshan: m(locale, "cities.badakhshan")
   };
   const cityLabel = cityMap[hotel.city.toLowerCase()] ?? hotel.city;
+  const showRating = hotel.rating > 0.05;
 
   return (
     <article className="hotel-card-premium group" data-reveal>
@@ -97,10 +98,14 @@ export function HotelCard({ hotel, locale = "ru", variant = "accent", hrefQuery 
 
           {/* Rating top-right */}
           <div className="absolute top-3 right-3 z-10">
-            <div className="rating-badge">
-              <span>★</span>
-              <span>{hotel.rating.toFixed(1)}</span>
-            </div>
+            {showRating ? (
+              <div className="rating-badge">
+                <span>★</span>
+                <span>{hotel.rating.toFixed(1)}</span>
+              </div>
+            ) : (
+              <span className="city-tag">{m(locale, "hotelCard.newListing")}</span>
+            )}
           </div>
 
           {/* Bottom of image — hotel name overlay */}
@@ -108,13 +113,15 @@ export function HotelCard({ hotel, locale = "ru", variant = "accent", hrefQuery 
             <h3 className="text-base font-bold text-white leading-tight drop-shadow-lg line-clamp-1">
               {hotel.name}
             </h3>
-            <div className="mt-1 flex items-center justify-between text-xs text-white/90">
-              <StarRating rating={hotel.rating} />
-              <span className="inline-flex items-center gap-1">
-                <span className="text-amber-300">★</span>
-                <span className="font-semibold">{hotel.rating.toFixed(1)}</span>
-              </span>
-            </div>
+            {showRating ? (
+              <div className="mt-1 flex items-center justify-between text-xs text-white/90">
+                <StarRating rating={hotel.rating} />
+                <span className="inline-flex items-center gap-1">
+                  <span className="text-amber-300">★</span>
+                  <span className="font-semibold">{hotel.rating.toFixed(1)}</span>
+                </span>
+              </div>
+            ) : null}
           </div>
         </div>
       </ViewTransitionLink>

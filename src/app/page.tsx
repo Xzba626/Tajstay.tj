@@ -181,6 +181,7 @@ export default async function HomePage() {
               modeRomance: m(locale, "aiLab.modeRomance"),
               modeAdventure: m(locale, "aiLab.modeAdventure"),
               match: m(locale, "aiLab.match"),
+              pickedForYou: m(locale, "aiLab.pickedForYou"),
               open: m(locale, "aiLab.open")
             }}
           />

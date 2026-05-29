@@ -27,6 +27,7 @@ type Labels = {
   modeRomance: string;
   modeAdventure: string;
   match: string;
+  pickedForYou: string;
   open: string;
 };
 
@@ -68,6 +69,7 @@ export function AIRecommendationLab({ hotels, labels, locale }: Props) {
         return { ...hotel, aiScore };
       })
       .sort((a, b) => b.aiScore - a.aiScore)
+      .filter((hotel) => hotel.aiScore >= 0.4)
       .slice(0, 3);
     return sorted;
   }, [budget, hotels, mode]);
@@ -156,9 +158,7 @@ export function AIRecommendationLab({ hotels, labels, locale }: Props) {
               className="taj-surface-card-inner group relative overflow-hidden rounded-2xl p-5 transition hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-900/40"
             >
               <div className="pointer-events-none absolute -right-12 -top-12 h-28 w-28 rounded-full bg-emerald-500/25 blur-2xl" />
-              <div className="text-xs text-emerald-200">
-                {labels.match} {Math.round(hotel.aiScore * 100)}%
-              </div>
+              <div className="text-xs text-emerald-200">{labels.pickedForYou}</div>
               <h3 className="mt-2 text-lg font-semibold text-[var(--taj-text)]">{hotel.name}</h3>
               <p className="mt-1 text-sm text-[var(--taj-text-muted)]">{cityMap[hotel.city.toLowerCase()] ?? hotel.city}</p>
               <div className="mt-4 flex items-center justify-between">

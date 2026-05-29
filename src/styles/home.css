@@ -659,7 +659,8 @@
 
 @media (max-width: 380px) {
   .mobile-login-button {
-    display: none !important;
+    padding: 0 0.65rem;
+    font-size: 0.8125rem;
   }
 }
 

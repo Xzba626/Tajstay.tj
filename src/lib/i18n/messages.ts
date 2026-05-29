@@ -313,7 +313,11 @@ const ru: Tree = {
     modeRomance: "Романтика",
     modeAdventure: "Приключения",
     match: "Совпадение",
+    pickedForYou: "Подобрано для вас",
     open: "Открыть"
+  },
+  hotelCard: {
+    newListing: "Новый объект"
   },
   auth: {
     title: "Вход и регистрация",
@@ -1574,7 +1578,11 @@ const tg: Tree = {
     modeRomance: "Ошиқона",
     modeAdventure: "Маҳаллат",
     match: "Мутобиқат",
+    pickedForYou: "Барои шумо интихоб шуд",
     open: "Кушодан"
+  },
+  hotelCard: {
+    newListing: "Объекти нав"
   },
   auth: {
     title: "Ворид шудан ва бақайдгирӣ",
@@ -2802,7 +2810,11 @@ const en: Tree = {
     modeRomance: "Romance",
     modeAdventure: "Adventure",
     match: "Match",
+    pickedForYou: "Picked for you",
     open: "Open"
+  },
+  hotelCard: {
+    newListing: "New listing"
   },
   auth: {
     title: "Sign in & registration",

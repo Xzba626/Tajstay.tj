@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
-import { useCallback, useEffect, useId, useMemo, useState, useTransition } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState, useTransition } from "react";
 import { BookOpen, Building2, ChevronDown, Heart, HelpCircle, Home, LogOut, User, X } from "lucide-react";
 import type { OwnerAppNavState } from "@/lib/navigation/getNavContext";
 import type { MobileDrawerStats } from "@/lib/navigation/getMobileDrawerStats";
@@ -133,20 +133,11 @@ function DrawerNavLink({
   badge?: number;
   icon?: React.ReactNode;
 }) {
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
-
   return (
     <Link
       href={href}
-      className={cn("mdrawer-item", loading && "is-loading")}
-      onClick={(e) => {
-        e.preventDefault();
-        if (loading) return;
-        setLoading(true);
-        onNavigate();
-        router.push(href);
-      }}
+      className="mdrawer-item"
+      onClick={() => onNavigate()}
     >
       {icon ? <span className="mdrawer-item__icon">{icon}</span> : null}
       <span className="mdrawer-item__label">{children}</span>
@@ -164,18 +155,8 @@ function DrawerSubLink({
   children: React.ReactNode;
   onNavigate: () => void;
 }) {
-  const router = useRouter();
-
   return (
-    <Link
-      href={href}
-      className="mdrawer-subitem"
-      onClick={(e) => {
-        e.preventDefault();
-        onNavigate();
-        router.push(href);
-      }}
-    >
+    <Link href={href} className="mdrawer-subitem" onClick={() => onNavigate()}>
       {children}
     </Link>
   );
@@ -231,8 +212,14 @@ export function MobileMenu({
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const skipHistoryBackRef = useRef(false);
 
   const close = useCallback(() => setOpen(false), []);
+
+  const closeForNavigation = useCallback(() => {
+    skipHistoryBackRef.current = true;
+    setOpen(false);
+  }, []);
 
   const isOwner = user?.role === "OWNER";
   const isGuest = Boolean(user);
@@ -275,6 +262,10 @@ export function MobileMenu({
     return () => {
       window.removeEventListener("popstate", onPop);
       const cur = (window.history.state ?? null) as { [k: string]: unknown } | null;
+      if (skipHistoryBackRef.current) {
+        skipHistoryBackRef.current = false;
+        return;
+      }
       if (cur && cur[MOBILE_MENU_HISTORY_TAG] === true) {
         window.history.back();
       }
@@ -342,10 +333,10 @@ export function MobileMenu({
                 </div>
               ) : (
                 <div className="mdrawer-auth-actions">
-                  <Link href="/auth/sign-in" className="mdrawer-auth-btn mdrawer-auth-btn--primary" onClick={close}>
+                  <Link href="/auth/sign-in" className="mdrawer-auth-btn mdrawer-auth-btn--primary" onClick={closeForNavigation}>
                     {L.signIn}
                   </Link>
-                  <Link href="/auth/sign-in?mode=register" className="mdrawer-auth-btn mdrawer-auth-btn--ghost" onClick={close}>
+                  <Link href="/auth/sign-in?mode=register" className="mdrawer-auth-btn mdrawer-auth-btn--ghost" onClick={closeForNavigation}>
                     {L.signUp}
                   </Link>
                 </div>
@@ -360,7 +351,7 @@ export function MobileMenu({
         <div className="mdrawer-scroll">
           <p className="mdrawer-section-label">{L.navSection}</p>
 
-          <DrawerNavLink href="/" onNavigate={close}>
+          <DrawerNavLink href="/" onNavigate={closeForNavigation}>
             <span className="mdrawer-brand-row">
               {brandMarkUrl ? (
                 <Image src={brandMarkUrl} alt="" width={32} height={32} className="mdrawer-brand-mark" unoptimized />
@@ -373,14 +364,14 @@ export function MobileMenu({
             </span>
           </DrawerNavLink>
 
-          <DrawerNavLink href="/favorites" onNavigate={close} icon={<Heart size={18} aria-hidden />}>
+          <DrawerNavLink href="/favorites" onNavigate={closeForNavigation} icon={<Heart size={18} aria-hidden />}>
             {L.favorites}
           </DrawerNavLink>
 
           {isGuest ? (
             <DrawerAccordion title={L.bookings} icon={<BookOpen size={18} aria-hidden />}>
               {bookingsLinks.map((item) => (
-                <DrawerSubLink key={`${item.href}:${item.label}`} href={item.href} onNavigate={close}>
+                <DrawerSubLink key={`${item.href}:${item.label}`} href={item.href} onNavigate={closeForNavigation}>
                   {item.label}
                 </DrawerSubLink>
               ))}
@@ -389,22 +380,22 @@ export function MobileMenu({
 
           {isGuest ? (
             <DrawerAccordion title={L.profile} icon={<User size={18} aria-hidden />} defaultOpen>
-              <DrawerSubLink href="/profile" onNavigate={close}>
+              <DrawerSubLink href="/profile" onNavigate={closeForNavigation}>
                 {L.profilePersonal}
               </DrawerSubLink>
-              <DrawerSubLink href="/profile" onNavigate={close}>
+              <DrawerSubLink href="/profile" onNavigate={closeForNavigation}>
                 {L.profilePhone}
               </DrawerSubLink>
-              <DrawerSubLink href="/profile" onNavigate={close}>
+              <DrawerSubLink href="/profile" onNavigate={closeForNavigation}>
                 {L.profileEmail}
               </DrawerSubLink>
-              <DrawerSubLink href="/profile" onNavigate={close}>
+              <DrawerSubLink href="/profile" onNavigate={closeForNavigation}>
                 {L.profileTelegram}
               </DrawerSubLink>
-              <DrawerSubLink href="/auth/forgot-password" onNavigate={close}>
+              <DrawerSubLink href="/auth/forgot-password" onNavigate={closeForNavigation}>
                 {L.profileChangePassword}
               </DrawerSubLink>
-              <DrawerSubLink href="/notifications" onNavigate={close}>
+              <DrawerSubLink href="/notifications" onNavigate={closeForNavigation}>
                 <span className="flex w-full items-center justify-between gap-2">
                   {L.profileNotifications}
                   {stats && stats.unreadCount > 0 ? (
@@ -419,7 +410,7 @@ export function MobileMenu({
               {showOwnerCta ? (
                 <div className="mdrawer-cta">
                   <p>{L.ownerCtaTitle}</p>
-                  <Link href="/profile/become-owner" onClick={close}>
+                  <Link href="/profile/become-owner" onClick={closeForNavigation}>
                     {L.ownerCtaAction}
                   </Link>
                 </div>
@@ -438,51 +429,51 @@ export function MobileMenu({
 
           {isOwner ? (
             <DrawerAccordion title={L.ownerBlock} icon={<Building2 size={18} aria-hidden />}>
-              <DrawerSubLink href="/dashboard/owner?section=properties" onNavigate={close}>
+              <DrawerSubLink href="/dashboard/owner?section=properties" onNavigate={closeForNavigation}>
                 {L.ownerAdd}
               </DrawerSubLink>
-              <DrawerSubLink href="/dashboard/owner?section=properties" onNavigate={close}>
+              <DrawerSubLink href="/dashboard/owner?section=properties" onNavigate={closeForNavigation}>
                 {L.ownerList}
               </DrawerSubLink>
-              <DrawerSubLink href="/dashboard/owner?section=calendar" onNavigate={close}>
+              <DrawerSubLink href="/dashboard/owner?section=calendar" onNavigate={closeForNavigation}>
                 {L.ownerCalendar}
               </DrawerSubLink>
-              <DrawerSubLink href="/dashboard/owner?section=bookings" onNavigate={close}>
+              <DrawerSubLink href="/dashboard/owner?section=bookings" onNavigate={closeForNavigation}>
                 {L.ownerBookings}
               </DrawerSubLink>
-              <DrawerSubLink href="/dashboard/owner?section=statistics" onNavigate={close}>
+              <DrawerSubLink href="/dashboard/owner?section=statistics" onNavigate={closeForNavigation}>
                 {L.ownerAnalytics}
               </DrawerSubLink>
-              <DrawerSubLink href="/dashboard/owner?section=finances" onNavigate={close}>
+              <DrawerSubLink href="/dashboard/owner?section=finances" onNavigate={closeForNavigation}>
                 {L.ownerIncome}
               </DrawerSubLink>
-              <DrawerSubLink href="/dashboard/owner?section=reviews" onNavigate={close}>
+              <DrawerSubLink href="/dashboard/owner?section=reviews" onNavigate={closeForNavigation}>
                 {L.ownerReviews}
               </DrawerSubLink>
-              <DrawerSubLink href="/dashboard/owner?section=help" onNavigate={close}>
+              <DrawerSubLink href="/dashboard/owner?section=help" onNavigate={closeForNavigation}>
                 {L.ownerSupport}
               </DrawerSubLink>
             </DrawerAccordion>
           ) : null}
 
           <DrawerAccordion title={L.support} icon={<HelpCircle size={18} aria-hidden />}>
-            <DrawerSubLink href={isGuest ? "/dashboard/messages" : "/contacts"} onNavigate={close}>
+            <DrawerSubLink href={isGuest ? "/dashboard/messages" : "/contacts"} onNavigate={closeForNavigation}>
               {L.supportChat}
             </DrawerSubLink>
-            <DrawerSubLink href="/contacts" onNavigate={close}>
+            <DrawerSubLink href="/contacts" onNavigate={closeForNavigation}>
               {L.supportTelegram}
             </DrawerSubLink>
-            <DrawerSubLink href="/faq" onNavigate={close}>
+            <DrawerSubLink href="/faq" onNavigate={closeForNavigation}>
               {L.supportFaq}
             </DrawerSubLink>
-            <DrawerSubLink href={isGuest ? "/dashboard/guest" : "/contacts"} onNavigate={close}>
+            <DrawerSubLink href={isGuest ? "/dashboard/guest" : "/contacts"} onNavigate={closeForNavigation}>
               {L.supportReport}
             </DrawerSubLink>
-            <DrawerSubLink href="/policy" onNavigate={close}>
+            <DrawerSubLink href="/policy" onNavigate={closeForNavigation}>
               {L.supportSafety}
             </DrawerSubLink>
             {isGuest ? (
-              <DrawerSubLink href="/dashboard/guest" onNavigate={close}>
+              <DrawerSubLink href="/dashboard/guest" onNavigate={closeForNavigation}>
                 {L.supportComplaints}
               </DrawerSubLink>
             ) : null}
@@ -491,13 +482,13 @@ export function MobileMenu({
 
         <footer className="mdrawer-footer">
           <nav className="mdrawer-footer__links" aria-label={L.navSection}>
-            <Link href="/about" onClick={close}>
+            <Link href="/about" onClick={closeForNavigation}>
               {L.footerAbout}
             </Link>
-            <Link href="/policy" onClick={close}>
+            <Link href="/policy" onClick={closeForNavigation}>
               {L.footerPolicy}
             </Link>
-            <Link href="/terms" onClick={close}>
+            <Link href="/terms" onClick={closeForNavigation}>
               {L.footerTerms}
             </Link>
           </nav>

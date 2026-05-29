@@ -12,6 +12,14 @@ type Props = PropsWithChildren<
     }
 >;
 
+function resolveHref(href: LinkProps["href"]): string {
+  if (typeof href === "string") return href;
+  const pathname = href.pathname ?? "/";
+  const search = href.search ?? "";
+  const hash = href.hash ?? "";
+  return `${pathname}${search}${hash}`;
+}
+
 export function ViewTransitionLink({ href, onClick, children, ...rest }: Props) {
   const router = useRouter();
 
@@ -19,16 +27,25 @@ export function ViewTransitionLink({ href, onClick, children, ...rest }: Props) 
     onClick?.(e);
     if (e.defaultPrevented) return;
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
-    const url = typeof href === "string" ? href : href.pathname ?? "/";
     if (typeof document === "undefined") return;
 
-    const anyDoc = document as any;
+    const url = resolveHref(href);
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (!reduced && typeof anyDoc.startViewTransition === "function") {
-      e.preventDefault();
-      anyDoc.startViewTransition(() => {
-        router.push(typeof href === "string" ? href : (href as any));
+    const startVT = (document as Document & { startViewTransition?: (cb: () => void) => { finished?: Promise<void> } })
+      .startViewTransition;
+
+    if (reduced || typeof startVT !== "function") return;
+
+    e.preventDefault();
+    try {
+      const transition = startVT.call(document, () => {
+        router.push(url);
       });
+      void transition?.finished?.catch(() => {
+        window.location.assign(url);
+      });
+    } catch {
+      window.location.assign(url);
     }
   }
 

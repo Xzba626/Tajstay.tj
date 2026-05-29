@@ -1,4 +1,5 @@
 import { BrandMark } from "@/components/brand/BrandMark";
+import Link from "next/link";
 import { ViewTransitionLink } from "@/components/effects/ViewTransitionLink";
 import { getSessionUser } from "@/lib/auth/session";
 import { getOwnerApplicationNavState } from "@/lib/navigation/getNavContext";
@@ -145,9 +146,9 @@ export async function Header() {
             </div>
           ) : null}
           {!user ? (
-            <ViewTransitionLink href="/auth/sign-in" className="header-auth-signin-mobile mobile-login-button md:hidden">
+            <Link href="/auth/sign-in" className="header-auth-signin-mobile mobile-login-button md:hidden">
               {m(locale, "header.signIn")}
-            </ViewTransitionLink>
+            </Link>
           ) : null}
           <MobileMenu
             user={user}
@@ -161,12 +162,12 @@ export async function Header() {
           />
           {!user ? (
             <>
-              <ViewTransitionLink href="/auth/sign-in" className="header-auth-signin">
+              <Link href="/auth/sign-in" className="header-auth-signin">
                 {m(locale, "header.signIn")}
-              </ViewTransitionLink>
-              <ViewTransitionLink href="/auth/sign-in?mode=register" className="header-auth-signup">
+              </Link>
+              <Link href="/auth/sign-in?mode=register" className="header-auth-signup">
                 {m(locale, "header.signUp")}
-              </ViewTransitionLink>
+              </Link>
             </>
           ) : (
             <>
