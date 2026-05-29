@@ -150,12 +150,7 @@ export function ProfileBecomeOwnerCard({ locale, role, ownerNav }: Props) {
   if (ownerNav.kind !== "none") return null;
 
   return (
-    <section
-      className="relative overflow-hidden rounded-2xl border border-emerald-400/20 bg-gradient-to-br from-emerald-950/70 via-[#041a12]/95 to-[#041a12] p-5 sm:p-6"
-      aria-labelledby="profile-owner-card-title"
-    >
-      <div className="pointer-events-none absolute -right-10 bottom-0 h-36 w-36 rounded-full bg-emerald-500/10 blur-3xl" />
-      <div className="relative">
+    <section className="profile-owner-card" aria-labelledby="profile-owner-card-title">
         <p className="text-xs font-semibold uppercase tracking-wider text-emerald-300/80">TajStay Host</p>
         <h2 id="profile-owner-card-title" className="mt-2 text-[clamp(1.125rem,4vw,1.35rem)] font-bold leading-tight text-white">
           {t("titleInvite")}
@@ -166,10 +161,9 @@ export function ProfileBecomeOwnerCard({ locale, role, ownerNav }: Props) {
           <StepItem n={2} text={t("step2")} />
           <StepItem n={3} text={t("step3")} />
         </ol>
-        <Link href="/profile/become-owner" className="taj-btn taj-btn--primary mt-6 inline-flex min-h-[48px] w-full items-center justify-center text-sm font-semibold sm:w-auto">
+        <Link href="/profile/become-owner" className="btn-primary mt-6 inline-flex !w-full sm:!w-auto !h-12 text-sm">
           {t("ctaBecomeOwner")}
         </Link>
-      </div>
     </section>
   );
 }

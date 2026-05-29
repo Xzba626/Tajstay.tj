@@ -13,6 +13,7 @@ import { AppImage } from "@/components/ui/AppImage";
 import { HotelViewTracker } from "@/components/guest/HotelViewTracker";
 import { getBookingGuestLabel } from "@/lib/domain/booking";
 import { RoomTypeCards } from "@/components/hotel/RoomTypeCards";
+import { HotelStickyBookBar } from "@/components/hotel/HotelStickyBookBar";
 
 function buildAiReviewSummary(comments: string[]) {
   const topicKeywords: Record<string, string[]> = {
@@ -138,8 +139,13 @@ export default async function HotelDetailPage({
     orderBy: [{ rating: "desc" }, { createdAt: "desc" }]
   });
   const aiReviewSummary = buildAiReviewSummary(reviews.map((item) => item.comment));
-  const liveViewers = Math.max(4, Math.round(hotel.rating * 3));
-  const roomsLeft = Math.max(1, Math.min(5, hotel.rooms.filter((room) => room.availability).length));
+  const availableRoomsCount = hotel.rooms.filter((room) => room.availability).length;
+  const showRating = hotel.rating > 0.05 && reviews.length > 0;
+
+  const descriptionOk =
+    hotel.description &&
+    hotel.description.trim().length > 2 &&
+    hotel.description.trim() !== "\\я";
 
   const cheapestRoom = hotel.rooms.reduce<(typeof hotel.rooms)[number] | null>((acc, room) => {
     if (!acc) return room;
@@ -178,9 +184,7 @@ export default async function HotelDetailPage({
           <div className="flex items-start justify-between gap-4">
             <div>
               <h1 className="text-2xl font-semibold text-white">{hotel.name}</h1>
-              <p className="mt-1 text-sm text-brand-200">
-                {hotel.city}, {hotel.address}
-              </p>
+              <p className="text-sm text-brand-200">{hotel.city}, {hotel.address}</p>
             </div>
             {user?.role === "GUEST" && (
               <form action="/api/favorites/toggle" method="post">
@@ -197,8 +201,14 @@ export default async function HotelDetailPage({
               </form>
             )}
           </div>
-          <p className="text-sm text-brand-200">{hotel.description}</p>
-          <div className="text-sm text-brand-200">{m(locale, "profile.rating")}: {hotel.rating.toFixed(1)}</div>
+          {descriptionOk ? <p className="text-sm text-brand-200">{hotel.description}</p> : null}
+          {showRating ? (
+            <div className="text-sm text-brand-200">
+              ⭐ {hotel.rating.toFixed(1)} ({reviews.length})
+            </div>
+          ) : (
+            <span className="premium-badge premium-badge--new inline-flex">{m(locale, "hotelPage.newListing")}</span>
+          )}
           {acceptedPaymentMethods.length > 0 && (
             <div className="mt-4">
               <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-brand-200">Accepted payment methods</div>
@@ -216,7 +226,7 @@ export default async function HotelDetailPage({
           )}
           </Card>
           {quickBookHref && (
-            <Card className="space-y-4 p-5">
+            <Card className="hidden space-y-4 p-5 md:block">
               <div className="flex items-end justify-between gap-3">
                 <div>
                   <p className="text-xs uppercase tracking-wide text-brand-200">{m(locale, "search.fromPrice")}</p>
@@ -226,12 +236,16 @@ export default async function HotelDetailPage({
                   {m(locale, "search.bookNow")}
                 </Link>
               </div>
-              <div className="space-y-2 text-sm text-brand-200">
-                <p>🔥 Сейчас смотрят: {liveViewers} человек</p>
-                <p>⏳ Осталось {roomsLeft} номера</p>
-                <p>⭐ {hotel.rating.toFixed(1)} ({reviews.length} отзывов)</p>
-              </div>
-              <p className="text-xs text-brand-200">Цена может вырасти в ближайшие 2 часа из-за высокого спроса.</p>
+              {availableRoomsCount > 0 ? (
+                <p className="text-sm text-brand-200">
+                  {m(locale, "hotelPage.roomsLeft", { count: availableRoomsCount })}
+                </p>
+              ) : null}
+              {showRating ? (
+                <p className="text-sm text-brand-200">
+                  ⭐ {hotel.rating.toFixed(1)} ({reviews.length})
+                </p>
+              ) : null}
             </Card>
           )}
         </aside>
@@ -264,13 +278,15 @@ export default async function HotelDetailPage({
               <div className="w-full shrink-0 sm:max-w-xs sm:min-w-[280px]">
                 <RoomPhotoCarousel
                   urls={room.photos.map((p) => p.url)}
-                  title={room.title}
+                  title={room.title.trim().length >= 4 ? room.title : m(locale, "hotelPage.standardRoom")}
                   variant="dark"
                 />
               </div>
               <div className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-3">
                 <div>
-                  <div className="font-semibold text-white">{room.title}</div>
+                  <div className="font-semibold text-white">
+                    {room.title.trim().length >= 4 ? room.title : m(locale, "hotelPage.standardRoom")}
+                  </div>
                   <div className="text-sm text-brand-200">{m(locale, "owner.capacity")}: {room.capacity}</div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -367,19 +383,14 @@ export default async function HotelDetailPage({
         </section>
       )}
 
-      {quickBookHref && (
-        <div className="fixed bottom-4 left-4 right-4 z-40 md:hidden">
-          <div className="liquid-glass flex items-center justify-between rounded-2xl px-4 py-3">
-            <div>
-              <div className="text-xs text-brand-200">{m(locale, "search.fromPrice")}</div>
-              <div className="text-sm font-semibold text-white">{Number(cheapestRoom?.price)} TJS</div>
-            </div>
-            <Link href={quickBookHref} className="ds-primary-btn inline-flex items-center text-sm">
-              {m(locale, "search.bookNow")}
-            </Link>
-          </div>
-        </div>
-      )}
+      {quickBookHref && cheapestRoom ? (
+        <HotelStickyBookBar
+          priceLabel={m(locale, "search.fromPrice")}
+          price={Number(cheapestRoom.price)}
+          bookLabel={m(locale, "search.bookNow")}
+          bookHref={quickBookHref}
+        />
+      ) : null}
     </div>
   );
 }

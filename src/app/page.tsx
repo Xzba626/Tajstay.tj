@@ -11,7 +11,7 @@ import { AIRecommendationLab } from "@/components/ai/AIRecommendationLab";
 import { ViewTransitionLink } from "@/components/effects/ViewTransitionLink";
 import { HomeScrollEnhancer } from "./HomeScrollEnhancer";
 import { GuestHomeExtras } from "@/components/guest/GuestHomeExtras";
-import { SearchBar } from "@/components/SearchBar";
+import { HomeSearchCompact } from "@/components/home/HomeSearchCompact";
 import { TajstayHero3D } from "@/components/landing/TajstayHero3D";
 import { PageContainer, SectionContainer, ContentGrid, EmptyStateCard } from "@/components/ds";
 import { HomeSectionHeader } from "@/components/home/HomeSectionHeader";
@@ -74,6 +74,7 @@ export default async function HomePage() {
 
       {/* 1. Hero + search (first screen) */}
       <section className="home-section home-section--hero home-chapter home-chapter--band-hero relative overflow-hidden">
+        <div className="home-hero-bg home-hero-bg-fallback absolute inset-0" aria-hidden />
         <PageContainer publicPage className="relative z-[1] flex min-h-[inherit] flex-col justify-center !py-0">
           <TajstayHero3D
             heroBadge={m(locale, "home.heroBadge")}
@@ -83,7 +84,7 @@ export default async function HomePage() {
             trustPoints={heroTrustPoints}
           />
           <div id="home-search" className="home-hero-search-overlap scroll-mt-24" data-reveal>
-            <SearchBar locale={locale} />
+            <HomeSearchCompact locale={locale} />
           </div>
         </PageContainer>
       </section>
@@ -113,11 +114,11 @@ export default async function HomePage() {
             title={m(locale, "home.featuredTitle")}
             action={{ href: "/search", label: m(locale, "home.featuredAll") }}
           />
-          <ContentGrid cols={3} gap="lg">
+          <div className="home-hotels-scroll">
             {featured.slice(0, 6).map((hotel) => (
               <HotelCard key={hotel.id} hotel={hotel} locale={locale} />
             ))}
-          </ContentGrid>
+          </div>
           {!featured.length ? (
             <EmptyStateCard
               className="mt-4"
@@ -182,6 +183,9 @@ export default async function HomePage() {
               modeAdventure: m(locale, "aiLab.modeAdventure"),
               match: m(locale, "aiLab.match"),
               pickedForYou: m(locale, "aiLab.pickedForYou"),
+              tagInBudget: m(locale, "aiLab.tagInBudget"),
+              tagNatureStyle: m(locale, "aiLab.tagNatureStyle"),
+              tagHighRated: m(locale, "aiLab.tagHighRated"),
               open: m(locale, "aiLab.open")
             }}
           />

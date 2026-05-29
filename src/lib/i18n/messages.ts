@@ -209,7 +209,9 @@ const ru: Tree = {
   common: {
     today: "Сегодня",
     yesterday: "Вчера",
-    back: "Назад"
+    back: "Назад",
+    close: "Закрыть",
+    done: "Готово"
   },
   nav: {
     home: "Главная",
@@ -291,6 +293,10 @@ const ru: Tree = {
     checkOut: "Выезд",
     guests: "Гостей",
     button: "Найти жильё",
+    allCities: "Все города",
+    dates: "Даты",
+    selectDates: "Выберите даты",
+    guestsCount: "{count} гостя",
     popular: "Популярные",
     search: "Поиск",
     filters: "Фильтры",
@@ -380,10 +386,18 @@ const ru: Tree = {
     modeAdventure: "Приключения",
     match: "Совпадение",
     pickedForYou: "Подобрано для вас",
+    tagInBudget: "В бюджете",
+    tagNatureStyle: "Природный стиль",
+    tagHighRated: "Высокий рейтинг",
     open: "Открыть"
   },
   hotelCard: {
     newListing: "Новый объект"
+  },
+  hotelPage: {
+    standardRoom: "Стандартный номер",
+    roomsLeft: "Осталось {count} номера",
+    newListing: "✨ Новый объект"
   },
   auth: {
     title: "Вход и регистрация",
@@ -751,7 +765,15 @@ const ru: Tree = {
     applyAgain: "Подать снова",
     ownerApproved: "Одобрена. Если роль не обновилась — выйдите и войдите снова.",
     becomeOwner: "Стать владельцем",
-    hubSubtitle: "Брони, сообщения и настройки — в одном месте",
+    hubSubtitle: "Настройки и аккаунт",
+    actionsTitle: "Действия",
+    actionsSettings: "Настройки профиля",
+    actionsNotifications: "Уведомления",
+    actionsHelp: "Помощь и FAQ",
+    actionsPolicy: "Политика конфиденциальности",
+    statFavorites: "Избранное",
+    statBookings: "Бронирований",
+    phoneVerified: "Телефон подтверждён",
     navTitle: "Разделы",
     navBookings: "Мои бронирования",
     navBookingsDesc: "Активные, ожидание, история и оплата",
@@ -1553,7 +1575,9 @@ const tg: Tree = {
   common: {
     today: "Имрӯз",
     yesterday: "Дирӯз",
-    back: "Бозгашт"
+    back: "Бозгашт",
+    close: "Пӯшидан",
+    done: "Тайёр"
   },
   nav: {
     home: "Саҳифаи асосӣ",
@@ -1635,6 +1659,10 @@ const tg: Tree = {
     checkOut: "Рафтан",
     guests: "Меҳмонон",
     button: "Манзил ёфтан",
+    allCities: "Ҳама шаҳрҳо",
+    dates: "Санаҳо",
+    selectDates: "Санаҳоро интихоб кунед",
+    guestsCount: "{count} меҳмон",
     popular: "Маъмул",
     search: "Ҷустуҷӯ",
     filters: "Филтрҳо",
@@ -1717,10 +1745,18 @@ const tg: Tree = {
     modeAdventure: "Маҳаллат",
     match: "Мутобиқат",
     pickedForYou: "Барои шумо интихоб шуд",
+    tagInBudget: "Дар бюджет",
+    tagNatureStyle: "Табиат",
+    tagHighRated: "Рейтинги баланд",
     open: "Кушодан"
   },
   hotelCard: {
     newListing: "Объекти нав"
+  },
+  hotelPage: {
+    standardRoom: "Ҳуҷраи стандартӣ",
+    roomsLeft: "Монда {count} ҳуҷра",
+    newListing: "✨ Объекти нав"
   },
   auth: {
     title: "Ворид шудан ва бақайдгирӣ",
@@ -2088,7 +2124,15 @@ const tg: Tree = {
     applyAgain: "Аз нав додан",
     ownerApproved: "Қабул шуд. Агар нақш навсозӣ нашавад — бароед ва ворид шавед.",
     becomeOwner: "Соҳиб шудан",
-    hubSubtitle: "Бронҳо, паёмҳо ва танзимот — дар як ҷо",
+    hubSubtitle: "Тanzimот ва ҳисоб",
+    actionsTitle: "Амалҳо",
+    actionsSettings: "Тanzimот",
+    actionsNotifications: "Огоҳиҳо",
+    actionsHelp: "Кумак ва FAQ",
+    actionsPolicy: "Сиёсати махфият",
+    statFavorites: "Дӯстдоштаҳо",
+    statBookings: "Бронҳо",
+    phoneVerified: "Телефон тасдиқ шуд",
     navTitle: "Бахшҳо",
     navBookings: "Бронҳои ман",
     navBookingsDesc: "Фаъол, интизорӣ, таърих ва пардохт",
@@ -2857,7 +2901,9 @@ const en: Tree = {
   common: {
     today: "Today",
     yesterday: "Yesterday",
-    back: "Back"
+    back: "Back",
+    close: "Close",
+    done: "Done"
   },
   nav: {
     home: "Home",
@@ -2939,6 +2985,10 @@ const en: Tree = {
     checkOut: "Check-out",
     guests: "Guests",
     button: "Find accommodation",
+    allCities: "All cities",
+    dates: "Dates",
+    selectDates: "Select dates",
+    guestsCount: "{count} guests",
     popular: "Popular",
     search: "Search",
     filters: "Filters",
@@ -3021,10 +3071,18 @@ const en: Tree = {
     modeAdventure: "Adventure",
     match: "Match",
     pickedForYou: "Picked for you",
+    tagInBudget: "Within budget",
+    tagNatureStyle: "Nature style",
+    tagHighRated: "Highly rated",
     open: "Open"
   },
   hotelCard: {
     newListing: "New listing"
+  },
+  hotelPage: {
+    standardRoom: "Standard room",
+    roomsLeft: "{count} rooms left",
+    newListing: "✨ New listing"
   },
   auth: {
     title: "Sign in & registration",
@@ -3392,7 +3450,15 @@ const en: Tree = {
     applyAgain: "Apply again",
     ownerApproved: "Approved. If your role did not update, sign out and sign in again.",
     becomeOwner: "Become a host",
-    hubSubtitle: "Trips, messages, and settings in one place",
+    hubSubtitle: "Settings and account",
+    actionsTitle: "Actions",
+    actionsSettings: "Profile settings",
+    actionsNotifications: "Notifications",
+    actionsHelp: "Help & FAQ",
+    actionsPolicy: "Privacy policy",
+    statFavorites: "Favorites",
+    statBookings: "Bookings",
+    phoneVerified: "Phone verified",
     navTitle: "Sections",
     navBookings: "My bookings",
     navBookingsDesc: "Active, pending, history, and payments",

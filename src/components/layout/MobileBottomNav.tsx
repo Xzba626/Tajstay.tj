@@ -22,30 +22,28 @@ const LABEL_BY_TAB = {
   profile: "profile"
 } as const;
 
-export function MobileBottomNav({ labels }: { labels: MobileBottomNavLabels }) {
+type Props = {
+  labels: MobileBottomNavLabels;
+  pendingTripsCount?: number;
+};
+
+export function MobileBottomNav({ labels, pendingTripsCount = 0 }: Props) {
   const pathname = usePathname() ?? "/";
 
   if (isShellHiddenRoute(pathname)) return null;
 
   const activeIndex = getActiveBottomTabIndex(pathname);
-  const tabCount = BOTTOM_TABS.length;
 
   return (
     <nav className="app-tab-bar md:hidden" aria-label={labels.ariaLabel}>
       <div className="app-tab-bar__dock">
-        <div
-          className="app-tab-bar__indicator"
-          style={{
-            width: `calc((100% - 0.5rem) / ${tabCount})`,
-            transform: `translateX(calc(${activeIndex} * 100%))`
-          }}
-          aria-hidden
-        />
-        {BOTTOM_TABS.map((tab) => {
-          const active = tab.isActive(pathname);
+        {BOTTOM_TABS.map((tab, index) => {
+          const active = index === activeIndex;
           const labelKey = LABEL_BY_TAB[tab.id];
           const label = labels[labelKey];
           const Icon = tab.icon;
+          const showBadge = tab.id === "trips" && pendingTripsCount > 0;
+
           return (
             <Link
               key={tab.id}
@@ -53,7 +51,15 @@ export function MobileBottomNav({ labels }: { labels: MobileBottomNavLabels }) {
               className={cn("app-tab-bar__item", active && "is-active")}
               aria-current={active ? "page" : undefined}
             >
-              <Icon className="app-tab-bar__icon" size={22} strokeWidth={active ? 2.35 : 1.65} aria-hidden />
+              <span className="app-tab-bar__icon-wrap">
+                <Icon className="app-tab-bar__icon" size={22} strokeWidth={active ? 2.35 : 1.65} aria-hidden />
+                {showBadge ? (
+                  <span className="app-tab-bar__badge" aria-label={String(pendingTripsCount)}>
+                    {pendingTripsCount > 9 ? "9+" : pendingTripsCount}
+                  </span>
+                ) : null}
+                {active ? <span className="app-tab-bar__dot" aria-hidden /> : null}
+              </span>
               <span className="app-tab-bar__label">{label}</span>
             </Link>
           );

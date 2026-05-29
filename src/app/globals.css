@@ -1,4 +1,5 @@
 @import "../styles/tokens.css";
+@import "../styles/variables.css";
 @import "../styles/taj-theme.css";
 @import "../styles/ds-components.css";
 @import "../styles/home.css";
@@ -6,6 +7,7 @@
 @import "../styles/auth-premium.css";
 @import "../styles/mobile-drawer.css";
 @import "../styles/premium-shell.css";
+@import "../styles/premium-overhaul.css";
 @import "../styles/chat.css";
 
 @tailwind base;

@@ -113,11 +113,10 @@ export default async function BookingPage({
         </div>
       </div>
 
-      <div className="hidden sm:block">
-        <CheckoutSteps
-          steps={[m(locale, "checkout.stepCard1"), m(locale, "checkout.stepCard2"), m(locale, "checkout.stepCard3")]}
-        />
-      </div>
+      <CheckoutSteps
+        steps={[m(locale, "checkout.stepCard1"), m(locale, "checkout.stepCard2"), m(locale, "checkout.stepCard3")]}
+        activeStep={0}
+      />
 
       <BookingWizard
         labels={{

@@ -1,11 +1,9 @@
 import { BrandMark } from "@/components/brand/BrandMark";
 import Link from "next/link";
-import { ViewTransitionLink } from "@/components/effects/ViewTransitionLink";
 import { getSessionUser } from "@/lib/auth/session";
 import { getOwnerApplicationNavState } from "@/lib/navigation/getNavContext";
 import { UserMenu, type UserMenuLabels } from "@/components/layout/UserMenu";
 import { LocaleSwitcher } from "@/components/layout/LocaleSwitcher";
-import { MobileMenu, type MobileMenuLabels } from "@/components/layout/MobileMenu";
 import { SiteHeaderFrame } from "@/components/layout/SiteHeaderFrame";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
@@ -14,7 +12,6 @@ import { getUnreadNotificationsCount } from "@/lib/notifications/unread";
 import { NotificationBell } from "@/components/layout/NotificationBell";
 import { HeaderNav } from "@/components/layout/HeaderNav";
 import { getUserTrustBadges } from "@/lib/auth/trustBadges";
-import { getMobileDrawerStats } from "@/lib/navigation/getMobileDrawerStats";
 
 export async function Header() {
   const user = await getSessionUser();
@@ -23,12 +20,6 @@ export async function Header() {
   const content = await getSiteContent();
   const unreadCount = user ? await getUnreadNotificationsCount(user.id) : 0;
   const trustBadges = user ? getUserTrustBadges(user) : [];
-  const drawerStats = user ? await getMobileDrawerStats(user.id) : null;
-  const trustStatus = user
-    ? trustBadges.length > 0
-      ? m(locale, trustBadges[0].i18nKey)
-      : m(locale, "mobileDrawer.guestTraveler")
-    : null;
 
   const menuLabels: UserMenuLabels = {
     account: m(locale, "userMenu.account"),
@@ -51,56 +42,20 @@ export async function Header() {
     openAllNotifications: m(locale, "userMenu.openAllNotifications")
   };
 
-  const mobileLabels: MobileMenuLabels = {
-    menu: m(locale, "mobileMenu.menu"),
-    close: m(locale, "mobileMenu.close"),
-    navSection: m(locale, "mobileMenu.nav"),
-    signIn: m(locale, "header.signIn"),
-    signUp: m(locale, "header.signUp"),
-    guestTraveler: m(locale, "mobileDrawer.guestTraveler"),
-    statBookings: m(locale, "mobileDrawer.statBookings"),
-    statFavorites: m(locale, "mobileDrawer.statFavorites"),
-    brandHome: m(locale, "mobileDrawer.brandHome"),
-    search: m(locale, "bottomNav.search"),
-    favorites: m(locale, "mobileDrawer.favorites"),
-    bookings: m(locale, "mobileDrawer.bookings"),
-    bookingsActive: m(locale, "mobileDrawer.bookingsActive"),
-    bookingsHistory: m(locale, "mobileDrawer.bookingsHistory"),
-    bookingsCancelled: m(locale, "mobileDrawer.bookingsCancelled"),
-    bookingsPayments: m(locale, "mobileDrawer.bookingsPayments"),
-    profile: m(locale, "mobileDrawer.profile"),
-    profileSettings: m(locale, "mobileDrawer.profileSettings"),
-    profilePersonal: m(locale, "mobileDrawer.profilePersonal"),
-    profilePhone: m(locale, "mobileDrawer.profilePhone"),
-    profileEmail: m(locale, "mobileDrawer.profileEmail"),
-    profileTelegram: m(locale, "mobileDrawer.profileTelegram"),
-    profileSecurity: m(locale, "mobileDrawer.profileSecurity"),
-    profileChangePassword: m(locale, "mobileDrawer.profileChangePassword"),
-    profileNotifications: m(locale, "mobileDrawer.profileNotifications"),
-    profileLanguage: m(locale, "mobileDrawer.profileLanguage"),
-    profileLogout: m(locale, "mobileDrawer.profileLogout"),
-    ownerCtaTitle: m(locale, "mobileDrawer.ownerCtaTitle"),
-    ownerCtaAction: m(locale, "mobileDrawer.ownerCtaAction"),
-    ownerBlock: m(locale, "mobileDrawer.ownerBlock"),
-    ownerAdd: m(locale, "mobileDrawer.ownerAdd"),
-    ownerList: m(locale, "mobileDrawer.ownerList"),
-    ownerCalendar: m(locale, "mobileDrawer.ownerCalendar"),
-    ownerBookings: m(locale, "mobileDrawer.ownerBookings"),
-    ownerAnalytics: m(locale, "mobileDrawer.ownerAnalytics"),
-    ownerIncome: m(locale, "mobileDrawer.ownerIncome"),
-    ownerReviews: m(locale, "mobileDrawer.ownerReviews"),
-    ownerSupport: m(locale, "mobileDrawer.ownerSupport"),
-    support: m(locale, "mobileDrawer.support"),
-    supportChat: m(locale, "mobileDrawer.supportChat"),
-    supportTelegram: m(locale, "mobileDrawer.supportTelegram"),
-    supportFaq: m(locale, "mobileDrawer.supportFaq"),
-    supportReport: m(locale, "mobileDrawer.supportReport"),
-    supportSafety: m(locale, "mobileDrawer.supportSafety"),
-    supportComplaints: m(locale, "mobileDrawer.supportComplaints"),
-    footerAbout: m(locale, "mobileDrawer.footerAbout"),
-    footerPolicy: m(locale, "mobileDrawer.footerPolicy"),
-    footerTerms: m(locale, "mobileDrawer.footerTerms"),
-    loggingOut: m(locale, "mobileDrawer.loggingOut")
+  const bellLabels = {
+    ariaLabel: m(locale, "header.notificationsBell"),
+    title: m(locale, "userMenu.notificationsTitle"),
+    noNotifications: m(locale, "userMenu.noNotifications"),
+    noNotificationsHint: m(locale, "notifications.bell.emptyHint"),
+    markReadAll: m(locale, "userMenu.markReadAll"),
+    openAll: m(locale, "userMenu.openAllNotifications"),
+    soundOn: m(locale, "notifications.bell.soundOn"),
+    soundOff: m(locale, "notifications.bell.soundOff"),
+    justNow: m(locale, "notifications.bell.justNow"),
+    minutesAgo: m(locale, "notifications.bell.minutesAgo"),
+    hoursAgo: m(locale, "notifications.bell.hoursAgo"),
+    daysAgo: m(locale, "notifications.bell.daysAgo"),
+    newToast: m(locale, "notifications.bell.newToast")
   };
 
   return (
@@ -127,24 +82,7 @@ export async function Header() {
           <LocaleSwitcher current={locale} iconOnly className="locale-switcher--icon-only" />
           {user ? (
             <div className="md:hidden">
-              <NotificationBell
-                initialUnreadCount={unreadCount}
-                labels={{
-                  ariaLabel: m(locale, "header.notificationsBell"),
-                  title: m(locale, "userMenu.notificationsTitle"),
-                  noNotifications: m(locale, "userMenu.noNotifications"),
-                  noNotificationsHint: m(locale, "notifications.bell.emptyHint"),
-                  markReadAll: m(locale, "userMenu.markReadAll"),
-                  openAll: m(locale, "userMenu.openAllNotifications"),
-                  soundOn: m(locale, "notifications.bell.soundOn"),
-                  soundOff: m(locale, "notifications.bell.soundOff"),
-                  justNow: m(locale, "notifications.bell.justNow"),
-                  minutesAgo: m(locale, "notifications.bell.minutesAgo"),
-                  hoursAgo: m(locale, "notifications.bell.hoursAgo"),
-                  daysAgo: m(locale, "notifications.bell.daysAgo"),
-                  newToast: m(locale, "notifications.bell.newToast")
-                }}
-              />
+              <NotificationBell initialUnreadCount={unreadCount} labels={bellLabels} />
             </div>
           ) : null}
           {!user ? (
@@ -152,16 +90,6 @@ export async function Header() {
               {m(locale, "header.signIn")}
             </Link>
           ) : null}
-          <MobileMenu
-            user={user}
-            ownerApp={ownerApp}
-            locale={locale}
-            labels={mobileLabels}
-            brandName={content.brand.siteName}
-            brandMarkUrl={content.brand.logoMarkUrl}
-            stats={drawerStats}
-            trustStatus={trustStatus}
-          />
           {!user ? (
             <>
               <Link href="/auth/sign-in" className="header-auth-signin">
@@ -174,24 +102,7 @@ export async function Header() {
           ) : (
             <>
               <div className="hidden md:block">
-                <NotificationBell
-                  initialUnreadCount={unreadCount}
-                  labels={{
-                    ariaLabel: m(locale, "header.notificationsBell"),
-                    title: m(locale, "userMenu.notificationsTitle"),
-                    noNotifications: m(locale, "userMenu.noNotifications"),
-                    noNotificationsHint: m(locale, "notifications.bell.emptyHint"),
-                    markReadAll: m(locale, "userMenu.markReadAll"),
-                    openAll: m(locale, "userMenu.openAllNotifications"),
-                    soundOn: m(locale, "notifications.bell.soundOn"),
-                    soundOff: m(locale, "notifications.bell.soundOff"),
-                    justNow: m(locale, "notifications.bell.justNow"),
-                    minutesAgo: m(locale, "notifications.bell.minutesAgo"),
-                    hoursAgo: m(locale, "notifications.bell.hoursAgo"),
-                    daysAgo: m(locale, "notifications.bell.daysAgo"),
-                    newToast: m(locale, "notifications.bell.newToast")
-                  }}
-                />
+                <NotificationBell initialUnreadCount={unreadCount} labels={bellLabels} />
               </div>
               <div className="hidden md:block">
                 <UserMenu

@@ -1,0 +1,68 @@
+/**
+ * TajStay Premium v2 — design tokens
+ * Bridge legacy --taj-* / --brand-* aliases for gradual migration.
+ */
+
+:root {
+  --bg-base: #071a10;
+  --bg-card: #0d2b1a;
+  --bg-elevated: #132e1f;
+  --border: rgba(255, 255, 255, 0.07);
+  --border-active: rgba(74, 222, 128, 0.3);
+
+  --green-primary: #16a34a;
+  --green-accent: #4ade80;
+  --green-muted: rgba(74, 222, 128, 0.15);
+
+  --gold: #d4a843;
+  --gold-muted: rgba(212, 168, 67, 0.15);
+
+  --text-primary: #f0fdf4;
+  --text-secondary: #86efac;
+  --text-muted: rgba(134, 239, 172, 0.5);
+
+  --red: #f87171;
+  --yellow: #fbbf24;
+  --blue: #60a5fa;
+
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+
+  /* Legacy bridges */
+  --brand-bg: var(--bg-base);
+  --brand-text: var(--text-primary);
+  --taj-app-bg: var(--bg-base);
+  --taj-bg: var(--bg-base);
+  --taj-color-text: var(--text-primary);
+  --taj-color-text-secondary: var(--text-secondary);
+  --taj-color-text-muted: var(--text-muted);
+  --taj-color-border: var(--border);
+  --taj-text: var(--text-primary);
+  --taj-text-secondary: var(--text-secondary);
+  --taj-text-muted: var(--text-muted);
+  --taj-border: var(--border);
+  --taj-card: var(--bg-card);
+  --taj-card-inner: var(--bg-elevated);
+  --taj-font-ui: "DM Sans", system-ui, -apple-system, sans-serif;
+  --taj-font-display: "Playfair Display", Georgia, serif;
+  --taj-radius-card: var(--radius-lg);
+  --taj-radius-card-lg: var(--radius-xl);
+}
+
+h1,
+h2,
+h3,
+.taj-display {
+  font-family: var(--taj-font-display);
+}
+
+body,
+p,
+button,
+input,
+select,
+textarea {
+  font-family: var(--taj-font-ui);
+}

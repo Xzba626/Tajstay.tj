@@ -28,6 +28,9 @@ type Labels = {
   modeAdventure: string;
   match: string;
   pickedForYou: string;
+  tagInBudget: string;
+  tagNatureStyle: string;
+  tagHighRated: string;
   open: string;
 };
 
@@ -70,9 +73,17 @@ export function AIRecommendationLab({ hotels, labels, locale }: Props) {
       })
       .sort((a, b) => b.aiScore - a.aiScore)
       .filter((hotel) => hotel.aiScore >= 0.4)
-      .slice(0, 3);
+      .slice(0, 3)
+      .map((hotel) => ({
+        ...hotel,
+        tags: [
+          hotel.minPrice <= budget ? labels.tagInBudget : null,
+          mode === "nature" || mode === "adventure" ? labels.tagNatureStyle : null,
+          hotel.rating >= 4 ? labels.tagHighRated : null
+        ].filter(Boolean) as string[]
+      }));
     return sorted;
-  }, [budget, hotels, mode]);
+  }, [budget, hotels, mode, labels.tagHighRated, labels.tagInBudget, labels.tagNatureStyle]);
 
   useEffect(() => {
     if (!cardsRef.current) return;
@@ -159,11 +170,21 @@ export function AIRecommendationLab({ hotels, labels, locale }: Props) {
             >
               <div className="pointer-events-none absolute -right-12 -top-12 h-28 w-28 rounded-full bg-emerald-500/25 blur-2xl" />
               <div className="text-xs text-emerald-200">{labels.pickedForYou}</div>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {hotel.tags.map((tag) => (
+                  <span key={tag} className="premium-badge text-[10px]">
+                    {tag}
+                  </span>
+                ))}
+              </div>
               <h3 className="mt-2 text-lg font-semibold text-[var(--taj-text)]">{hotel.name}</h3>
               <p className="mt-1 text-sm text-[var(--taj-text-muted)]">{cityMap[hotel.city.toLowerCase()] ?? hotel.city}</p>
               <div className="mt-4 flex items-center justify-between">
                 <div className="text-sm text-[var(--taj-text-secondary)]">
-                  ★ {hotel.rating.toFixed(1)} · <span className="font-semibold text-[var(--taj-text)]">{hotel.minPrice} TJS</span>
+                  {hotel.rating > 0.05 ? (
+                    <>★ {hotel.rating.toFixed(1)} · </>
+                  ) : null}
+                  <span className="font-semibold text-[var(--taj-text)]">{hotel.minPrice} TJS</span>
                 </div>
                 <span className="text-sm font-semibold text-emerald-300 transition group-hover:text-emerald-200">
                   {labels.open}

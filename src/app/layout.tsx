@@ -1,6 +1,6 @@
 import "./globals.css";
-import "@fontsource/inter/latin.css";
-import "@fontsource/inter/cyrillic.css";
+import "@fontsource/dm-sans/latin.css";
+import "@fontsource/dm-sans/latin-ext.css";
 import "@fontsource/playfair-display/latin.css";
 import "@fontsource/playfair-display/cyrillic.css";
 import type { Metadata } from "next";
@@ -24,6 +24,7 @@ import { getSiteContent } from "@/lib/site-content";
 import { AuthProvider } from "@/providers/auth-provider";
 import { assertProdSecrets } from "@/lib/security/envGuard";
 import { resolveMetadataBase } from "@/lib/site-url";
+import { getPendingTripsCount } from "@/lib/trips/pendingCount";
 
 export async function generateMetadata(): Promise<Metadata> {
   const content = await getSiteContent();
@@ -70,6 +71,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const locale = getLocale();
   const user = await getSessionUser();
   const unreadCount = user ? await getUnreadNotificationsCount(user.id) : 0;
+  const pendingTripsCount =
+    user?.role === "GUEST" ? await getPendingTripsCount(user.id) : 0;
   return (
     <html lang={locale} className="scroll-smooth" data-theme="dark">
       <head>
@@ -111,6 +114,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             <Footer />
           </div>
           <MobileBottomNav
+            pendingTripsCount={pendingTripsCount}
             labels={{
               ariaLabel: m(locale, "bottomNav.ariaLabel"),
               home: m(locale, "bottomNav.home"),
