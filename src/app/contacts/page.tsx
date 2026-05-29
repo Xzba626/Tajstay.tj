@@ -2,6 +2,8 @@ import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
 import { getSiteContent } from "@/lib/site-content";
 
+const SUPPORT_EMAIL = "support@tajstay.site";
+
 export default async function ContactsPage() {
   const locale = getLocale();
   const content = await getSiteContent();
@@ -13,7 +15,15 @@ export default async function ContactsPage() {
       <div className="surface-1 mt-6 rounded-2xl p-5 text-sm text-slate-200 shadow-sm">
         <div className="font-semibold text-slate-100">{s.supportTitle}</div>
         {s.workingHours ? <div className="mt-2 text-slate-300">{s.workingHours}</div> : null}
-        {s.email ? <div className="mt-2">Email: {s.email}</div> : null}
+        <div className="mt-2">
+          Email:{" "}
+          <a
+            className="text-emerald-300 underline underline-offset-2"
+            href={`mailto:${SUPPORT_EMAIL}`}
+          >
+            {SUPPORT_EMAIL}
+          </a>
+        </div>
         {s.phone ? <div className="mt-1">Phone: {s.phone}</div> : null}
         {s.whatsapp ? (
           <div className="mt-1">
@@ -31,16 +41,7 @@ export default async function ContactsPage() {
             </a>
           </div>
         ) : null}
-        {s.instagram ? (
-          <div className="mt-1">
-            Instagram:{" "}
-            <a className="text-emerald-300 underline underline-offset-2" href={s.instagram} target="_blank" rel="noreferrer">
-              {s.instagram}
-            </a>
-          </div>
-        ) : null}
       </div>
     </section>
   );
 }
-

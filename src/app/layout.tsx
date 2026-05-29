@@ -8,6 +8,7 @@ import type { Viewport } from "next";
 import type { ReactNode } from "react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { CookieConsent } from "@/components/layout/CookieConsent";
 import { SplashScreen } from "@/components/layout/SplashScreen";
 import { PageBackdrop } from "@/components/effects/PageBackdrop";
@@ -25,6 +26,7 @@ import { assertProdSecrets } from "@/lib/security/envGuard";
 export async function generateMetadata(): Promise<Metadata> {
   const content = await getSiteContent();
   return {
+    metadataBase: new URL("https://www.tajstay.site"),
     title: BRAND.title,
     description: "Национальная платформа бронирования жилья в Таджикистане",
     icons: {
@@ -105,6 +107,16 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             </main>
             <Footer />
           </div>
+          <MobileBottomNav
+            labels={{
+              ariaLabel: m(locale, "bottomNav.ariaLabel"),
+              home: m(locale, "bottomNav.home"),
+              search: m(locale, "bottomNav.search"),
+              favorites: m(locale, "bottomNav.favorites"),
+              bookings: m(locale, "bottomNav.bookings"),
+              profile: m(locale, "bottomNav.profile")
+            }}
+          />
           <CookieConsent
             text={m(locale, "cookies.text")}
             acceptLabel={m(locale, "cookies.accept")}

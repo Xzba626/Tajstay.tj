@@ -8,7 +8,7 @@ export const BRAND = {
   logoMark: "/brand/tajstay-mark.png",
   logoFull: "/brand/tajstay-logo-full.png",
   favicon: "/brand/tajstay-icon.png",
-  ogImage: "/brand/tajstay-og.png"
+  ogImage: "https://www.tajstay.site/brand/tajstay-og.png"
 } as const;
 
 export type BrandAssets = typeof BRAND;

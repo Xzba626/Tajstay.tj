@@ -68,7 +68,7 @@ const defaultContent: SiteContent = {
   },
   support: {
     supportTitle: "TajStay Support",
-    email: "support@tajstay.example",
+    email: "support@tajstay.site",
     phone: "+992 (__) ___-__-__",
     whatsapp: "",
     telegram: "",
