@@ -34,6 +34,6 @@ export async function POST(req: Request) {
     }
   });
 
-  return NextResponse.redirect(sameOriginRedirectUrl(req, req.headers.get("referer"), "/dashboard/guest"));
+  return NextResponse.redirect(sameOriginRedirectUrl(req, req.headers.get("referer"), "/dashboard/bookings"));
 }
 

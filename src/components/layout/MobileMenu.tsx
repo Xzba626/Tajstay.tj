@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import { useCallback, useEffect, useId, useMemo, useRef, useState, useTransition } from "react";
-import { BookOpen, Building2, ChevronDown, Heart, HelpCircle, Home, LogOut, Search, User, X } from "lucide-react";
+import { BookOpen, Building2, ChevronDown, HelpCircle, LogOut, User, X } from "lucide-react";
 import type { OwnerAppNavState } from "@/lib/navigation/getNavContext";
 import type { MobileDrawerStats } from "@/lib/navigation/getMobileDrawerStats";
 import { cn } from "@/lib/cn";
@@ -30,6 +30,7 @@ export type MobileMenuLabels = {
   bookingsCancelled: string;
   bookingsPayments: string;
   profile: string;
+  profileSettings: string;
   profilePersonal: string;
   profilePhone: string;
   profileEmail: string;
@@ -273,16 +274,6 @@ export function MobileMenu({
     };
   }, [open]);
 
-  const bookingsLinks = useMemo(
-    () => [
-      { href: "/dashboard/bookings", label: L.bookingsActive },
-      { href: "/dashboard/guest", label: L.bookingsHistory },
-      { href: "/dashboard/guest", label: L.bookingsCancelled },
-      { href: "/dashboard/guest", label: L.bookingsPayments }
-    ],
-    [L]
-  );
-
   async function logout() {
     if (loggingOut) return;
     setLoggingOut(true);
@@ -350,77 +341,25 @@ export function MobileMenu({
         </header>
 
         <div className="mdrawer-scroll">
-          <p className="mdrawer-section-label">{L.navSection}</p>
-
-          <DrawerNavLink href="/" onNavigate={closeForNavigation}>
-            <span className="mdrawer-brand-row">
-              {brandMarkUrl ? (
-                <Image src={brandMarkUrl} alt="" width={32} height={32} className="mdrawer-brand-mark" unoptimized />
-              ) : (
-                <span className="mdrawer-item__icon" aria-hidden>
-                  <Home size={18} />
-                </span>
-              )}
-              <span>{brandName || L.brandHome}</span>
-            </span>
-          </DrawerNavLink>
-
-          <DrawerNavLink href="/search" onNavigate={closeForNavigation} icon={<Search size={18} aria-hidden />}>
-            {L.search}
-          </DrawerNavLink>
-
-          <DrawerNavLink href="/favorites" onNavigate={closeForNavigation} icon={<Heart size={18} aria-hidden />}>
-            {L.favorites}
-          </DrawerNavLink>
-
           {isGuest ? (
-            <DrawerAccordion title={L.bookings} icon={<BookOpen size={18} aria-hidden />}>
-              {bookingsLinks.map((item) => (
-                <DrawerSubLink key={`${item.href}:${item.label}`} href={item.href} onNavigate={closeForNavigation}>
-                  {item.label}
-                </DrawerSubLink>
-              ))}
-            </DrawerAccordion>
+            <DrawerNavLink href="/dashboard/bookings" onNavigate={closeForNavigation} icon={<BookOpen size={18} aria-hidden />}>
+              {L.bookings}
+            </DrawerNavLink>
           ) : null}
 
           {isGuest ? (
-            <>
-              <DrawerNavLink href="/profile" onNavigate={closeForNavigation} icon={<User size={18} aria-hidden />}>
-                {L.profile}
-              </DrawerNavLink>
-              <DrawerSubLink href="/notifications" onNavigate={closeForNavigation}>
-                <span className="flex w-full items-center justify-between gap-2">
-                  {L.profileNotifications}
-                  {stats && stats.unreadCount > 0 ? (
-                    <span className="mdrawer-item__badge">{stats.unreadCount > 99 ? "99+" : stats.unreadCount}</span>
-                  ) : null}
-                </span>
-              </DrawerSubLink>
-              <DrawerSubLink href="/auth/forgot-password" onNavigate={closeForNavigation}>
-                {L.profileChangePassword}
-              </DrawerSubLink>
-              <p className="mdrawer-section-label" style={{ marginTop: "0.35rem" }}>
-                {L.profileLanguage}
-              </p>
-              <DrawerLocaleRow current={locale} onChanged={close} />
-              {showOwnerCta ? (
-                <div className="mdrawer-cta">
-                  <p>{L.ownerCtaTitle}</p>
-                  <Link href="/profile/become-owner" onClick={closeForNavigation}>
-                    {L.ownerCtaAction}
-                  </Link>
-                </div>
-              ) : null}
-              <button
-                type="button"
-                className="mdrawer-subitem mdrawer-logout w-full border-0 bg-transparent text-left"
-                disabled={loggingOut}
-                onClick={() => void logout()}
-              >
-                <LogOut size={16} aria-hidden />
-                {loggingOut ? L.loggingOut : L.profileLogout}
-              </button>
-            </>
+            <DrawerNavLink href="/profile" onNavigate={closeForNavigation} icon={<User size={18} aria-hidden />}>
+              {L.profileSettings}
+            </DrawerNavLink>
+          ) : null}
+
+          {showOwnerCta ? (
+            <div className="mdrawer-cta">
+              <p>{L.ownerCtaTitle}</p>
+              <Link href="/profile/become-owner" onClick={closeForNavigation}>
+                {L.ownerCtaAction}
+              </Link>
+            </div>
           ) : null}
 
           {isOwner ? (
@@ -462,18 +401,22 @@ export function MobileMenu({
             <DrawerSubLink href="/faq" onNavigate={closeForNavigation}>
               {L.supportFaq}
             </DrawerSubLink>
-            <DrawerSubLink href={isGuest ? "/dashboard/guest" : "/contacts"} onNavigate={closeForNavigation}>
-              {L.supportReport}
-            </DrawerSubLink>
-            <DrawerSubLink href="/policy" onNavigate={closeForNavigation}>
-              {L.supportSafety}
-            </DrawerSubLink>
-            {isGuest ? (
-              <DrawerSubLink href="/dashboard/guest" onNavigate={closeForNavigation}>
-                {L.supportComplaints}
-              </DrawerSubLink>
-            ) : null}
           </DrawerAccordion>
+
+          <p className="mdrawer-section-label">{L.profileLanguage}</p>
+          <DrawerLocaleRow current={locale} onChanged={close} />
+
+          {user ? (
+            <button
+              type="button"
+              className="mdrawer-subitem mdrawer-logout mt-2 w-full border-0 bg-transparent text-left"
+              disabled={loggingOut}
+              onClick={() => void logout()}
+            >
+              <LogOut size={16} aria-hidden />
+              {loggingOut ? L.loggingOut : L.profileLogout}
+            </button>
+          ) : null}
         </div>
 
         <footer className="mdrawer-footer">

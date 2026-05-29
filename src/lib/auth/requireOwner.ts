@@ -9,7 +9,7 @@ export async function requireOwner(): Promise<User> {
     redirect("/auth/sign-in?next=/dashboard/owner");
   }
   if (user.role !== "OWNER") {
-    redirect("/dashboard/guest?notice=ownerOnly");
+    redirect("/dashboard/bookings?notice=ownerOnly");
   }
   return user;
 }

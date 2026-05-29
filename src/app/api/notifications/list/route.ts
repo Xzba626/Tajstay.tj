@@ -3,10 +3,10 @@ import { getSessionUser } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
 
 function deriveLink(n: { bookingId: number | null; type: string; userRole: string }): string {
-  if (!n.bookingId) return n.userRole === "OWNER" ? "/dashboard/owner?section=notifications" : "/dashboard/guest";
+  if (!n.bookingId) return n.userRole === "OWNER" ? "/dashboard/owner?section=notifications" : "/dashboard/bookings";
   if (n.userRole === "OWNER") return "/dashboard/owner?section=bookings";
   if (n.userRole === "ADMIN") return "/dashboard/admin?section=notifications";
-  return "/dashboard/guest";
+  return "/dashboard/bookings";
 }
 
 export async function GET() {

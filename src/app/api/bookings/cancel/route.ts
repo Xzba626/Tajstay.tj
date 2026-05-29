@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
 
   const form = await req.formData();
   const code = String(form.get("code") ?? "").trim();
-  if (!code) return NextResponse.redirect(publicUrl(req, "/dashboard/guest"));
+  if (!code) return NextResponse.redirect(publicUrl(req, "/dashboard/bookings"));
 
   const booking = await prisma.booking.findUnique({
     where: { publicCode: code },

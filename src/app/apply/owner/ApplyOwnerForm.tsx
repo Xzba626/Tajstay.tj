@@ -56,7 +56,7 @@ export function ApplyOwnerForm({ labels }: Props) {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error ?? "Ошибка отправки");
-      router.push("/dashboard/guest");
+      router.push("/dashboard/bookings");
       router.refresh();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Ошибка");

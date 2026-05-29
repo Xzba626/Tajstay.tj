@@ -96,7 +96,7 @@ export default async function ProfilePage() {
       <div className="app-hub-grid" aria-label={m(locale, "profile.title")}>
         <HubLinkCard
           href="/dashboard/bookings"
-          title={m(locale, "profile.navBookings")}
+          title={m(locale, "tripsHub.title")}
           description={m(locale, "profile.navBookingsDesc")}
           icon={ClipboardList}
         />

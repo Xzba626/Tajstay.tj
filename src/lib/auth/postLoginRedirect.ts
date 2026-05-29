@@ -16,7 +16,7 @@ export function safeReturnPath(raw: string | null | undefined): string | null {
 export function defaultDashboardForRole(role: string): string {
   if (role === "ADMIN") return "/dashboard/admin";
   if (role === "OWNER") return "/dashboard/owner";
-  return "/dashboard/guest";
+  return "/dashboard/bookings";
 }
 
 /** After email/password login: honor ?next= when role allows. */
@@ -25,11 +25,11 @@ export function postLoginRedirect(role: string, next: string | null | undefined)
   if (!n) return defaultDashboardForRole(role);
   if (n.startsWith("/dashboard/admin")) {
     if (role === "ADMIN") return n;
-    return "/dashboard/guest?notice=adminOnly";
+    return "/dashboard/bookings?notice=adminOnly";
   }
   if (n.startsWith("/dashboard/owner")) {
     if (role === "OWNER") return n;
-    return "/dashboard/guest?notice=ownerOnly";
+    return "/dashboard/bookings?notice=ownerOnly";
   }
   return n;
 }

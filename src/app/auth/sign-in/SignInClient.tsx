@@ -225,7 +225,7 @@ export function SignInClient({
     if (!googleOAuthEnabled) return;
     const n = safeReturnPath(nextPath);
     const callbackUrl =
-      n && !n.startsWith("/dashboard/admin") && !n.startsWith("/dashboard/owner") ? n : "/dashboard/guest";
+      n && !n.startsWith("/dashboard/admin") && !n.startsWith("/dashboard/owner") ? n : "/dashboard/bookings";
     await signIn("google", { callbackUrl });
   }
 

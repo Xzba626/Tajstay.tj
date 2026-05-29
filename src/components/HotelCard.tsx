@@ -2,7 +2,6 @@ import Link from "next/link";
 import { AppImage } from "@/components/ui/AppImage";
 import { Hotel, Room } from "@prisma/client";
 import { t, type Locale } from "@/lib/i18n/dictionaries";
-import { ViewTransitionLink } from "@/components/effects/ViewTransitionLink";
 import { m } from "@/lib/i18n/messages";
 
 type Props = {
@@ -67,11 +66,8 @@ export function HotelCard({ hotel, locale = "ru", variant = "accent", hrefQuery 
   return (
     <article className="hotel-card-premium group" data-reveal>
       {/* Image */}
-      <ViewTransitionLink href={`/hotel/${hotel.id}${query}`} className="block">
-        <div
-          className="hotel-img-wrap relative w-full"
-          style={{ viewTransitionName: `hotel-hero-${hotel.id}` } as any}
-        >
+      <Link href={`/hotel/${hotel.id}${query}`} className="block">
+        <div className="hotel-img-wrap relative w-full">
           {hotel.coverImageUrl ? (
             <AppImage src={hotel.coverImageUrl} alt={hotel.name} fill className="object-cover" sizes="(max-width:640px) 100vw, 400px" />
           ) : (
@@ -124,7 +120,7 @@ export function HotelCard({ hotel, locale = "ru", variant = "accent", hrefQuery 
             ) : null}
           </div>
         </div>
-      </ViewTransitionLink>
+      </Link>
 
       {/* Card body */}
       <div className="relative z-[1] p-3 sm:p-4">

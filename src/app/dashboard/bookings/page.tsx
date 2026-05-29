@@ -1,115 +1,46 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { BRAND } from "@/lib/brand";
+import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/requireAuth";
-import { BookingChatLauncher } from "@/components/chat/BookingChatPanel";
 import { ScreenHeader } from "@/components/navigation/ScreenHeader";
+import { TripsTabNav, type TripsTabLabels } from "@/components/trips/TripsTabNav";
+import { TripChatRow } from "@/components/trips/TripChatRow";
+import { TripBookingCard } from "@/components/trips/TripBookingCard";
+import { filterBookingsByTab, parseTripsTab, type TripsTab } from "@/lib/trips/classify";
+import { tripsHubPath } from "@/lib/trips/urls";
 import type { Locale } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
 
 export const dynamic = "force-dynamic";
 
-const TERMINAL = new Set(["COMPLETED", "REJECTED", "CANCELLED", "EXPIRED", "CANCELLED_BY_GUEST"]);
-
-/** Скрыть из блока «Активные» через 15 дней после даты выезда при терминальном статусе. */
-function isBookingInListArchive(b: { status: string; checkOut: Date }) {
-  if (!TERMINAL.has(b.status)) return false;
-  const cut = new Date(b.checkOut);
-  cut.setDate(cut.getDate() + 15);
-  return Date.now() > cut.getTime();
-}
-
-function statusDotClass(status: string) {
-  if (["REJECTED", "CANCELLED", "EXPIRED", "CANCELLED_BY_GUEST"].includes(status)) {
-    return "bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.45)]";
-  }
-  if (status === "COMPLETED") return "bg-slate-500";
-  return "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)]";
-}
-
-function bookingRowHref(_role: string, b: { id: number }): string {
-  return `/chat/booking/${b.id}`;
-}
-
-function BookingDialogRow({
-  b,
-  user,
-  showAdminGuest,
-  locale
-}: {
-  locale: Locale;
-  b: {
-    id: number;
-    status: string;
-    paymentStatus: string;
-    publicCode: string | null;
-    checkIn: Date;
-    checkOut: Date;
-    room: { title: string; hotel: { name: string; coverImageUrl: string | null } } | null;
-    roomType?: { name: string; hotel: { name: string; coverImageUrl: string | null } } | null;
-    user?: { name: string; phone: string } | null;
-    chatMessages: { body: string }[];
+function tabLabels(locale: Locale): TripsTabLabels {
+  return {
+    active: m(locale, "tripsHub.tabActive"),
+    pending: m(locale, "tripsHub.tabPending"),
+    history: m(locale, "tripsHub.tabHistory"),
+    cancelled: m(locale, "tripsHub.tabCancelled"),
+    payments: m(locale, "tripsHub.tabPayments")
   };
-  user: { id: number; role: string };
-  showAdminGuest: boolean;
-}) {
-  const hotel = b.room?.hotel ?? b.roomType?.hotel;
-  const roomTitle = b.room?.title ?? b.roomType?.name ?? "—";
-  const last = b.chatMessages[0]?.body?.trim() || "Нет сообщений";
-  const preview = last.length > 72 ? `${last.slice(0, 72)}…` : last;
-  const cover = hotel?.coverImageUrl || BRAND.logoMark;
-  const rowHref = bookingRowHref(user.role, b);
-
-  return (
-    <div
-      className="flex items-stretch gap-3 rounded-2xl border border-white/[0.08] bg-[rgba(15,23,42,0.5)] p-3 backdrop-blur-xl transition hover:border-emerald-500/20 hover:bg-[rgba(15,23,42,0.65)]"
-      style={{ borderRadius: 16 }}
-    >
-      <Link href={rowHref} className="h-14 w-14 shrink-0 overflow-hidden rounded-2xl ring-1 ring-white/10">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={cover} alt="" className="h-full w-full object-cover" loading="lazy" />
-      </Link>
-      <div className="min-w-0 flex-1">
-        <Link href={rowHref} className="block min-w-0">
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0 truncate font-semibold text-white">{hotel?.name ?? "—"}</div>
-            <span
-              className={`mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full ${statusDotClass(b.status)}`}
-              title={b.status}
-              aria-hidden
-            />
-          </div>
-          <div className="truncate text-xs text-slate-400">{roomTitle}</div>
-          <div className="mt-1 truncate text-sm text-slate-500">{preview}</div>
-          {showAdminGuest && b.user ? (
-            <div className="mt-1 truncate text-[11px] text-slate-600">
-              {b.user.name} · {b.user.phone}
-            </div>
-          ) : null}
-        </Link>
-        <div className="mt-2 flex flex-wrap gap-2">
-          <BookingChatLauncher
-            bookingId={b.id}
-            currentUserId={user.id}
-            currentUserRole={user.role as "GUEST" | "OWNER" | "ADMIN"}
-            bookingStatus={b.status}
-            paymentStatus={b.paymentStatus}
-            checkInIso={b.checkIn.toISOString()}
-            paymentCode={b.publicCode ?? undefined}
-            title={user.role === "ADMIN" ? `Чат · ${b.id}` : "Чат"}
-            hotelName={hotel?.name ?? "—"}
-            roomTitle={roomTitle}
-            openLabel="Окно"
-          />
-        </div>
-      </div>
-    </div>
-  );
 }
 
-export default async function MyBookingsPage() {
+function emptyMessage(locale: Locale, tab: TripsTab): string {
+  const map: Record<TripsTab, string> = {
+    active: m(locale, "tripsHub.emptyActive"),
+    pending: m(locale, "tripsHub.emptyPending"),
+    history: m(locale, "tripsHub.emptyHistory"),
+    cancelled: m(locale, "tripsHub.emptyCancelled"),
+    payments: m(locale, "tripsHub.emptyPayments")
+  };
+  return map[tab];
+}
+
+export default async function TripsHubPage({
+  searchParams
+}: {
+  searchParams?: { tab?: string; notice?: string; error?: string };
+}) {
   const locale = getLocale();
   const user = await requireUser();
   if (!user) redirect("/auth/sign-in?next=/dashboard/bookings");
@@ -117,24 +48,31 @@ export default async function MyBookingsPage() {
   if (user.role === "OWNER") {
     return (
       <div className="mx-auto max-w-lg px-4 py-16 text-center text-slate-300">
-        <p className="text-lg">Владельцам доступна отдельная панель.</p>
+        <p className="text-lg">{m(locale, "tripsHub.ownerRedirect")}</p>
         <Link href="/dashboard/owner" className="mt-4 inline-block font-semibold text-emerald-300 underline">
-          Панель владельца
+          {m(locale, "profile.navOwner")}
         </Link>
       </div>
     );
   }
 
   if (user.role !== "GUEST" && user.role !== "ADMIN") {
-    redirect("/dashboard/guest");
+    redirect(tripsHubPath("active"));
   }
+
+  const tab = parseTripsTab(searchParams?.tab);
+  const notice = (searchParams?.notice ?? "").trim();
+  const docError = searchParams?.error === "document";
 
   const bookings = await prisma.booking.findMany({
     where: user.role === "ADMIN" ? {} : { userId: user.id },
     include: {
-      room: { include: { hotel: true } },
-      roomType: { include: { hotel: true } },
-      ...(user.role === "ADMIN" ? { user: { select: { id: true, name: true, phone: true } } } : {}),
+      room: { include: { hotel: { include: { owner: true } } } },
+      roomType: { include: { hotel: { include: { owner: true } } } },
+      review: true,
+      ...(user.role === "ADMIN"
+        ? { user: { select: { id: true, name: true, phone: true } } }
+        : {}),
       chatMessages: {
         where: { deletedAt: null, isArchived: false },
         orderBy: { createdAt: "desc" },
@@ -146,57 +84,85 @@ export default async function MyBookingsPage() {
     take: 200
   });
 
-  const active = bookings.filter((b) => !isBookingInListArchive(b));
-  const archived = bookings.filter((b) => isBookingInListArchive(b));
+  const counts = {
+    active: filterBookingsByTab(bookings, "active").length,
+    pending: filterBookingsByTab(bookings, "pending").length,
+    history: filterBookingsByTab(bookings, "history").length,
+    cancelled: filterBookingsByTab(bookings, "cancelled").length,
+    payments: filterBookingsByTab(bookings, "payments").length
+  };
+
+  const filtered = filterBookingsByTab(bookings, tab);
+  const labels = tabLabels(locale);
+  const useChatRows = tab === "active" && user.role !== "ADMIN";
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
       <ScreenHeader
-        title={m(locale, "userMenu.bookings")}
+        title={m(locale, "tripsHub.title")}
         subtitle={user.role === "ADMIN" ? m(locale, "tripsHub.subtitleAdmin") : m(locale, "tripsHub.subtitleGuest")}
         action={
-        <div className="flex flex-wrap gap-2">
-          <Link
-            href="/dashboard/messages"
-            className="rounded-2xl border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-200 backdrop-blur-md transition hover:bg-white/10"
-          >
-            {m(locale, "inbox.title")}
-          </Link>
-          {user.role === "ADMIN" ? (
+          <div className="flex flex-wrap gap-2">
             <Link
-              href="/dashboard/admin/chat-archive"
-              className="rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-100 backdrop-blur-md transition hover:bg-emerald-500/20"
+              href="/dashboard/messages"
+              className="taj-btn taj-btn--secondary text-sm !min-h-[2.5rem] !px-3"
             >
-              Архив чатов
+              {m(locale, "inbox.title")}
             </Link>
-          ) : null}
-        </div>
+            {user.role === "ADMIN" ? (
+              <Link
+                href="/dashboard/admin/chat-archive"
+                className="taj-btn taj-btn--secondary text-sm !min-h-[2.5rem] !px-3"
+              >
+                {m(locale, "tripsHub.chatArchive")}
+              </Link>
+            ) : null}
+          </div>
         }
       />
 
-      <div className="space-y-8">
-        <section>
-          <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Активные</h2>
-          <div className="space-y-3">
-            {active.map((b) => (
-              <BookingDialogRow key={b.id} b={b} user={user} showAdminGuest={user.role === "ADMIN"} locale={locale} />
-            ))}
-          </div>
-          {!active.length ? <p className="py-6 text-center text-sm text-slate-600">Нет активных броней.</p> : null}
-        </section>
+      {notice === "adminOnly" ? (
+        <div className="mb-4 rounded-xl border border-brand-700 bg-brand-800 px-4 py-3 text-sm text-brand-200" role="status">
+          {m(locale, "guestDash.adminOnlyNotice")}
+        </div>
+      ) : null}
+      {notice === "ownerOnly" ? (
+        <div className="mb-4 rounded-xl border border-brand-700 bg-brand-800 px-4 py-3 text-sm text-brand-200" role="status">
+          {m(locale, "guestDash.ownerOnlyNotice")}
+        </div>
+      ) : null}
+      {docError ? (
+        <div className="mb-4 rounded-xl border border-red-500/30 bg-red-950/40 px-4 py-3 text-sm text-red-100" role="alert">
+          {m(locale, "tripsHub.documentError")}
+        </div>
+      ) : null}
 
-        <section>
-          <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Архив (15+ дней после выезда)</h2>
-          <div className="space-y-3">
-            {archived.map((b) => (
-              <BookingDialogRow key={b.id} b={b} user={user} showAdminGuest={user.role === "ADMIN"} locale={locale} />
+      <Suspense fallback={<div className="trips-tab-nav trips-tab-nav--skeleton" aria-hidden />}>
+        <TripsTabNav labels={labels} counts={counts} />
+      </Suspense>
+
+      <div className="mt-6 space-y-3">
+        {useChatRows
+          ? filtered.map((b) => (
+              <TripChatRow
+                key={b.id}
+                locale={locale}
+                user={user}
+                booking={b}
+                showAdminGuest={user.role === "ADMIN"}
+              />
+            ))
+          : filtered.map((b) => (
+              <TripBookingCard key={b.id} locale={locale} user={user} booking={b} />
             ))}
-          </div>
-          {!archived.length ? <p className="py-4 text-center text-sm text-slate-600">Архив пуст.</p> : null}
-        </section>
+        {!filtered.length ? (
+          <p className="py-12 text-center text-sm text-emerald-100/50">{emptyMessage(locale, tab)}</p>
+        ) : null}
       </div>
 
-      {!bookings.length ? <p className="py-12 text-center text-slate-500">Бронирований пока нет.</p> : null}
+      {!bookings.length ? (
+        <p className="py-8 text-center text-sm text-emerald-100/50">{m(locale, "tripsHub.emptyAll")}</p>
+      ) : null}
     </div>
   );
 }

@@ -9,7 +9,7 @@ export async function requireAdmin(): Promise<User> {
     redirect("/auth/sign-in?next=/dashboard/admin");
   }
   if (user.role !== "ADMIN") {
-    redirect("/dashboard/guest?notice=adminOnly");
+    redirect("/dashboard/bookings?notice=adminOnly");
   }
   return user;
 }

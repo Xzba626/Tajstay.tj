@@ -25,14 +25,10 @@ import { AuthProvider } from "@/providers/auth-provider";
 import { assertProdSecrets } from "@/lib/security/envGuard";
 import { resolveMetadataBase } from "@/lib/site-url";
 
-/** Static export — Next.js reads metadataBase from here, not from async generateMetadata. */
-export const metadata: Metadata = {
-  metadataBase: resolveMetadataBase()
-};
-
 export async function generateMetadata(): Promise<Metadata> {
   const content = await getSiteContent();
   return {
+    metadataBase: resolveMetadataBase(),
     title: BRAND.title,
     description: "Национальная платформа бронирования жилья в Таджикистане",
     icons: {

@@ -98,7 +98,7 @@ export async function runBookingReminderJob() {
       userId: b.userId,
       type: "REVIEW_AVAILABLE",
       bookingId: b.id,
-      link: `/dashboard/guest`
+      link: `/dashboard/bookings`
     });
     created += 1;
   }

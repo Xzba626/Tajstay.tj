@@ -16,7 +16,7 @@ const CATEGORIES: NotificationCategory[] = ["all", "unread", "bookings", "messag
 function backHref(role: string): string {
   if (role === "OWNER") return "/dashboard/owner";
   if (role === "ADMIN") return "/dashboard/admin";
-  return "/dashboard/guest";
+  return "/dashboard/bookings";
 }
 
 export default async function NotificationsPage({

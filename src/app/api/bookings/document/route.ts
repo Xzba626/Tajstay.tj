@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
   const bookingId = Number(form.get("bookingId"));
   const docFile = form.get("docFile");
   if (!bookingId || !(docFile instanceof File)) {
-    return NextResponse.redirect(publicUrl(req, "/dashboard/guest?error=document"));
+    return NextResponse.redirect(publicUrl(req, "/dashboard/bookings?error=document"));
   }
 
   const booking = await prisma.booking.findUnique({
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
 
   const saved = await saveGuestDocFile(docFile);
   if (!saved) {
-    return NextResponse.redirect(publicUrl(req, "/dashboard/guest?error=document"));
+    return NextResponse.redirect(publicUrl(req, "/dashboard/bookings?error=document"));
   }
 
   await prisma.booking.update({
@@ -77,6 +77,6 @@ export async function POST(req: NextRequest) {
     }
   });
 
-  return NextResponse.redirect(publicUrl(req, "/dashboard/guest"));
+  return NextResponse.redirect(publicUrl(req, "/dashboard/bookings"));
 }
 

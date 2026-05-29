@@ -69,6 +69,7 @@ export async function Header() {
     bookingsCancelled: m(locale, "mobileDrawer.bookingsCancelled"),
     bookingsPayments: m(locale, "mobileDrawer.bookingsPayments"),
     profile: m(locale, "mobileDrawer.profile"),
+    profileSettings: m(locale, "mobileDrawer.profileSettings"),
     profilePersonal: m(locale, "mobileDrawer.profilePersonal"),
     profilePhone: m(locale, "mobileDrawer.profilePhone"),
     profileEmail: m(locale, "mobileDrawer.profileEmail"),

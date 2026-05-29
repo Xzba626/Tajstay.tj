@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { ViewTransitionLink } from "@/components/effects/ViewTransitionLink";
+import Link from "next/link";
 import { cn } from "@/lib/cn";
 
 type NavItem = { href: string; label: string; match?: (path: string) => boolean };
@@ -23,14 +23,14 @@ export function HeaderNav({ items }: { items: NavItem[] }) {
       {items.map((item) => {
         const active = isActive(pathname, item);
         return (
-          <ViewTransitionLink
+          <Link
             key={item.href}
             href={item.href}
             aria-current={active ? "page" : undefined}
             className={cn("header-nav-link min-h-[44px] inline-flex items-center", active && "is-active")}
           >
             {item.label}
-          </ViewTransitionLink>
+          </Link>
         );
       })}
     </nav>
