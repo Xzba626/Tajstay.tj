@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState, useTransition } from "react";
-import { ChevronRight, Loader2, Minus, Plus, Search, X } from "lucide-react";
+import { Calendar, ChevronRight, MapPin, Loader2, Minus, Plus, Search, Users, X } from "lucide-react";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
 import { cn } from "@/lib/cn";
@@ -36,35 +36,6 @@ function formatDate(iso: string, locale: Locale) {
   });
 }
 
-function SearchFieldRow({
-  label,
-  value,
-  filled,
-  onClick
-}: {
-  label: string;
-  value: string;
-  filled: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button type="button" className="home-search-compact__row" onClick={onClick}>
-      <div className="home-search-compact__field min-w-0 flex-1 text-left">
-        <span className="home-search-compact__field-label">{label}</span>
-        <span
-          className={cn(
-            "home-search-compact__field-value",
-            filled && "home-search-compact__field-value--filled"
-          )}
-        >
-          {value}
-        </span>
-      </div>
-      <ChevronRight size={18} className="home-search-compact__chevron shrink-0" aria-hidden />
-    </button>
-  );
-}
-
 export function HomeSearchCompact({ locale }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -80,15 +51,16 @@ export function HomeSearchCompact({ locale }: Props) {
     return found ? m(locale, found.labelKey) : city;
   }, [city, locale]);
 
-  const cityDisplay = city ? `📍 ${cityLabel}` : cityLabel;
-  const cityFilled = Boolean(city);
+  const datesLabel = useMemo(() => {
+    if (checkIn && checkOut) {
+      return `${formatDate(checkIn, locale)} — ${formatDate(checkOut, locale)}`;
+    }
+    if (checkIn) return formatDate(checkIn, locale);
+    return m(locale, "search.selectDates");
+  }, [checkIn, checkOut, locale]);
 
+  const guestsLabel = m(locale, "search.guestsCount", { count: guests });
   const datesFilled = Boolean(checkIn && checkOut);
-  const datesDisplay = datesFilled
-    ? `📅 ${formatDate(checkIn, locale)} — ${formatDate(checkOut, locale)}`
-    : m(locale, "search.selectDates");
-
-  const guestsDisplay = `👥 ${m(locale, "search.guestsCount", { count: guests })}`;
 
   const closeSheet = useCallback(() => setSheet(null), []);
 
@@ -108,35 +80,39 @@ export function HomeSearchCompact({ locale }: Props) {
   return (
     <>
       <div className="home-search-compact home-search-compact--premium md:hidden">
-        <SearchFieldRow
-          label={m(locale, "search.city")}
-          value={cityDisplay}
-          filled={cityFilled}
-          onClick={() => {
-            haptic();
-            setSheet("city");
-          }}
-        />
+        <button type="button" className="home-search-compact__row" onClick={() => { haptic(); setSheet("city"); }}>
+          <MapPin size={18} className="home-search-compact__row-icon shrink-0" aria-hidden />
+          <div className="min-w-0 flex-1">
+            <div className="home-search-compact__row-label">{m(locale, "search.city")}</div>
+            <div className="home-search-compact__row-value truncate">{cityLabel}</div>
+          </div>
+          <ChevronRight size={18} className="home-search-compact__chevron shrink-0" aria-hidden />
+        </button>
 
-        <SearchFieldRow
-          label={m(locale, "search.dates")}
-          value={datesDisplay}
-          filled={datesFilled}
-          onClick={() => {
-            haptic();
-            setSheet("dates");
-          }}
-        />
+        <button type="button" className="home-search-compact__row" onClick={() => { haptic(); setSheet("dates"); }}>
+          <Calendar size={18} className="home-search-compact__row-icon shrink-0" aria-hidden />
+          <div className="min-w-0 flex-1">
+            <div className="home-search-compact__row-label">{m(locale, "search.dates")}</div>
+            <div
+              className={cn(
+                "home-search-compact__row-value truncate",
+                datesFilled && "home-search-compact__row-value--filled"
+              )}
+            >
+              {datesLabel}
+            </div>
+          </div>
+          <ChevronRight size={18} className="home-search-compact__chevron shrink-0" aria-hidden />
+        </button>
 
-        <SearchFieldRow
-          label={m(locale, "search.guests")}
-          value={guestsDisplay}
-          filled
-          onClick={() => {
-            haptic();
-            setSheet("guests");
-          }}
-        />
+        <button type="button" className="home-search-compact__row" onClick={() => { haptic(); setSheet("guests"); }}>
+          <Users size={18} className="home-search-compact__row-icon shrink-0" aria-hidden />
+          <div className="min-w-0 flex-1">
+            <div className="home-search-compact__row-label">{m(locale, "search.guests")}</div>
+            <div className="home-search-compact__row-value home-search-compact__row-value--filled">{guestsLabel}</div>
+          </div>
+          <ChevronRight size={18} className="home-search-compact__chevron shrink-0" aria-hidden />
+        </button>
 
         <div className="home-search-compact__submit-wrap">
           <button
