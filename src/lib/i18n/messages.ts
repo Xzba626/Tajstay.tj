@@ -133,7 +133,7 @@ const ru: Tree = {
     home: "Главная",
     search: "Поиск",
     favorites: "Избранное",
-    bookings: "Брони",
+    bookings: "Поездки",
     notifications: "Уведомления",
     profile: "Профиль"
   },
@@ -295,10 +295,13 @@ const ru: Tree = {
     dest4: "Бадахшан — горные эко-дома",
     ownersShort: "Сдавайте жильё — мы возьмём остальное на себя",
     welcome: "Добро пожаловать, {name} 👋",
-    recommendedTitle: "Рекомендуем для вас"
+    recommendedTitle: "Рекомендуем для вас",
+    mobileTitle: "Жильё по всему Таджикистану",
+    mobileSubtitle: "Проверенные объекты • Безопасное бронирование"
   },
   search: {
     placeholder: "Город",
+    whereTo: "Куда вы хотите?",
     city: "Город",
     checkIn: "Заезд",
     checkOut: "Выезд",
@@ -437,6 +440,8 @@ const ru: Tree = {
     showPassword: "Показать",
     hidePassword: "Скрыть",
     signIn: "Войти",
+    modalTitle: "Войти в TajStay",
+    modalSubtitle: "Телефон, email или Telegram — выберите удобный способ",
     signInHint: "Нет аккаунта? Заполните форму справа.",
     registerTitle: "Регистрация",
     firstName: "Имя",
@@ -1575,8 +1580,7 @@ const tg: Tree = {
     home: "Асосӣ",
     search: "Ҷустуҷӯ",
     favorites: "Дӯстдошта",
-    bookings: "Бронҳо",
-    notifications: "Огоҳиҳо",
+    bookings: "Сафарҳо",
     profile: "Профил"
   },
   favoritesPage: {
@@ -1737,10 +1741,13 @@ const tg: Tree = {
     dest4: "Бадахшон — экодомҳои кӯҳӣ",
     ownersShort: "Манзилатонро иҷора диҳед — боқимондаашро мо ҳал мекунем",
     welcome: "Хуш омадед, {name} 👋",
-    recommendedTitle: "Барои шумо тавсия мешавад"
+    recommendedTitle: "Барои шумо тавсия мешавад",
+    mobileTitle: "Манзил дар тамоми Тоҷикистон",
+    mobileSubtitle: "Объектҳои санҷидашуда • Брони бехатар"
   },
   search: {
     placeholder: "Шаҳр",
+    whereTo: "Куҷо мехоҳед?",
     city: "Шаҳр",
     checkIn: "Омадан",
     checkOut: "Рафтан",
@@ -1872,6 +1879,8 @@ const tg: Tree = {
     showPassword: "Намоиш",
     hidePassword: "Пинҳон",
     signIn: "Ворид шудан",
+    modalTitle: "Ворид шудан ба TajStay",
+    modalSubtitle: "Телефон, email ё Telegram — роҳи дилхоҳро интихоб кунед",
     signInHint: "Ҳисоб надоред? Формаи ростро пур кунед.",
     registerTitle: "Бақайдгирӣ",
     firstName: "Ном",
@@ -2978,8 +2987,7 @@ const en: Tree = {
     home: "Home",
     search: "Search",
     favorites: "Saved",
-    bookings: "Bookings",
-    notifications: "Notifications",
+    bookings: "Trips",
     profile: "Profile"
   },
   favoritesPage: {
@@ -3139,10 +3147,13 @@ const en: Tree = {
     dest4: "Badakhshan — mountain eco-lodges",
     ownersShort: "List your property — we handle the rest",
     welcome: "Welcome, {name} 👋",
-    recommendedTitle: "Recommended for you"
+    recommendedTitle: "Recommended for you",
+    mobileTitle: "Stays across Tajikistan",
+    mobileSubtitle: "Verified properties • Secure booking"
   },
   search: {
     placeholder: "City",
+    whereTo: "Where do you want to go?",
     city: "City",
     checkIn: "Check-in",
     checkOut: "Check-out",
@@ -3274,6 +3285,8 @@ const en: Tree = {
     showPassword: "Show",
     hidePassword: "Hide",
     signIn: "Sign in",
+    modalTitle: "Sign in to TajStay",
+    modalSubtitle: "Phone, email, or Telegram — choose what works for you",
     signInHint: "No account? Use the form on the right.",
     registerTitle: "Registration",
     firstName: "First name",

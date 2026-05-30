@@ -1,10 +1,10 @@
 import type { LucideIcon } from "lucide-react";
-import { Bell, CalendarDays, Heart, Home, User } from "lucide-react";
+import { CalendarDays, Heart, Home, Search, User } from "lucide-react";
 
 /** Routes where mobile bottom tab bar is hidden (auth + role dashboards). */
 export const SHELL_HIDDEN_PREFIXES = ["/auth", "/dashboard/admin", "/dashboard/owner"] as const;
 
-export type BottomTabId = "home" | "favorites" | "bookings" | "notifications" | "profile";
+export type BottomTabId = "home" | "search" | "favorites" | "bookings" | "profile";
 
 export type BottomTabConfig = {
   id: BottomTabId;
@@ -13,13 +13,19 @@ export type BottomTabConfig = {
   isActive: (pathname: string) => boolean;
 };
 
-/** Mockup-aligned bottom navigation: Home · Favorites · Bookings · Notifications · Profile */
+/** Mobile bottom navigation: Home · Search · Favorites · Trips · Profile */
 export const BOTTOM_TABS: BottomTabConfig[] = [
   {
     id: "home",
     href: "/",
     icon: Home,
-    isActive: (p) => p === "/" || p.startsWith("/search") || p.startsWith("/map") || p.startsWith("/hotel")
+    isActive: (p) => p === "/"
+  },
+  {
+    id: "search",
+    href: "/search",
+    icon: Search,
+    isActive: (p) => p.startsWith("/search") || p.startsWith("/map") || p.startsWith("/hotel")
   },
   {
     id: "favorites",
@@ -37,12 +43,6 @@ export const BOTTOM_TABS: BottomTabConfig[] = [
       p.startsWith("/booking") ||
       p.startsWith("/payment") ||
       p.startsWith("/chat/booking")
-  },
-  {
-    id: "notifications",
-    href: "/notifications",
-    icon: Bell,
-    isActive: (p) => p.startsWith("/notifications")
   },
   {
     id: "profile",

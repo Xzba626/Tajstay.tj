@@ -5,6 +5,7 @@ import { getOwnerApplicationNavState } from "@/lib/navigation/getNavContext";
 import { UserMenu, type UserMenuLabels } from "@/components/layout/UserMenu";
 import { LocaleSwitcher } from "@/components/layout/LocaleSwitcher";
 import { SiteHeaderFrame } from "@/components/layout/SiteHeaderFrame";
+import { HeaderMobileActions } from "@/components/layout/HeaderMobileActions";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
 import { getSiteContent } from "@/lib/site-content";
@@ -79,23 +80,29 @@ export async function Header() {
         />
 
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
-          <LocaleSwitcher current={locale} iconOnly className="locale-switcher--icon-only" />
-          {user ? (
-            <div className="md:hidden">
-              <NotificationBell initialUnreadCount={unreadCount} labels={bellLabels} />
-            </div>
-          ) : null}
-          {!user ? (
-            <Link href="/auth/sign-in" className="header-auth-signin-mobile mobile-login-button md:hidden">
-              {m(locale, "header.signIn")}
-            </Link>
-          ) : null}
+          <LocaleSwitcher current={locale} iconOnly className="locale-switcher--icon-only hidden md:flex" />
+
+          <div className="md:hidden">
+            <HeaderMobileActions
+              locale={locale}
+              user={
+                user
+                  ? {
+                      name: user.name,
+                      image: user.image,
+                      telegramPhotoUrl: user.telegramPhotoUrl
+                    }
+                  : null
+              }
+            />
+          </div>
+
           {!user ? (
             <>
-              <Link href="/auth/sign-in" className="header-auth-signin">
+              <Link href="/auth/sign-in" className="header-auth-signin hidden md:inline-flex">
                 {m(locale, "header.signIn")}
               </Link>
-              <Link href="/auth/sign-in?mode=register" className="header-auth-signup">
+              <Link href="/auth/sign-in?mode=register" className="header-auth-signup hidden md:inline-flex">
                 {m(locale, "header.signUp")}
               </Link>
             </>

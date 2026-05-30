@@ -16,7 +16,7 @@ import { TajstayHero3D } from "@/components/landing/TajstayHero3D";
 import { PageContainer, SectionContainer, ContentGrid, EmptyStateCard } from "@/components/ds";
 import { HomeSectionHeader } from "@/components/home/HomeSectionHeader";
 import { HomeReviewsSection } from "@/components/home/HomeReviewsSection";
-import { HomeWelcome } from "@/components/home/HomeWelcome";
+import { HomeHeroMobile } from "@/components/home/HomeHeroMobile";
 
 export default async function HomePage() {
   const locale = getLocale();
@@ -77,14 +77,16 @@ export default async function HomePage() {
       <section className="home-section home-section--hero home-chapter home-chapter--band-hero relative overflow-hidden">
         <div className="home-hero-bg home-hero-bg-fallback absolute inset-0" aria-hidden />
         <PageContainer publicPage className="relative z-[1] flex min-h-[inherit] flex-col justify-center !py-0">
-          <HomeWelcome locale={locale} />
-          <TajstayHero3D
-            heroBadge={m(locale, "home.heroBadge")}
-            heroTitle={t(locale, "heroTitle")}
-            heroSubtitle={t(locale, "heroSubtitle")}
-            ctaSearch={m(locale, "home.ctaSearch")}
-            trustPoints={heroTrustPoints}
-          />
+          <HomeHeroMobile locale={locale} />
+          <div className="hidden md:block">
+            <TajstayHero3D
+              heroBadge={m(locale, "home.heroBadge")}
+              heroTitle={t(locale, "heroTitle")}
+              heroSubtitle={t(locale, "heroSubtitle")}
+              ctaSearch={m(locale, "home.ctaSearch")}
+              trustPoints={heroTrustPoints}
+            />
+          </div>
           <div id="home-search" className="home-hero-search-overlap scroll-mt-24" data-reveal>
             <HomeSearchCompact locale={locale} />
           </div>

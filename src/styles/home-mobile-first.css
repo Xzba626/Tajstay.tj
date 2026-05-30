@@ -1,0 +1,134 @@
+/**
+ * TajStay mobile-first home — compact hero + premium search focus
+ */
+
+@media (max-width: 767px) {
+  .home-section--hero {
+    padding-block: 0.25rem 0;
+    min-height: 0;
+  }
+
+  .home-hero-mobile {
+    padding: 0.35rem 0 0.5rem;
+    text-align: center;
+  }
+
+  .home-hero-mobile__title {
+    font-family: var(--taj-font-display, var(--taj-font-ui));
+    font-size: 1.375rem;
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+    max-width: 22ch;
+    margin-inline: auto;
+  }
+
+  .home-hero-mobile__subtitle {
+    margin-top: 0.35rem;
+    font-size: 0.8125rem;
+    line-height: 1.35;
+    color: var(--text-muted);
+    max-width: 28ch;
+    margin-inline: auto;
+  }
+
+  .home-hero-search-overlap {
+    margin-top: 0.5rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .home-search-compact--premium {
+    border-radius: var(--radius-xl);
+  }
+
+  .home-search-compact--premium .home-search-compact__row {
+    min-height: 4.25rem;
+    padding: 0.85rem 1.125rem;
+  }
+
+  .home-search-compact--premium .home-search-compact__field-value {
+    font-size: 1.0625rem;
+  }
+
+  .home-search-compact--premium .home-search-compact__submit {
+    min-height: 3.375rem;
+  }
+
+  .header-mobile-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+  }
+
+  .header-mobile-avatar:active {
+    transform: scale(0.94);
+  }
+
+  .header-mobile-avatar .profile-avatar {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  }
+}
+
+/* Auth entry modal */
+.auth-entry-modal__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: rgba(0, 0, 0, 0.6);
+  animation: fadeUp 0.2s ease;
+}
+
+.auth-entry-modal {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: 301;
+  width: min(22rem, calc(100vw - 2rem));
+  transform: translate(-50%, -50%);
+  padding: 1.5rem 1.25rem;
+  border-radius: 1.25rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+  animation: fadeUp 0.22s ease;
+}
+
+.auth-entry-modal__close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  padding: 0.35rem;
+  color: var(--text-muted);
+  border-radius: 0.5rem;
+}
+
+.auth-entry-modal__title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  padding-right: 1.5rem;
+}
+
+.auth-entry-modal__subtitle {
+  margin-top: 0.35rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.auth-entry-modal__cta {
+  margin-top: 1.25rem;
+}
+
+.auth-entry-modal__link {
+  display: block;
+  margin-top: 0.85rem;
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--green-accent);
+  text-decoration: none;
+}

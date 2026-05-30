@@ -4,7 +4,7 @@ import { cn } from "@/lib/cn";
 type Props = {
   name: string;
   imageUrl?: string | null;
-  size?: "md" | "lg";
+  size?: "sm" | "md" | "lg";
   className?: string;
 };
 
@@ -14,7 +14,7 @@ function avatarInitial(name: string): string {
 }
 
 export function ProfileAvatar({ name, imageUrl, size = "lg", className }: Props) {
-  const px = size === "lg" ? 64 : 56;
+  const px = size === "lg" ? 64 : size === "sm" ? 36 : 56;
   const src = imageUrl?.trim() || null;
 
   if (src) {
@@ -31,8 +31,7 @@ export function ProfileAvatar({ name, imageUrl, size = "lg", className }: Props)
   return (
     <div
       className={cn("profile-avatar profile-avatar--initial shrink-0", className)}
-      style={{ width: px, height: px }}
-      aria-hidden
+      style={{ width: px, height: px, fontSize: size === "sm" ? "0.875rem" : undefined }}
     >
       {avatarInitial(name)}
     </div>

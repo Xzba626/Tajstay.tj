@@ -173,25 +173,26 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.2rem;
-  min-height: 3.5rem;
-  padding: 0.2rem 0.1rem;
-  border-radius: 0;
+  gap: 0.25rem;
+  min-height: 3.625rem;
+  padding: 0.35rem 0.15rem;
+  border-radius: 0.75rem;
   color: var(--text-muted);
   font-size: 0.625rem;
   font-weight: 600;
   letter-spacing: 0.01em;
-  transition: color 180ms ease;
+  transition: color 180ms ease, transform 120ms ease, background 180ms ease;
   background: transparent;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .app-tab-bar__item:active {
-  transform: scale(0.94);
+  transform: scale(0.92);
 }
 
 .app-tab-bar__item.is-active {
-  color: var(--green-accent);
-  background: transparent;
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .app-tab-bar__item.is-active .app-tab-bar__icon {
@@ -203,14 +204,19 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.625rem;
+  transition: background 180ms ease;
+}
+
+.app-tab-bar__icon-wrap.is-active {
+  background: var(--green-muted);
 }
 
 .app-tab-bar__dot {
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: var(--green-accent);
-  margin-top: 2px;
+  display: none;
 }
 
 .app-tab-bar__badge {
