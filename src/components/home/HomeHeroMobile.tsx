@@ -1,11 +1,20 @@
+import { t } from "@/lib/i18n/dictionaries";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
 
-export function HomeHeroMobile({ locale }: { locale: Locale }) {
+type Props = {
+  locale: Locale;
+  trustPoints: string[];
+};
+
+export function HomeHeroMobile({ locale, trustPoints }: Props) {
   return (
     <header className="home-hero-mobile md:hidden">
-      <h1 className="home-hero-mobile__title">{m(locale, "home.mobileTitle")}</h1>
-      <p className="home-hero-mobile__subtitle">{m(locale, "home.mobileSubtitle")}</p>
+      <div className="home-hero-mobile__badge home-hero-badge">{m(locale, "home.heroBadge")}</div>
+      <h1 className="home-hero-mobile__title home-hero-title">{t(locale, "heroTitle")}</h1>
+      <p className="home-hero-mobile__trust home-hero-trust-compact" aria-label="Trust highlights">
+        {trustPoints.join(" · ")}
+      </p>
     </header>
   );
 }

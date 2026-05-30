@@ -186,6 +186,33 @@
   transform: scale(0.995);
 }
 
+.home-search-compact__row-icon {
+  color: var(--green-accent);
+}
+
+.home-search-compact__row-label {
+  font-size: 0.6875rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--text-muted);
+  line-height: 1.2;
+}
+
+.home-search-compact__row-value {
+  margin-top: 0.15rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
+.home-search-compact__row-value--filled {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
 .home-search-compact__field {
   display: flex;
   flex-direction: column;
