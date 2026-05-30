@@ -3,10 +3,8 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/requireAuth";
-import { ScreenHeader } from "@/components/navigation/ScreenHeader";
 import { TripsTabNav, type TripsTabLabels } from "@/components/trips/TripsTabNav";
-import { TripChatRow } from "@/components/trips/TripChatRow";
-import { TripBookingCard } from "@/components/trips/TripBookingCard";
+import { TripMockupCard } from "@/components/trips/TripMockupCard";
 import { filterBookingsByTab, parseTripsTab, type TripsTab } from "@/lib/trips/classify";
 import { tripsHubPath } from "@/lib/trips/urls";
 import type { Locale } from "@/lib/i18n/locale";
@@ -67,8 +65,8 @@ export default async function TripsHubPage({
   const bookings = await prisma.booking.findMany({
     where: user.role === "ADMIN" ? {} : { userId: user.id },
     include: {
-      room: { include: { hotel: { include: { owner: true } } } },
-      roomType: { include: { hotel: { include: { owner: true } } } },
+      room: { include: { hotel: { select: { id: true, name: true, ownerId: true, coverImageUrl: true, owner: true } } } },
+      roomType: { include: { hotel: { select: { id: true, name: true, ownerId: true, coverImageUrl: true, owner: true } } } },
       review: true,
       ...(user.role === "ADMIN"
         ? { user: { select: { id: true, name: true, phone: true } } }
@@ -94,32 +92,13 @@ export default async function TripsHubPage({
 
   const filtered = filterBookingsByTab(bookings, tab);
   const labels = tabLabels(locale);
-  const useChatRows = tab === "active" && user.role !== "ADMIN";
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
-      <ScreenHeader
-        title={m(locale, "tripsHub.title")}
-        subtitle={user.role === "ADMIN" ? m(locale, "tripsHub.subtitleAdmin") : m(locale, "tripsHub.subtitleGuest")}
-        action={
-          <div className="flex flex-wrap gap-2">
-            <Link
-              href="/dashboard/messages"
-              className="taj-btn taj-btn--secondary text-sm !min-h-[2.5rem] !px-3"
-            >
-              {m(locale, "inbox.title")}
-            </Link>
-            {user.role === "ADMIN" ? (
-              <Link
-                href="/dashboard/admin/chat-archive"
-                className="taj-btn taj-btn--secondary text-sm !min-h-[2.5rem] !px-3"
-              >
-                {m(locale, "tripsHub.chatArchive")}
-              </Link>
-            ) : null}
-          </div>
-        }
-      />
+    <div className="mockup-screen max-w-2xl">
+      <h1 className="mockup-screen__title">{m(locale, "tripsHub.title")}</h1>
+      <p className="mockup-screen__subtitle mb-4">
+        {user.role === "ADMIN" ? m(locale, "tripsHub.subtitleAdmin") : m(locale, "tripsHub.subtitleGuest")}
+      </p>
 
       {notice === "adminOnly" ? (
         <div className="mb-4 rounded-xl border border-brand-700 bg-brand-800 px-4 py-3 text-sm text-brand-200" role="status">
@@ -141,27 +120,22 @@ export default async function TripsHubPage({
         <TripsTabNav labels={labels} counts={counts} />
       </Suspense>
 
-      <div className="mt-6 space-y-3">
-        {useChatRows
-          ? filtered.map((b) => (
-              <TripChatRow
-                key={b.id}
-                locale={locale}
-                user={user}
-                booking={b}
-                showAdminGuest={user.role === "ADMIN"}
-              />
-            ))
-          : filtered.map((b) => (
-              <TripBookingCard key={b.id} locale={locale} user={user} booking={b} />
-            ))}
+      <div className="space-y-3">
+        {filtered.map((b) => (
+          <TripMockupCard key={b.id} locale={locale} booking={b} />
+        ))}
         {!filtered.length ? (
-          <p className="py-12 text-center text-sm text-emerald-100/50">{emptyMessage(locale, tab)}</p>
+          <p className="py-12 text-center text-sm text-[var(--text-muted)]">{emptyMessage(locale, tab)}</p>
         ) : null}
       </div>
 
+      <div className="mockup-support-footer">
+        {m(locale, "tripsHub.supportHint")}{" "}
+        <Link href="/faq">{m(locale, "tripsHub.supportLink")}</Link>
+      </div>
+
       {!bookings.length ? (
-        <p className="py-8 text-center text-sm text-emerald-100/50">{m(locale, "tripsHub.emptyAll")}</p>
+        <p className="py-8 text-center text-sm text-[var(--text-muted)]">{m(locale, "tripsHub.emptyAll")}</p>
       ) : null}
     </div>
   );

@@ -114,13 +114,14 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             <Footer />
           </div>
           <MobileBottomNav
-            pendingTripsCount={pendingTripsCount}
+            pendingBookingsCount={pendingTripsCount}
+            unreadNotificationsCount={unreadCount}
             labels={{
               ariaLabel: m(locale, "bottomNav.ariaLabel"),
               home: m(locale, "bottomNav.home"),
-              search: m(locale, "bottomNav.search"),
               favorites: m(locale, "bottomNav.favorites"),
               bookings: m(locale, "bottomNav.bookings"),
+              notifications: m(locale, "bottomNav.notifications"),
               profile: m(locale, "bottomNav.profile")
             }}
           />

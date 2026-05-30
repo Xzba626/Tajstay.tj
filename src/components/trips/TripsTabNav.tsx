@@ -18,26 +18,22 @@ export function TripsTabNav({ labels, counts }: { labels: TripsTabLabels; counts
   if (pathname !== "/dashboard/bookings") return null;
 
   return (
-    <nav className="trips-tab-nav" aria-label={labels.active}>
-      <div className="trips-tab-nav__scroll">
-        {TRIPS_TABS.map((tab) => {
-          const isActive = tab === activeTab;
-          const count = counts[tab];
-          return (
-            <Link
-              key={tab}
-              href={tripsHubPath(tab)}
-              className={cn("trips-tab-nav__item", isActive && "is-active")}
-              aria-current={isActive ? "page" : undefined}
-            >
-              <span>{labels[tab]}</span>
-              {typeof count === "number" && count > 0 ? (
-                <span className="trips-tab-nav__badge">{count > 99 ? "99+" : count}</span>
-              ) : null}
-            </Link>
-          );
-        })}
-      </div>
+    <nav className="mockup-segment mb-4" aria-label={labels.active}>
+      {TRIPS_TABS.map((tab) => {
+        const isActive = tab === activeTab;
+        const count = counts[tab];
+        return (
+          <Link
+            key={tab}
+            href={tripsHubPath(tab)}
+            className={cn("mockup-segment__item", isActive && "is-active")}
+            aria-current={isActive ? "page" : undefined}
+          >
+            {labels[tab]}
+            {typeof count === "number" && count > 0 ? ` (${count > 99 ? "99+" : count})` : ""}
+          </Link>
+        );
+      })}
     </nav>
   );
 }

@@ -1,19 +1,25 @@
+import Link from "next/link";
+import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/requireAuth";
 import { HotelCard } from "@/components/HotelCard";
-import { ScreenHeader } from "@/components/navigation/ScreenHeader";
+import { FavoritesTabs } from "@/components/favorites/FavoritesTabs";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
 
-export default async function FavoritesPage() {
+export default async function FavoritesPage({
+  searchParams
+}: {
+  searchParams?: { tab?: string };
+}) {
   const locale = getLocale();
   const user = await requireUser(["GUEST", "OWNER", "ADMIN"]);
   if (!user) {
     return (
-      <div className="mx-auto max-w-5xl space-y-3 px-4 py-8">
-        <h1 className="text-2xl font-semibold text-slate-100">{m(locale, "userMenu.favorites")}</h1>
-        <p className="text-slate-300">{m(locale, "profile.signInPrompt")}</p>
-        <a className="ds-primary-btn inline-flex items-center" href="/auth/sign-in">
+      <div className="mockup-screen">
+        <h1 className="mockup-screen__title">{m(locale, "userMenu.favorites")}</h1>
+        <p className="mockup-screen__subtitle">{m(locale, "profile.signInPrompt")}</p>
+        <a className="btn-primary mt-4 inline-flex !w-auto px-6" href="/auth/sign-in">
           {m(locale, "profile.signInCta")}
         </a>
       </div>
@@ -25,34 +31,53 @@ export default async function FavoritesPage() {
     include: { hotel: { include: { rooms: true } } }
   });
 
+  const destinations = [
+    { title: m(locale, "home.cityDushanbe"), city: "Dushanbe" },
+    { title: m(locale, "home.cityKhujand"), city: "Khujand" },
+    { title: m(locale, "home.cityPenjikent"), city: "Penjikent" },
+    { title: m(locale, "home.cityBadakhshan"), city: "Badakhshan" }
+  ];
+
   return (
-    <div className="mx-auto max-w-7xl space-y-5 px-4 py-8 sm:px-6 lg:px-8">
-      <ScreenHeader
-        title={m(locale, "userMenu.favorites")}
-        subtitle={m(locale, "profile.navFavoritesDesc")}
-        action={
-          <div className="rounded-full border border-emerald-400/20 bg-emerald-950/50 px-3 py-1 text-xs font-semibold text-emerald-100/80">
-            {favorites.length}
+    <div className="mockup-screen max-w-2xl">
+      <h1 className="mockup-screen__title">{m(locale, "favoritesPage.title")}</h1>
+
+      <Suspense fallback={null}>
+        <FavoritesTabs
+          labels={{
+            housing: m(locale, "favoritesPage.tabHousing"),
+            destinations: m(locale, "favoritesPage.tabDestinations")
+          }}
+          destinations={
+            <div className="space-y-2">
+              {destinations.map((d) => (
+                <Link
+                  key={d.city}
+                  href={`/search?city=${encodeURIComponent(d.city)}`}
+                  className="mockup-menu__item rounded-xl border border-[var(--border)] bg-[var(--bg-card)]"
+                >
+                  {d.title}
+                  <span className="mockup-menu__value">→</span>
+                </Link>
+              ))}
+            </div>
+          }
+        >
+          <div className="space-y-3">
+            {favorites.map((f) => (
+              <HotelCard key={f.id} hotel={f.hotel} locale={locale} variant="list" />
+            ))}
+            {!favorites.length ? (
+              <div className="rounded-xl border border-dashed border-[var(--border)] p-8 text-center">
+                <p className="text-sm text-[var(--text-muted)]">{m(locale, "favoritesPage.empty")}</p>
+                <Link href="/search" className="btn-primary mt-4 inline-flex !w-auto !px-6 !h-11 text-sm">
+                  {m(locale, "home.ctaSearch")}
+                </Link>
+              </div>
+            ) : null}
           </div>
-        }
-      />
-      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-        {favorites.map((f) => (
-          <HotelCard key={f.id} hotel={f.hotel} locale={locale} variant="list" />
-        ))}
-        {!favorites.length && (
-          <div className="md:col-span-2 lg:col-span-3 rounded-2xl border border-dashed border-slate-700 bg-slate-900/40 p-8 text-center">
-            <p className="text-slate-300">Пока нет избранных отелей.</p>
-            <a
-              href="/search"
-              className="mt-4 inline-flex rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-400"
-            >
-              Найти отели
-            </a>
-          </div>
-        )}
-      </div>
+        </FavoritesTabs>
+      </Suspense>
     </div>
   );
 }
-

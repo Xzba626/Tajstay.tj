@@ -89,7 +89,7 @@ const ru: Tree = {
     loggingOut: "Выход…"
   },
   tripsHub: {
-    title: "Поездки",
+    title: "Мои бронирования",
     subtitleGuest: "Брони, оплаты и чаты — в одном месте",
     subtitleAdmin: "Диалоги по всем бронированиям",
     tabActive: "Активные",
@@ -124,15 +124,24 @@ const ru: Tree = {
     documentError: "Не удалось загрузить документ. Попробуйте снова.",
     ownerContacts: "Контакты владельца",
     ownerContactsHint: "Контакты доступны после подтверждения брони.",
-    ownerRedirect: "Владельцам доступна отдельная панель."
+    ownerRedirect: "Владельцам доступна отдельная панель.",
+    supportHint: "Нужна помощь с бронированием?",
+    supportLink: "Написать в поддержку"
   },
   bottomNav: {
     ariaLabel: "Основная навигация",
     home: "Главная",
     search: "Поиск",
     favorites: "Избранное",
-    bookings: "Поездки",
+    bookings: "Брони",
+    notifications: "Уведомления",
     profile: "Профиль"
+  },
+  favoritesPage: {
+    title: "Избранное",
+    tabHousing: "Жильё",
+    tabDestinations: "Направления",
+    empty: "Здесь появятся сохранённые объекты."
   },
   footer: {
     rights: "Все права защищены.",
@@ -284,7 +293,9 @@ const ru: Tree = {
     dest2: "Худжанд — городские и семейные варианты",
     dest3: "Пенджикент — отдых и история",
     dest4: "Бадахшан — горные эко-дома",
-    ownersShort: "Сдавайте жильё — мы возьмём остальное на себя"
+    ownersShort: "Сдавайте жильё — мы возьмём остальное на себя",
+    welcome: "Добро пожаловать, {name} 👋",
+    recommendedTitle: "Рекомендуем для вас"
   },
   search: {
     placeholder: "Город",
@@ -773,6 +784,24 @@ const ru: Tree = {
     actionsPolicy: "Политика конфиденциальности",
     statFavorites: "Избранное",
     statBookings: "Бронирований",
+    statCashback: "Кэшбэк",
+    viewProfile: "Смотреть профиль",
+    settings: "Настройки",
+    settingsSubtitle: "Язык, валюта и приложение",
+    settingsCurrency: "Валюта",
+    settingsCurrencyValue: "TJS",
+    settingsTheme: "Тема",
+    settingsThemeValue: "Тёмная",
+    settingsPrivacy: "Конфиденциальность",
+    hostBannerTitle: "Сдавайте жильё на TajStay",
+    hostBannerDesc: "Станьте хозяином и зарабатывайте",
+    contactPhoneSubtitle: "Номер для входа и уведомлений",
+    contactPhoneHint: "Изменение номера через подтверждение SMS-кодом при входе.",
+    contactEmailSubtitle: "Email для уведомлений и восстановления",
+    contactEmailHint: "Укажите email в личных данных или при регистрации.",
+    contactTelegramSubtitle: "Telegram для входа и уведомлений",
+    contactTelegramHint: "Подключите Telegram при входе в аккаунт.",
+    connectTelegram: "Подключить Telegram",
     phoneVerified: "Телефон подтверждён",
     navTitle: "Разделы",
     navBookings: "Мои бронирования",
@@ -1537,15 +1566,24 @@ const tg: Tree = {
     documentError: "Бор кардан иҷро нашуд.",
     ownerContacts: "Тамоси соҳиб",
     ownerContactsHint: "Пас аз тасдиқи брон дастрас аст.",
-    ownerRedirect: "Барои соҳибон панели алоҳида аст."
+    ownerRedirect: "Барои соҳибон панели алоҳида аст.",
+    supportHint: "Бо брон кумак лозим аст?",
+    supportLink: "Ба дастгирӣ навиштан"
   },
   bottomNav: {
     ariaLabel: "Навигатсияи асосӣ",
     home: "Асосӣ",
     search: "Ҷустуҷӯ",
     favorites: "Дӯстдошта",
-    bookings: "Сафарҳо",
+    bookings: "Бронҳо",
+    notifications: "Огоҳиҳо",
     profile: "Профил"
+  },
+  favoritesPage: {
+    title: "Дӯстдоштаҳо",
+    tabHousing: "Манзил",
+    tabDestinations: "Ҷойҳо",
+    empty: "Объектҳои нигоҳдошташуда инҷо намоиш дода мешаванд."
   },
   footer: {
     rights: "Ҳуқуқҳо ҳифз шудаанд.",
@@ -1697,7 +1735,9 @@ const tg: Tree = {
     dest2: "Хуҷанд — шаҳрӣ ва оила",
     dest3: "Панҷакент — истироҳат таърих",
     dest4: "Бадахшон — экодомҳои кӯҳӣ",
-    ownersShort: "Манзилатонро иҷора диҳед — боқимондаашро мо ҳал мекунем"
+    ownersShort: "Манзилатонро иҷора диҳед — боқимондаашро мо ҳал мекунем",
+    welcome: "Хуш омадед, {name} 👋",
+    recommendedTitle: "Барои шумо тавсия мешавад"
   },
   search: {
     placeholder: "Шаҳр",
@@ -2179,6 +2219,24 @@ const tg: Tree = {
     actionsPolicy: "Сиёсати махфият",
     statFavorites: "Дӯстдоштаҳо",
     statBookings: "Бронҳо",
+    statCashback: "Кэшбэк",
+    viewProfile: "Дидани профил",
+    settings: "Тanzimot",
+    settingsSubtitle: "Забон, асъор ва барнома",
+    settingsCurrency: "Асъор",
+    settingsCurrencyValue: "TJS",
+    settingsTheme: "Мавзӯъ",
+    settingsThemeValue: "Торик",
+    settingsPrivacy: "Махфият",
+    hostBannerTitle: "Манзилро дар TajStay иҷора диҳед",
+    hostBannerDesc: "Соҳиб шавед ва даромад гиред",
+    contactPhoneSubtitle: "Рақам барои воридшавӣ ва огоҳиҳо",
+    contactPhoneHint: "Тағири рақам тавассути SMS-код ҳангоми воридшавӣ.",
+    contactEmailSubtitle: "Email барои огоҳиҳо ва барқарорсозӣ",
+    contactEmailHint: "Email-ро дар маълумоти шахсӣ ё ҳангоми бақайдгирӣ илова кунед.",
+    contactTelegramSubtitle: "Telegram барои воридшавӣ ва огоҳиҳо",
+    contactTelegramHint: "Telegram-ро ҳангоми воридшавӣ пайваст кунед.",
+    connectTelegram: "Пайваст кардани Telegram",
     phoneVerified: "Телефон тасдиқ шуд",
     navTitle: "Бахшҳо",
     navBookings: "Бронҳои ман",
@@ -2911,15 +2969,24 @@ const en: Tree = {
     documentError: "Could not upload document. Try again.",
     ownerContacts: "Host contacts",
     ownerContactsHint: "Available after the host confirms your booking.",
-    ownerRedirect: "Hosts use a separate dashboard."
+    ownerRedirect: "Hosts use a separate dashboard.",
+    supportHint: "Need help with a booking?",
+    supportLink: "Contact support"
   },
   bottomNav: {
     ariaLabel: "Main navigation",
     home: "Home",
     search: "Search",
     favorites: "Saved",
-    bookings: "Trips",
+    bookings: "Bookings",
+    notifications: "Notifications",
     profile: "Profile"
+  },
+  favoritesPage: {
+    title: "Favorites",
+    tabHousing: "Stays",
+    tabDestinations: "Destinations",
+    empty: "Saved properties will appear here."
   },
   footer: {
     rights: "All rights reserved.",
@@ -3070,7 +3137,9 @@ const en: Tree = {
     dest2: "Khujand — city & family stays",
     dest3: "Penjikent — culture & leisure",
     dest4: "Badakhshan — mountain eco-lodges",
-    ownersShort: "List your property — we handle the rest"
+    ownersShort: "List your property — we handle the rest",
+    welcome: "Welcome, {name} 👋",
+    recommendedTitle: "Recommended for you"
   },
   search: {
     placeholder: "City",
@@ -3552,6 +3621,24 @@ const en: Tree = {
     actionsPolicy: "Privacy policy",
     statFavorites: "Favorites",
     statBookings: "Bookings",
+    statCashback: "Cashback",
+    viewProfile: "View profile",
+    settings: "Settings",
+    settingsSubtitle: "Language, currency, and app",
+    settingsCurrency: "Currency",
+    settingsCurrencyValue: "TJS",
+    settingsTheme: "Theme",
+    settingsThemeValue: "Dark",
+    settingsPrivacy: "Privacy",
+    hostBannerTitle: "List your property on TajStay",
+    hostBannerDesc: "Become a host and earn",
+    contactPhoneSubtitle: "Number for sign-in and notifications",
+    contactPhoneHint: "Change your number via SMS verification when signing in.",
+    contactEmailSubtitle: "Email for notifications and recovery",
+    contactEmailHint: "Add your email in personal info or during registration.",
+    contactTelegramSubtitle: "Telegram for sign-in and notifications",
+    contactTelegramHint: "Connect Telegram when signing in to your account.",
+    connectTelegram: "Connect Telegram",
     phoneVerified: "Phone verified",
     navTitle: "Sections",
     navBookings: "My bookings",

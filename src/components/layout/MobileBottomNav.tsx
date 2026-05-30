@@ -8,26 +8,31 @@ import { cn } from "@/lib/cn";
 export type MobileBottomNavLabels = {
   ariaLabel: string;
   home: string;
-  search: string;
   favorites: string;
   bookings: string;
+  notifications: string;
   profile: string;
 };
 
 const LABEL_BY_TAB = {
   home: "home",
-  search: "search",
   favorites: "favorites",
-  trips: "bookings",
+  bookings: "bookings",
+  notifications: "notifications",
   profile: "profile"
 } as const;
 
 type Props = {
   labels: MobileBottomNavLabels;
-  pendingTripsCount?: number;
+  pendingBookingsCount?: number;
+  unreadNotificationsCount?: number;
 };
 
-export function MobileBottomNav({ labels, pendingTripsCount = 0 }: Props) {
+export function MobileBottomNav({
+  labels,
+  pendingBookingsCount = 0,
+  unreadNotificationsCount = 0
+}: Props) {
   const pathname = usePathname() ?? "/";
 
   if (isShellHiddenRoute(pathname)) return null;
@@ -42,7 +47,12 @@ export function MobileBottomNav({ labels, pendingTripsCount = 0 }: Props) {
           const labelKey = LABEL_BY_TAB[tab.id];
           const label = labels[labelKey];
           const Icon = tab.icon;
-          const showBadge = tab.id === "trips" && pendingTripsCount > 0;
+          const badge =
+            tab.id === "bookings" && pendingBookingsCount > 0
+              ? pendingBookingsCount
+              : tab.id === "notifications" && unreadNotificationsCount > 0
+                ? unreadNotificationsCount
+                : 0;
 
           return (
             <Link
@@ -53,9 +63,9 @@ export function MobileBottomNav({ labels, pendingTripsCount = 0 }: Props) {
             >
               <span className="app-tab-bar__icon-wrap">
                 <Icon className="app-tab-bar__icon" size={22} strokeWidth={active ? 2.35 : 1.65} aria-hidden />
-                {showBadge ? (
-                  <span className="app-tab-bar__badge" aria-label={String(pendingTripsCount)}>
-                    {pendingTripsCount > 9 ? "9+" : pendingTripsCount}
+                {badge > 0 ? (
+                  <span className="app-tab-bar__badge" aria-label={String(badge)}>
+                    {badge > 9 ? "9+" : badge}
                   </span>
                 ) : null}
                 {active ? <span className="app-tab-bar__dot" aria-hidden /> : null}

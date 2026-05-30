@@ -8,6 +8,7 @@
 @import "../styles/mobile-drawer.css";
 @import "../styles/premium-shell.css";
 @import "../styles/premium-overhaul.css";
+@import "../styles/mockup-shell.css";
 @import "../styles/chat.css";
 
 @tailwind base;
