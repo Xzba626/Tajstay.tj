@@ -5,6 +5,10 @@ import {
   attachTelegramOnStart,
   parseLoginStartPayload
 } from "@/lib/telegram/loginChallenge";
+import {
+  attachTelegramChangeFromBot,
+  parseChangeTelegramStartPayload
+} from "@/lib/profile/telegramChange";
 
 type TgUser = {
   id: number;
@@ -85,6 +89,26 @@ async function handleMessage(message: TgMessage): Promise<void> {
   }
 
   const text = message.text?.trim() ?? "";
+  const changeToken = parseChangeTelegramStartPayload(text);
+  if (changeToken) {
+    const result = await attachTelegramChangeFromBot(changeToken, {
+      id: from.id,
+      username: from.username,
+      first_name: from.first_name,
+      language_code: from.language_code
+    });
+    if (result.ok !== true) {
+      const reply = result.reason === "expired" ? L.expired : L.invalid;
+      await sendTelegramMessage({ chatId, text: reply });
+    }
+    return;
+  }
+
+  if (text === "/change_telegram" || text.startsWith("/change_telegram@")) {
+    await sendTelegramMessage({ chatId, text: L.changeTelegramOpenProfile });
+    return;
+  }
+
   const startToken = parseLoginStartPayload(text);
   console.log("[telegram/webhook] start payload", { text, startToken });
 

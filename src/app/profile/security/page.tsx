@@ -3,8 +3,7 @@ import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth/requireAuth";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
-import { ProfileSubpageShell } from "@/components/profile/ProfileSubpageShell";
-import { ProfilePasswordForm } from "@/components/profile/ProfilePasswordForm";
+import { PageContainer } from "@/components/ds";
 
 export const dynamic = "force-dynamic";
 
@@ -14,35 +13,27 @@ export default async function ProfileSecurityPage() {
   if (!user) redirect("/auth/sign-in?next=/profile/security");
 
   const items = [
-    { href: "/profile/phone", label: m(locale, "profile.changePhone"), available: true },
-    { href: "/profile/email", label: m(locale, "profile.changeEmail"), available: true },
-    { href: "#", label: m(locale, "profile.twoFactor"), available: false },
-    { href: "#", label: m(locale, "profile.activeDevices"), available: false },
-    { href: "#", label: m(locale, "profile.loginHistory"), available: false }
+    { label: m(locale, "profile.activeDevices"), available: false },
+    { label: m(locale, "profile.loginHistory"), available: false }
   ];
 
   return (
-    <ProfileSubpageShell locale={locale} title={m(locale, "profile.security")} subtitle={m(locale, "profile.securitySubtitle")}>
-      <div className="profile-panel profile-panel--stack">
-        <h2 className="profile-panel__title">{m(locale, "profile.changePassword")}</h2>
-        <ProfilePasswordForm locale={locale} />
-      </div>
-
-      <div className="profile-actions">
-        {items.map((item) =>
-          item.available ? (
-            <Link key={item.label} href={item.href} className="profile-actions__item">
-              <span className="flex-1 text-sm font-medium">{item.label}</span>
-              <span className="text-[var(--text-muted)]">›</span>
-            </Link>
-          ) : (
+    <PageContainer width="narrow" className="pb-10">
+      <div className="mockup-screen">
+        <Link href="/profile" className="mb-4 inline-flex text-sm text-[var(--green-accent)]">
+          ← {m(locale, "common.back")}
+        </Link>
+        <h1 className="mockup-screen__title">{m(locale, "profile.security")}</h1>
+        <p className="mockup-screen__subtitle">{m(locale, "profile.securitySubtitle")}</p>
+        <div className="profile-actions mt-4">
+          {items.map((item) => (
             <div key={item.label} className="profile-actions__item opacity-60">
               <span className="flex-1 text-sm font-medium">{item.label}</span>
               <span className="premium-badge text-[10px]">{m(locale, "profile.comingSoon")}</span>
             </div>
-          )
-        )}
+          ))}
+        </div>
       </div>
-    </ProfileSubpageShell>
+    </PageContainer>
   );
 }

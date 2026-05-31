@@ -12,6 +12,10 @@ datasource db {
 model User {
   id        Int      @id @default(autoincrement())
   name      String
+  firstName String?
+  lastName  String?
+  preferredCurrency String?
+  preferredTheme    String   @default("system")
   phone     String   @unique
   email     String?  @unique
   emailVerified DateTime?
@@ -52,6 +56,7 @@ model User {
   disputesOpened      Dispute[]           @relation("DisputesOpened")
   disputesAgainst     Dispute[]           @relation("DisputesAgainst")
   pushSubscriptions   PushSubscription[]
+  telegramChangeRequests TelegramChangeRequest[]
 }
 
 model Account {
@@ -592,7 +597,7 @@ model EmailOtp {
   userId    Int
   email     String
   codeHash  String
-  /// PASSWORD_RESET (reserved for future purposes).
+  /// PASSWORD_RESET | CHANGE_EMAIL
   purpose   String
   expiresAt DateTime
   usedAt    DateTime?
@@ -642,12 +647,30 @@ model SiteContentState {
 
 /// Auth security / audit events (OTP, login, suspicious activity).
 /// One-time login via @TajstayBot (/start login_<token>).
+/// Profile-only Telegram change (not login/register).
+model TelegramChangeRequest {
+  id                Int       @id @default(autoincrement())
+  userId            Int
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessionToken      String    @unique
+  codeHash          String?
+  telegramId        String?
+  telegramUsername  String?
+  telegramFirstName String?
+  telegramPhotoUrl  String?
+  expiresAt         DateTime
+  usedAt            DateTime?
+  createdAt         DateTime  @default(now())
+
+  @@index([userId, usedAt])
+  @@index([telegramId])
+  @@index([expiresAt])
+}
+
 model TelegramLoginChallenge {
   id                 Int       @id @default(autoincrement())
   token              String    @unique
   codeHash           String
-  /// When set, successful verification links Telegram to this user instead of login/register.
-  linkUserId         Int?
   telegramId         String?
   telegramUsername   String?
   telegramFirstName  String?

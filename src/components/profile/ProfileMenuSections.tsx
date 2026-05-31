@@ -51,7 +51,7 @@ function MenuItem({ href, icon: Icon, label }: { href: string; icon: typeof User
 export function ProfileMenuSections({ locale, role, logoutLabel }: Props) {
   return (
     <div className="space-y-4">
-      <MenuSection title={m(locale, "profile.sectionAccount")}>
+      <MenuSection title={m(locale, "profile.sectionAccountData")}>
         <MenuItem href="/profile/personal" icon={User} label={m(locale, "profile.personalInfo")} />
         <MenuItem href="/profile/security" icon={Shield} label={m(locale, "profile.security")} />
         <MenuItem href="/profile/payments" icon={CreditCard} label={m(locale, "profile.payments")} />

@@ -20,6 +20,8 @@ const MESSAGES: Record<
     cooldown: string;
     phoneRequired: string;
     openSiteToSignIn: string;
+    changeTelegramCode: (code: string) => string;
+    changeTelegramOpenProfile: string;
   }
 > = {
   ru: {
@@ -34,7 +36,11 @@ const MESSAGES: Record<
     cooldown: "Подождите минуту перед повторной отправкой кода.",
     phoneRequired: "Пожалуйста, нажмите кнопку «Отправить номер телефона».",
     openSiteToSignIn:
-      "Откройте <b>TajStay</b> и нажмите «Войти через Telegram».\n\n<a href=\"https://www.tajstay.site/auth/sign-in\">tajstay.site/auth/sign-in</a>"
+      "Откройте <b>TajStay</b> и нажмите «Войти через Telegram».\n\n<a href=\"https://www.tajstay.site/auth/sign-in\">tajstay.site/auth/sign-in</a>",
+    changeTelegramCode: (code) =>
+      `Код для смены Telegram в TajStay: <code>${code}</code>\n\nВведите его в профиле на сайте (10 минут).`,
+    changeTelegramOpenProfile:
+      "Откройте профиль на <b>TajStay</b> → Аккаунт → Telegram → «Открыть Telegram»."
   },
   tg: {
     startWelcome:
@@ -48,7 +54,11 @@ const MESSAGES: Record<
     cooldown: "Пеш аз фиристодани дубораи рамз 1 дақиқа интизор шавед.",
     phoneRequired: "Лутфан тугмаи «Фиристодани рақами телефон»-ро пахш кунед.",
     openSiteToSignIn:
-      "<b>TajStay</b>-ро кушоед ва «Ворид шудан бо Telegram»-ро пахш кунед.\n\n<a href=\"https://www.tajstay.site/auth/sign-in\">tajstay.site/auth/sign-in</a>"
+      "<b>TajStay</b>-ро кушоед ва «Ворид шудан бо Telegram»-ро пахш кунед.\n\n<a href=\"https://www.tajstay.site/auth/sign-in\">tajstay.site/auth/sign-in</a>",
+    changeTelegramCode: (code) =>
+      `Рамзи тағйири Telegram дар TajStay: <code>${code}</code>\n\nДар профили сомона ворид кунед (10 дақиқа).`,
+    changeTelegramOpenProfile:
+      "Профили TajStay → Ҳисоб → Telegram → «Кушодани Telegram»."
   },
   en: {
     startWelcome:
@@ -62,7 +72,11 @@ const MESSAGES: Record<
     cooldown: "Please wait 60 seconds before requesting a new code.",
     phoneRequired: "Please tap “Share phone number”.",
     openSiteToSignIn:
-      "Open <b>TajStay</b> and tap “Sign in with Telegram”.\n\n<a href=\"https://www.tajstay.site/auth/sign-in\">tajstay.site/auth/sign-in</a>"
+      "Open <b>TajStay</b> and tap “Sign in with Telegram”.\n\n<a href=\"https://www.tajstay.site/auth/sign-in\">tajstay.site/auth/sign-in</a>",
+    changeTelegramCode: (code) =>
+      `Your TajStay Telegram change code: <code>${code}</code>\n\nEnter it in your profile on the website (10 minutes).`,
+    changeTelegramOpenProfile:
+      "Open <b>TajStay</b> profile → Account → Telegram → “Open Telegram”."
   }
 };
 

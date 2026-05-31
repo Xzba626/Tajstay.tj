@@ -2,7 +2,7 @@ import { requireUser } from "@/lib/auth/requireAuth";
 import { prisma } from "@/lib/prisma";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
-import { ProfileMockupView } from "@/components/profile/ProfileMockupView";
+import { ProfileHubView } from "@/components/profile/ProfileHubView";
 import { PageContainer } from "@/components/ds";
 
 export const dynamic = "force-dynamic";
@@ -24,17 +24,14 @@ export default async function ProfilePage() {
 
   const full = await prisma.user.findUnique({
     where: { id: user.id },
-    include: {
-      bookings: true,
-      favorites: true
-    }
+    include: { bookings: true, favorites: true }
   });
 
   if (!full) return null;
 
   return (
     <PageContainer width="narrow" className="pb-10">
-      <ProfileMockupView locale={locale} user={full} logoutLabel={m(locale, "userMenu.logout")} />
+      <ProfileHubView locale={locale} user={full} logoutLabel={m(locale, "userMenu.logout")} />
     </PageContainer>
   );
 }
