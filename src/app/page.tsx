@@ -11,7 +11,7 @@ import { AIRecommendationLab } from "@/components/ai/AIRecommendationLab";
 import { ViewTransitionLink } from "@/components/effects/ViewTransitionLink";
 import { HomeScrollEnhancer } from "./HomeScrollEnhancer";
 import { GuestHomeExtras } from "@/components/guest/GuestHomeExtras";
-import { HomeSearchCompact } from "@/components/home/HomeSearchCompact";
+import { SearchBar } from "@/components/SearchBar";
 import { TajstayHero3D } from "@/components/landing/TajstayHero3D";
 import { PageContainer, SectionContainer, ContentGrid, EmptyStateCard } from "@/components/ds";
 import { HomeSectionHeader } from "@/components/home/HomeSectionHeader";
@@ -88,7 +88,7 @@ export default async function HomePage() {
             />
           </div>
           <div id="home-search" className="home-hero-search-overlap scroll-mt-24" data-reveal>
-            <HomeSearchCompact locale={locale} />
+            <SearchBar locale={locale} />
           </div>
         </PageContainer>
       </section>

@@ -21,8 +21,8 @@ export function SearchBar({ locale = "ru" }: Props) {
   const popularCityValues = ["Dushanbe", "Khujand", "Penjikent", "Badakhshan"];
 
   return (
-    <div className="home-search-card">
-      <form action="/search" method="get">
+    <div className="home-search-card home-search-card--premium">
+      <form action="/search" method="get" className="home-search-form-wrap">
         <datalist id="popular-cities">
           {popularCityValues.map((city) => (
             <option key={city} value={city} />
@@ -31,7 +31,7 @@ export function SearchBar({ locale = "ru" }: Props) {
 
         <div className="home-search-form grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 lg:gap-3">
           <label className="home-search-item sm:col-span-2 lg:col-span-1">
-            <span className="home-search-label">{m(locale, "search.placeholder")}</span>
+            <span className="home-search-label">{m(locale, "search.city")}</span>
             <div className="home-search-control home-search-control--with-icon">
               <span className="home-search-control__icon text-emerald-400" aria-hidden>
                 {cityIcon}
@@ -97,7 +97,7 @@ export function SearchBar({ locale = "ru" }: Props) {
               <circle cx="11" cy="11" r="8" />
               <path d="M21 21l-4.35-4.35" />
             </svg>
-            {m(locale, "search.search")}
+            {m(locale, "search.button")}
           </button>
         </div>
 
