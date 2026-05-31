@@ -27,6 +27,8 @@ type Props = {
   onExpandedChange: (active: boolean) => void;
   onSuccess: () => void | Promise<void>;
   onError?: (message: string) => void;
+  challengeUrl?: string;
+  verifyUrl?: string;
 };
 
 type ChallengeState = {
@@ -57,7 +59,15 @@ function formatTimerLabel(template: string, formatted: string) {
   return template.replace("{time}", formatted).replace("{n}", formatted);
 }
 
-export function TelegramLoginPanel({ labels: L, expanded, onExpandedChange, onSuccess, onError }: Props) {
+export function TelegramLoginPanel({
+  labels: L,
+  expanded,
+  onExpandedChange,
+  onSuccess,
+  onError,
+  challengeUrl = "/api/auth/telegram/challenge",
+  verifyUrl = "/api/auth/telegram/verify"
+}: Props) {
   const [loading, setLoading] = useState(false);
   const [challenge, setChallenge] = useState<ChallengeState | null>(null);
   const [webLink, setWebLink] = useState("");
@@ -101,7 +111,7 @@ export function TelegramLoginPanel({ labels: L, expanded, onExpandedChange, onSu
       setCodeUi("loading");
       setCodeMessage(L.verifying);
       try {
-        const res = await fetch("/api/auth/telegram/verify", {
+        const res = await fetch(verifyUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json", accept: "application/json" },
           credentials: "include",
@@ -138,7 +148,7 @@ export function TelegramLoginPanel({ labels: L, expanded, onExpandedChange, onSu
         setLoading(false);
       }
     },
-    [challenge, isExpired, L, onError, onSuccess]
+    [challenge, isExpired, L, onError, onSuccess, verifyUrl]
   );
 
   useEffect(() => {
@@ -194,16 +204,25 @@ export function TelegramLoginPanel({ labels: L, expanded, onExpandedChange, onSu
     setCodeMessage(null);
     openedOnce.current = false;
     try {
-      const res = await fetch("/api/auth/telegram/challenge", {
+      const res = await fetch(challengeUrl, {
         method: "POST",
         headers: { accept: "application/json" },
         credentials: "include"
       });
-      const json = (await res.json().catch(() => ({}))) as ChallengeState & { error?: string };
+      const json = (await res.json().catch(() => ({}))) as ChallengeState & { error?: string; ok?: boolean };
       if (!res.ok) throw new Error(json.error || L.errorGeneric);
 
-      const links = linksFromTelegramDeepLink(json.deepLink);
-      setChallenge(json);
+      const payload: ChallengeState = {
+        token: json.token,
+        deepLink: json.deepLink,
+        appDeepLink: json.appDeepLink,
+        expiresAt: json.expiresAt,
+        expiresInSec: json.expiresInSec
+      };
+      if (!payload.token || !payload.deepLink) throw new Error(L.errorGeneric);
+
+      const links = linksFromTelegramDeepLink(payload.deepLink);
+      setChallenge(payload);
       setWebLink(json.deepLink || links.webLink);
       setAppLink(json.appDeepLink || links.appLink);
       setStatus("pending");

@@ -4,6 +4,7 @@ import { requireUser } from "@/lib/auth/requireAuth";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
 import { ProfileSubpageShell } from "@/components/profile/ProfileSubpageShell";
+import { ProfilePasswordForm } from "@/components/profile/ProfilePasswordForm";
 
 export const dynamic = "force-dynamic";
 
@@ -13,9 +14,8 @@ export default async function ProfileSecurityPage() {
   if (!user) redirect("/auth/sign-in?next=/profile/security");
 
   const items = [
-    { href: "/auth/forgot-password", label: m(locale, "profile.changePassword"), available: true },
-    { href: "/profile/personal", label: m(locale, "profile.changePhone"), available: true },
-    { href: "/profile/personal", label: m(locale, "profile.changeEmail"), available: true },
+    { href: "/profile/phone", label: m(locale, "profile.changePhone"), available: true },
+    { href: "/profile/email", label: m(locale, "profile.changeEmail"), available: true },
     { href: "#", label: m(locale, "profile.twoFactor"), available: false },
     { href: "#", label: m(locale, "profile.activeDevices"), available: false },
     { href: "#", label: m(locale, "profile.loginHistory"), available: false }
@@ -23,6 +23,11 @@ export default async function ProfileSecurityPage() {
 
   return (
     <ProfileSubpageShell locale={locale} title={m(locale, "profile.security")} subtitle={m(locale, "profile.securitySubtitle")}>
+      <div className="profile-panel profile-panel--stack">
+        <h2 className="profile-panel__title">{m(locale, "profile.changePassword")}</h2>
+        <ProfilePasswordForm locale={locale} />
+      </div>
+
       <div className="profile-actions">
         {items.map((item) =>
           item.available ? (

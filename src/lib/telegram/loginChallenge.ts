@@ -56,7 +56,7 @@ export type TelegramChallengePublicStatus =
   | "used"
   | "not_found";
 
-export async function createTelegramLoginChallenge(): Promise<{
+export async function createTelegramLoginChallenge(linkUserId?: number): Promise<{
   token: string;
   deepLink: string;
   appDeepLink: string;
@@ -68,7 +68,7 @@ export async function createTelegramLoginChallenge(): Promise<{
   const expiresAt = new Date(Date.now() + CHALLENGE_TTL_MS);
 
   await prisma.telegramLoginChallenge.create({
-    data: { token, codeHash, expiresAt }
+    data: { token, codeHash, expiresAt, linkUserId: linkUserId ?? null }
   });
 
   return {
@@ -238,7 +238,9 @@ export async function verifyTelegramLoginCode(
     return { ok: false, reason: "invalid" };
   }
 
-  const resolved = await resolveUserFromChallenge(challenge);
+  const resolved = challenge.linkUserId
+    ? await linkChallengeToUser(challenge, challenge.linkUserId)
+    : await resolveUserFromChallenge(challenge);
   if (!resolved) return { ok: false, reason: "invalid" };
 
   await prisma.telegramLoginChallenge.update({
@@ -247,6 +249,62 @@ export async function verifyTelegramLoginCode(
   });
 
   return { ok: true, ...resolved };
+}
+
+async function linkChallengeToUser(
+  challenge: {
+    id: number;
+    telegramId: string | null;
+    telegramUsername: string | null;
+    telegramFirstName: string | null;
+    telegramPhotoUrl: string | null;
+    phone: string | null;
+  },
+  userId: number
+): Promise<{ userId: number; telegramId: string; isNew: boolean } | null> {
+  if (!challenge.telegramId) return null;
+
+  const existingTg = await prisma.user.findUnique({ where: { telegramId: challenge.telegramId } });
+  if (existingTg && existingTg.id !== userId) return null;
+
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) return null;
+
+  const displayName =
+    challenge.telegramFirstName?.trim() ||
+    (challenge.telegramUsername ? `@${challenge.telegramUsername.replace(/^@/, "")}` : null);
+
+  const data: {
+    telegramId: string;
+    telegramUsername: string | null;
+    telegramPhotoUrl: string | null;
+    image?: string | null;
+    phone?: string;
+    phoneVerified?: boolean;
+    verified?: boolean;
+    name?: string;
+  } = {
+    telegramId: challenge.telegramId,
+    telegramUsername: challenge.telegramUsername,
+    telegramPhotoUrl: challenge.telegramPhotoUrl,
+    image: challenge.telegramPhotoUrl ?? user.image
+  };
+
+  if (challenge.phone) {
+    const phoneOwner = await prisma.user.findUnique({ where: { phone: challenge.phone } });
+    if (!phoneOwner || phoneOwner.id === userId) {
+      data.phone = challenge.phone;
+      data.phoneVerified = true;
+      data.verified = true;
+    }
+  }
+
+  if (!user.name?.trim() && displayName) {
+    data.name = displayName;
+  }
+
+  const updated = await prisma.user.update({ where: { id: userId }, data });
+  return { userId: updated.id, telegramId: challenge.telegramId, isNew: false };
 }
 
 async function resolveUserFromChallenge(
