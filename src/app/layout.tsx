@@ -3,6 +3,8 @@ import "@fontsource/dm-sans/latin.css";
 import "@fontsource/dm-sans/latin-ext.css";
 import "@fontsource/playfair-display/latin.css";
 import "@fontsource/playfair-display/cyrillic.css";
+import "@fontsource/nunito/latin.css";
+import "@fontsource/nunito/cyrillic.css";
 import type { Metadata } from "next";
 import type { Viewport } from "next";
 import type { ReactNode } from "react";

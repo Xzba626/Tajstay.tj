@@ -1,0 +1,86 @@
+/**
+ * TajStay TZ Part 1.1 — canonical design tokens (docs/TZ-IMPLEMENTATION.md)
+ * Legacy --taj-* / premium tokens bridge here for gradual migration.
+ */
+
+:root {
+  /* Backgrounds */
+  --bg-app: #0a1f14;
+  --bg-card: #112a1b;
+  --bg-surface: #163521;
+  --bg-elevated: #1c4028;
+
+  /* Green palette */
+  --green-primary: #2d7a52;
+  --green-bright: #3a9e6a;
+  --green-dim: #1a5c3a;
+  --green-glow: rgba(45, 122, 82, 0.25);
+
+  /* Gold (logo / premium only) */
+  --gold: #c9a84c;
+  --gold-dim: #a07c2e;
+
+  /* Text */
+  --text-primary: #e8f5ee;
+  --text-secondary: #8aab96;
+  --text-muted: #4d7a5e;
+  --text-inverse: #0a1f14;
+
+  /* Status */
+  --status-pending: #f59e0b;
+  --status-confirmed: #10b981;
+  --status-active: #3b82f6;
+  --status-completed: #6b7280;
+  --status-cancelled: #ef4444;
+  --status-rejected: #dc2626;
+
+  /* Borders */
+  --border-default: rgba(45, 122, 82, 0.2);
+  --border-active: rgba(45, 122, 82, 0.6);
+  --border-subtle: rgba(255, 255, 255, 0.06);
+
+  /* Shadows */
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --shadow-modal: 0 8px 48px rgba(0, 0, 0, 0.6);
+  --shadow-green: 0 0 20px rgba(45, 122, 82, 0.3);
+
+  /* Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+  --duration-slow: 400ms;
+  --duration-enter: 350ms;
+
+  /* Z-index */
+  --z-base: 0;
+  --z-raised: 10;
+  --z-overlay: 100;
+  --z-modal: 200;
+  --z-toast: 300;
+  --z-nav: 400;
+
+  /* Typography (set in layout via next/font or fontsource) */
+  --font-display: "Playfair Display", Georgia, serif;
+  --font-body: "Nunito", "Inter", system-ui, sans-serif;
+
+  /* Legacy bridges */
+  --taj-app-bg: var(--bg-app);
+  --taj-color-text: var(--text-primary);
+  --taj-text: var(--text-primary);
+  --taj-text-secondary: var(--text-secondary);
+  --taj-text-muted: var(--text-muted);
+  --green-accent: var(--green-bright);
+  --taj-primary: var(--green-primary);
+  --taj-radius-lg: var(--radius-lg);
+  --taj-radius-xl: var(--radius-xl);
+  --taj-shadow-card: var(--shadow-card);
+}

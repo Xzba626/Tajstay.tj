@@ -29,6 +29,7 @@
     "@auth/prisma-adapter": "^2.11.2",
     "@fontsource/dm-sans": "^5.2.8",
     "@fontsource/inter": "^5.2.8",
+    "@fontsource/nunito": "^5.2.7",
     "@fontsource/playfair-display": "^5.2.8",
     "@hookform/resolvers": "^3.9.0",
     "@prisma/client": "^5.12.0",
