@@ -1,7 +1,7 @@
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
 import { mapProfileUniqueError, profileError, profileOk, requireProfileUser } from "@/lib/profile/profileApi";
-import { updateProfilePhone } from "@/lib/profile/updateFields";
+import { clearProfileEmail, updateProfileEmail } from "@/lib/profile/updateFields";
 
 export const dynamic = "force-dynamic";
 
@@ -10,19 +10,23 @@ export async function POST(req: Request) {
   if (!user) return profileError(m(getLocale(), "profile.errAuthRequired"), 401);
 
   const body = await req.json().catch(() => ({}));
-  const phone = String(body.phone ?? "");
+  const email = String(body.email ?? "");
+  const clear = body.clear === true;
   const locale = getLocale();
 
   try {
-    await updateProfilePhone(user.id, phone);
+    if (clear) {
+      await clearProfileEmail(user.id);
+    } else {
+      await updateProfileEmail(user.id, email);
+    }
     return profileOk();
   } catch (err) {
-    if (err instanceof Error && err.message === "PHONE_INVALID") {
-      return profileError(m(locale, "profile.errPhoneInvalid"));
+    if (err instanceof Error && err.message === "EMAIL_INVALID") {
+      return profileError(m(locale, "profile.errEmailInvalid"));
     }
-    if (mapProfileUniqueError(err) === "phone") {
-      return profileError(m(locale, "profile.errPhoneTaken"));
-    }
+    const unique = mapProfileUniqueError(err);
+    if (unique === "email") return profileError(m(locale, "profile.errEmailTaken"));
     return profileError(m(locale, "profile.errSave"));
   }
 }

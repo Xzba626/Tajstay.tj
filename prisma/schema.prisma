@@ -671,6 +671,8 @@ model TelegramLoginChallenge {
   id                 Int       @id @default(autoincrement())
   token              String    @unique
   codeHash           String
+  /// When set, successful verification links Telegram to this user instead of login/register.
+  linkUserId         Int?
   telegramId         String?
   telegramUsername   String?
   telegramFirstName  String?

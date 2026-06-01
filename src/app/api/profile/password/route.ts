@@ -5,7 +5,7 @@ import { updateProfilePassword } from "@/lib/profile/updateFields";
 
 export const dynamic = "force-dynamic";
 
-export async function PATCH(req: Request) {
+export async function POST(req: Request) {
   const user = await requireProfileUser();
   if (!user) return profileError(m(getLocale(), "profile.errAuthRequired"), 401);
 

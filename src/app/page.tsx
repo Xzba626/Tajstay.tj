@@ -11,7 +11,7 @@ import { AIRecommendationLab } from "@/components/ai/AIRecommendationLab";
 import { ViewTransitionLink } from "@/components/effects/ViewTransitionLink";
 import { HomeScrollEnhancer } from "./HomeScrollEnhancer";
 import { GuestHomeExtras } from "@/components/guest/GuestHomeExtras";
-import { HomeSearchCompact } from "@/components/home/HomeSearchCompact";
+import { SearchBar } from "@/components/SearchBar";
 import { TajstayHero3D } from "@/components/landing/TajstayHero3D";
 import { PageContainer, SectionContainer, ContentGrid, EmptyStateCard } from "@/components/ds";
 import { HomeSectionHeader } from "@/components/home/HomeSectionHeader";
@@ -77,7 +77,7 @@ export default async function HomePage() {
       <section className="home-section home-section--hero home-chapter home-chapter--band-hero relative overflow-hidden">
         <div className="home-hero-bg home-hero-bg-fallback absolute inset-0" aria-hidden />
         <PageContainer publicPage className="relative z-[1] flex min-h-[inherit] flex-col justify-center !py-0">
-          <HomeHeroMobile locale={locale} />
+          <HomeHeroMobile locale={locale} trustPoints={heroTrustPoints} />
           <div className="hidden md:block">
             <TajstayHero3D
               heroBadge={m(locale, "home.heroBadge")}
@@ -88,7 +88,7 @@ export default async function HomePage() {
             />
           </div>
           <div id="home-search" className="home-hero-search-overlap scroll-mt-24" data-reveal>
-            <HomeSearchCompact locale={locale} />
+            <SearchBar locale={locale} />
           </div>
         </PageContainer>
       </section>
