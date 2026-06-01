@@ -57,4 +57,23 @@
     text-transform: uppercase;
     color: var(--text-muted);
   }
+
+  .profile-account-screen__back {
+    display: inline-flex;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--green-accent);
+  }
+
+  .profile-account-screen__hint {
+    margin-top: 0.5rem;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: var(--text-muted);
+  }
+
+  .profile-account-screen .profile-panel {
+    border-radius: var(--radius-lg);
+  }
 }

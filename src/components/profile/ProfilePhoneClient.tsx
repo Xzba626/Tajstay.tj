@@ -1,19 +1,19 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
 import { TajikPhoneInput } from "@/components/auth/TajikPhoneInput";
-import { patchProfileJson } from "@/components/profile/profileClient";
+import { postProfileJson } from "@/components/profile/profileClient";
 import { formatTajikPhoneInput } from "@/lib/validation/phone";
+import { ProfileAccountScreen } from "@/components/profile/ProfileAccountScreen";
 
-type Props = { locale: Locale };
+type Props = { locale: Locale; initialNational?: string };
 
-export function ProfilePhoneClient({ locale }: Props) {
+export function ProfilePhoneClient({ locale, initialNational = "" }: Props) {
   const router = useRouter();
-  const [national, setNational] = useState("");
+  const [national, setNational] = useState(initialNational);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,7 +24,7 @@ export function ProfilePhoneClient({ locale }: Props) {
     setError(null);
     try {
       const phone = formatTajikPhoneInput(national);
-      await patchProfileJson("/api/profile/phone", { phone });
+      await postProfileJson("/api/profile/phone", { phone }, locale);
       router.refresh();
       router.push("/profile/account");
     } catch (err) {
@@ -35,11 +35,12 @@ export function ProfilePhoneClient({ locale }: Props) {
   }
 
   return (
-    <div className="mockup-screen">
-      <Link href="/profile/account" className="mb-4 inline-flex text-sm text-[var(--green-accent)]">
-        ← {m(locale, "common.back")}
-      </Link>
-      <h1 className="mockup-screen__title">{m(locale, "profile.phone")}</h1>
+    <ProfileAccountScreen
+      backHref="/profile/account"
+      backLabel={m(locale, "common.back")}
+      title={m(locale, "profile.phone")}
+      hint={m(locale, "profile.contactPhoneHint")}
+    >
       <form onSubmit={onSubmit} className="profile-panel profile-panel--stack mt-4">
         <label className="block">
           <span className="profile-info-row__label">{m(locale, "profile.newPhone")}</span>
@@ -52,6 +53,6 @@ export function ProfilePhoneClient({ locale }: Props) {
           {busy ? m(locale, "profile.saving") : m(locale, "profile.save")}
         </button>
       </form>
-    </div>
+    </ProfileAccountScreen>
   );
 }

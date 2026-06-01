@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
-import { patchProfileJson } from "@/components/profile/profileClient";
+import { patchProfileJson, postProfileJson } from "@/components/profile/profileClient";
+import { ProfileAccountScreen } from "@/components/profile/ProfileAccountScreen";
 
 type Props = {
   locale: Locale;
@@ -14,6 +14,8 @@ type Props = {
   fieldKey: string;
   apiUrl: string;
   backHref: string;
+  initialValue?: string;
+  method?: "PATCH" | "POST";
   inputType?: string;
   placeholder?: string;
 };
@@ -25,26 +27,30 @@ export function ProfileSingleFieldForm({
   fieldKey,
   apiUrl,
   backHref,
+  initialValue = "",
+  method = "PATCH",
   inputType = "text",
   placeholder
 }: Props) {
   const router = useRouter();
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState(initialValue);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [saved, setSaved] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (busy) return;
     setBusy(true);
     setError(null);
-    setSaved(false);
     try {
-      await patchProfileJson(apiUrl, { [fieldKey]: value });
-      setSaved(true);
+      const body = { [fieldKey]: value };
+      if (method === "POST") {
+        await postProfileJson(apiUrl, body, locale);
+      } else {
+        await patchProfileJson(apiUrl, body, locale);
+      }
       router.refresh();
-      window.setTimeout(() => router.push(backHref), 400);
+      router.push(backHref);
     } catch (err) {
       setError(err instanceof Error ? err.message : m(locale, "profile.errSave"));
     } finally {
@@ -53,11 +59,7 @@ export function ProfileSingleFieldForm({
   }
 
   return (
-    <div className="mockup-screen">
-      <Link href={backHref} className="mb-4 inline-flex text-sm text-[var(--green-accent)]">
-        ← {m(locale, "common.back")}
-      </Link>
-      <h1 className="mockup-screen__title">{title}</h1>
+    <ProfileAccountScreen backHref={backHref} backLabel={m(locale, "common.back")} title={title}>
       <form onSubmit={onSubmit} className="profile-panel profile-panel--stack mt-4">
         <label className="block">
           <span className="profile-info-row__label">{label}</span>
@@ -68,6 +70,7 @@ export function ProfileSingleFieldForm({
             onChange={(e) => setValue(e.target.value)}
             placeholder={placeholder}
             autoComplete="off"
+            required={fieldKey !== "surname"}
           />
         </label>
         {error ? (
@@ -75,13 +78,10 @@ export function ProfileSingleFieldForm({
             {error}
           </p>
         ) : null}
-        {saved ? (
-          <p className="text-sm font-medium text-[var(--green-accent)]">{m(locale, "profile.saved")}</p>
-        ) : null}
         <button type="submit" className="btn-primary w-full" disabled={busy}>
           {busy ? m(locale, "profile.saving") : m(locale, "profile.save")}
         </button>
       </form>
-    </div>
+    </ProfileAccountScreen>
   );
 }

@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 export async function POST() {
   if (!isTelegramLoginConfigured()) {
-    return profileError("Telegram is not configured", 503);
+    return profileError(m(getLocale(), "profile.errTelegramLink"), 503);
   }
 
   const user = await requireProfileUser();

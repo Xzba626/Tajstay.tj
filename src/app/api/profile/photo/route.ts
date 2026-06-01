@@ -6,14 +6,26 @@ import { ImageUploadError } from "@/lib/uploads/imageUploadError";
 
 export const dynamic = "force-dynamic";
 
+function mapUploadError(err: ImageUploadError, locale: ReturnType<typeof getLocale>) {
+  switch (err.code) {
+    case "empty":
+      return m(locale, "profile.errPhotoEmpty");
+    case "too_large":
+      return m(locale, "profile.errPhotoTooLarge");
+    default:
+      return m(locale, "profile.errPhotoProcess");
+  }
+}
+
 export async function POST(req: Request) {
   const user = await requireProfileUser();
   if (!user) return profileError(m(getLocale(), "profile.errAuthRequired"), 401);
 
+  const locale = getLocale();
   const form = await req.formData().catch(() => null);
   const file = form?.get("photo");
   if (!(file instanceof File)) {
-    return profileError(m(getLocale(), "profile.errPhotoRequired"));
+    return profileError(m(locale, "profile.errPhotoRequired"));
   }
 
   try {
@@ -21,8 +33,8 @@ export async function POST(req: Request) {
     return profileOk({ imageUrl });
   } catch (err) {
     if (err instanceof ImageUploadError) {
-      return profileError(err.message);
+      return profileError(mapUploadError(err, locale));
     }
-    return profileError(m(getLocale(), "profile.errSave"));
+    return profileError(m(locale, "profile.errSave"));
   }
 }

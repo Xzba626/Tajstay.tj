@@ -29,14 +29,14 @@ export function ProfilePhotoUpload({ locale, name, imageUrl }: Props) {
       canvas.width = 512;
       canvas.height = 512;
       const ctx = canvas.getContext("2d");
-      if (!ctx) throw new Error("Canvas error");
+      if (!ctx) throw new Error(m(locale, "profile.errPhotoProcess"));
       const sx = (bitmap.width - size) / 2;
       const sy = (bitmap.height - size) / 2;
       ctx.drawImage(bitmap, sx, sy, size, size, 0, 0, 512, 512);
       bitmap.close();
 
       const blob = await new Promise<Blob>((resolve, reject) => {
-        canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("Blob error"))), "image/webp", 0.82);
+        canvas.toBlob((b) => (b ? resolve(b) : reject(new Error(m(locale, "profile.errPhotoProcess")))), "image/webp", 0.82);
       });
 
       setPreview(URL.createObjectURL(blob));
@@ -67,7 +67,7 @@ export function ProfilePhotoUpload({ locale, name, imageUrl }: Props) {
         }}
       />
       {error ? (
-        <p className="taj-form-error taj-form-error--compact" role="alert">
+        <p className="taj-form-error taj-form-error--compact text-center" role="alert">
           {error}
         </p>
       ) : null}

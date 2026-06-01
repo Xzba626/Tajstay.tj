@@ -1,12 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
 import { patchProfileJson, postProfileJson } from "@/components/profile/profileClient";
 import { OtpCodeInput } from "@/components/auth/OtpCodeInput";
+import { ProfileAccountScreen } from "@/components/profile/ProfileAccountScreen";
 
 type Props = { locale: Locale };
 
@@ -24,7 +24,7 @@ export function ProfileTelegramChangeClient({ locale }: Props) {
     setBusy(true);
     setError(null);
     try {
-      const data = await postProfileJson("/api/profile/telegram/change/start", {});
+      const data = await postProfileJson("/api/profile/telegram/change/start", {}, locale);
       setSessionToken(String(data.sessionToken ?? ""));
       setDeepLink(String(data.deepLink ?? ""));
       setStep("code");
@@ -41,7 +41,7 @@ export function ProfileTelegramChangeClient({ locale }: Props) {
     setBusy(true);
     setError(null);
     try {
-      await patchProfileJson("/api/profile/telegram/change/confirm", { sessionToken, code });
+      await patchProfileJson("/api/profile/telegram/change/confirm", { sessionToken, code }, locale);
       router.refresh();
       router.push("/profile/account");
     } catch (err) {
@@ -52,18 +52,17 @@ export function ProfileTelegramChangeClient({ locale }: Props) {
   }
 
   return (
-    <div className="mockup-screen">
-      <Link href="/profile/account" className="mb-4 inline-flex text-sm text-[var(--green-accent)]">
-        ← {m(locale, "common.back")}
-      </Link>
-      <h1 className="mockup-screen__title">{m(locale, "profile.changeTelegram")}</h1>
-      <p className="mt-2 text-sm text-[var(--text-muted)]">{m(locale, "profile.contactTelegramHint")}</p>
-
+    <ProfileAccountScreen
+      backHref="/profile/account"
+      backLabel={m(locale, "common.back")}
+      title={m(locale, "profile.changeTelegram")}
+      hint={m(locale, "profile.contactTelegramHint")}
+    >
       {step === "open" ? (
         <div className="profile-panel profile-panel--stack mt-4">
           {error ? <p className="taj-form-error taj-form-error--compact">{error}</p> : null}
           <button type="button" className="btn-primary w-full" disabled={busy} onClick={() => void startSession()}>
-            {m(locale, "profile.openTelegram")}
+            {busy ? m(locale, "profile.saving") : m(locale, "profile.openTelegram")}
           </button>
         </div>
       ) : (
@@ -82,6 +81,6 @@ export function ProfileTelegramChangeClient({ locale }: Props) {
           {error ? <p className="taj-form-error taj-form-error--compact">{error}</p> : null}
         </div>
       )}
-    </div>
+    </ProfileAccountScreen>
   );
 }

@@ -40,7 +40,7 @@ export function ProfileSettingsClient({ locale, initialCurrency, initialTheme }:
     setBusy(true);
     setSaved(false);
     try {
-      await patchProfileJson("/api/profile/settings", { preferredCurrency: currency, preferredTheme: theme });
+      await patchProfileJson("/api/profile/settings", { preferredCurrency: currency, preferredTheme: theme }, locale);
       setSaved(true);
       router.refresh();
     } finally {

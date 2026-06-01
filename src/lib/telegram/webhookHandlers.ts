@@ -98,7 +98,12 @@ async function handleMessage(message: TgMessage): Promise<void> {
       language_code: from.language_code
     });
     if (result.ok !== true) {
-      const reply = result.reason === "expired" ? L.expired : L.invalid;
+      const reply =
+        result.reason === "expired"
+          ? L.expired
+          : result.reason === "taken"
+            ? L.telegramAccountTaken
+            : L.invalid;
       await sendTelegramMessage({ chatId, text: reply });
     }
     return;

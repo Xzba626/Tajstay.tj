@@ -53,7 +53,7 @@ export async function attachTelegramChangeFromBot(
     first_name?: string | null;
     language_code?: string | null;
   }
-): Promise<{ ok: true; code: string } | { ok: false; reason: "not_found" | "expired" | "used" }> {
+): Promise<{ ok: true; code: string } | { ok: false; reason: "not_found" | "expired" | "used" | "taken" }> {
   const row = await prisma.telegramChangeRequest.findUnique({ where: { sessionToken } });
   if (!row) return { ok: false, reason: "not_found" };
   if (row.usedAt) return { ok: false, reason: "used" };
@@ -64,7 +64,7 @@ export async function attachTelegramChangeFromBot(
     where: { telegramId, NOT: { id: row.userId } },
     select: { id: true }
   });
-  if (taken) return { ok: false, reason: "not_found" };
+  if (taken) return { ok: false, reason: "taken" };
 
   const photoUrl = await getTelegramUserPhotoUrl(telegram.id);
   const code = generateOtpCode();
@@ -109,6 +109,14 @@ export async function confirmTelegramChange(userId: number, sessionToken: string
   });
   if (taken) return { ok: false as const, reason: "taken" as const };
 
+  const current = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { image: true, telegramPhotoUrl: true }
+  });
+  const shouldSetImage =
+    row.telegramPhotoUrl &&
+    (!current?.image || current.image === current.telegramPhotoUrl);
+
   await prisma.$transaction(async (tx) => {
     await tx.user.update({
       where: { id: userId },
@@ -116,7 +124,7 @@ export async function confirmTelegramChange(userId: number, sessionToken: string
         telegramId: row.telegramId,
         telegramUsername: row.telegramUsername,
         telegramPhotoUrl: row.telegramPhotoUrl,
-        image: row.telegramPhotoUrl ?? undefined
+        ...(shouldSetImage ? { image: row.telegramPhotoUrl } : {})
       }
     });
     await tx.telegramChangeRequest.update({

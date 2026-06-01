@@ -22,6 +22,7 @@ const MESSAGES: Record<
     openSiteToSignIn: string;
     changeTelegramCode: (code: string) => string;
     changeTelegramOpenProfile: string;
+    telegramAccountTaken: string;
   }
 > = {
   ru: {
@@ -40,7 +41,9 @@ const MESSAGES: Record<
     changeTelegramCode: (code) =>
       `Код для смены Telegram в TajStay: <code>${code}</code>\n\nВведите его в профиле на сайте (10 минут).`,
     changeTelegramOpenProfile:
-      "Откройте профиль на <b>TajStay</b> → Аккаунт → Telegram → «Открыть Telegram»."
+      "Откройте профиль на <b>TajStay</b> → Аккаунт → Telegram → «Открыть Telegram».",
+    telegramAccountTaken:
+      "Этот Telegram уже привязан к другому аккаунту TajStay. Войдите в тот аккаунт или отвяжите Telegram там."
   },
   tg: {
     startWelcome:
@@ -58,7 +61,9 @@ const MESSAGES: Record<
     changeTelegramCode: (code) =>
       `Рамзи тағйири Telegram дар TajStay: <code>${code}</code>\n\nДар профили сомона ворид кунед (10 дақиқа).`,
     changeTelegramOpenProfile:
-      "Профили TajStay → Ҳисоб → Telegram → «Кушодани Telegram»."
+      "Профили TajStay → Ҳисоб → Telegram → «Кушодани Telegram».",
+    telegramAccountTaken:
+      "Ин Telegram аллакай ба ҳисоби дигари TajStay пайваст аст."
   },
   en: {
     startWelcome:
@@ -76,7 +81,9 @@ const MESSAGES: Record<
     changeTelegramCode: (code) =>
       `Your TajStay Telegram change code: <code>${code}</code>\n\nEnter it in your profile on the website (10 minutes).`,
     changeTelegramOpenProfile:
-      "Open <b>TajStay</b> profile → Account → Telegram → “Open Telegram”."
+      "Open <b>TajStay</b> profile → Account → Telegram → “Open Telegram”.",
+    telegramAccountTaken:
+      "This Telegram account is already linked to another TajStay account."
   }
 };
 
