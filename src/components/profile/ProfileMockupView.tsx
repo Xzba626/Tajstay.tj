@@ -121,6 +121,13 @@ export function ProfileMockupView({ locale, user, logoutLabel }: Props) {
         </Link>
       ) : null}
 
+      {user.role === "ADMIN" ? (
+        <Link href="/dashboard/admin" className="mockup-host-banner mockup-host-banner--admin">
+          <div className="mockup-host-banner__title">{m(locale, "profile.navAdmin")}</div>
+          <div className="mockup-host-banner__desc">{m(locale, "profile.navAdminDesc")}</div>
+        </Link>
+      ) : null}
+
       <div className="mockup-menu mt-4">
         <div className="mockup-menu__item border-0 p-0">
           <LogoutButton label={logoutLabel} variant="row" />

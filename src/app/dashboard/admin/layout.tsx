@@ -1,11 +1,30 @@
 import type { ReactNode } from "react";
-import { AdminMobileNav, AdminSidebar, type AdminSidebarLabels } from "@/components/dashboard/AdminSidebar";
+import { AdminSidebar, type AdminSidebarLabels } from "@/components/dashboard/AdminSidebar";
 import { DashboardShell } from "@/components/ds";
+import { AdminMobileShell, type AdminMobileShellLabels } from "@/components/admin/mobile/AdminMobileShell";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
+import { requireAdmin } from "@/lib/auth/requireAdmin";
+import { prisma } from "@/lib/prisma";
+import { getUnreadNotificationsCount } from "@/lib/notifications/unread";
+import { resolveUserNames } from "@/lib/profile/userName";
+import { OWNER_APPLICATION_STATUS } from "@/lib/domain/booking";
 
-export default function AdminDashboardLayout({ children }: { children: ReactNode }) {
+export default async function AdminDashboardLayout({ children }: { children: ReactNode }) {
   const locale = getLocale();
+  const admin = await requireAdmin();
+  const { fullName } = resolveUserNames(admin);
+
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+
+  const [pendingHotels, pendingApplications, pendingComplaints, unreadNotifications] = await Promise.all([
+    prisma.hotel.count({ where: { status: "PENDING" } }),
+    prisma.ownerApplication.count({ where: { status: OWNER_APPLICATION_STATUS.PENDING } }),
+    prisma.complaint.count({ where: { status: "PENDING" } }),
+    getUnreadNotificationsCount(admin.id)
+  ]);
+
   const labels: AdminSidebarLabels = {
     sectionTitle: m(locale, "admin.navAdmin"),
     navLabel: m(locale, "admin.mobileNav"),
@@ -19,15 +38,42 @@ export default function AdminDashboardLayout({ children }: { children: ReactNode
       users: m(locale, "adminNav.users"),
       ownerAccess: m(locale, "adminNav.ownerAccess"),
       bookings: m(locale, "adminNav.bookings"),
-      finance: "Finance",
+      finance: m(locale, "notifications.category.finance"),
       complaints: m(locale, "adminNav.complaints"),
       notifications: m(locale, "adminNav.notifications")
     }
   };
 
+  const mobileLabels: AdminMobileShellLabels = {
+    items: labels.items,
+    tabs: {
+      home: m(locale, "admin.mobileTabHome"),
+      properties: m(locale, "admin.mobileTabProperties"),
+      bookings: m(locale, "admin.mobileTabBookings"),
+      users: m(locale, "admin.mobileTabUsers"),
+      more: m(locale, "admin.mobileTabMore")
+    },
+    drawerTitle: m(locale, "admin.navAdmin"),
+    profile: m(locale, "userMenu.profile"),
+    logout: m(locale, "userMenu.logout")
+  };
+
   return (
-    <DashboardShell sidebar={<AdminSidebar labels={labels} />} mobileNav={<AdminMobileNav labels={labels} />}>
-      {children}
+    <DashboardShell sidebar={<AdminSidebar labels={labels} />} mobileNav={null}>
+      <AdminMobileShell
+        locale={locale}
+        labels={mobileLabels}
+        adminName={fullName}
+        adminImage={admin.image ?? admin.telegramPhotoUrl}
+        badgeCounts={{
+          pendingHotels,
+          pendingApplications,
+          pendingComplaints,
+          unreadNotifications
+        }}
+      >
+        {children}
+      </AdminMobileShell>
     </DashboardShell>
   );
 }

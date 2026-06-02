@@ -14,6 +14,7 @@
 @import "../styles/mockup-shell.css";
 @import "../styles/home-mobile-first.css";
 @import "../styles/profile-hub.css";
+@import "../styles/admin-mobile-app.css";
 @import "../styles/chat.css";
 
 @tailwind base;

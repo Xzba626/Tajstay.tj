@@ -24,6 +24,12 @@ import { scoreHotelRisk } from "@/lib/services/riskScoring";
 import { deriveEscrowState } from "@/lib/domain/booking";
 import { notificationText } from "@/lib/notifications/text";
 import { isAdminSecurityResetConfigured } from "@/lib/admin-security";
+import {
+  AdminMobileDashboard,
+  type AdminMobileActivityItem,
+  type AdminMobileDashboardStats,
+  type AdminMobileQuickAction
+} from "@/components/admin/mobile/AdminMobileDashboard";
 
 export const dynamic = "force-dynamic";
 
@@ -144,7 +150,16 @@ export default async function AdminDashboardPage({
   let totalRows = 0;
   let totalPages = 1;
 
+  let mobileDashboardStats: AdminMobileDashboardStats | null = null;
+  let mobileQuickActions: AdminMobileQuickAction[] = [];
+  let mobileActivity: AdminMobileActivityItem[] = [];
+
   if (activeSection === "dashboard") {
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const sixtyDaysAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
+
     const analytics = await Promise.all([
       prisma.hotel.count(),
       prisma.hotel.count({ where: { status: "APPROVED" } }),
@@ -152,7 +167,7 @@ export default async function AdminDashboardPage({
       prisma.booking.count(),
       prisma.booking.aggregate({
         _sum: { totalPrice: true, commission: true },
-        where: { createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } }
+        where: { createdAt: { gte: thirtyDaysAgo } }
       }),
       prisma.notification.findMany({
         where: {
@@ -161,9 +176,109 @@ export default async function AdminDashboardPage({
         },
         orderBy: { createdAt: "desc" },
         take: 8
+      }),
+      prisma.hotel.count({ where: { createdAt: { gte: startOfToday } } }),
+      prisma.user.count({ where: { createdAt: { gte: startOfToday } } }),
+      prisma.booking.count({
+        where: {
+          status: {
+            in: ["CONFIRMED", "CHECKED_IN", "WAITING_PAYMENT", "ON_REVIEW", "PENDING_OWNER", "WAIT_PROOF"]
+          }
+        }
+      }),
+      prisma.booking.count({ where: { createdAt: { gte: startOfToday } } }),
+      prisma.booking.aggregate({
+        _sum: { totalPrice: true },
+        where: { createdAt: { gte: sixtyDaysAgo, lt: thirtyDaysAgo } }
+      }),
+      prisma.hotel.count({ where: { status: "PENDING" } }),
+      prisma.ownerApplication.count({ where: { status: OWNER_APPLICATION_STATUS.PENDING } }),
+      prisma.complaint.count({ where: { status: "PENDING" } }),
+      prisma.booking.findMany({
+        orderBy: { createdAt: "desc" },
+        take: 6,
+        include: {
+          user: true,
+          room: { include: { hotel: true } },
+          roomType: { include: { hotel: true } }
+        }
       })
     ]);
-    [hotelTotal, hotelApproved, userTotal, bookingTotal, bookingAgg, riskNotes] = analytics as any;
+    const [
+      hTotal,
+      hApproved,
+      uTotal,
+      bTotal,
+      bAgg,
+      risks,
+      hotelsToday,
+      usersToday,
+      activeBookings,
+      newBookingsToday,
+      priorRevenueAgg,
+      pendingHotels,
+      pendingApps,
+      pendingComplaints,
+      recentBookings
+    ] = analytics as any;
+
+    hotelTotal = hTotal;
+    hotelApproved = hApproved;
+    userTotal = uTotal;
+    bookingTotal = bTotal;
+    bookingAgg = bAgg;
+    riskNotes = risks;
+
+    const revenue30 = Number(bookingAgg._sum.totalPrice ?? 0);
+    const priorRevenue = Number(priorRevenueAgg._sum.totalPrice ?? 0);
+    const revenueGrowthPercent =
+      priorRevenue > 0 ? Math.round(((revenue30 - priorRevenue) / priorRevenue) * 100) : revenue30 > 0 ? 100 : 0;
+
+    mobileDashboardStats = {
+      hotelTotal,
+      hotelApproved,
+      hotelsToday,
+      userTotal,
+      usersToday,
+      bookingTotal,
+      activeBookings,
+      newBookings: newBookingsToday,
+      revenue30,
+      revenueGrowthPercent
+    };
+
+    mobileQuickActions = [
+      {
+        section: "hotels",
+        label: `⚠️ ${m(locale, "admin.mobileQuickModeration")}`,
+        count: pendingHotels
+      },
+      {
+        section: "applications",
+        label: `📋 ${m(locale, "admin.mobileQuickApplications")}`,
+        count: pendingApps
+      },
+      {
+        section: "complaints",
+        label: `💬 ${m(locale, "admin.mobileQuickComplaints")}`,
+        count: pendingComplaints
+      },
+      {
+        section: "notifications",
+        label: `🔔 ${m(locale, "admin.mobileQuickNotifications")}`,
+        count: 0
+      }
+    ];
+
+    mobileActivity = (recentBookings as any[]).map((b) => {
+      const hotel = b.room?.hotel ?? b.roomType?.hotel;
+      return {
+        id: `booking-${b.id}`,
+        title: `#${b.id} · ${b.status}`,
+        subtitle: `${b.user?.name ?? "—"} · ${hotel?.name ?? "—"}`,
+        at: b.createdAt as Date
+      };
+    });
   } else if (activeSection === "content") {
     content = await getSiteContent();
   } else if (activeSection === "applications") {
@@ -293,13 +408,13 @@ export default async function AdminDashboardPage({
   }
 
   return (
-    <div className="dashboard-skin space-y-12 pb-16 text-slate-100">
-      <header className="border-b border-white/10 pb-8">
+    <div className="admin-page-root dashboard-skin space-y-12 pb-16 text-slate-100">
+      <header className="hidden border-b border-white/10 pb-8 lg:block">
         <h1 className="text-3xl font-bold tracking-tight text-slate-100">{m(locale, "admin.pageTitle")}</h1>
         <p className="mt-2 max-w-2xl text-sm text-slate-300">{m(locale, "admin.pageSubtitle")}</p>
       </header>
 
-      <section className="grid gap-4 md:grid-cols-3">
+      <section className="hidden gap-4 lg:grid lg:grid-cols-3">
         <article className="glass-panel rounded-2xl p-5 shadow-sm">
           <h3 className="text-sm font-bold text-slate-100">{m(locale, "admin.guideOwnersTitle")}</h3>
           <p className="mt-2 text-sm text-slate-300">{m(locale, "admin.guideOwnersText")}</p>
@@ -314,7 +429,16 @@ export default async function AdminDashboardPage({
         </article>
       </section>
 
-      {activeSection === "dashboard" && <section id="dashboard" className="scroll-mt-28 space-y-4">
+      {activeSection === "dashboard" && mobileDashboardStats ? (
+        <AdminMobileDashboard
+          locale={locale}
+          stats={mobileDashboardStats}
+          quickActions={mobileQuickActions}
+          activity={mobileActivity}
+        />
+      ) : null}
+
+      {activeSection === "dashboard" && <section id="dashboard" className="scroll-mt-28 space-y-4 hidden lg:block">
         <div className="flex items-center gap-2">
           <span className="h-8 w-1 rounded-full bg-emerald-600" aria-hidden />
           <h2 className="text-lg font-bold text-slate-100">{m(locale, "admin.analytics")}</h2>
