@@ -12,11 +12,10 @@ import { ViewTransitionLink } from "@/components/effects/ViewTransitionLink";
 import { HomeScrollEnhancer } from "./HomeScrollEnhancer";
 import { GuestHomeExtras } from "@/components/guest/GuestHomeExtras";
 import { SearchBar } from "@/components/SearchBar";
-import { TajstayHero3D } from "@/components/landing/TajstayHero3D";
 import { PageContainer, SectionContainer, ContentGrid, EmptyStateCard } from "@/components/ds";
 import { HomeSectionHeader } from "@/components/home/HomeSectionHeader";
 import { HomeReviewsSection } from "@/components/home/HomeReviewsSection";
-import { HomeHeroMobile } from "@/components/home/HomeHeroMobile";
+import { HomeHeroPremium } from "@/components/home/HomeHeroPremium";
 
 export default async function HomePage() {
   const locale = getLocale();
@@ -28,12 +27,6 @@ export default async function HomePage() {
     { title: m(locale, "home.cityKhujand"), text: m(locale, "home.dest2"), cityQuery: "Khujand" },
     { title: m(locale, "home.cityPenjikent"), text: m(locale, "home.dest3"), cityQuery: "Penjikent" },
     { title: m(locale, "home.cityBadakhshan"), text: m(locale, "home.dest4"), cityQuery: "Badakhshan" }
-  ];
-
-  const heroTrustPoints = [
-    m(locale, "home.trust1Title"),
-    m(locale, "home.trust2Title"),
-    m(locale, "home.trust3Title")
   ];
 
   const trustPoints = [
@@ -77,18 +70,9 @@ export default async function HomePage() {
       <section className="home-section home-section--hero home-chapter home-chapter--band-hero relative overflow-hidden">
         <div className="home-hero-bg home-hero-bg-fallback absolute inset-0" aria-hidden />
         <PageContainer publicPage className="relative z-[1] flex min-h-[inherit] flex-col justify-center !py-0">
-          <HomeHeroMobile locale={locale} trustPoints={heroTrustPoints} />
-          <div className="hidden md:block">
-            <TajstayHero3D
-              heroBadge={m(locale, "home.heroBadge")}
-              heroTitle={t(locale, "heroTitle")}
-              heroSubtitle={t(locale, "heroSubtitle")}
-              ctaSearch={m(locale, "home.ctaSearch")}
-              trustPoints={heroTrustPoints}
-            />
-          </div>
+          <HomeHeroPremium locale={locale} />
           <div id="home-search" className="home-hero-search-overlap scroll-mt-24" data-reveal>
-            <SearchBar locale={locale} />
+            <SearchBar locale={locale} variant="glass" />
           </div>
         </PageContainer>
       </section>
