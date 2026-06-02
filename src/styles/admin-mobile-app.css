@@ -4,11 +4,14 @@
 
 @media (max-width: 1023px) {
   body.admin-mobile-app .site-header,
-  body.admin-mobile-app footer {
+  body.owner-mobile-app .site-header,
+  body.admin-mobile-app footer,
+  body.owner-mobile-app footer {
     display: none !important;
   }
 
-  body.admin-mobile-app main {
+  body.admin-mobile-app main,
+  body.owner-mobile-app main {
     padding-bottom: 0 !important;
   }
 }
@@ -517,5 +520,199 @@
 @media (prefers-reduced-motion: reduce) {
   .admin-mobile-layout__page {
     transition: none !important;
+  }
+}
+
+/* Owner panel — reuse mobile card styles */
+@media (max-width: 1023px) {
+  .owner-page-root > header,
+  .owner-page-root > section.liquid-glass {
+    display: none;
+  }
+
+  .owner-page-root .dashboard-skin section[id] > .flex.items-center.gap-2 {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    margin: 0 -0.75rem 0.75rem;
+    padding: 0.65rem 0.75rem;
+    background: rgba(7, 26, 16, 0.96);
+    border-bottom: 1px solid var(--admin-border);
+  }
+}
+
+.offline-privacy-banner {
+  padding: 1rem;
+  border-radius: 12px;
+  background: rgba(245, 166, 35, 0.1);
+  border: 1px solid rgba(245, 166, 35, 0.28);
+}
+
+.offline-privacy-banner__title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #f5a623;
+}
+
+.offline-privacy-banner__text {
+  margin-top: 0.35rem;
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.45;
+}
+
+.offline-sync-card,
+.offline-staff-search,
+.offline-booking-card,
+.offline-booking-form {
+  padding: 1rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+}
+
+.offline-sync-card__title,
+.offline-staff-search__title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.offline-sync-card__hint,
+.offline-staff-search__hint {
+  margin-top: 0.35rem;
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.offline-sync-card__ok {
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
+  color: #86efac;
+}
+
+.offline-sync-card__form {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.offline-sync-card__row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 48px;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.85);
+  touch-action: manipulation;
+}
+
+.offline-sync-card__label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.offline-sync-card__select,
+.offline-staff-search__input,
+.offline-booking-form__input,
+.offline-booking-card__select {
+  min-height: 48px;
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.25);
+  color: #fff;
+  padding: 0 0.75rem;
+  font-size: 0.875rem;
+  touch-action: manipulation;
+}
+
+.offline-sync-card__note {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.offline-sync-card__submit,
+.offline-staff-search__btn,
+.offline-booking-card__btn {
+  min-height: 48px;
+  padding: 0 1.25rem;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f5a623, #e8900a);
+  color: #0a2318;
+  font-size: 0.875rem;
+  font-weight: 700;
+  touch-action: manipulation;
+}
+
+.offline-staff-search__form {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.offline-staff-search__input {
+  flex: 1;
+}
+
+.offline-staff-search__list {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.offline-staff-search__item {
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  min-height: 64px;
+}
+
+.offline-staff-search__error {
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
+  color: #fca5a5;
+}
+
+.offline-booking-form label {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+/* Admin mobile — extra section polish */
+@media (max-width: 1023px) {
+  .admin-page-root .glass-panel,
+  .admin-page-root .liquid-glass,
+  .admin-page-root .quiet-card {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+  }
+
+  .admin-page-root .DataToolbar,
+  .admin-page-root form.ds-input {
+    touch-action: manipulation;
+  }
+
+  .owner-page-root .rounded-2xl.border,
+  .owner-page-root .surface-1,
+  .owner-page-root .Card {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+  }
+
+  .owner-page-root .text-slate-900 {
+    color: #fff !important;
+  }
+
+  .owner-page-root .text-slate-600,
+  .owner-page-root .text-slate-500,
+  .owner-page-root .text-slate-300 {
+    color: rgba(255, 255, 255, 0.6) !important;
   }
 }

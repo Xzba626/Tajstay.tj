@@ -391,6 +391,8 @@ model HostProfile {
   documentUrl     String?
   kycStatus       String   @default("PENDING") // PENDING | APPROVED | REJECTED
   riskScore       Int      @default(0)
+  /// PMS prefs: offline cloud sync, backup channels (JSON)
+  pmsSettings     Json?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }

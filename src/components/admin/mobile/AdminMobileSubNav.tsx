@@ -1,9 +1,9 @@
 "use client";
 
-import type { AdminSubNavItem } from "@/components/admin/mobile/admin-mobile-nav";
+type SubNavItem = { section: string; label: string };
 
 type Props = {
-  items: AdminSubNavItem[];
+  items: SubNavItem[];
   activeSection: string;
   onSelect: (section: string) => void;
 };
