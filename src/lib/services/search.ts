@@ -26,7 +26,11 @@ export async function searchApprovedHotels(input: SearchInput) {
 async function searchApprovedHotelsQuery(input: SearchInput) {
   const amenitiesAnd: Prisma.RoomWhereInput[] = [];
   if (input.wifi) amenitiesAnd.push({ amenities: { contains: '"wifi"' } });
-  if (input.breakfast) amenitiesAnd.push({ amenities: { contains: '"breakfast"' } });
+  if (input.breakfast) {
+    amenitiesAnd.push({
+      OR: [{ amenities: { contains: '"breakfast_included"' } }, { amenities: { contains: '"breakfast"' } }]
+    });
+  }
   if (input.parking) amenitiesAnd.push({ amenities: { contains: '"parking"' } });
 
   const where: Prisma.HotelWhereInput = {
