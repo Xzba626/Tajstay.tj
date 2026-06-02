@@ -32,7 +32,9 @@ export type MealPlan = (typeof MEAL_PLAN)[keyof typeof MEAL_PLAN];
 
 export const STAFF_ROLE = {
   RECEPTIONIST: "RECEPTIONIST",
-  HOUSEKEEPING: "HOUSEKEEPING"
+  HOUSEKEEPING: "HOUSEKEEPING",
+  /** Управляющий отеля — операции без вкладки «Финансы» */
+  MANAGER: "MANAGER"
 } as const;
 
 export type HotelStaffRole = (typeof STAFF_ROLE)[keyof typeof STAFF_ROLE];

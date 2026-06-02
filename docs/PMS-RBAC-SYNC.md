@@ -28,7 +28,7 @@ TajStay PMS (Property Management) — слой управления отелем
 - **Онлайн-брони** (`Booking.source = PLATFORM`) — гость бронирует через сайт, оплата/чат/модерация платформы.
 - **Офлайн-брони** (`Booking.source = OWNER_MANUAL`) — владелец или персонал вносит гостя вручную; жизненный цикл в `offlineStatus`.
 - **Календарь занятости** — единый источник правды по датам (онлайн + офлайн блокируют слоты).
-- **Разделение данных** — операционные поля для персонала vs конфиденциальный архив только у владельца.
+- **Разделение данных** — ресепшен видит операционные PII (имя, телефон) для заселения; **финансы и выгрузка архива** — только владелец; платформенный **ADMIN** — модерация всей TajStay.
 
 ### 1.2 Ключевые модули
 
@@ -43,7 +43,7 @@ flowchart TB
   subgraph hotel [Отель / PMS]
     OwnerPanel["/dashboard/owner"]
     OwnerAPI[API owner/*]
-    Staff[HotelStaff RECEPTIONIST / HOUSEKEEPING]
+    Staff[HotelStaff RECEPTIONIST / MANAGER / HOUSEKEEPING]
     Calendar[Календарь + инвентарь]
     Offline[Офлайн-брони]
   end
@@ -66,7 +66,7 @@ flowchart TB
 | Модуль | URL / точка входа | Кто использует |
 |--------|-------------------|----------------|
 | **Панель владельца** | `/dashboard/owner?section=…` | `User.role = OWNER` (сейчас) |
-| **Панель помощника** | тот же URL + RBAC по `HotelStaff` | `RECEPTIONIST`, `HOUSEKEEPING` (план) |
+| **Панель помощника** | тот же URL + RBAC по `HotelStaff` | `RECEPTIONIST`, `MANAGER`, `HOUSEKEEPING` (P0: отдельный логин) |
 | **Панель администратора** | `/dashboard/admin?section=…` | `User.role = ADMIN` |
 | **Система синхронизации** | `HostProfile.pmsSettings` + jobs (план) | только владелец отеля |
 | **Гостевой кабинет** | `/dashboard/bookings`, `/profile` | `GUEST` |
@@ -76,7 +76,7 @@ flowchart TB
 В коде **не путать**:
 
 1. **`User.role`** — роль на уровне платформы: `GUEST` | `OWNER` | `ADMIN`.
-2. **`HotelStaff.staffRole`** — роль сотрудника **внутри конкретного отеля**: `RECEPTIONIST` | `HOUSEKEEPING`.
+2. **`HotelStaff.staffRole`** — роль сотрудника **внутри конкретного отеля**: `RECEPTIONIST` | `MANAGER` | `HOUSEKEEPING`.
 
 Владелец (`OWNER`) не имеет строки в `HotelStaff` — он владеет отелем через `Hotel.ownerId`.
 
@@ -90,12 +90,12 @@ flowchart TB
 |------------------|--------|---------|
 | **Владелец** | `User.role = OWNER` | Все свои отели |
 | **Помощник** (ресепшен) | `HotelStaff.staffRole = RECEPTIONIST` | Один `hotelId` |
+| **Управляющий отеля** | `HotelStaff.staffRole = MANAGER` | Один `hotelId`, без «Финансов» |
 | **Помощник** (уборка) | `HotelStaff.staffRole = HOUSEKEEPING` | Один `hotelId` |
-| **Модератор** | `User.role = ADMIN` | Вся платформа |
+| **Модератор платформы** | `User.role = ADMIN` | Вся платформа TajStay (не путать с MANAGER) |
 | **Гость** | `User.role = GUEST` | Бронирование, профиль |
 
-> **«Модератор отеля»** как отдельная роль в БД **пока не существует**.  
-> Если нужен сотрудник с расширенными правами, но без доступа к паспортам — добавить, например, `HotelStaff.staffRole = MANAGER` и матрицу в `staff.ts`.
+> **ADMIN** (глобальный модератор TajStay) и **MANAGER** (управляющий одного отеля) — **разные сущности**. MANAGER добавлен в `STAFF_ROLE` (см. `src/lib/pms/types.ts`); UI создания сотрудников — P0.
 
 ### 2.2 Иерархия (кто кого перекрывает)
 
@@ -116,37 +116,41 @@ GUEST
 
 Источник: `src/lib/pms/staff.ts`.
 
-| Permission | OWNER | ADMIN* | RECEPTIONIST | HOUSEKEEPING |
-|------------|:-----:|:------:|:------------:|:------------:|
-| `assign_rooms` | ✅ | ✅ | ✅ | — |
-| `check_in_out` | ✅ | ✅ | ✅ | — |
-| `offline_booking` | ✅ | ✅ | ✅ | — |
-| `view_calendar` | ✅ | ✅ | ✅ | ✅ |
-| `view_finances` | ✅ | ✅ | — | — |
-| `view_guest_pii` | ✅ | ✅ | — | — |
-| `change_housekeeping` | ✅ | ✅ | — | ✅ |
-| `manage_rooms` | ✅ | ✅ | — | — |
+| Permission | OWNER | ADMIN* | RECEPTIONIST | MANAGER | HOUSEKEEPING |
+|------------|:-----:|:------:|:------------:|:-------:|:------------:|
+| `assign_rooms` | ✅ | ✅ | ✅ | ✅ | — |
+| `check_in_out` | ✅ | ✅ | ✅ | ✅ | — |
+| `offline_booking` | ✅ | ✅ | ✅ | ✅ | — |
+| `view_calendar` | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `view_finances` | ✅ | ✅ | — | — | — |
+| `view_guest_pii` | ✅ | ✅ | ✅ | ✅ | — |
+| `change_housekeeping` | ✅ | ✅ | — | — | ✅ |
+| `manage_rooms` | ✅ | ✅ | — | ✅ | — |
+| Скачивание архива | ✅ | legal | — | — | — |
 
 \* ADMIN в `resolveHotelAccess` сейчас получает полный набор `OWNER_PERMISSIONS` для любого `hotelId` (модерация платформы).
 
 ### 2.4 Что видит каждая роль в офлайн-бронях
 
-Реализовано в `src/lib/pms/offlinePrivacy.ts` + UI `OfflineBookingsList` / `OfflineBookingStaffSearch`.
+Целевая модель (продукт, Таджикистан): на ресепшене **нужны имя и телефон** даже без интернета — см. §7.2 (IndexedDB → sync).
 
-| Поле | OWNER | RECEPTIONIST | HOUSEKEEPING |
-|------|:-----:|:------------:|:--------------:|
-| Имя гостя (поиск) | ✅ | ✅ | — |
-| Даты заезд/выезд | ✅ | ✅ | календарь |
-| Категория / тип номера | ✅ | ✅ | — |
-| № комнаты (`roomNumber`) | ✅ | ✅ | — |
-| Статус `offlineStatus` | ✅ | ✅ (редакт.) | — |
-| Телефон, email | ✅ | ❌ | ❌ |
-| Суммы, предоплата | ✅ | ❌ | ❌ |
-| `guestDocumentUrl` (паспорт) | ✅ | ❌ | ❌ |
-| `offlineNote` с PII | ✅ | ❌ | ❌ |
-| Настройки синхронизации | ✅ | ❌ | ❌ |
+Реализация: `src/lib/pms/offlinePrivacy.ts` — поля режутся по `view_guest_pii` / `view_finances`.
 
-**Сообщение в UI для персонала:** `owner.offline.staffPiiNotice` — обратиться к владельцу за конфиденциальными данными.
+| Поле | OWNER | MANAGER | RECEPTIONIST | HOUSEKEEPING |
+|------|:-----:|:-------:|:------------:|:--------------:|
+| Имя гостя (поиск) | ✅ | ✅ | ✅ | — |
+| Телефон, email (заселение) | ✅ | ✅ | ✅ | — |
+| Даты заезд/выезд | ✅ | ✅ | ✅ | календарь |
+| Категория / тип номера | ✅ | ✅ | ✅ | — |
+| № комнаты (`roomNumber`) | ✅ | ✅ | ✅ | — |
+| Статус `offlineStatus` | ✅ | ✅ | ✅ (редакт.) | — |
+| `guestDocumentUrl` (паспорт) | ✅ | ✅ | ✅* | — |
+| Суммы, предоплата, выручка | ✅ | ❌ | ❌ | ❌ |
+| Настройки синхронизации / архив | ✅ | ❌ | ❌ | ❌ |
+
+\* На ресепшене документ нужен **в момент заселения**; **скачать архив** после выезда может только владелец.
+
+**Статус в коде:** `view_guest_pii` для `RECEPTIONIST` / `MANAGER` возвращён в `staff.ts`. UI и offline-first (IndexedDB) — P1.
 
 ### 2.5 API и guards (текущее состояние)
 
@@ -157,7 +161,11 @@ GUEST
 | `getOwnerUser()` | `requireOwner.ts` | OWNER для API `owner/*` |
 | `resolveHotelAccess()` | `staff.ts` | **готов**, но не везде подключён |
 
-**Статус в коде:** вход персонала в `/dashboard/owner` и проверка `hasPermission` на всех `owner/*` API — **следующий этап**. Сейчас персонал не логинится в панель; поиск по имени и маскирование готовы для подключения.
+**Статус в коде (P0):**
+
+- Отдельный `User` + строка `HotelStaff` на каждого сотрудника (владелец создаёт логин в панели).
+- `requireOwnerOrStaff()` + Activity Log: *«Бронь №10 создана пользователем malika_reception»*.
+- Сейчас: только `requireOwner()`; персонал в панель не входит.
 
 ### 2.6 Рекомендуемый паттерн для новых эндпоинтов
 
@@ -186,15 +194,16 @@ return toOfflineOwnerView(booking, canViewPii, canViewFinances);
 | **Настройки синхронизации** | cloudSync, interval, backup flags | `HostProfile.pmsSettings` (JSON) |
 | **Локальный черновик** (план) | форма до отправки на сервер | IndexedDB / device storage |
 
-### 3.2 Режимы хранения (продуктовая модель)
+### 3.2 Режимы хранения (принято, §7.2)
 
-| Режим | `offlineCloudSync` | Поведение |
-|-------|-------------------|-----------|
-| **Только учёт владельца** | `false` | Запись в БД TajStay есть (календарь), но PII не дублируется в «облачный архив» для персонала; staff видит public view |
-| **Облачная копия** | `true` | Полные поля в БД + периодический backup job (план) |
-| **Локально на устройстве** (план) | отдельный флаг | Черновики offline-first до `POST /api/owner/offline-bookings` |
+| Слой | Поведение |
+|------|-----------|
+| **Устройство (офлайн)** | IndexedDB / localStorage на планшете ресепшена: черновики и кэш броней с **именем и телефоном**, пока нет сети |
+| **Сервер TajStay** | При появлении сети — `POST`/`PATCH` синхронизирует в PostgreSQL (календарь, инвентарь, Activity Log) |
+| **Облачный backup** | Если `offlineCloudSync = true` — периодическая выгрузка владельцу (Telegram → Email, §7.5) |
 
-> **Уточнение для продукта:** полный отказ от записи на сервер **невозможен**, если нужен общий календарь и защита от двойных броней. «Не в облаке» = ограничение видимости и экспорта, не отсутствие строки `Booking`.
+> **Не делаем:** «не писать PII на сервер вообще» — ломает календарь и общую синхронизацию между сменами.  
+> **Не делаем:** скрывать телефон от ресепшена — без этого невозможно заселение при обрыве интернета.
 
 ### 3.3 Интервалы синхронизации
 
@@ -203,7 +212,7 @@ return toOfflineOwnerView(booking, canViewPii, canViewFinances);
 | Значение | Назначение (целевое) |
 |----------|----------------------|
 | `off` | Только запись при действии пользователя, без фоновых job |
-| `15m` / `1h` / `24h` | Cron/worker: экспорт дельты в email/Telegram/хранилище |
+| `15m` / `1h` / `24h` | Cron/worker: экспорт дельты → **сначала Telegram**, затем Email (§7.5) |
 
 **Статус в коде:** UI сохраняет настройки (`POST /api/owner/offline-settings`). **Фоновые job не реализованы.**
 
@@ -285,7 +294,7 @@ sequenceDiagram
 stateDiagram-v2
   [*] --> Active: check_in
   Active --> CheckedOut: offlineStatus CHECKED_OUT
-  CheckedOut --> Warm: +90 days
+  CheckedOut --> Warm: 5-7 days
   Warm --> Archived: job archive PII
   Archived --> Restored: owner request via bot/admin
   Restored --> Warm: re-hydrate fields
@@ -296,9 +305,11 @@ stateDiagram-v2
 | Стадия | Срок после выезда | Что в БД |
 |--------|-------------------|----------|
 | Active | — | все поля |
-| Warm | 0–90 дней | все поля, staff public only |
-| Archived | 90+ дней | операционные + `archiveRef`; PII в object storage |
+| Warm | 0–**7** дней после выезда | все поля; споры с гостем |
+| Archived | **7+** дней | операционные + `archiveRef`; PII в object storage |
 | Legal hold | — | не архивировать (flag) |
+
+**Скачивание файла архива:** только **владелец** (не ресепшен, не MANAGER).
 
 ### 4.3 Формат архива (целевой)
 
@@ -309,7 +320,7 @@ archive/{ownerId}/{yyyy-mm-dd}/bookings-{batchId}.zip
   ├── manifest.json      # id, publicCode, checksums
   ├── bookings.json      # operational snapshot
   ├── guest-pii.enc      # encrypted blob OR omitted if local-only
-  └── receipt.pdf        # опционально, generateReceipt()
+  └── export.html        # P2: HTML или JSON; PDF — позже
 ```
 
 | Файл | Содержимое |
@@ -317,7 +328,8 @@ archive/{ownerId}/{yyyy-mm-dd}/bookings-{batchId}.zip
 | `manifest.json` | версия схемы, hotelId, createdAt, sha256 |
 | `bookings.json` | public view + internal ids |
 | `guest-pii.enc` | phone, email, document URLs — AES-256, key per owner |
-| `receipt.pdf` | квитанция для бухгалтерии |
+| `export.html` / `bookings.json` | P2: достаточно для первого релиза архива |
+| `receipt.pdf` | опционально после P2 |
 
 **Сжатие:** zip + для PDF — оптимизация изображений; JSON → gzip внутри zip.
 
@@ -325,8 +337,9 @@ archive/{ownerId}/{yyyy-mm-dd}/bookings-{batchId}.zip
 
 | Канал | Сценарий |
 |-------|----------|
-| **Telegram-бот** | Владелец: `/archive 2024-03` → бот присылает zip или ссылку S3 signed URL |
-| **Email** | Ночной digest со ссылкой (если `offlineBackupEmail`) |
+| **Telegram-бот** | **Приоритет 1** — `/archive 2024-03` → zip в чат владельцу |
+| **Email** | **Приоритет 2** — резервная копия (`offlineBackupEmail`) |
+| **Google Drive** | P3 или не делать (усложнение OAuth) |
 | **UI владельца** | «Запросить архив за период» → job + уведомление |
 
 **Статус в коде:** не реализовано. В UI есть флаги `offlineBackupEmail`, `offlineBackupTelegram` и текст `syncComingSoon`.
@@ -361,26 +374,66 @@ archive/{ownerId}/{yyyy-mm-dd}/bookings-{batchId}.zip
 
 | Приоритет | Задача | Зависимости |
 |:---------:|--------|-------------|
-| P0 | Подключить `resolveHotelAccess` на все `owner/*` API | staff login |
-| P0 | `requireOwnerOrStaff()` + hotelId в session/context | HotelStaff |
-| P1 | Optimistic locking (`updatedAt`) на update offline booking | конфликты C2/C3 |
-| P1 | Worker: backup по `offlineSyncInterval` | pmsSettings |
-| P2 | IndexedDB черновики offline-first | C1 |
-| P2 | Archive job + `archiveRef` на Booking | storage §4 |
-| P3 | Telegram bot restore | archive |
-| P3 | Google Drive OAuth | owner consent |
+| P0 | Отдельный логин сотрудника (`User` + `HotelStaff`), CRUD в панели владельца | — |
+| P0 | `requireOwnerOrStaff()` + Activity Log (`createdByUserId`) | staff accounts |
+| P0 | `resolveHotelAccess` на все `owner/*` API | guards |
+| P0 | Роль `MANAGER` в UI назначения персонала | `staff.ts` ✅ |
+| P1 | IndexedDB offline-first + sync при online | §7.2 |
+| P1 | Optimistic locking (`updatedAt`) | конфликты |
+| P1 | Backup worker: **Telegram**, затем Email | pmsSettings |
+| P2 | Archive job (**7 дней** после выезда), HTML/JSON export | storage §4 |
+| P2 | Telegram bot: выдача архива | archive |
+| P3 | PDF в архиве, Google Drive (опционально) | — |
 
 ---
 
-## 7. Открытые уточнения (продукт)
+## 7. Принятые продуктовые решения (закрыто)
 
-Зафиксируйте ответы в этом разделе перед реализацией P1+:
+Ответы владельца продукта для реализации в коде. Дата фиксации: **2026-05-30**.
 
-1. **Помощник** — отдельный логин (`User` + `HotelStaff`) или общий планшет владельца?
-2. **«Не в облаке»** — только скрытие от staff или отсутствие backup/export?
-3. **Модератор** — всегда `ADMIN` платформы или нужна роль `MANAGER` на уровне отеля?
-4. **Срок архивации** — 90 / 180 / 365 дней? Обязательный PDF?
-5. **Приоритет backup** — Telegram vs email vs Google Drive?
+### 7.1 Помощник — отдельный логин или общий планшет?
+
+**Решение: отдельный логин и пароль на каждого сотрудника (P0).**
+
+- Владелец в панели создаёт учётку (пример: `malika_reception` / временный пароль).
+- В БД: отдельный `User` + `HotelStaff { hotelId, staffRole }`.
+- **Не использовать** один общий вход владельца на ресепшене — невозможно расследовать ошибки (удалили бронь, неверное заселение).
+- **Activity Log (P0):** *«Бронь №10 создана пользователем malika_reception»* — поле `createdByOwnerId` расширить до `actedByUserId` или audit-таблица.
+
+### 7.2 «Офлайн» и PII — скрыть от персонала или не писать на сервер?
+
+**Решение: локально на устройстве (IndexedDB), при сети — синхронизация на сервер TajStay. Персонал видит имя и телефон.**
+
+- Ресепшен **обязан** видеть имя и телефон без интернета (заселение по паспорту).
+- Пока связи нет — данные в браузере планшета/ПК; при восстановлении — отправка в API.
+- **Нельзя:** полностью не писать на сервер (нет общего календаря между сменами).
+- **Нельзя:** скрывать телефон от ресепшена (теряется смысл автоматизации).
+
+### 7.3 Модератор — ADMIN платформы или менеджер отеля?
+
+**Решение: разделить понятия.**
+
+| Роль | Кто | Права |
+|------|-----|--------|
+| **ADMIN** | Команда TajStay (глобально) | Одобрение отелей, блокировки, `/dashboard/admin` |
+| **MANAGER** | `HotelStaff.MANAGER` | Управляющий **одного** отеля: комнаты, брони, календарь — **без вкладки «Финансы»** (вывод средств) |
+| **OWNER** | Владелец | Полный доступ, включая финансы и архив |
+
+### 7.4 Архив — срок и формат
+
+**Решение: архивация через 5–7 дней после выезда (`CHECKED_OUT`).**
+
+- 5 дней хватает на споры с гостем; дальше запись уходит в архив (календарь не перегружается).
+- **P2:** первый формат экспорта — **HTML или JSON** (простой лог); PDF — позже.
+- **Скачать архив** может **только владелец**; сотрудникам доступ закрыт.
+
+### 7.5 Приоритет бэкапа
+
+**Решение (по убыванию):**
+
+1. **Telegram-бот** — основной канал для владельцев в Таджикистане (файл всегда в телефоне).
+2. **Email** — резервная копия.
+3. **Google Drive** — P3 или не реализовывать (сложность OAuth).
 
 ---
 
@@ -389,3 +442,4 @@ archive/{ownerId}/{yyyy-mm-dd}/bookings-{batchId}.zip
 | Дата | Изменение |
 |------|-----------|
 | 2026-05-30 | Первая версия: RBAC, sync target, archive target, статус кода |
+| 2026-05-30 | §7 закрыт: отдельные логины, IndexedDB+sync, MANAGER vs ADMIN, архив 7д, Telegram>Email |
