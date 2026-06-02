@@ -2,6 +2,8 @@
 
 Canonical spec: pasted in project chat (Parts 1–3). This file maps TZ → **actual repo paths** and tracks progress.
 
+**PMS / RBAC / офлайн-синхронизация (для разработчиков):** см. [`docs/PMS-RBAC-SYNC.md`](./PMS-RBAC-SYNC.md) — архитектура панели владельца, персонала, матрица прав, синхронизация, архив.
+
 ## Architecture mapping (TZ vs codebase)
 
 | TZ path | Actual path |
