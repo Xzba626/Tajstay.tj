@@ -3,6 +3,7 @@ import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
 import { RoomPhotoCarousel } from "@/components/RoomPhotoCarousel";
 import { parseAmenitiesJson } from "@/lib/pms/amenities";
+import { getAmenityLabel } from "@/lib/pms/amenityLabels";
 
 type RoomTypeRow = {
   id: number;
@@ -56,10 +57,13 @@ export function RoomTypeCards({
                   {m(locale, "owner.capacity")}: {rt.maxGuests} · {m(locale, "pms.beds")}: {rt.bedsCount}
                 </div>
                 {amenities.length ? (
-                  <div className="mt-2 flex flex-wrap gap-1">
+                  <div className="mt-3 flex flex-wrap gap-2">
                     {amenities.map((a) => (
-                      <span key={a} className="rounded-full border border-brand-700 px-2 py-0.5 text-[11px] text-brand-200">
-                        {a}
+                      <span
+                        key={a}
+                        className="rounded-full border border-brand-600/80 bg-brand-900/40 px-3 py-1.5 text-sm text-brand-100"
+                      >
+                        {getAmenityLabel(locale, a)}
                       </span>
                     ))}
                   </div>

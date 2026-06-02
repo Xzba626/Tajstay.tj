@@ -35,6 +35,7 @@ import { OwnerOnboardingPanel } from "@/components/owner/OwnerOnboardingPanel";
 import { BOOKING_SOURCE, getBookingGuestLabel } from "@/lib/domain/booking";
 import { AppImage } from "@/components/ui/AppImage";
 import { OwnerRoomTypesPanel } from "@/components/owner/OwnerRoomTypesPanel";
+import { OwnerRoomAmenitiesField } from "@/components/owner/OwnerRoomAmenitiesField";
 import { OwnerAssignRoomSelect } from "@/components/owner/OwnerAssignRoomSelect";
 import { ownerBookingWhere, ownerOfflineBookingWhere } from "@/lib/pms/ownerQueries";
 import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
@@ -1010,22 +1011,7 @@ export default async function OwnerDashboardPage({
                             {m(locale, "owner.available")}
                           </label>
                         </div>
-                        <div className="md:col-span-2">
-                          <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.amenities")}</label>
-                          <input
-                            name="amenities"
-                            defaultValue={(() => {
-                              try {
-                                const arr = JSON.parse(r.amenities);
-                                return Array.isArray(arr) ? arr.join(", ") : String(r.amenities);
-                              } catch {
-                                return String(r.amenities ?? "");
-                              }
-                            })()}
-                            placeholder={m(locale, "owner.roomAmenitiesPh")}
-                            className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20"
-                          />
-                        </div>
+                        <OwnerRoomAmenitiesField locale={locale} name="amenities" defaultValue={r.amenities} />
                         <div className="md:col-span-2">
                           <label className="mb-1.5 block text-sm font-semibold text-slate-800">Добавить фото номера</label>
                           <input
@@ -1115,10 +1101,7 @@ export default async function OwnerDashboardPage({
                   <FieldLabelRow locale={locale} label={m(locale, "owner.extraGuestPrice")} helpKey="extraGuestPrice" />
                   <input name="extraGuestPrice" type="number" min={0} step={1} className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm" />
                 </div>
-                <div className="md:col-span-2">
-                  <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.amenities")}</label>
-                  <input name="amenities" placeholder={m(locale, "owner.roomAmenitiesPh")} className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20" />
-                </div>
+                <OwnerRoomAmenitiesField locale={locale} name="amenities" />
                 <div className="md:col-span-2">
                   <label className="mb-1.5 block text-sm font-semibold text-slate-800">Фото номера</label>
                   <input

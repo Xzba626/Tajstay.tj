@@ -4,8 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
-import { AMENITY_CATEGORIES } from "@/lib/pms/amenities";
-import { FieldLabelRow } from "@/components/ui/FieldLabelRow";
+import { AmenityCheckboxGrid } from "@/components/owner/AmenityCheckboxGrid";
 
 type HotelOption = { id: number; name: string };
 type RoomTypeRow = {
@@ -106,10 +105,6 @@ export function OwnerRoomTypesPanel({
     router.refresh();
   }
 
-  function toggleAmenity(id: string) {
-    setAmenities((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-  }
-
   if (!hotels.length) return null;
 
   return (
@@ -157,21 +152,8 @@ export function OwnerRoomTypesPanel({
           <input name="name" required placeholder={m(locale, "owner.pms.typeNamePh")} className="h-11 rounded-xl border border-white/15 bg-slate-950 px-3 text-sm text-white md:col-span-2" />
           <input name="basePrice" type="number" min={0} required placeholder={m(locale, "owner.priceNight")} className="h-11 rounded-xl border border-white/15 bg-slate-950 px-3 text-sm text-white" />
           <input name="maxGuests" type="number" min={1} defaultValue={2} required className="h-11 rounded-xl border border-white/15 bg-slate-950 px-3 text-sm text-white" />
-          <div className="md:col-span-2 space-y-2">
-            <p className="text-xs font-semibold uppercase text-slate-400">{m(locale, "owner.amenities")}</p>
-            {Object.entries(AMENITY_CATEGORIES).map(([key, cat]) => (
-              <div key={key}>
-                <p className="text-xs text-slate-300">{cat.label.ru}</p>
-                <div className="mt-1 flex flex-wrap gap-2">
-                  {cat.items.map((item) => (
-                    <label key={item} className="flex items-center gap-1 text-xs text-slate-200">
-                      <input type="checkbox" checked={amenities.includes(item)} onChange={() => toggleAmenity(item)} />
-                      {item}
-                    </label>
-                  ))}
-                </div>
-              </div>
-            ))}
+          <div className="md:col-span-2">
+            <AmenityCheckboxGrid locale={locale} value={amenities} onChange={setAmenities} variant="dark" />
           </div>
           <button type="submit" className="h-11 rounded-xl bg-emerald-700 px-4 text-sm font-semibold text-white md:col-span-2">
             {m(locale, "owner.pms.addTypeCta")}

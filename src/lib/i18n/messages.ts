@@ -158,42 +158,8 @@ const ru: Tree = {
     accept: "Принять",
     more: "Подробнее"
   },
-  forms: {
-    help: {
-      ariaLabel: "Подсказка к полю",
-      weekendPrice: {
-        hint: "Дополнительная цена за ночь в пятницу и субботу. Если оставить пустым, действует обычная цена.",
-        example: "Пример: 420"
-      },
-      minNights: {
-        hint: "Минимальное число ночей, которое гость должен забронировать подряд.",
-        example: "Пример: 2"
-      },
-      extraGuestPrice: {
-        hint: "Доплата за каждого гостя сверх вместимости номера, за одну ночь.",
-        example: "Пример: 50"
-      },
-      bulkRange: {
-        hint: "Создайте подряд номера с числовыми названиями — укажите первый и последний номер.",
-        example: "Пример: с 101 по 120"
-      },
-      bulkPrefix: {
-        hint: "Создайте несколько номеров с одним префиксом в названии.",
-        example: "Пример: префикс A-, количество 10 → A-1 … A-10"
-      },
-      offlineSyncCloud: {
-        hint: "Копия офлайн-броней на сервере TajStay. Владелец видит полные данные; персонал — только то, что нужно для заселения.",
-        example: "Пример: включено, если нужен резерв в облаке"
-      },
-      offlineSyncInterval: {
-        hint: "Как часто данные с планшета отправляются на сервер, когда есть интернет.",
-        example: "Пример: каждые 15 минут"
-      },
-      telegramChange: {
-        hint: "Новый Telegram привязывается только через бота и код. Старый аккаунт отвяжется после подтверждения.",
-        example: "Пример: откройте бота → /change_telegram → введите код на сайте"
-      }
-    }
+  meta: {
+    siteDescription: "Поиск и бронирование жилья в Таджикистане — TajStay"
   },
   legal: {
     aboutText:
@@ -1746,42 +1712,8 @@ const tg: Tree = {
     accept: "Қабул",
     more: "Бештар"
   },
-  forms: {
-    help: {
-      ariaLabel: "Маслиҳат барои майдон",
-      weekendPrice: {
-        hint: "Нархи иловагӣ барои шабҳои ҷумъа ва шанбе. Агар холӣ бошад, нархи оддӣ эътибор дорад.",
-        example: "Мисол: 420"
-      },
-      minNights: {
-        hint: "Ҳадди ақали шабҳо, ки меҳмон бояд пайдарпай брон кунад.",
-        example: "Мисол: 2"
-      },
-      extraGuestPrice: {
-        hint: "Пардохти иловагӣ барои ҳар меҳмон аз зиёдаи ҷойгирӣ, барои як шаб.",
-        example: "Мисол: 50"
-      },
-      bulkRange: {
-        hint: "Ҳуҷраҳо бо рақамҳои пайдарпай — аввалин ва охирин рақамро нишон диҳед.",
-        example: "Мисол: аз 101 то 120"
-      },
-      bulkPrefix: {
-        hint: "Чанд ҳуҷра бо як префикс дар ном.",
-        example: "Мисол: префикс A-, шумора 10 → A-1 … A-10"
-      },
-      offlineSyncCloud: {
-        hint: "Нусхаи бронҳои офлайн дар сервери TajStay. Соҳиб ҳама маълумотро мебинад.",
-        example: "Мисол: фаъол, агар нусхаи абрӣ лозим бошад"
-      },
-      offlineSyncInterval: {
-        hint: "Чанд бор маълумот ба сервер фиристода мешавад, вақте интернет ҳаст.",
-        example: "Мисол: ҳар 15 дақиқа"
-      },
-      telegramChange: {
-        hint: "Telegram-и нав танҳо тавассути бот ва рамз пайваст мешавад.",
-        example: "Мисол: бот → /change_telegram → рамз дар сайт"
-      }
-    }
+  meta: {
+    siteDescription: "Ҷустуҷӯ ва брони манзил дар Тоҷикистон — TajStay"
   },
   legal: {
     aboutText:
@@ -3291,42 +3223,8 @@ const en: Tree = {
     accept: "Accept",
     more: "Learn more"
   },
-  forms: {
-    help: {
-      ariaLabel: "Field help",
-      weekendPrice: {
-        hint: "Extra nightly rate for Friday and Saturday. Leave empty to use the standard price.",
-        example: "Example: 420"
-      },
-      minNights: {
-        hint: "Minimum consecutive nights a guest must book.",
-        example: "Example: 2"
-      },
-      extraGuestPrice: {
-        hint: "Extra charge per guest above room capacity, per night.",
-        example: "Example: 50"
-      },
-      bulkRange: {
-        hint: "Create consecutive numbered rooms — set the first and last number.",
-        example: "Example: from 101 to 120"
-      },
-      bulkPrefix: {
-        hint: "Create several rooms sharing the same name prefix.",
-        example: "Example: prefix A-, count 10 → A-1 … A-10"
-      },
-      offlineSyncCloud: {
-        hint: "Cloud copy of offline bookings on TajStay servers. Owner sees full data; staff see check-in fields only.",
-        example: "Example: on if you want a cloud backup"
-      },
-      offlineSyncInterval: {
-        hint: "How often the device syncs to the server when online.",
-        example: "Example: every 15 minutes"
-      },
-      telegramChange: {
-        hint: "New Telegram links only via bot and code. The old account unlinks after confirmation.",
-        example: "Example: open bot → /change_telegram → enter code on site"
-      }
-    }
+  meta: {
+    siteDescription: "Find and book stays in Tajikistan — TajStay"
   },
   legal: {
     aboutText:
