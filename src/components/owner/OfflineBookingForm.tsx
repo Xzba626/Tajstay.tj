@@ -22,7 +22,8 @@ export function OfflineBookingForm({
   created,
   defaultRoomId,
   defaultCheckIn,
-  defaultCheckOut
+  defaultCheckOut,
+  variant = "full"
 }: {
   locale: Locale;
   roomTypes: RoomTypeOption[];
@@ -32,7 +33,10 @@ export function OfflineBookingForm({
   defaultRoomId?: number;
   defaultCheckIn?: string;
   defaultCheckOut?: string;
+  /** full = owner archive; staff = reception (no phone/email required) */
+  variant?: "full" | "staff";
 }) {
+  const isStaff = variant === "staff";
   const defaultTypeId = useMemo(() => {
     if (!defaultRoomId) return roomTypes[0]?.id ?? 0;
     return rooms.find((r) => r.id === defaultRoomId)?.roomTypeId ?? roomTypes[0]?.id ?? 0;
@@ -51,7 +55,7 @@ export function OfflineBookingForm({
     <form
       action="/api/owner/offline-bookings"
       method="post"
-      className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-2"
+      className="offline-booking-form grid gap-3 md:grid-cols-2"
     >
       {created ? (
         <div className="md:col-span-2 rounded-xl border border-emerald-300/40 bg-emerald-50 px-3 py-2 text-sm text-emerald-900" role="status">
@@ -104,14 +108,20 @@ export function OfflineBookingForm({
         <label className="mb-1 block text-sm font-semibold text-slate-800">{m(locale, "owner.offline.guestName")}</label>
         <input name="guestName" required className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm" />
       </div>
-      <div>
-        <label className="mb-1 block text-sm font-semibold text-slate-800">{m(locale, "owner.offline.guestPhone")}</label>
-        <input name="guestPhone" required className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm" />
-      </div>
-      <div>
-        <label className="mb-1 block text-sm font-semibold text-slate-800">{m(locale, "owner.offline.guestEmail")}</label>
-        <input name="guestEmail" type="email" className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm" />
-      </div>
+      {!isStaff ? (
+        <div>
+          <label className="mb-1 block text-sm font-semibold">{m(locale, "owner.offline.guestPhone")}</label>
+          <input name="guestPhone" required className="offline-booking-form__input" />
+        </div>
+      ) : (
+        <input type="hidden" name="guestPhone" value="—" />
+      )}
+      {!isStaff ? (
+        <div>
+          <label className="mb-1 block text-sm font-semibold">{m(locale, "owner.offline.guestEmail")}</label>
+          <input name="guestEmail" type="email" className="offline-booking-form__input" />
+        </div>
+      ) : null}
       <div>
         <label className="mb-1 block text-sm font-semibold text-slate-800">{m(locale, "owner.offline.guestCount")}</label>
         <input name="guestCount" type="number" min={1} defaultValue={1} className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm" />
@@ -138,19 +148,28 @@ export function OfflineBookingForm({
         />
       </div>
 
-      <div>
-        <label className="mb-1 block text-sm font-semibold text-slate-800">{m(locale, "owner.offline.total")}</label>
-        <input name="totalPrice" type="number" min={0} step={1} required className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm" />
-      </div>
-      <div>
-        <label className="mb-1 block text-sm font-semibold text-slate-800">{m(locale, "owner.offline.prepayment")}</label>
-        <input name="prepayment" type="number" min={0} step={1} className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm" />
-      </div>
-
-      <div>
-        <label className="mb-1 block text-sm font-semibold text-slate-800">{m(locale, "owner.offline.paymentType")}</label>
-        <input name="offlinePaymentType" placeholder={m(locale, "owner.offline.paymentTypePh")} className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm" />
-      </div>
+      {!isStaff ? (
+        <>
+          <div>
+            <label className="mb-1 block text-sm font-semibold">{m(locale, "owner.offline.total")}</label>
+            <input name="totalPrice" type="number" min={0} step={1} required className="offline-booking-form__input" />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-semibold">{m(locale, "owner.offline.prepayment")}</label>
+            <input name="prepayment" type="number" min={0} step={1} className="offline-booking-form__input" />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-semibold">{m(locale, "owner.offline.paymentType")}</label>
+            <input
+              name="offlinePaymentType"
+              placeholder={m(locale, "owner.offline.paymentTypePh")}
+              className="offline-booking-form__input"
+            />
+          </div>
+        </>
+      ) : (
+        <input type="hidden" name="totalPrice" value="0" />
+      )}
       <div>
         <label className="mb-1 block text-sm font-semibold text-slate-800">{m(locale, "owner.offline.statusLabel")}</label>
         <select name="offlineStatus" defaultValue={OFFLINE_STATUS.CONFIRMED} className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm">

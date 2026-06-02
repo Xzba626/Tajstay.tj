@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Bell, ChevronRight, CreditCard, Lock, Settings, Shield, User } from "lucide-react";
+import { Bell, ChevronRight, CreditCard, LayoutDashboard, Lock, Settings, Shield, User } from "lucide-react";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
 import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
@@ -93,6 +93,27 @@ export function ProfileHubView({ locale, user, logoutLabel }: Props) {
           <div className="mockup-host-banner__desc">{m(locale, "profile.navOwnerDesc")}</div>
         </Link>
       ) : null}
+
+      {user.role === "ADMIN" ? (
+        <Link href="/dashboard/admin" className="mockup-host-banner mockup-host-banner--admin mt-4">
+          <div className="mockup-host-banner__title">{m(locale, "profile.navAdmin")}</div>
+          <div className="mockup-host-banner__desc">{m(locale, "profile.navAdminDesc")}</div>
+        </Link>
+      ) : null}
+
+      {(user.role === "OWNER" || user.role === "ADMIN") && (
+        <>
+          <h2 className="profile-section-title">{m(locale, "profile.sectionPanels")}</h2>
+          <nav className="mockup-menu" aria-label={m(locale, "profile.sectionPanels")}>
+            {user.role === "OWNER" ? (
+              <MenuRow href="/dashboard/owner" icon={LayoutDashboard} label={m(locale, "profile.navOwner")} />
+            ) : null}
+            {user.role === "ADMIN" ? (
+              <MenuRow href="/dashboard/admin" icon={Shield} label={m(locale, "profile.navAdmin")} />
+            ) : null}
+          </nav>
+        </>
+      )}
 
       <div className="mockup-menu mt-4">
         <div className="mockup-menu__item border-0 p-0">
