@@ -57,6 +57,8 @@ export function ProfileTelegramChangeClient({ locale }: Props) {
       backLabel={m(locale, "common.back")}
       title={m(locale, "profile.changeTelegram")}
       hint={m(locale, "profile.contactTelegramHint")}
+      helpKey="telegramChange"
+      locale={locale}
     >
       {step === "open" ? (
         <div className="profile-panel profile-panel--stack mt-4">

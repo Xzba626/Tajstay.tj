@@ -44,6 +44,7 @@ import { OfflineBookingSyncSettings } from "@/components/owner/OfflineBookingSyn
 import { OfflineBookingStaffSearch } from "@/components/owner/OfflineBookingStaffSearch";
 import { getOwnerPmsSettings } from "@/lib/pms/ownerPmsSettings";
 import { toOfflineOwnerView } from "@/lib/pms/offlinePrivacy";
+import { FieldLabelRow } from "@/components/ui/FieldLabelRow";
 
 export const dynamic = "force-dynamic";
 
@@ -972,7 +973,7 @@ export default async function OwnerDashboardPage({
                           />
                         </div>
                         <div>
-                          <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.weekendPrice")}</label>
+                          <FieldLabelRow locale={locale} label={m(locale, "owner.weekendPrice")} helpKey="weekendPrice" />
                           <input
                             name="weekendPrice"
                             type="number"
@@ -983,7 +984,7 @@ export default async function OwnerDashboardPage({
                           />
                         </div>
                         <div>
-                          <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.minNights")}</label>
+                          <FieldLabelRow locale={locale} label={m(locale, "owner.minNights")} helpKey="minNights" />
                           <input
                             name="minNights"
                             type="number"
@@ -993,7 +994,7 @@ export default async function OwnerDashboardPage({
                           />
                         </div>
                         <div>
-                          <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.extraGuestPrice")}</label>
+                          <FieldLabelRow locale={locale} label={m(locale, "owner.extraGuestPrice")} helpKey="extraGuestPrice" />
                           <input
                             name="extraGuestPrice"
                             type="number"
@@ -1103,15 +1104,15 @@ export default async function OwnerDashboardPage({
                   <input name="capacity" type="number" min={1} defaultValue={2} className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20" />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.weekendPrice")}</label>
+                  <FieldLabelRow locale={locale} label={m(locale, "owner.weekendPrice")} helpKey="weekendPrice" />
                   <input name="weekendPrice" type="number" min={0} step={1} className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm" />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.minNights")}</label>
+                  <FieldLabelRow locale={locale} label={m(locale, "owner.minNights")} helpKey="minNights" />
                   <input name="minNights" type="number" min={1} defaultValue={1} className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm" />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.extraGuestPrice")}</label>
+                  <FieldLabelRow locale={locale} label={m(locale, "owner.extraGuestPrice")} helpKey="extraGuestPrice" />
                   <input name="extraGuestPrice" type="number" min={0} step={1} className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm" />
                 </div>
                 <div className="md:col-span-2">
