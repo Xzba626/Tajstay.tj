@@ -29,16 +29,17 @@ import { resolveMetadataBase } from "@/lib/site-url";
 import { getPendingTripsCount } from "@/lib/trips/pendingCount";
 
 export async function generateMetadata(): Promise<Metadata> {
+  const locale = getLocale();
   const content = await getSiteContent();
   return {
     metadataBase: resolveMetadataBase(),
     title: BRAND.title,
-    description: "Национальная платформа бронирования жилья в Таджикистане",
+    description: m(locale, "meta.siteDescription"),
     icons: {
       icon: [
-        { url: "/favicon.ico", sizes: "48x48" },
+        { url: "/favicon.ico", sizes: "48x48", type: "image/x-icon" },
         { url: "/favicon.png", sizes: "32x32", type: "image/png" },
-        { url: BRAND.favicon, sizes: "512x512", type: "image/png" },
+        { url: "/favicon-16.png", sizes: "16x16", type: "image/png" },
         { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }
       ],
       apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }]
@@ -46,7 +47,7 @@ export async function generateMetadata(): Promise<Metadata> {
     manifest: "/manifest.webmanifest",
     openGraph: {
       title: BRAND.title,
-      description: "Национальная платформа бронирования жилья в Таджикистане",
+      description: m(locale, "meta.siteDescription"),
       images: [{ url: BRAND.ogImage, width: 1200, height: 630, alt: content.brand.siteName }]
     },
     twitter: {
@@ -79,8 +80,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     <html lang={locale} className="scroll-smooth" data-theme="dark">
       <head>
         <link rel="manifest" href="/manifest.webmanifest" />
-        <link rel="icon" href="/favicon.ico" sizes="48x48" />
+        <link rel="icon" href="/favicon.ico" sizes="48x48" type="image/x-icon" />
         <link rel="icon" href="/favicon.png" type="image/png" sizes="32x32" />
+        <link rel="icon" href="/favicon-16.png" type="image/png" sizes="16x16" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-title" content={BRAND.name} />

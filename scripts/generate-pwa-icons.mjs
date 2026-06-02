@@ -62,13 +62,15 @@ for (const [name, buf] of outputs) {
 
 const favicon48 = await renderIcon(48);
 const favicon32 = await renderIcon(32);
+const favicon16 = await renderIcon(16);
 const apple180 = await renderIcon(180);
 
 fs.writeFileSync(path.join(root, "public", "apple-touch-icon.png"), apple180);
 console.log("Wrote public/apple-touch-icon.png");
 
 fs.writeFileSync(path.join(root, "public", "favicon.png"), favicon32);
-console.log("Wrote public/favicon.png");
+fs.writeFileSync(path.join(root, "public", "favicon-16.png"), favicon16);
+console.log("Wrote public/favicon.png + favicon-16.png");
 
 /** Next.js App Router — auto-serves /favicon.ico and link rel=icon for Google */
 if (!fs.existsSync(appDir)) fs.mkdirSync(appDir, { recursive: true });
@@ -95,7 +97,8 @@ function pngToIco(pngBuffer, size = 32) {
   return Buffer.concat([header, entry, pngBuffer]);
 }
 
-const faviconIco = pngToIco(favicon32, 32);
+/** Google Search prefers 48×48 in favicon.ico when possible */
+const faviconIco = pngToIco(favicon48, 48);
 fs.writeFileSync(path.join(root, "public", "favicon.ico"), faviconIco);
 fs.writeFileSync(path.join(appDir, "favicon.ico"), faviconIco);
 console.log("Wrote public/favicon.ico + src/app/favicon.ico");

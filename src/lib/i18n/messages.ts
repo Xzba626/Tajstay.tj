@@ -158,6 +158,9 @@ const ru: Tree = {
     accept: "Принять",
     more: "Подробнее"
   },
+  meta: {
+    siteDescription: "Поиск и бронирование жилья в Таджикистане — TajStay"
+  },
   legal: {
     aboutText:
       "TajStay — сервис поиска и бронирования жилья по всему Таджикистану. Мы объединяем гостей и владельцев, чтобы бронировать было просто и прозрачно.",
@@ -1705,6 +1708,9 @@ const tg: Tree = {
     accept: "Қабул",
     more: "Бештар"
   },
+  meta: {
+    siteDescription: "Ҷустуҷӯ ва брони манзил дар Тоҷикистон — TajStay"
+  },
   legal: {
     aboutText:
       "TajStay — хизматрасонии ҷустуҷӯ ва бронкунии ҷойгиршавӣ дар саросари Тоҷикистон. Мо меҳмонон ва соҳибонро пайваст мекунем, то бронкунӣ содда ва шаффоф бошад.",
@@ -3212,6 +3218,9 @@ const en: Tree = {
     text: "We use cookies for security, analytics and to improve the service.",
     accept: "Accept",
     more: "Learn more"
+  },
+  meta: {
+    siteDescription: "Find and book stays in Tajikistan — TajStay"
   },
   legal: {
     aboutText:
