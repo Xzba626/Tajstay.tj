@@ -39,6 +39,11 @@ import { OwnerAssignRoomSelect } from "@/components/owner/OwnerAssignRoomSelect"
 import { ownerBookingWhere, ownerOfflineBookingWhere } from "@/lib/pms/ownerQueries";
 import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
 import { bookingHotel, bookingRoomTitle } from "@/lib/pms/bookingContext";
+import { OwnerMobileDashboard } from "@/components/owner/mobile/OwnerMobileDashboard";
+import { OfflineBookingSyncSettings } from "@/components/owner/OfflineBookingSyncSettings";
+import { OfflineBookingStaffSearch } from "@/components/owner/OfflineBookingStaffSearch";
+import { getOwnerPmsSettings } from "@/lib/pms/ownerPmsSettings";
+import { toOfflineOwnerView } from "@/lib/pms/offlinePrivacy";
 
 export const dynamic = "force-dynamic";
 
@@ -120,6 +125,7 @@ export default async function OwnerDashboardPage({
         checkIn?: string;
         checkOut?: string;
         onboarding?: string;
+        sync?: string;
       }>
     | {
         section?: string;
@@ -136,6 +142,7 @@ export default async function OwnerDashboardPage({
         checkIn?: string;
         checkOut?: string;
         onboarding?: string;
+        sync?: string;
       };
 }) {
   const user = await requireOwner();
@@ -157,6 +164,7 @@ export default async function OwnerDashboardPage({
   const ownerError = (params?.error ?? "").trim();
   const offlineCreated = (params?.created ?? "").trim() === "1";
   const offlineUpdated = (params?.updated ?? "").trim() === "1";
+  const offlineSyncSaved = (params?.sync ?? "").trim() === "1";
 
   const since30 = subDays(new Date(), 30);
   const content = await getSiteContent();
@@ -518,14 +526,22 @@ export default async function OwnerDashboardPage({
     </Card>
   );
 
+  const ownerPmsSettings =
+    activeSection === "offline-bookings" ? await getOwnerPmsSettings(user.id) : null;
+
+  const offlineBookingViews =
+    activeSection === "offline-bookings"
+      ? offlineBookings.map((b) => toOfflineOwnerView(b, true, true))
+      : [];
+
   return (
-    <div className="dashboard-skin space-y-12 pb-16 text-slate-100">
-      <header className="border-b border-white/10 pb-8">
+    <div className="owner-page-root admin-page-root dashboard-skin space-y-12 pb-16 text-slate-100">
+      <header className="hidden border-b border-white/10 pb-8 lg:block">
         <h1 className="text-3xl font-bold tracking-tight text-slate-100">{m(locale, "owner.pageTitle")}</h1>
         <p className="mt-2 max-w-2xl text-sm text-slate-300">{m(locale, "owner.pageSubtitle")}</p>
       </header>
 
-      <section className="liquid-glass rounded-2xl p-6">
+      <section className="hidden liquid-glass rounded-2xl p-6 lg:block">
         <h2 className="text-lg font-bold text-slate-100">{m(locale, "dashboard.paymentMethods.title")}</h2>
         <p className="mt-1 text-sm text-slate-300">{m(locale, "dashboard.paymentMethods.desc")}</p>
         <form action="/api/owner/payment-methods" method="post" className="mt-4 space-y-3">
@@ -548,6 +564,14 @@ export default async function OwnerDashboardPage({
         </div>
       </section>
 
+      {activeSection === "overview" && dashboardKpis ? (
+        <OwnerMobileDashboard
+          locale={locale}
+          kpis={dashboardKpis}
+          pendingOnlineBookings={dashboardKpis.pendingOnlineBookings}
+        />
+      ) : null}
+
       {activeSection === "overview" && (
         <>
           <OwnerOnboardingPanel locale={locale} initialSteps={onboardingSteps} showWelcome={showOnboardingWelcome} />
@@ -557,7 +581,7 @@ export default async function OwnerDashboardPage({
             </div>
           )}
 
-          <section id="overview" className="scroll-mt-28 space-y-4" data-reveal data-stagger="40">
+          <section id="overview" className="scroll-mt-28 space-y-4 hidden lg:block" data-reveal data-stagger="40">
             <div className="flex items-center gap-2">
               <span className="h-8 w-1 rounded-full bg-amber-400" aria-hidden />
               <h2 className="text-lg font-bold text-slate-100">{m(locale, "owner.overview")}</h2>
@@ -1284,11 +1308,23 @@ export default async function OwnerDashboardPage({
 
       {activeSection === "offline-bookings" && (
         <section id="offline-bookings" className="scroll-mt-28 space-y-4">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 lg:flex">
             <span className="h-8 w-1 rounded-full bg-orange-500" aria-hidden />
             <h2 className="text-xl font-bold text-slate-100">{m(locale, "owner.offline.title")}</h2>
           </div>
           <p className="text-sm text-slate-300">{m(locale, "owner.offline.hint")}</p>
+
+          <div className="offline-privacy-banner" role="note">
+            <div className="offline-privacy-banner__title">{m(locale, "owner.offline.privacyBannerTitle")}</div>
+            <p className="offline-privacy-banner__text">{m(locale, "owner.offline.privacyBannerOwner")}</p>
+          </div>
+
+          {ownerPmsSettings ? (
+            <OfflineBookingSyncSettings locale={locale} settings={ownerPmsSettings} saved={offlineSyncSaved} />
+          ) : null}
+
+          <OfflineBookingStaffSearch locale={locale} />
+
           {offlineUpdated ? (
             <div className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-100" role="status">
               {m(locale, "owner.offline.updated")}
@@ -1310,8 +1346,14 @@ export default async function OwnerDashboardPage({
             defaultCheckIn={(params?.checkIn ?? "").trim() || undefined}
             defaultCheckOut={(params?.checkOut ?? "").trim() || undefined}
           />
-          {offlineBookings.length ? (
-            <OfflineBookingsList locale={locale} bookings={offlineBookings} />
+          {offlineBookingViews.length ? (
+            <OfflineBookingsList
+              locale={locale}
+              bookings={offlineBookingViews}
+              canViewPii
+              canViewFinances
+              canEditStatus
+            />
           ) : (
             <EmptyState title={m(locale, "owner.offline.empty")} description={m(locale, "owner.offline.emptyHint")} />
           )}
