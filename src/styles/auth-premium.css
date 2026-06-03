@@ -1151,18 +1151,6 @@ body:has(.taj-auth-page) .taj-auth-page {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .taj-auth-shell--register .taj-promo-card,
-  .taj-auth-shell--register .taj-auth-card,
-  .taj-auth-shell:not(.taj-auth-shell--register) .taj-auth-card,
-  .taj-auth-shell:not(.taj-auth-shell--register) .taj-promo-card {
-    transition: none !important;
-    animation: none !important;
-    transform: none !important;
-    filter: none !important;
-  }
-}
-
 /* —— Desktop split layout (lg+) —— */
 @media (min-width: 1024px) {
   .taj-auth-page {

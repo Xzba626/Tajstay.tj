@@ -35,16 +35,9 @@ export async function PATCH(req: Request) {
     if (result.reason === "expired") return profileError(m(locale, "auth.telegramExpired"));
     if (result.reason === "taken") return profileError(m(locale, "profile.errTelegramTaken"));
     if (result.reason === "no_code") return profileError(m(locale, "profile.errTelegramLink"));
-    if (result.reason === "persist_failed") return profileError(m(locale, "profile.errSave"));
+    if (result.reason === "invalid") return profileError(m(locale, "profile.errTelegramCode"));
     return profileError(m(locale, "profile.errTelegramCode"));
   }
-
-  console.info("[telegram/change/confirm] prisma user.update applied", {
-    ...result.log,
-    pendingTelegramId: result.telegramId,
-    pendingUsername: result.telegramUsername,
-    sqlEquivalent: `UPDATE "User" SET "telegramId"='${result.telegramId}' WHERE "id"=${user.id}`
-  });
 
   revalidatePath("/profile");
   revalidatePath("/profile/account");
@@ -52,7 +45,6 @@ export async function PATCH(req: Request) {
 
   return profileOk({
     telegramId: result.telegramId,
-    telegramUsername: result.telegramUsername,
-    telegramPhotoUrl: result.telegramPhotoUrl
+    telegramUsername: result.telegramUsername
   });
 }

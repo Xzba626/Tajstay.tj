@@ -206,6 +206,29 @@
   min-height: 100%;
 }
 
+.panel-drawer-fab {
+  position: fixed;
+  right: 1rem;
+  bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: linear-gradient(145deg, rgba(16, 185, 129, 0.35), rgba(7, 26, 16, 0.92));
+  color: #fff;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+  touch-action: manipulation;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.panel-drawer-fab:active {
+  transform: scale(0.96);
+}
+
 .admin-mobile-bottom-nav {
   position: fixed;
   left: 0;
