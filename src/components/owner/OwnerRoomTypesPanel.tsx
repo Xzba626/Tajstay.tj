@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
 import { AmenityCheckboxGrid } from "@/components/owner/AmenityCheckboxGrid";
+import { FieldLabelRow } from "@/components/ui/FieldLabelRow";
 
 type HotelOption = { id: number; name: string };
 type RoomTypeRow = {
