@@ -158,6 +158,9 @@ const ru: Tree = {
     accept: "Принять",
     more: "Подробнее"
   },
+  meta: {
+    siteDescription: "Поиск и бронирование жилья в Таджикистане — TajStay"
+  },
   legal: {
     aboutText:
       "TajStay — сервис поиска и бронирования жилья по всему Таджикистану. Мы объединяем гостей и владельцев, чтобы бронировать было просто и прозрачно.",
@@ -251,16 +254,10 @@ const ru: Tree = {
     }
   },
   home: {
-    heroBadge: "Жильё в Таджикистане",
-    heroTitle: "Найди идеальное жильё",
-    heroTitleBefore: "Найди ",
-    heroTitleAccent: "идеальное",
-    heroTitleAfter: " жильё",
-    heroSubtitle: "Бронируйте проверенное жильё по всей стране",
-    heroStatListings: "Объектов",
-    heroStatCities: "Городов",
-    heroStatRating: "Рейтинг",
-    ctaSearch: "Начать поиск",
+    heroBadge: "",
+    heroTitle: "Найдите идеальное жилье",
+    heroSubtitle: "Проверенные объекты · Безопасная бронь",
+    ctaSearch: "Найти жилье",
     ctaOwners: "Для владельцев",
     recentTitle: "Недавно просмотренные",
     destinationsTitle: "Популярные направления",
@@ -312,7 +309,7 @@ const ru: Tree = {
     checkIn: "Заезд",
     checkOut: "Выезд",
     guests: "Гостей",
-    button: "Найти жильё",
+    button: "Найти жилье",
     allCities: "Все города",
     dates: "Даты",
     selectDates: "Выберите даты",
@@ -1711,6 +1708,9 @@ const tg: Tree = {
     accept: "Қабул",
     more: "Бештар"
   },
+  meta: {
+    siteDescription: "Ҷустуҷӯ ва брони манзил дар Тоҷикистон — TajStay"
+  },
   legal: {
     aboutText:
       "TajStay — хизматрасонии ҷустуҷӯ ва бронкунии ҷойгиршавӣ дар саросари Тоҷикистон. Мо меҳмонон ва соҳибонро пайваст мекунем, то бронкунӣ содда ва шаффоф бошад.",
@@ -1804,16 +1804,10 @@ const tg: Tree = {
     }
   },
   home: {
-    heroBadge: "МАНЗИЛ ДАР ТОҶИКИСТОН",
-    heroTitle: "Манзили идеалии худро пайдо кунед",
-    heroTitleBefore: "Манзили ",
-    heroTitleAccent: "идеалии",
-    heroTitleAfter: " худро пайдо кунед",
-    heroSubtitle: "Манзили санҷидашударо дар тамоми кишвар брон кунед",
-    heroStatListings: "Объект",
-    heroStatCities: "Шаҳр",
-    heroStatRating: "Рейтинг",
-    ctaSearch: "Ҷустуҷӯро оғоз кунед",
+    heroBadge: "",
+    heroTitle: "Манзили идеалӣ пайдо кунед",
+    heroSubtitle: "Объектҳои санҷидашуда · Бронкунии бехатар",
+    ctaSearch: "Ҷустуҷӯ",
     ctaOwners: "Барои соҳибон",
     recentTitle: "Ба наздикӣ дидашуда",
     destinationsTitle: "Самтҳои машҳур",
@@ -1862,10 +1856,10 @@ const tg: Tree = {
     placeholder: "Шаҳр",
     whereTo: "Куҷо мехоҳед?",
     city: "Шаҳр",
-    checkIn: "Омадан",
-    checkOut: "Рафтан",
+    checkIn: "Воридшавӣ",
+    checkOut: "Хориҷшавӣ",
     guests: "Меҳмонон",
-    button: "Манзил ёфтан",
+    button: "Ҷустуҷӯ",
     allCities: "Ҳама шаҳрҳо",
     dates: "Санаҳо",
     selectDates: "Санаҳоро интихоб кунед",
@@ -2333,9 +2327,9 @@ const tg: Tree = {
     applyAgain: "Аз нав додан",
     ownerApproved: "Қабул шуд. Агар нақш навсозӣ нашавад — бароед ва ворид шавед.",
     becomeOwner: "Соҳиб шудан",
-    hubSubtitle: "Тanzimот ва ҳисоб",
+    hubSubtitle: "Танзимот ва ҳисоб",
     actionsTitle: "Амалҳо",
-    actionsSettings: "Тanzimот",
+    actionsSettings: "Танзимот",
     actionsNotifications: "Огоҳиҳо",
     actionsHelp: "Кумак ва FAQ",
     actionsPolicy: "Сиёсати махфият",
@@ -2343,7 +2337,7 @@ const tg: Tree = {
     statBookings: "Бронҳо",
     statCashback: "Кэшбэк",
     viewProfile: "Дидани профил",
-    settings: "Тanzimot",
+    settings: "Танзимот",
     settingsSubtitle: "Забон, асъор ва барнома",
     settingsCurrency: "Асъор",
     settingsCurrencyValue: "TJS",
@@ -3225,6 +3219,9 @@ const en: Tree = {
     accept: "Accept",
     more: "Learn more"
   },
+  meta: {
+    siteDescription: "Find and book stays in Tajikistan — TajStay"
+  },
   legal: {
     aboutText:
       "TajStay is a search and booking service for stays across Tajikistan. We connect guests and property owners to keep booking simple and transparent.",
@@ -3317,16 +3314,10 @@ const en: Tree = {
     }
   },
   home: {
-    heroBadge: "STAYS IN TAJIKISTAN",
+    heroBadge: "",
     heroTitle: "Find your perfect stay",
-    heroTitleBefore: "Find your ",
-    heroTitleAccent: "perfect",
-    heroTitleAfter: " stay",
-    heroSubtitle: "Book verified stays across the country",
-    heroStatListings: "Listings",
-    heroStatCities: "Cities",
-    heroStatRating: "Rating",
-    ctaSearch: "Start search",
+    heroSubtitle: "Verified properties · Secure booking",
+    ctaSearch: "Search",
     ctaOwners: "For property owners",
     recentTitle: "Recently viewed",
     destinationsTitle: "Popular destinations",
@@ -3378,7 +3369,7 @@ const en: Tree = {
     checkIn: "Check-in",
     checkOut: "Check-out",
     guests: "Guests",
-    button: "Find accommodation",
+    button: "Search",
     allCities: "All cities",
     dates: "Dates",
     selectDates: "Select dates",
