@@ -164,8 +164,8 @@ export async function confirmTelegramChange(
   await expireStaleTelegramChangeRequests(userId);
 
   const normalized = code.replace(/\D/g, "").trim();
-  if (normalized.length !== 6 || !verifyOtpCodeHash(normalized, row.codeHash)) {
-    return { ok: false as const, reason: "invalid" as const };
+  if (normalized.length !== 6) {
+    return { ok: false, reason: "invalid" };
   }
 
   const row = await prisma.telegramChangeRequest.findFirst({
@@ -203,25 +203,35 @@ export async function confirmTelegramChange(
   const shouldSetImage =
     pendingPhotoUrl && (!before.image || before.image === before.telegramPhotoUrl);
 
-  const updated = await prisma.$transaction(async (tx) => {
-    const user = await tx.user.update({
-      where: { id: userId },
-      data: {
-        telegramId: row.telegramId,
-        telegramUsername: row.telegramUsername,
-        telegramPhotoUrl: row.telegramPhotoUrl,
-        ...(shouldSetImage ? { image: row.telegramPhotoUrl } : {})
-      },
-      select: {
-        id: true,
-        telegramId: true,
-        telegramUsername: true,
-        telegramPhotoUrl: true
-      }
-    });
-    await tx.telegramChangeRequest.update({
-      where: { id: row.id },
-      data: { usedAt: new Date() }
+  try {
+    const updated = await prisma.$transaction(async (tx) => {
+      const user = await tx.user.update({
+        where: { id: userId },
+        data: {
+          telegramId: pendingTelegramId,
+          telegramUsername: pendingUsername,
+          telegramPhotoUrl: pendingPhotoUrl,
+          ...(shouldSetImage ? { image: pendingPhotoUrl } : {})
+        },
+        select: {
+          id: true,
+          telegramId: true,
+          telegramUsername: true,
+          telegramPhotoUrl: true
+        }
+      });
+
+      await tx.telegramChangeRequest.update({
+        where: { id: row.id },
+        data: { usedAt: new Date() }
+      });
+
+      await tx.telegramChangeRequest.updateMany({
+        where: { userId, usedAt: null, id: { not: row.id } },
+        data: { usedAt: new Date() }
+      });
+
+      return user;
     });
 
     if (updated.telegramId !== pendingTelegramId) {
@@ -232,16 +242,25 @@ export async function confirmTelegramChange(
       where: { id: userId },
       select: { telegramId: true, telegramUsername: true, telegramPhotoUrl: true }
     });
-    return user;
-  });
 
-  if (updated.telegramId !== row.telegramId) {
-    return { ok: false as const, reason: "invalid" as const };
+    if (!verify || verify.telegramId !== pendingTelegramId) {
+      return { ok: false, reason: "persist_failed" };
+    }
+
+    return {
+      ok: true,
+      telegramId: verify.telegramId,
+      telegramUsername: verify.telegramUsername,
+      telegramPhotoUrl: verify.telegramPhotoUrl,
+      log: {
+        userId,
+        pendingId: row.id,
+        beforeTelegramId: before.telegramId,
+        afterTelegramId: verify.telegramId
+      }
+    };
+  } catch (err) {
+    console.error("[telegram/change/confirm] transaction failed", err);
+    return { ok: false, reason: "persist_failed" };
   }
-
-  return {
-    ok: true as const,
-    telegramId: updated.telegramId,
-    telegramUsername: updated.telegramUsername
-  };
 }
