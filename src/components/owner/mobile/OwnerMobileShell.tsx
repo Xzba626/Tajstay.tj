@@ -7,7 +7,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
 import { AdminMobileHeader } from "@/components/admin/mobile/AdminMobileHeader";
-import { PanelDrawerFab } from "@/components/admin/mobile/PanelDrawerFab";
 import { OwnerMobileBottomNav } from "@/components/owner/mobile/OwnerMobileBottomNav";
 import { OwnerMobileDrawer } from "@/components/owner/mobile/OwnerMobileDrawer";
 import { AdminMobileSubNav } from "@/components/admin/mobile/AdminMobileSubNav";
@@ -52,7 +51,7 @@ export type OwnerMobileShellLabels = {
     properties: string;
     bookings: string;
     calendar: string;
-    more: string;
+    menu: string;
   };
   drawerTitle: string;
   profile: string;
@@ -112,6 +111,11 @@ function OwnerMobileShellInner({
   };
 
   const navigateTab = (tab: OwnerMobileTab) => {
+    if (tab === "menu") {
+      setDrawerOpen(true);
+      return;
+    }
+    setDrawerOpen(false);
     navigateSection(defaultSectionForOwnerTab(tab));
   };
 
@@ -150,11 +154,11 @@ function OwnerMobileShellInner({
         </AnimatePresence>
       </div>
 
-      <OwnerMobileBottomNav activeTab={activeTab} labels={labels.tabs} onTabChange={navigateTab} />
-
-      <PanelDrawerFab
-        ariaLabel={m(locale, "owner.mobileNav")}
-        onOpen={() => setDrawerOpen(true)}
+      <OwnerMobileBottomNav
+        activeTab={activeTab}
+        labels={labels.tabs}
+        onTabChange={navigateTab}
+        drawerOpen={drawerOpen}
       />
 
       <OwnerMobileDrawer

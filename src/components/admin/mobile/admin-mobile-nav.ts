@@ -10,16 +10,19 @@ export type AdminSection =
   | "notifications"
   | "complaints";
 
-export type AdminMobileTab = "home" | "properties" | "bookings" | "users" | "more";
+export type AdminMobileTab = "home" | "properties" | "bookings" | "users" | "menu";
 
-export const ADMIN_MOBILE_TABS: AdminMobileTab[] = ["home", "properties", "bookings", "users", "more"];
+export const ADMIN_MOBILE_TABS: AdminMobileTab[] = ["home", "properties", "bookings", "users", "menu"];
+
+const MENU_SECTIONS = new Set<string>(["finance", "complaints", "notifications", "content"]);
 
 export function tabForSection(section: string): AdminMobileTab {
   if (section === "dashboard") return "home";
   if (section === "hotels" || section === "applications") return "properties";
   if (section === "bookings") return "bookings";
   if (section === "users" || section === "owner-access") return "users";
-  return "more";
+  if (MENU_SECTIONS.has(section)) return "menu";
+  return "home";
 }
 
 export function defaultSectionForTab(tab: AdminMobileTab): AdminSection {
@@ -32,8 +35,8 @@ export function defaultSectionForTab(tab: AdminMobileTab): AdminSection {
       return "bookings";
     case "users":
       return "users";
-    case "more":
-      return "notifications";
+    case "menu":
+      return "dashboard";
     default:
       return "dashboard";
   }
@@ -52,13 +55,6 @@ export function subNavForTab(tab: AdminMobileTab, labels: Record<string, string>
       return [
         { section: "users", label: labels.users },
         { section: "owner-access", label: labels.ownerAccess }
-      ];
-    case "more":
-      return [
-        { section: "finance", label: labels.finance },
-        { section: "complaints", label: labels.complaints },
-        { section: "notifications", label: labels.notifications },
-        { section: "content", label: labels.content }
       ];
     default:
       return [];

@@ -53,7 +53,7 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
       properties: m(locale, "admin.mobileTabProperties"),
       bookings: m(locale, "admin.mobileTabBookings"),
       users: m(locale, "admin.mobileTabUsers"),
-      more: m(locale, "admin.mobileTabMore")
+      menu: m(locale, "admin.mobileTabMenu")
     },
     drawerTitle: m(locale, "admin.navAdmin"),
     profile: m(locale, "userMenu.profile"),

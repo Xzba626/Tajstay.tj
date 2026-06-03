@@ -9,7 +9,6 @@ import { m } from "@/lib/i18n/messages";
 import { AdminMobileHeader } from "@/components/admin/mobile/AdminMobileHeader";
 import { AdminMobileBottomNav } from "@/components/admin/mobile/AdminMobileBottomNav";
 import { AdminMobileDrawer } from "@/components/admin/mobile/AdminMobileDrawer";
-import { PanelDrawerFab } from "@/components/admin/mobile/PanelDrawerFab";
 import { AdminMobileSubNav } from "@/components/admin/mobile/AdminMobileSubNav";
 import {
   defaultSectionForTab,
@@ -56,7 +55,7 @@ export type AdminMobileShellLabels = {
     properties: string;
     bookings: string;
     users: string;
-    more: string;
+    menu: string;
   };
   drawerTitle: string;
   profile: string;
@@ -113,6 +112,11 @@ function AdminMobileShellInner({
   };
 
   const navigateTab = (tab: AdminMobileTab) => {
+    if (tab === "menu") {
+      setDrawerOpen(true);
+      return;
+    }
+    setDrawerOpen(false);
     navigateSection(defaultSectionForTab(tab));
   };
 
@@ -151,11 +155,7 @@ function AdminMobileShellInner({
         activeTab={activeTab}
         labels={labels.tabs}
         onTabChange={navigateTab}
-      />
-
-      <PanelDrawerFab
-        ariaLabel={m(locale, "admin.mobileNav")}
-        onOpen={() => setDrawerOpen(true)}
+        drawerOpen={drawerOpen}
       />
 
       <AdminMobileDrawer

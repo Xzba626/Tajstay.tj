@@ -6,6 +6,7 @@ import { AdminBookingPayCountdown } from "@/components/admin/AdminBookingPayCoun
 import { AdminOwnerApplicationActions } from "@/components/admin/AdminOwnerApplicationActions";
 import { OWNER_APPLICATION_STATUS } from "@/lib/domain/booking";
 import { getLocale } from "@/lib/i18n/get-locale";
+import { formatBookingStatus } from "@/lib/i18n/bookingStatus";
 import { m } from "@/lib/i18n/messages";
 import { formatDateTimeShort } from "@/lib/i18n/format";
 import {
@@ -70,7 +71,7 @@ export default async function AdminDashboardPage({
   const params = searchParams ? await searchParams : undefined;
   const sectionParam = params?.section;
   const activeSection: AdminSection = sectionParam && VALID_SECTIONS.has(sectionParam as AdminSection) ? (sectionParam as AdminSection) : "dashboard";
-  const tStatus = (status: string) => m(locale, `status.${status}`);
+  const tStatus = (status: string) => formatBookingStatus(locale, status);
   const tRole = (role: string) => m(locale, `roles.${role}`);
 
   const pageSize = 20;

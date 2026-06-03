@@ -206,29 +206,6 @@
   min-height: 100%;
 }
 
-.panel-drawer-fab {
-  position: fixed;
-  right: 1rem;
-  bottom: calc(76px + env(safe-area-inset-bottom, 0px));
-  z-index: 1001;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 3.25rem;
-  height: 3.25rem;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  background: linear-gradient(145deg, rgba(16, 185, 129, 0.35), rgba(7, 26, 16, 0.92));
-  color: #fff;
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
-  touch-action: manipulation;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.panel-drawer-fab:active {
-  transform: scale(0.96);
-}
-
 .admin-mobile-bottom-nav {
   position: fixed;
   left: 0;
@@ -289,7 +266,7 @@
 .admin-mobile-drawer__overlay {
   position: fixed;
   inset: 0;
-  z-index: 60;
+  z-index: 1100;
   background: rgba(0, 0, 0, 0.55);
   backdrop-filter: blur(4px);
 }
@@ -298,14 +275,25 @@
   position: fixed;
   top: 0;
   left: 0;
-  z-index: 61;
+  z-index: 1101;
+  display: flex;
+  flex-direction: column;
   width: min(80vw, 20rem);
   height: 100dvh;
-  padding: env(safe-area-inset-top, 0px) 1rem 1.5rem;
+  max-height: 100dvh;
+  padding: env(safe-area-inset-top, 0px) 1rem
+    calc(1rem + 65px + env(safe-area-inset-bottom, 0px));
   background: #0a2318;
   border-right: 1px solid var(--admin-border);
   box-shadow: 0 4px 40px rgba(0, 0, 0, 0.5);
-  overflow-y: auto;
+  overflow: hidden;
+}
+
+.admin-mobile-drawer--right {
+  left: auto;
+  right: 0;
+  border-right: none;
+  border-left: 1px solid var(--admin-border);
 }
 
 .admin-mobile-drawer__head {
@@ -337,8 +325,12 @@
 
 .admin-mobile-drawer__nav {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 0.25rem;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .admin-mobile-drawer__link {
@@ -359,8 +351,10 @@
 }
 
 .admin-mobile-drawer__footer {
-  margin-top: 1.5rem;
+  flex-shrink: 0;
+  margin-top: auto;
   padding-top: 1rem;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
   border-top: 1px solid var(--admin-border);
 }
 

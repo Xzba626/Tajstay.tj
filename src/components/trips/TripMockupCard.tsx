@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { AppImage } from "@/components/ui/AppImage";
-import { bookingHotel } from "@/lib/pms/bookingContext";
+import { bookingHotelOptional } from "@/lib/pms/bookingContext";
 import type { Locale } from "@/lib/i18n/locale";
+import { formatBookingStatus } from "@/lib/i18n/bookingStatus";
 import { m } from "@/lib/i18n/messages";
 
 type BookingSlice = {
@@ -10,6 +11,7 @@ type BookingSlice = {
   publicCode: string | null;
   checkIn: Date;
   checkOut: Date;
+  assignedRoom?: { hotel: { id: number; name: string; coverImageUrl?: string | null } } | null;
   room: { hotel: { id: number; name: string; coverImageUrl?: string | null } } | null;
   roomType: { hotel: { id: number; name: string; coverImageUrl?: string | null } } | null;
 };
@@ -21,7 +23,12 @@ function statusClass(status: string): string {
 }
 
 export function TripMockupCard({ locale, booking }: { locale: Locale; booking: BookingSlice }) {
-  const hotel = bookingHotel(booking as Parameters<typeof bookingHotel>[0]);
+  const hotel =
+    bookingHotelOptional(booking as Parameters<typeof bookingHotelOptional>[0]) ?? {
+      id: 0,
+      name: m(locale, "tripsHub.hotelUnknown"),
+      coverImageUrl: null
+    };
   const dates = `${booking.checkIn.toISOString().slice(0, 10)} – ${booking.checkOut.toISOString().slice(0, 10)}`;
   const code = booking.publicCode ? `#${booking.publicCode}` : `#TS${booking.id}`;
 
@@ -40,7 +47,7 @@ export function TripMockupCard({ locale, booking }: { locale: Locale; booking: B
         <div className="mockup-list-card__row">
           <span className="mockup-list-card__meta">{code}</span>
           <span className={`mockup-status ${statusClass(booking.status)}`}>
-            {m(locale, `status.${booking.status}`)}
+            {formatBookingStatus(locale, booking.status)}
           </span>
         </div>
       </div>

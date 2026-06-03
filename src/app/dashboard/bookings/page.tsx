@@ -62,11 +62,19 @@ export default async function TripsHubPage({
   const notice = (searchParams?.notice ?? "").trim();
   const docError = searchParams?.error === "document";
 
+  const hotelSelect = {
+    id: true,
+    name: true,
+    ownerId: true,
+    coverImageUrl: true
+  } as const;
+
   const bookings = await prisma.booking.findMany({
     where: user.role === "ADMIN" ? {} : { userId: user.id },
     include: {
-      room: { include: { hotel: { select: { id: true, name: true, ownerId: true, coverImageUrl: true, owner: true } } } },
-      roomType: { include: { hotel: { select: { id: true, name: true, ownerId: true, coverImageUrl: true, owner: true } } } },
+      assignedRoom: { include: { hotel: { select: hotelSelect } } },
+      room: { include: { hotel: { select: hotelSelect } } },
+      roomType: { include: { hotel: { select: hotelSelect } } },
       review: true,
       ...(user.role === "ADMIN"
         ? { user: { select: { id: true, name: true, phone: true } } }
