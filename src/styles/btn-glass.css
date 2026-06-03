@@ -1,0 +1,42 @@
+/**
+ * Liquid glass CTA layer — keeps existing brand colors underneath.
+ */
+.btn-primary,
+.taj-primary-button,
+.ds-primary-btn {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.28) !important;
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.12);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.btn-primary:hover:not(:disabled),
+.taj-primary-button:hover:not(:disabled),
+.ds-primary-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary:active:not(:disabled),
+.taj-primary-button:active:not(:disabled),
+.ds-primary-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-primary,
+  .taj-primary-button,
+  .ds-primary-btn {
+    transition: none;
+  }
+}

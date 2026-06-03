@@ -61,6 +61,8 @@ export type PasswordRecoveryLabels = {
   strengthWeak: string;
   strengthFair: string;
   strengthStrong: string;
+  confirmCode: string;
+  verifying: string;
 };
 
 export function PasswordRecoveryWizard({
@@ -286,7 +288,6 @@ export function PasswordRecoveryWizard({
                     <OtpCodeInput
                       value={otp}
                       onChange={setOtp}
-                      onComplete={(code) => void verifyOtp(code)}
                       disabled={busy || otpExpired}
                       loading={busy && !otpSuccess}
                       error={otpError}
@@ -295,6 +296,16 @@ export function PasswordRecoveryWizard({
                       autoFocus
                       variant="auth"
                     />
+                    {!otpExpired && !otpSuccess ? (
+                      <button
+                        type="button"
+                        className="taj-primary-button"
+                        disabled={busy || otp.join("").length !== 6}
+                        onClick={() => void verifyOtp(otp.join(""))}
+                      >
+                        <span>{busy ? L.verifying : L.confirmCode}</span>
+                      </button>
+                    ) : null}
                     {otpExpired ? (
                       <button type="button" className="taj-primary-button" disabled={busy} onClick={() => void requestNewOtp()}>
                         <span>{L.requestNewCode}</span>

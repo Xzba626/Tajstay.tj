@@ -305,12 +305,13 @@ export function SignInClient({
     codeSuccess: L.telegramCodeSuccess,
     codeInvalid: L.telegramCodeInvalid,
     tooManyAttempts: L.telegramTooManyAttempts,
-    errorGeneric: L.errorGeneric
+    errorGeneric: L.errorGeneric,
+    confirmCta: L.telegramVerify
   };
 
   return (
     <main className="taj-auth-page">
-      <section className="taj-auth-shell">
+      <section className={`taj-auth-shell${isRegister ? " taj-auth-shell--register" : ""}`}>
         <AuthPromoPanel labels={promoLabels} featuredHotel={featuredHotel} />
 
         <section className="taj-auth-card">

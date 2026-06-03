@@ -38,7 +38,9 @@ export default function ForgotPasswordPage({
         errTooManyAttempts: m(locale, "auth.errTooManyAttempts"),
         strengthWeak: m(locale, "auth.passwordRecovery.strengthWeak"),
         strengthFair: m(locale, "auth.passwordRecovery.strengthFair"),
-        strengthStrong: m(locale, "auth.passwordRecovery.strengthStrong")
+        strengthStrong: m(locale, "auth.passwordRecovery.strengthStrong"),
+        confirmCode: m(locale, "auth.telegramVerify"),
+        verifying: m(locale, "auth.telegramVerifying")
       }}
     />
   );

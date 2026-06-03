@@ -5,7 +5,9 @@ import { Suspense, useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import type { Locale } from "@/lib/i18n/locale";
+import { m } from "@/lib/i18n/messages";
 import { AdminMobileHeader } from "@/components/admin/mobile/AdminMobileHeader";
+import { PanelDrawerFab } from "@/components/admin/mobile/PanelDrawerFab";
 import { OwnerMobileBottomNav } from "@/components/owner/mobile/OwnerMobileBottomNav";
 import { OwnerMobileDrawer } from "@/components/owner/mobile/OwnerMobileDrawer";
 import { AdminMobileSubNav } from "@/components/admin/mobile/AdminMobileSubNav";
@@ -60,13 +62,24 @@ export type OwnerMobileShellLabels = {
 type Props = {
   locale: Locale;
   labels: OwnerMobileShellLabels;
+  brandName: string;
+  brandMarkUrl: string;
   ownerName: string;
   ownerImage: string | null;
   unreadNotifications: number;
   children: ReactNode;
 };
 
-function OwnerMobileShellInner({ locale, labels, ownerName, ownerImage, unreadNotifications, children }: Props) {
+function OwnerMobileShellInner({
+  locale,
+  labels,
+  brandName,
+  brandMarkUrl,
+  ownerName,
+  ownerImage,
+  unreadNotifications,
+  children
+}: Props) {
   const pathname = usePathname();
   const router = useRouter();
   const search = useSearchParams();
@@ -107,10 +120,11 @@ function OwnerMobileShellInner({ locale, labels, ownerName, ownerImage, unreadNo
       <AdminMobileHeader
         locale={locale}
         title={pageTitle}
+        brandName={brandName}
+        brandMarkUrl={brandMarkUrl}
         unreadCount={unreadNotifications}
         adminName={ownerName}
         adminImage={ownerImage}
-        onOpenDrawer={() => setDrawerOpen(true)}
       />
 
       {subNav.length > 1 ? (
@@ -137,6 +151,11 @@ function OwnerMobileShellInner({ locale, labels, ownerName, ownerImage, unreadNo
       </div>
 
       <OwnerMobileBottomNav activeTab={activeTab} labels={labels.tabs} onTabChange={navigateTab} />
+
+      <PanelDrawerFab
+        ariaLabel={m(locale, "owner.mobileNav")}
+        onOpen={() => setDrawerOpen(true)}
+      />
 
       <OwnerMobileDrawer
         locale={locale}

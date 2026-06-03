@@ -80,10 +80,13 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     <html lang={locale} className="scroll-smooth" data-theme="dark">
       <head>
         <link rel="manifest" href="/manifest.webmanifest" />
-        <link rel="icon" href="/favicon.ico" sizes="48x48" type="image/x-icon" />
+        <link rel="manifest" href="/site.webmanifest" />
+        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="icon" href="/favicon.png" type="image/png" sizes="32x32" />
         <link rel="icon" href="/favicon-16.png" type="image/png" sizes="16x16" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+        <link rel="icon" href="/android-chrome-192x192.png" type="image/png" sizes="192x192" />
+        <link rel="icon" href="/android-chrome-512x512.png" type="image/png" sizes="512x512" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-title" content={BRAND.name} />
       </head>

@@ -5,14 +5,41 @@
 @media (max-width: 1023px) {
   body.admin-mobile-app .site-header,
   body.owner-mobile-app .site-header,
+  body.panel-mobile-app .site-header,
   body.admin-mobile-app footer,
-  body.owner-mobile-app footer {
+  body.owner-mobile-app footer,
+  body.panel-mobile-app footer {
     display: none !important;
   }
 
   body.admin-mobile-app main,
-  body.owner-mobile-app main {
+  body.owner-mobile-app main,
+  body.panel-mobile-app main {
     padding-bottom: 0 !important;
+    overflow: hidden;
+  }
+
+  body.admin-mobile-app .taj-dashboard-shell,
+  body.owner-mobile-app .taj-dashboard-shell,
+  body.panel-mobile-app .taj-dashboard-shell {
+    min-height: 100dvh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  body.admin-mobile-app .taj-dashboard-inner,
+  body.owner-mobile-app .taj-dashboard-inner,
+  body.panel-mobile-app .taj-dashboard-inner {
+    height: 100%;
+    min-height: 0;
+  }
+
+  body.admin-mobile-app .taj-dashboard-main,
+  body.owner-mobile-app .taj-dashboard-main,
+  body.panel-mobile-app .taj-dashboard-main {
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
   }
 }
 
@@ -30,9 +57,14 @@
   .admin-mobile-layout {
     display: flex;
     flex-direction: column;
+    position: fixed;
+    inset: 0;
+    z-index: 30;
     min-height: 100dvh;
+    max-height: 100dvh;
     padding-top: env(safe-area-inset-top, 0px);
-    padding-bottom: calc(65px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: 0;
+    overflow: hidden;
   }
 
   .taj-dashboard-shell:has(.admin-mobile-layout) {
@@ -65,14 +97,19 @@
 
 .admin-mobile-header__title {
   flex: 1;
+  min-width: 0;
   text-align: center;
-  font-size: 1.0625rem;
-  font-weight: 700;
-  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.72);
   letter-spacing: -0.02em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.admin-mobile-header .brand-mark-name {
+  color: #fff;
 }
 
 .admin-mobile-header__actions {
@@ -159,10 +196,37 @@
 .admin-mobile-layout__body {
   flex: 1;
   min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
 }
 
 .admin-mobile-layout__page {
   min-height: 100%;
+}
+
+.panel-drawer-fab {
+  position: fixed;
+  right: 1rem;
+  bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: linear-gradient(145deg, rgba(16, 185, 129, 0.35), rgba(7, 26, 16, 0.92));
+  color: #fff;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+  touch-action: manipulation;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.panel-drawer-fab:active {
+  transform: scale(0.96);
 }
 
 .admin-mobile-bottom-nav {
@@ -170,7 +234,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 50;
+  z-index: 1000;
   display: flex;
   align-items: stretch;
   justify-content: space-around;

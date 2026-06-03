@@ -1,33 +1,45 @@
 "use client";
 
 import Link from "next/link";
-import { Bell, Menu } from "lucide-react";
-import type { Locale } from "@/lib/i18n/locale";
-import { m } from "@/lib/i18n/messages";
+import { Bell } from "lucide-react";
+import { BrandMark } from "@/components/brand/BrandMark";
 import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
+import { m } from "@/lib/i18n/messages";
+import type { Locale } from "@/lib/i18n/locale";
 
 type Props = {
   locale: Locale;
   title: string;
+  brandName: string;
+  brandMarkUrl: string;
   unreadCount: number;
   adminName: string;
   adminImage: string | null;
-  onOpenDrawer: () => void;
 };
 
-export function AdminMobileHeader({ locale, title, unreadCount, adminName, adminImage, onOpenDrawer }: Props) {
+export function AdminMobileHeader({
+  locale,
+  title,
+  brandName,
+  brandMarkUrl,
+  unreadCount,
+  adminName,
+  adminImage
+}: Props) {
   return (
     <header className="admin-mobile-header lg:hidden">
-      <button
-        type="button"
-        className="admin-mobile-header__icon-btn"
-        aria-label={m(locale, "admin.mobileNav")}
-        onClick={onOpenDrawer}
-      >
-        <Menu size={22} aria-hidden />
-      </button>
+      <BrandMark
+        href="/"
+        name={brandName}
+        markSrc={brandMarkUrl}
+        size="sm"
+        className="min-w-0 shrink"
+        nameClassName="text-sm font-bold text-white sm:text-base"
+      />
 
-      <h1 className="admin-mobile-header__title">{title}</h1>
+      <p className="admin-mobile-header__title" aria-hidden={title === brandName}>
+        {title}
+      </p>
 
       <div className="admin-mobile-header__actions">
         <Link

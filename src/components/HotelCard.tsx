@@ -3,6 +3,7 @@ import { AppImage } from "@/components/ui/AppImage";
 import { Hotel, Room } from "@prisma/client";
 import { t, type Locale } from "@/lib/i18n/dictionaries";
 import { m } from "@/lib/i18n/messages";
+import { HotelCardShell } from "@/components/HotelCardShell";
 
 type Props = {
   hotel: Hotel & { rooms: Room[] };
@@ -64,7 +65,7 @@ export function HotelCard({ hotel, locale = "ru", variant = "accent", hrefQuery 
   const showRating = hotel.rating > 0.05;
 
   return (
-    <article className="hotel-card-premium group" data-reveal>
+    <HotelCardShell>
       {/* Image */}
       <Link href={`/hotel/${hotel.id}${query}`} className="block">
         <div className="hotel-img-wrap relative w-full">
@@ -164,6 +165,6 @@ export function HotelCard({ hotel, locale = "ru", variant = "accent", hrefQuery 
           </Link>
         </div>
       </div>
-    </article>
+    </HotelCardShell>
   );
 }
