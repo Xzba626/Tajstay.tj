@@ -76,16 +76,16 @@ export function AdminMobileDrawer({
             onClick={onClose}
           />
           <motion.aside
-            className="admin-mobile-drawer"
-            initial={{ x: "-100%" }}
+            className="admin-mobile-drawer admin-mobile-drawer--right"
+            initial={{ x: "100%" }}
             animate={{ x: 0 }}
-            exit={{ x: "-100%" }}
+            exit={{ x: "100%" }}
             transition={{ type: "spring", stiffness: 380, damping: 36 }}
             drag="x"
-            dragConstraints={{ left: -320, right: 0 }}
+            dragConstraints={{ left: 0, right: 320 }}
             dragElastic={0.05}
             onDragEnd={(_, info) => {
-              if (info.offset.x < -80) onClose();
+              if (info.offset.x > 80) onClose();
             }}
           >
             <div className="admin-mobile-drawer__head">

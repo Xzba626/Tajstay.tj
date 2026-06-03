@@ -4,6 +4,7 @@ import { StatusBadge, bookingStatusVariant, paymentStatusVariant } from "@/compo
 import LeaveReviewForm from "@/app/dashboard/guest/leave-review-form";
 import { BookingChatLauncher } from "@/components/chat/BookingChatPanel";
 import type { Locale } from "@/lib/i18n/locale";
+import { formatBookingStatus, formatPaymentStatus } from "@/lib/i18n/bookingStatus";
 import { m } from "@/lib/i18n/messages";
 
 type BookingWithRelations = {
@@ -67,14 +68,14 @@ export function TripBookingCard({ locale, user, booking }: Props) {
           <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
             <span className="text-brand-200">{m(locale, "guestDash.statusBooking")}:</span>
             <StatusBadge variant={bookingStatusVariant(booking.status)} className="!bg-brand-700 !text-white !ring-brand-600">
-              {m(locale, `status.${booking.status}`)}
+              {formatBookingStatus(locale, booking.status)}
             </StatusBadge>
           </div>
         </div>
         <div className="text-sm text-brand-200">
           <span>{m(locale, "guestDash.payment")}: </span>
           <StatusBadge variant={paymentStatusVariant(booking.paymentStatus)} className="!bg-brand-800 !text-white !ring-brand-600">
-            {m(locale, `status.${booking.paymentStatus}`)}
+            {formatPaymentStatus(locale, booking.paymentStatus)}
           </StatusBadge>
           <div className="mt-2 space-y-1 rounded-xl border border-white/10 bg-white/5 p-3 text-xs">
             <div className="flex items-center justify-between gap-3">

@@ -56,7 +56,7 @@ export type AdminMobileShellLabels = {
     properties: string;
     bookings: string;
     users: string;
-    more: string;
+    menu: string;
   };
   drawerTitle: string;
   profile: string;
@@ -113,6 +113,11 @@ function AdminMobileShellInner({
   };
 
   const navigateTab = (tab: AdminMobileTab) => {
+    if (tab === "menu") {
+      setDrawerOpen(true);
+      return;
+    }
+    setDrawerOpen(false);
     navigateSection(defaultSectionForTab(tab));
   };
 
@@ -151,6 +156,7 @@ function AdminMobileShellInner({
         activeTab={activeTab}
         labels={labels.tabs}
         onTabChange={navigateTab}
+        drawerOpen={drawerOpen}
       />
 
       <PanelDrawerFab

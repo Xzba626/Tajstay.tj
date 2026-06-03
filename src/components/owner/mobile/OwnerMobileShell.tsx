@@ -52,7 +52,7 @@ export type OwnerMobileShellLabels = {
     properties: string;
     bookings: string;
     calendar: string;
-    more: string;
+    menu: string;
   };
   drawerTitle: string;
   profile: string;
@@ -112,6 +112,11 @@ function OwnerMobileShellInner({
   };
 
   const navigateTab = (tab: OwnerMobileTab) => {
+    if (tab === "menu") {
+      setDrawerOpen(true);
+      return;
+    }
+    setDrawerOpen(false);
     navigateSection(defaultSectionForOwnerTab(tab));
   };
 
@@ -150,7 +155,12 @@ function OwnerMobileShellInner({
         </AnimatePresence>
       </div>
 
-      <OwnerMobileBottomNav activeTab={activeTab} labels={labels.tabs} onTabChange={navigateTab} />
+      <OwnerMobileBottomNav
+        activeTab={activeTab}
+        labels={labels.tabs}
+        onTabChange={navigateTab}
+        drawerOpen={drawerOpen}
+      />
 
       <PanelDrawerFab
         ariaLabel={m(locale, "owner.mobileNav")}

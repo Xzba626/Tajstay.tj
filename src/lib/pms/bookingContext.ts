@@ -14,9 +14,12 @@ export type BookingLike = {
   roomType?: { id?: number; name?: string; hotel: HotelSlice } | null;
 };
 
+export function bookingHotelOptional(booking: BookingLike): HotelSlice | null {
+  return booking.assignedRoom?.hotel ?? booking.room?.hotel ?? booking.roomType?.hotel ?? null;
+}
+
 export function bookingHotel(booking: BookingLike): HotelSlice {
-  const hotel =
-    booking.assignedRoom?.hotel ?? booking.room?.hotel ?? booking.roomType?.hotel;
+  const hotel = bookingHotelOptional(booking);
   if (!hotel) throw new Error("BOOKING_HOTEL_MISSING");
   return hotel;
 }

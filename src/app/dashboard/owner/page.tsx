@@ -4,6 +4,7 @@ import { requireOwner } from "@/lib/auth/requireOwner";
 import { OwnerEmptyState } from "@/components/dashboard/OwnerEmptyState";
 import { getLocale } from "@/lib/i18n/get-locale";
 import type { Locale } from "@/lib/i18n/locale";
+import { formatBookingStatus, formatPaymentStatus } from "@/lib/i18n/bookingStatus";
 import { m } from "@/lib/i18n/messages";
 import { formatDateTimeShort } from "@/lib/i18n/format";
 import {
@@ -96,7 +97,11 @@ function propTypeLabel(locale: Locale, t: string) {
 }
 
 function tStatus(locale: Locale, status: string) {
-  return m(locale, `status.${status}`);
+  return formatBookingStatus(locale, status);
+}
+
+function tPaymentStatus(locale: Locale, status: string) {
+  return formatPaymentStatus(locale, status);
 }
 
 function toUtcDayStart(input: Date): Date {
@@ -1177,7 +1182,7 @@ export default async function OwnerDashboardPage({
                       : m(locale, "owner.bookingBadge.online")}
                   </StatusBadge>
                   <StatusBadge variant={bookingStatusVariant(b.status)}>{tStatus(locale, b.status)}</StatusBadge>
-                  <StatusBadge variant={paymentStatusVariant(b.paymentStatus)}>{tStatus(locale, b.paymentStatus)}</StatusBadge>
+                  <StatusBadge variant={paymentStatusVariant(b.paymentStatus)}>{tPaymentStatus(locale, b.paymentStatus)}</StatusBadge>
                 </div>
                 <div className="mt-2 text-slate-600">
                   {bookingHotel(b).name} · {bookingRoomTitle(b)} · {b.checkIn.toISOString().slice(0, 10)} — {b.checkOut.toISOString().slice(0, 10)} · {b.phone}

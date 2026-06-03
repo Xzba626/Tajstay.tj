@@ -2,7 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
-import { AUTH_ROLE_CHANGED_EVENT, dispatchAuthRoleChanged } from "@/lib/auth/authEvents";
+import {
+  AUTH_ROLE_CHANGED_EVENT,
+  PROFILE_UPDATED_EVENT,
+  dispatchAuthRoleChanged
+} from "@/lib/auth/authEvents";
 import { NOTIFICATION_NEW_EVENT } from "@/lib/pwa/notificationEvents";
 import { dispatchNotificationToast } from "@/lib/pwa/notificationEvents";
 import { LOCALE_COOKIE, normalizeLocale, type Locale } from "@/lib/i18n/locale";
@@ -74,10 +78,12 @@ export function AuthStateSync() {
     };
     const onNotif = () => void sync("notification");
     const onRole = () => router.refresh();
+    const onProfileUpdated = () => router.refresh();
 
     document.addEventListener("visibilitychange", onVisible);
     window.addEventListener(NOTIFICATION_NEW_EVENT, onNotif);
     window.addEventListener(AUTH_ROLE_CHANGED_EVENT, onRole);
+    window.addEventListener(PROFILE_UPDATED_EVENT, onProfileUpdated);
 
     return () => {
       cancelled = true;
@@ -85,6 +91,7 @@ export function AuthStateSync() {
       document.removeEventListener("visibilitychange", onVisible);
       window.removeEventListener(NOTIFICATION_NEW_EVENT, onNotif);
       window.removeEventListener(AUTH_ROLE_CHANGED_EVENT, onRole);
+      window.removeEventListener(PROFILE_UPDATED_EVENT, onProfileUpdated);
     };
   }, [router]);
 

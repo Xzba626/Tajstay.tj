@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth/requireAuth";
 import { getLocale } from "@/lib/i18n/get-locale";
+import { formatBookingStatus } from "@/lib/i18n/bookingStatus";
 import { m } from "@/lib/i18n/messages";
 import { PaymentCountdown } from "./PaymentCountdown";
 import { DcNextPaymentCard } from "@/components/payment/DcNextPaymentCard";
@@ -144,7 +145,8 @@ export default async function PaymentPage({
           </div>
         ) : (
           <div className="mt-4 rounded-xl border border-brand-700 bg-brand-800 px-4 py-3 text-sm text-brand-200">
-            Статус: <span className="font-semibold text-white">{booking.status}</span>
+            Статус:{" "}
+            <span className="font-semibold text-white">{formatBookingStatus(locale, booking.status)}</span>
           </div>
         )}
 

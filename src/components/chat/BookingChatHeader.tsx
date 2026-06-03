@@ -2,6 +2,7 @@
 
 import { BRAND } from "@/lib/brand";
 import type { Locale } from "@/lib/i18n/locale";
+import { formatBookingStatus, formatPaymentStatus } from "@/lib/i18n/bookingStatus";
 import { m } from "@/lib/i18n/messages";
 
 export type BookingChatHeaderProps = {
@@ -53,8 +54,7 @@ export function BookingChatHeader({
   const checkIn = checkInIso.slice(0, 10);
   const checkOut = checkOutIso.slice(0, 10);
   const cover = coverImageUrl || BRAND.logoMark;
-  const statusLabel =
-    m(locale, `status.${bookingStatus}`) !== `status.${bookingStatus}` ? m(locale, `status.${bookingStatus}`) : bookingStatus;
+  const statusLabel = formatBookingStatus(locale, bookingStatus);
 
   return (
     <section className={`chat-header ${compact ? "chat-header--compact" : ""}`}>
@@ -84,7 +84,7 @@ export function BookingChatHeader({
           <div className="mt-1 flex flex-wrap items-center gap-1.5">
             <span className={statusPillClass(bookingStatus)}>{statusLabel}</span>
             <span className={paymentPillClass(paymentStatus)}>
-              {m(locale, `status.${paymentStatus}`) !== `status.${paymentStatus}` ? m(locale, `status.${paymentStatus}`) : paymentStatus}
+              {formatPaymentStatus(locale, paymentStatus)}
             </span>
             <span className="chat-header__price ml-auto sm:ml-0">
               {Number(totalPrice)} {currency}

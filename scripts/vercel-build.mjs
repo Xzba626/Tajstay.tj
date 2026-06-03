@@ -8,13 +8,28 @@ import { execSync } from "node:child_process";
 import { setTimeout as sleep } from "node:timers/promises";
 import { ensureDirectUrl } from "./ensure-direct-database-url.mjs";
 
+function run(cmd) {
+  console.log(`[vercel-build] $ ${cmd}`);
+  try {
+    execSync(cmd, {
+      env: process.env,
+      encoding: "utf8",
+      stdio: ["inherit", "pipe", "pipe"],
+      maxBuffer: 64 * 1024 * 1024
+    });
+  } catch (err) {
+    const e = err;
+    if (e?.stdout) process.stdout.write(e.stdout);
+    if (e?.stderr) process.stderr.write(e.stderr);
+    console.error(`[vercel-build] Command failed (exit ${e?.status ?? "?"}): ${cmd}`);
+    throw err;
+  }
+}
+
 async function migrateDeployWithRetry(maxAttempts = 3) {
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      execSync("npx prisma migrate deploy", {
-        stdio: "inherit",
-        env: process.env,
-      });
+      run("npx prisma migrate deploy");
       return;
     } catch {
       if (attempt >= maxAttempts) {
@@ -36,5 +51,6 @@ if (process.env.DIRECT_URL?.includes("-pooler")) {
   );
 }
 await migrateDeployWithRetry();
-execSync("npx prisma generate", { stdio: "inherit", env: process.env });
-execSync("npx next build", { stdio: "inherit", env: process.env });
+run("npx prisma generate");
+run("npx tsc --noEmit");
+run("npx next build");

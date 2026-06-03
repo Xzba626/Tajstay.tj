@@ -5,6 +5,7 @@ import Link from "next/link";
 import { isSyntheticArchiveChatMessageId } from "@/lib/chat/archiveMessageIds";
 import { groupChatMessages } from "@/lib/chat/groupMessages";
 import type { Locale } from "@/lib/i18n/locale";
+import { formatBookingStatus } from "@/lib/i18n/bookingStatus";
 import { m } from "@/lib/i18n/messages";
 import { PaymentCountdown } from "@/app/payment/[code]/PaymentCountdown";
 import { TrustBadges } from "@/components/auth/TrustBadges";
@@ -119,31 +120,7 @@ function statusPillClass(status: string): string {
 }
 
 function statusLabelLocalized(status: string, locale: Locale): string {
-  const label = m(locale, `status.${status}`);
-  if (label && label !== `status.${status}`) return label;
-  return statusLabelRu(status);
-}
-
-function statusLabelRu(status: string): string {
-  switch (status) {
-    case "WAITING_PAYMENT":
-    case "WAIT_PROOF":
-    case "PENDING_OWNER":
-      return "Ожидает оплаты";
-    case "ON_REVIEW":
-      return "На проверке";
-    case "CONFIRMED":
-    case "CHECKED_IN":
-      return "Подтверждено";
-    case "COMPLETED":
-    case "REJECTED":
-    case "CANCELLED":
-    case "EXPIRED":
-    case "CANCELLED_BY_GUEST":
-      return "Архив";
-    default:
-      return status;
-  }
+  return formatBookingStatus(locale, status);
 }
 
 function avatarLetter(name: string): string {

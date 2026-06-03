@@ -44,7 +44,7 @@ export default async function OwnerDashboardLayout({ children }: { children: Rea
       properties: m(locale, "owner.mobileTabProperties"),
       bookings: m(locale, "owner.mobileTabBookings"),
       calendar: m(locale, "owner.mobileTabCalendar"),
-      more: m(locale, "owner.mobileTabMore")
+      menu: m(locale, "owner.mobileTabMenu")
     },
     drawerTitle: m(locale, "roles.OWNER"),
     profile: m(locale, "userMenu.profile"),
