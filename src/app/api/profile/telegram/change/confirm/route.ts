@@ -11,18 +11,40 @@ export async function PATCH(req: Request) {
   if (!user) return profileError(m(getLocale(), "profile.errAuthRequired"), 401);
 
   const body = await req.json().catch(() => ({}));
-  const sessionToken = String(body.sessionToken ?? "");
+  const sessionToken = String(body.sessionToken ?? "").trim();
   const code = String(body.code ?? "");
   const locale = getLocale();
 
+  if ("telegramId" in body || "newTelegramId" in body) {
+    console.warn("[telegram/change/confirm] rejected body with telegramId — must come from pending row only", {
+      userId: user.id
+    });
+  }
+
+  console.info("[telegram/change/confirm] request", {
+    userId: user.id,
+    sessionTokenPrefix: sessionToken ? `${sessionToken.slice(0, 6)}…` : null,
+    sessionTelegramBefore: user.telegramId,
+    sessionUsernameBefore: user.telegramUsername
+  });
+
   const result = await confirmTelegramChange(user.id, sessionToken, code);
+
   if (!result.ok) {
+    console.warn("[telegram/change/confirm] failed", { userId: user.id, reason: result.reason });
     if (result.reason === "expired") return profileError(m(locale, "auth.telegramExpired"));
     if (result.reason === "taken") return profileError(m(locale, "profile.errTelegramTaken"));
     if (result.reason === "no_code") return profileError(m(locale, "profile.errTelegramLink"));
-    if (result.reason === "invalid") return profileError(m(locale, "profile.errTelegramCode"));
+    if (result.reason === "persist_failed") return profileError(m(locale, "profile.errSave"));
     return profileError(m(locale, "profile.errTelegramCode"));
   }
+
+  console.info("[telegram/change/confirm] prisma user.update applied", {
+    ...result.log,
+    pendingTelegramId: result.telegramId,
+    pendingUsername: result.telegramUsername,
+    sqlEquivalent: `UPDATE "User" SET "telegramId"='${result.telegramId}' WHERE "id"=${user.id}`
+  });
 
   revalidatePath("/profile");
   revalidatePath("/profile/account");
@@ -30,6 +52,7 @@ export async function PATCH(req: Request) {
 
   return profileOk({
     telegramId: result.telegramId,
-    telegramUsername: result.telegramUsername
+    telegramUsername: result.telegramUsername,
+    telegramPhotoUrl: result.telegramPhotoUrl
   });
 }

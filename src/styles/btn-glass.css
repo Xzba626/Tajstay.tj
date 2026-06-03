@@ -4,8 +4,8 @@
 .btn-primary,
 .taj-primary-button,
 .ds-primary-btn {
-  backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.28) !important;
   box-shadow:
     0 4px 24px rgba(0, 0, 0, 0.12),
@@ -15,6 +15,14 @@
     transform 0.2s ease,
     box-shadow 0.2s ease,
     background 0.2s ease;
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .btn-primary,
+  .taj-primary-button,
+  .ds-primary-btn {
+    background-color: rgba(0, 71, 36, 0.92) !important;
+  }
 }
 
 .btn-primary:hover:not(:disabled),

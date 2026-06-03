@@ -12,6 +12,7 @@ type Props = {
 /** Entrance + subtle 3D tilt for hotel listing cards. */
 export function HotelCardShell({ children, className }: Props) {
   const ref = useRef<HTMLElement>(null);
+  const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
     const el = ref.current;
@@ -37,26 +38,34 @@ export function HotelCardShell({ children, className }: Props) {
       return () => revealObserver.disconnect();
     }
 
+    const applyTransform = (transform: string) => {
+      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+      rafRef.current = requestAnimationFrame(() => {
+        el.style.transform = transform;
+        rafRef.current = null;
+      });
+    };
+
     const onMove = (e: MouseEvent) => {
       if (coarse) return;
       const rect = el.getBoundingClientRect();
       const x = (e.clientX - rect.left) / rect.width - 0.5;
       const y = (e.clientY - rect.top) / rect.height - 0.5;
-      el.style.transform = `perspective(600px) rotateY(${x * 10}deg) rotateX(${-y * 10}deg)`;
+      applyTransform(`perspective(600px) rotateY(${x * 10}deg) rotateX(${-y * 10}deg)`);
     };
 
     const onLeave = () => {
-      el.style.transform = "perspective(600px) rotateY(0deg) rotateX(0deg)";
+      applyTransform("perspective(600px) rotateY(0deg) rotateX(0deg)");
     };
 
     const onTouchStart = () => {
       if (!coarse) return;
-      el.style.transform = "scale(1.03)";
+      applyTransform("scale(1.03)");
     };
 
     const onTouchEnd = () => {
       if (!coarse) return;
-      el.style.transform = "";
+      applyTransform("");
     };
 
     el.addEventListener("mousemove", onMove);
@@ -66,6 +75,7 @@ export function HotelCardShell({ children, className }: Props) {
 
     return () => {
       revealObserver.disconnect();
+      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
       el.removeEventListener("mousemove", onMove);
       el.removeEventListener("mouseleave", onLeave);
       el.removeEventListener("touchstart", onTouchStart);
