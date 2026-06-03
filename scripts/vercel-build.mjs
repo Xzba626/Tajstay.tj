@@ -9,12 +9,19 @@ import { setTimeout as sleep } from "node:timers/promises";
 import { ensureDirectUrl } from "./ensure-direct-database-url.mjs";
 
 function run(cmd) {
+  console.log(`[vercel-build] $ ${cmd}`);
   try {
-    execSync(cmd, { stdio: "inherit", env: process.env });
+    execSync(cmd, {
+      env: process.env,
+      encoding: "utf8",
+      stdio: ["inherit", "pipe", "pipe"],
+      maxBuffer: 64 * 1024 * 1024
+    });
   } catch (err) {
     const e = err;
-    if (e?.stdout) process.stderr.write(e.stdout);
+    if (e?.stdout) process.stdout.write(e.stdout);
     if (e?.stderr) process.stderr.write(e.stderr);
+    console.error(`[vercel-build] Command failed (exit ${e?.status ?? "?"}): ${cmd}`);
     throw err;
   }
 }
@@ -45,4 +52,5 @@ if (process.env.DIRECT_URL?.includes("-pooler")) {
 }
 await migrateDeployWithRetry();
 run("npx prisma generate");
+run("npx tsc --noEmit");
 run("npx next build");
