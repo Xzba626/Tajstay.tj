@@ -275,7 +275,7 @@ export default async function AdminDashboardPage({
       const hotel = b.room?.hotel ?? b.roomType?.hotel;
       return {
         id: `booking-${b.id}`,
-        title: `#${b.id} · ${b.status}`,
+        title: `#${b.id} · ${tStatus(b.status)}`,
         subtitle: `${b.user?.name ?? "—"} · ${hotel?.name ?? "—"}`,
         at: b.createdAt as Date
       };

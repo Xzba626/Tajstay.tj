@@ -5,9 +5,7 @@ import { Suspense, useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import type { Locale } from "@/lib/i18n/locale";
-import { m } from "@/lib/i18n/messages";
 import { AdminMobileHeader } from "@/components/admin/mobile/AdminMobileHeader";
-import { PanelDrawerFab } from "@/components/admin/mobile/PanelDrawerFab";
 import { OwnerMobileBottomNav } from "@/components/owner/mobile/OwnerMobileBottomNav";
 import { OwnerMobileDrawer } from "@/components/owner/mobile/OwnerMobileDrawer";
 import { AdminMobileSubNav } from "@/components/admin/mobile/AdminMobileSubNav";
@@ -160,11 +158,6 @@ function OwnerMobileShellInner({
         labels={labels.tabs}
         onTabChange={navigateTab}
         drawerOpen={drawerOpen}
-      />
-
-      <PanelDrawerFab
-        ariaLabel={m(locale, "owner.mobileNav")}
-        onOpen={() => setDrawerOpen(true)}
       />
 
       <OwnerMobileDrawer

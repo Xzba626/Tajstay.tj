@@ -5,11 +5,9 @@ import { Suspense, useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import type { Locale } from "@/lib/i18n/locale";
-import { m } from "@/lib/i18n/messages";
 import { AdminMobileHeader } from "@/components/admin/mobile/AdminMobileHeader";
 import { AdminMobileBottomNav } from "@/components/admin/mobile/AdminMobileBottomNav";
 import { AdminMobileDrawer } from "@/components/admin/mobile/AdminMobileDrawer";
-import { PanelDrawerFab } from "@/components/admin/mobile/PanelDrawerFab";
 import { AdminMobileSubNav } from "@/components/admin/mobile/AdminMobileSubNav";
 import {
   defaultSectionForTab,
@@ -157,11 +155,6 @@ function AdminMobileShellInner({
         labels={labels.tabs}
         onTabChange={navigateTab}
         drawerOpen={drawerOpen}
-      />
-
-      <PanelDrawerFab
-        ariaLabel={m(locale, "admin.mobileNav")}
-        onOpen={() => setDrawerOpen(true)}
       />
 
       <AdminMobileDrawer
