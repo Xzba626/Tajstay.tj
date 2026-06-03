@@ -8,13 +8,21 @@ import { execSync } from "node:child_process";
 import { setTimeout as sleep } from "node:timers/promises";
 import { ensureDirectUrl } from "./ensure-direct-database-url.mjs";
 
+function run(cmd) {
+  try {
+    execSync(cmd, { stdio: "inherit", env: process.env });
+  } catch (err) {
+    const e = err;
+    if (e?.stdout) process.stderr.write(e.stdout);
+    if (e?.stderr) process.stderr.write(e.stderr);
+    throw err;
+  }
+}
+
 async function migrateDeployWithRetry(maxAttempts = 3) {
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      execSync("npx prisma migrate deploy", {
-        stdio: "inherit",
-        env: process.env,
-      });
+      run("npx prisma migrate deploy");
       return;
     } catch {
       if (attempt >= maxAttempts) {
@@ -36,5 +44,5 @@ if (process.env.DIRECT_URL?.includes("-pooler")) {
   );
 }
 await migrateDeployWithRetry();
-execSync("npx prisma generate", { stdio: "inherit", env: process.env });
-execSync("npx next build", { stdio: "inherit", env: process.env });
+run("npx prisma generate");
+run("npx next build");
