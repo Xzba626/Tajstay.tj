@@ -2,7 +2,7 @@ import Link from "next/link";
 import { t, type Locale } from "@/lib/i18n/dictionaries";
 import { m } from "@/lib/i18n/messages";
 
-type Props = { locale?: Locale };
+type Props = { locale?: Locale; variant?: "default" | "glass" };
 
 const cityIcon = (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -11,7 +11,7 @@ const cityIcon = (
   </svg>
 );
 
-export function SearchBar({ locale = "ru" }: Props) {
+export function SearchBar({ locale = "ru", variant = "default" }: Props) {
   const popularCities = [
     m(locale, "cities.dushanbe"),
     m(locale, "cities.khujand"),
@@ -21,7 +21,9 @@ export function SearchBar({ locale = "ru" }: Props) {
   const popularCityValues = ["Dushanbe", "Khujand", "Penjikent", "Badakhshan"];
 
   return (
-    <div className="home-search-card home-search-card--premium">
+    <div
+      className={`home-search-card home-search-card--premium${variant === "glass" ? " home-search-card--glass" : ""}`}
+    >
       <form action="/search" method="get" className="home-search-form-wrap">
         <datalist id="popular-cities">
           {popularCityValues.map((city) => (
