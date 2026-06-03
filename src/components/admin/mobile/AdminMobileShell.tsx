@@ -5,9 +5,11 @@ import { Suspense, useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import type { Locale } from "@/lib/i18n/locale";
+import { m } from "@/lib/i18n/messages";
 import { AdminMobileHeader } from "@/components/admin/mobile/AdminMobileHeader";
 import { AdminMobileBottomNav } from "@/components/admin/mobile/AdminMobileBottomNav";
 import { AdminMobileDrawer } from "@/components/admin/mobile/AdminMobileDrawer";
+import { PanelDrawerFab } from "@/components/admin/mobile/PanelDrawerFab";
 import { AdminMobileSubNav } from "@/components/admin/mobile/AdminMobileSubNav";
 import {
   defaultSectionForTab,
@@ -64,6 +66,8 @@ export type AdminMobileShellLabels = {
 type Props = {
   locale: Locale;
   labels: AdminMobileShellLabels;
+  brandName: string;
+  brandMarkUrl: string;
   adminName: string;
   adminImage: string | null;
   badgeCounts: AdminMobileBadgeCounts;
@@ -73,6 +77,8 @@ type Props = {
 function AdminMobileShellInner({
   locale,
   labels,
+  brandName,
+  brandMarkUrl,
   adminName,
   adminImage,
   badgeCounts,
@@ -115,10 +121,11 @@ function AdminMobileShellInner({
       <AdminMobileHeader
         locale={locale}
         title={pageTitle}
+        brandName={brandName}
+        brandMarkUrl={brandMarkUrl}
         unreadCount={badgeCounts.unreadNotifications}
         adminName={adminName}
         adminImage={adminImage}
-        onOpenDrawer={() => setDrawerOpen(true)}
       />
 
       {subNav.length > 1 ? (
@@ -144,6 +151,11 @@ function AdminMobileShellInner({
         activeTab={activeTab}
         labels={labels.tabs}
         onTabChange={navigateTab}
+      />
+
+      <PanelDrawerFab
+        ariaLabel={m(locale, "admin.mobileNav")}
+        onOpen={() => setDrawerOpen(true)}
       />
 
       <AdminMobileDrawer

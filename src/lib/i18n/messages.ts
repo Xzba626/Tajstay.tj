@@ -329,6 +329,8 @@ const ru: Tree = {
     viewByRoom: "По комнатам",
     typeAvailability: "Свободно {available} из {total}",
     leftRooms: "Осталось {n}",
+    roomsLeft: "Осталось номеров: {count}",
+    beds: "Кровати",
     mealRoomOnly: "Без питания"
   },
   checkout: {
@@ -698,6 +700,9 @@ const ru: Tree = {
     offlineRetry: "Повторить"
   },
   notifications: {
+    category: {
+      finance: "Финансы"
+    },
     bell: {
       emptyHint: "Здесь появятся брони, сообщения и выплаты",
       soundOn: "Звук включён",
@@ -823,6 +828,7 @@ const ru: Tree = {
     enterCode: "Введите код из Telegram",
     changeTelegram: "Сменить Telegram",
     openTelegram: "Открыть Telegram",
+    telegramAwaitBot: "Откройте Telegram по кнопке выше и подтвердите смену — затем введите код из бота.",
     showPassword: "Показать пароль",
     hidePassword: "Скрыть пароль",
     themeLight: "Светлая",
@@ -1874,6 +1880,15 @@ const tg: Tree = {
     payNow: "Ҳозир пардохт",
     payOnArrival: "Пардохт ҳангоми ҷойгиршавӣ"
   },
+  pms: {
+    viewByType: "Аз рӯи категория",
+    viewByRoom: "Аз рӯи ҳуҷра",
+    typeAvailability: "Озод {available} аз {total}",
+    leftRooms: "Монда {n}",
+    roomsLeft: "Ҳуҷраҳои монда: {count}",
+    beds: "Кат",
+    mealRoomOnly: "Бе таом"
+  },
   checkout: {
     financeTitle: "Арзиш",
     nights: "Шабҳо",
@@ -2241,6 +2256,9 @@ const tg: Tree = {
     offlineRetry: "Аз нав"
   },
   notifications: {
+    category: {
+      finance: "Молия"
+    },
     bell: {
       emptyHint: "Дар ин ҷо бронҳо, паёмҳо ва пардохтҳо пайдо мешаванд",
       soundOn: "Садо фаъол",
@@ -2366,6 +2384,7 @@ const tg: Tree = {
     enterCode: "Рамзи аз Telegram-ро ворид кунед",
     changeTelegram: "Тағйири Telegram",
     openTelegram: "Кушодани Telegram",
+    telegramAwaitBot: "Telegram-ро бо тугмаи боло кушоед ва ивазкуниро тасдиқ кунед — баъд рамзи аз ботро ворид кунед.",
     showPassword: "Намоиши парол",
     hidePassword: "Пинҳон кардани парол",
     themeLight: "Равшан",
@@ -3384,6 +3403,15 @@ const en: Tree = {
     payNow: "Pay now",
     payOnArrival: "Pay on arrival"
   },
+  pms: {
+    viewByType: "By category",
+    viewByRoom: "By room",
+    typeAvailability: "{available} of {total} available",
+    leftRooms: "{n} left",
+    roomsLeft: "{count} rooms left",
+    beds: "Beds",
+    mealRoomOnly: "Room only"
+  },
   checkout: {
     financeTitle: "Pricing",
     nights: "Nights",
@@ -3751,6 +3779,9 @@ const en: Tree = {
     offlineRetry: "Retry"
   },
   notifications: {
+    category: {
+      finance: "Finance"
+    },
     bell: {
       emptyHint: "Bookings, messages, and payouts will show up here",
       soundOn: "Sound on",
@@ -3876,6 +3907,7 @@ const en: Tree = {
     enterCode: "Enter the code from Telegram",
     changeTelegram: "Change Telegram",
     openTelegram: "Open Telegram",
+    telegramAwaitBot: "Open Telegram above and confirm the change — then enter the code from the bot.",
     showPassword: "Show password",
     hidePassword: "Hide password",
     themeLight: "Light",

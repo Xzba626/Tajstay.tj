@@ -9,9 +9,11 @@ import { prisma } from "@/lib/prisma";
 import { getUnreadNotificationsCount } from "@/lib/notifications/unread";
 import { resolveUserNames } from "@/lib/profile/userName";
 import { OWNER_APPLICATION_STATUS } from "@/lib/domain/booking";
+import { getSiteContent } from "@/lib/site-content";
 
 export default async function AdminDashboardLayout({ children }: { children: ReactNode }) {
   const locale = getLocale();
+  const content = await getSiteContent();
   const admin = await requireAdmin();
   const { fullName } = resolveUserNames(admin);
 
@@ -63,6 +65,8 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
       <AdminMobileShell
         locale={locale}
         labels={mobileLabels}
+        brandName={content.brand.siteName}
+        brandMarkUrl={content.brand.logoMarkUrl}
         adminName={fullName}
         adminImage={admin.image ?? admin.telegramPhotoUrl}
         badgeCounts={{

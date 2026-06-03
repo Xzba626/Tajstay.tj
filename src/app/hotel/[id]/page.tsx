@@ -13,7 +13,6 @@ import { AppImage } from "@/components/ui/AppImage";
 import { HotelViewTracker } from "@/components/guest/HotelViewTracker";
 import { getBookingGuestLabel } from "@/lib/domain/booking";
 import { RoomTypeCards } from "@/components/hotel/RoomTypeCards";
-import { HotelStickyBookBar } from "@/components/hotel/HotelStickyBookBar";
 
 function buildAiReviewSummary(comments: string[]) {
   const topicKeywords: Record<string, string[]> = {
@@ -383,14 +382,6 @@ export default async function HotelDetailPage({
         </section>
       )}
 
-      {quickBookHref && cheapestRoom ? (
-        <HotelStickyBookBar
-          priceLabel={m(locale, "search.fromPrice")}
-          price={Number(cheapestRoom.price)}
-          bookLabel={m(locale, "search.bookNow")}
-          bookHref={quickBookHref}
-        />
-      ) : null}
     </div>
   );
 }

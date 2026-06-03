@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
-import { hashOtpCode, generateOtpCode } from "@/lib/auth/otp";
+import { hashOtpCode, generateOtpCode, verifyOtpCodeHash } from "@/lib/auth/otp";
 import { getTelegramBotUsername } from "@/lib/telegram/config";
 import { getTelegramUserPhotoUrl, sendTelegramMessage } from "@/lib/telegram/api";
 import { botLocaleFromTelegram, telegramBotMessages } from "@/lib/telegram/botMessages";
@@ -99,7 +99,7 @@ export async function confirmTelegramChange(userId: number, sessionToken: string
   if (!row.codeHash || !row.telegramId) return { ok: false as const, reason: "no_code" as const };
 
   const normalized = code.replace(/\D/g, "").trim();
-  if (normalized.length !== 6 || hashOtpCode(normalized) !== row.codeHash) {
+  if (normalized.length !== 6 || !verifyOtpCodeHash(normalized, row.codeHash)) {
     return { ok: false as const, reason: "invalid" as const };
   }
 
@@ -117,14 +117,20 @@ export async function confirmTelegramChange(userId: number, sessionToken: string
     row.telegramPhotoUrl &&
     (!current?.image || current.image === current.telegramPhotoUrl);
 
-  await prisma.$transaction(async (tx) => {
-    await tx.user.update({
+  const updated = await prisma.$transaction(async (tx) => {
+    const user = await tx.user.update({
       where: { id: userId },
       data: {
         telegramId: row.telegramId,
         telegramUsername: row.telegramUsername,
         telegramPhotoUrl: row.telegramPhotoUrl,
         ...(shouldSetImage ? { image: row.telegramPhotoUrl } : {})
+      },
+      select: {
+        id: true,
+        telegramId: true,
+        telegramUsername: true,
+        telegramPhotoUrl: true
       }
     });
     await tx.telegramChangeRequest.update({
@@ -135,7 +141,16 @@ export async function confirmTelegramChange(userId: number, sessionToken: string
       where: { userId, usedAt: null, id: { not: row.id } },
       data: { usedAt: new Date() }
     });
+    return user;
   });
 
-  return { ok: true as const };
+  if (updated.telegramId !== row.telegramId) {
+    return { ok: false as const, reason: "invalid" as const };
+  }
+
+  return {
+    ok: true as const,
+    telegramId: updated.telegramId,
+    telegramUsername: updated.telegramUsername
+  };
 }

@@ -19,6 +19,7 @@ export type TelegramLoginLabels = {
   codeInvalid: string;
   tooManyAttempts: string;
   errorGeneric: string;
+  confirmCta: string;
 };
 
 type Props = {
@@ -287,8 +288,7 @@ export function TelegramLoginPanel({
               setCodeMessage(null);
             }
           }}
-          onComplete={(code) => void verifyCode(code)}
-          disabled={loading || isExpired}
+          disabled={loading || isExpired || codeUi === "success"}
           loading={codeUi === "loading"}
           error={codeUi === "error" && !isExpired}
           success={codeUi === "success"}
@@ -296,6 +296,17 @@ export function TelegramLoginPanel({
           autoFocus
         />
       </div>
+
+      {!isExpired && codeUi !== "success" ? (
+        <button
+          type="button"
+          className="taj-primary-button"
+          disabled={loading || otp.join("").length !== 6}
+          onClick={() => void verifyCode(otp.join(""))}
+        >
+          <span>{loading && codeUi === "loading" ? L.verifying : L.confirmCta}</span>
+        </button>
+      ) : null}
 
       {codeMessage && !isExpired ? (
         <p

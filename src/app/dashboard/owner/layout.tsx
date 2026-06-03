@@ -7,9 +7,11 @@ import { m } from "@/lib/i18n/messages";
 import { requireOwner } from "@/lib/auth/requireOwner";
 import { getUnreadNotificationsCount } from "@/lib/notifications/unread";
 import { resolveUserNames } from "@/lib/profile/userName";
+import { getSiteContent } from "@/lib/site-content";
 
 export default async function OwnerDashboardLayout({ children }: { children: ReactNode }) {
   const locale = getLocale();
+  const content = await getSiteContent();
   const owner = await requireOwner();
   const { fullName } = resolveUserNames(owner);
   const unreadNotifications = await getUnreadNotificationsCount(owner.id);
@@ -54,6 +56,8 @@ export default async function OwnerDashboardLayout({ children }: { children: Rea
       <OwnerMobileShell
         locale={locale}
         labels={mobileLabels}
+        brandName={content.brand.siteName}
+        brandMarkUrl={content.brand.logoMarkUrl}
         ownerName={fullName}
         ownerImage={owner.image ?? owner.telegramPhotoUrl}
         unreadNotifications={unreadNotifications}

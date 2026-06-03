@@ -7,6 +7,8 @@ type Props = {
   value: string[];
   onChange: (next: string[]) => void;
   onComplete?: (code: string) => void;
+  /** When true, calls onComplete as soon as 6 digits are entered (legacy). */
+  autoSubmitOnComplete?: boolean;
   disabled?: boolean;
   loading?: boolean;
   error?: boolean;
@@ -20,6 +22,7 @@ export function OtpCodeInput({
   value,
   onChange,
   onComplete,
+  autoSubmitOnComplete = false,
   disabled,
   loading,
   error,
@@ -38,9 +41,11 @@ export function OtpCodeInput({
       onChange(next);
       if (digit && idx < 5) refs.current[idx + 1]?.focus();
       const code = next.join("");
-      if (code.length === 6 && next.every((d) => d.length === 1)) onComplete?.(code);
+      if (autoSubmitOnComplete && code.length === 6 && next.every((d) => d.length === 1)) {
+        onComplete?.(code);
+      }
     },
-    [value, onChange, onComplete]
+    [value, onChange, onComplete, autoSubmitOnComplete]
   );
 
   const handlePaste = (e: React.ClipboardEvent) => {
@@ -51,7 +56,7 @@ export function OtpCodeInput({
     for (let i = 0; i < digits.length; i++) next[i] = digits[i]!;
     onChange(next);
     refs.current[Math.min(digits.length, 5)]?.focus();
-    if (digits.length === 6) onComplete?.(digits);
+    if (autoSubmitOnComplete && digits.length === 6) onComplete?.(digits);
   };
 
   useEffect(() => {

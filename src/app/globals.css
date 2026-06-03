@@ -15,6 +15,7 @@
 @import "../styles/home-mobile-first.css";
 @import "../styles/profile-hub.css";
 @import "../styles/admin-mobile-app.css";
+@import "../styles/btn-glass.css";
 @import "../styles/chat.css";
 
 @tailwind base;
@@ -880,6 +881,37 @@ h1, h2 {
 }
 
 /* ---- Premium card upgrade ---- */
+.hotel-card-premium--motion {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
+}
+
+.hotel-card-premium--motion.is-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.hotel-card-premium--motion .hotel-img-wrap img {
+  transition: transform 0.35s ease;
+}
+
+.hotel-card-premium--motion:hover .hotel-img-wrap img {
+  transform: scale(1.04) translateZ(12px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hotel-card-premium--motion {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
 .hotel-card-premium {
   position: relative;
   overflow: hidden;

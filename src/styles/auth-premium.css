@@ -1094,6 +1094,63 @@ body:has(.taj-auth-page) .taj-auth-page {
   }
 }
 
+/* —— Desktop: login ↔ register panel swap —— */
+@media (min-width: 1024px) {
+  .taj-auth-shell {
+    overflow: hidden;
+  }
+
+  .taj-promo-card,
+  .taj-auth-card {
+    transition:
+      transform 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.55s ease,
+      filter 0.55s ease;
+  }
+
+  .taj-auth-shell--register .taj-promo-card {
+    order: 2;
+    transform: translateX(0);
+    opacity: 1;
+    filter: none;
+  }
+
+  .taj-auth-shell--register .taj-auth-card {
+    order: 1;
+    transform: translateX(8%);
+    opacity: 1;
+    filter: none;
+    animation: taj-auth-panel-in 0.7s ease;
+  }
+
+  .taj-auth-shell:not(.taj-auth-shell--register) .taj-auth-card {
+    order: 2;
+    transform: translateX(0);
+    opacity: 1;
+    filter: none;
+  }
+
+  .taj-auth-shell:not(.taj-auth-shell--register) .taj-promo-card {
+    order: 1;
+    transform: translateX(0);
+    opacity: 1;
+    filter: none;
+  }
+}
+
+@keyframes taj-auth-panel-in {
+  from {
+    transform: translateX(120%);
+    opacity: 0;
+    filter: blur(10px);
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
 /* —— Desktop split layout (lg+) —— */
 @media (min-width: 1024px) {
   .taj-auth-page {
