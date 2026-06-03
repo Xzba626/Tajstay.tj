@@ -77,7 +77,7 @@ export default async function HomePage() {
       <section className="home-section home-section--hero home-chapter home-chapter--band-hero relative overflow-hidden">
         <div className="home-hero-bg home-hero-bg-fallback absolute inset-0" aria-hidden />
         <PageContainer publicPage className="relative z-[1] flex min-h-[inherit] flex-col justify-center !py-0">
-          <HomeHeroMobile locale={locale} trustPoints={heroTrustPoints} />
+          <HomeHeroMobile locale={locale} />
           <div className="hidden md:block">
             <TajstayHero3D
               heroBadge={m(locale, "home.heroBadge")}
