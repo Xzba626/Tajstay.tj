@@ -2,12 +2,16 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { safeDbQuery } from "@/lib/db/safeDb";
 import { scoreHotelByIntent } from "@/lib/services/searchIntent";
+import { citiesMatch } from "@/lib/geo/cities";
+import { sortByDistance, type GeoCoords } from "@/lib/geo/distance";
 
 export type PropertyTypeFilter = "ANY" | "HOTEL" | "HOSTEL" | "GUEST_HOUSE" | "APARTMENT" | "ECO_HOUSE";
 
 type SearchInput = {
   q?: string;
   city?: string;
+  /** Boost hotels in this city (IP geo) when no explicit city filter */
+  nearbyCity?: string;
   guests?: number;
   minPrice?: number;
   maxPrice?: number;
@@ -17,6 +21,8 @@ type SearchInput = {
   parking?: boolean;
   ratingMin?: number;
   sortBy?: "POPULAR" | "PRICE_ASC" | "RATING_DESC";
+  /** Visitor GPS — sort by distance when set */
+  origin?: GeoCoords;
 };
 
 export async function searchApprovedHotels(input: SearchInput) {
@@ -92,6 +98,23 @@ async function searchApprovedHotelsQuery(input: SearchInput) {
       const bMin = b.rooms.length ? Math.min(...b.rooms.map((r) => Number(r.price))) : Number.POSITIVE_INFINITY;
       return aMin - bMin;
     });
+  }
+
+  if (input.nearbyCity?.trim() && !input.city?.trim() && !input.origin) {
+    const near = input.nearbyCity.trim();
+    hotels.sort((a, b) => {
+      const aNear = citiesMatch(a.city, near) ? 0 : 1;
+      const bNear = citiesMatch(b.city, near) ? 0 : 1;
+      if (aNear !== bNear) return aNear - bNear;
+      return b.rating - a.rating;
+    });
+  }
+
+  if (input.origin) {
+    return sortByDistance(
+      hotels.map((h) => ({ ...h, lat: h.latitude, lng: h.longitude })),
+      input.origin
+    );
   }
 
   return hotels;

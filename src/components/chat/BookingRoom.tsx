@@ -9,7 +9,6 @@ import { BookingTimeline } from "@/components/chat/BookingTimeline";
 import { ReviewBanner } from "@/components/chat/ReviewBanner";
 import { PaymentReviewCard } from "@/components/chat/PaymentReviewCard";
 import { GuestReviewWaitingCard } from "@/components/chat/GuestReviewWaitingCard";
-import { DisputeActions } from "@/components/chat/DisputeActions";
 import type { BookingTimelineEvent } from "@/lib/chat/bookingTimeline";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
@@ -164,8 +163,6 @@ export function BookingRoom(props: BookingRoomProps) {
         </div>
       ) : null}
 
-      <DisputeActions locale={locale} bookingId={bookingId} canOpen={currentUserRole !== "ADMIN"} />
-
       <div className="chat-page__layout">
         <main className="chat-page__thread">
           <BookingChatPanel
@@ -176,6 +173,7 @@ export function BookingRoom(props: BookingRoomProps) {
             bookingStatus={bookingStatus}
             paymentStatus={paymentStatus}
             checkInIso={checkInIso}
+            checkOutIso={checkOutIso}
             paymentCode={publicCode ?? undefined}
             presentation="page"
             title={title}

@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/requireAuth";
 import ReviewReplyForm from "@/components/ReviewReplyForm";
+import { stripCriteriaMarker } from "@/lib/reviews/criteria";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
 import { getOwnerPaymentMethods } from "@/lib/owner-payment-methods";
@@ -322,7 +323,7 @@ export default async function HotelDetailPage({
                       {m(locale, "profile.rating")}: {r.rating}/5
                     </div>
                     <div className="text-sm text-brand-200">{getBookingGuestLabel(r.booking)}</div>
-                    <div className="mt-3 whitespace-pre-wrap text-sm text-brand-200">{r.comment}</div>
+                    <div className="mt-3 whitespace-pre-wrap text-sm text-brand-200">{stripCriteriaMarker(r.comment)}</div>
                     {r.imageUrl && (
                       <div className="mt-3">
                         <AppImage

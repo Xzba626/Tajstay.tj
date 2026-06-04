@@ -4,6 +4,12 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/requireAuth";
 import { clientIp, rateLimit } from "@/lib/security/rateLimit";
 import { bookingHotel } from "@/lib/pms/bookingContext";
+import { BOOKING_STATUS } from "@/lib/domain/booking";
+import {
+  averageCriteriaRating,
+  encodeCriteriaInComment,
+  type ReviewCriteriaScores
+} from "@/lib/reviews/criteria";
 
 const safeImageUrl = z
   .string()
@@ -20,12 +26,25 @@ const safeImageUrl = z
     }
   }, { message: "imageUrl must be https or site-relative" });
 
-const schema = z.object({
-  bookingId: z.number().int(),
-  rating: z.number().int().min(1).max(5),
-  comment: z.string().min(5).max(2000),
-  imageUrl: safeImageUrl
+const criteriaSchema = z.object({
+  cleanliness: z.number().int().min(1).max(5),
+  staff: z.number().int().min(1).max(5),
+  location: z.number().int().min(1).max(5),
+  value: z.number().int().min(1).max(5),
+  overall: z.number().int().min(1).max(5)
 });
+
+const schema = z
+  .object({
+    bookingId: z.number().int(),
+    rating: z.number().int().min(1).max(5).optional(),
+    criteria: criteriaSchema.optional(),
+    comment: z.string().max(2000).optional(),
+    imageUrl: safeImageUrl
+  })
+  .refine((d) => d.rating != null || d.criteria != null, {
+    message: "rating or criteria required"
+  });
 
 export async function POST(req: Request) {
   const user = await requireUser(["GUEST", "OWNER"]);
@@ -49,7 +68,19 @@ export async function POST(req: Request) {
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
 
-  const { bookingId, rating, comment, imageUrl } = parsed.data;
+  const { bookingId, imageUrl } = parsed.data;
+  const criteria = parsed.data.criteria as ReviewCriteriaScores | undefined;
+  const rating = criteria ? averageCriteriaRating(criteria) : (parsed.data.rating ?? 5);
+  const commentText = (parsed.data.comment ?? "").trim();
+  const comment = criteria
+    ? encodeCriteriaInComment(commentText || "—", criteria)
+    : commentText.length >= 5
+      ? commentText
+      : null;
+
+  if (!comment) {
+    return NextResponse.json({ error: "Comment must be at least 5 characters when criteria omitted" }, { status: 400 });
+  }
 
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
@@ -63,10 +94,17 @@ export async function POST(req: Request) {
   if (!booking) return NextResponse.json({ error: "Booking not found" }, { status: 404 });
   if (booking.userId !== user.id) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  // Review rule: only after staying (check-out passed) + successful paid booking.
-  if (booking.status !== "CONFIRMED") return NextResponse.json({ error: "Отзыв доступен только после подтверждения брони владельцем" }, { status: 400 });
-  if (booking.paymentStatus !== "PAID") return NextResponse.json({ error: "Review allowed only for paid stays" }, { status: 400 });
-  if (booking.checkOut.getTime() > Date.now()) return NextResponse.json({ error: "Review allowed only after check-out" }, { status: 400 });
+  const allowedStatus =
+    booking.status === BOOKING_STATUS.CONFIRMED || booking.status === BOOKING_STATUS.COMPLETED;
+  if (!allowedStatus) {
+    return NextResponse.json({ error: "Отзыв доступен только после подтверждённого проживания" }, { status: 400 });
+  }
+  if (booking.paymentStatus !== "PAID") {
+    return NextResponse.json({ error: "Review allowed only for paid stays" }, { status: 400 });
+  }
+  if (booking.checkOut.getTime() > Date.now()) {
+    return NextResponse.json({ error: "Review allowed only after check-out" }, { status: 400 });
+  }
 
   const existing = await prisma.review.findUnique({ where: { bookingId } });
   if (existing) return NextResponse.json({ error: "Review already exists" }, { status: 409 });
@@ -80,7 +118,6 @@ export async function POST(req: Request) {
     }
   });
 
-  // Recompute rating for the hotel using all reviews.
   const hotelId = bookingHotel(booking).id;
   const hotelReviews = await prisma.review.findMany({
     where: { booking: { room: { hotelId } } },
@@ -95,4 +132,3 @@ export async function POST(req: Request) {
 
   return NextResponse.json({ ok: true, reviewId: review.id });
 }
-

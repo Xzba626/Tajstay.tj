@@ -8,6 +8,8 @@ import { useSearchFilters } from "@/features/search-hotels/model/useSearchFilter
 import dynamic from "next/dynamic";
 import { Modal } from "@/components/ui/Modal";
 import { AppImage } from "@/components/ui/AppImage";
+import type { Locale } from "@/lib/i18n/locale";
+import { m } from "@/lib/i18n/messages";
 
 const MapClient = dynamic(() => import("@/app/map/MapClient"), { ssr: false });
 
@@ -26,14 +28,17 @@ type Props = {
     ratingMin?: string;
     sortBy?: "POPULAR" | "PRICE_ASC" | "RATING_DESC";
   };
-  locale: string;
+  locale: Locale;
+  nearbyCity?: string | null;
 };
 
-export function SearchExperience({ initialHotels, initialFilters, locale }: Props) {
+export function SearchExperience({ initialHotels, initialFilters, locale, nearbyCity = null }: Props) {
   const { filters, setFilters } = useSearchFilters(initialFilters);
   const [hotels, setHotels] = useState(initialHotels);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [geoCoords, setGeoCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [geoError, setGeoError] = useState<string | null>(null);
   const [retryTick, setRetryTick] = useState(0);
   const [dateError, setDateError] = useState<string | null>(null);
   const [hoveredHotelId, setHoveredHotelId] = useState<number | null>(null);
@@ -48,8 +53,12 @@ export function SearchExperience({ initialHotels, initialFilters, locale }: Prop
     Object.entries(debouncedFilters).forEach(([key, value]) => {
       if (value) params.set(key, String(value));
     });
+    if (geoCoords) {
+      params.set("lat", String(geoCoords.lat));
+      params.set("lng", String(geoCoords.lng));
+    }
     return params.toString();
-  }, [debouncedFilters]);
+  }, [debouncedFilters, geoCoords]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -176,8 +185,40 @@ export function SearchExperience({ initialHotels, initialFilters, locale }: Prop
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="text-sm text-brand-200" aria-live="polite">
           {loading ? "Идёт поиск…" : `Найдено вариантов: ${hotels.length}`}
+          {nearbyCity && !filters.city && !geoCoords ? (
+            <span className="mt-1 block text-xs text-emerald-200/90">
+              {m(locale, "searchGeo.nearbyHint", { city: nearbyCity })}
+            </span>
+          ) : null}
+          {geoError ? (
+            <span className="mt-1 block text-xs text-amber-200/90" role="alert">
+              {geoError}
+            </span>
+          ) : null}
         </div>
         <div className="flex flex-wrap gap-2">
+          {!filters.city ? (
+            <button
+              type="button"
+              className="rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-5 py-2.5 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-500/20"
+              onClick={() => {
+                setGeoError(null);
+                if (!navigator.geolocation) {
+                  setGeoError(m(locale, "searchGeo.locationDenied"));
+                  return;
+                }
+                navigator.geolocation.getCurrentPosition(
+                  (pos) => {
+                    setGeoCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+                  },
+                  () => setGeoError(m(locale, "searchGeo.locationDenied")),
+                  { enableHighAccuracy: false, timeout: 12_000, maximumAge: 300_000 }
+                );
+              }}
+            >
+              {m(locale, "searchGeo.useMyLocation")}
+            </button>
+          ) : null}
           <button
             type="button"
             className="rounded-2xl border border-brand-500 px-5 py-2.5 text-sm font-semibold text-brand-100 transition hover:bg-brand-700"

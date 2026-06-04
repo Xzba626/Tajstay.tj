@@ -10,6 +10,7 @@ import { m } from "@/lib/i18n/messages";
 import { PaymentCountdown } from "@/app/payment/[code]/PaymentCountdown";
 import { TrustBadges } from "@/components/auth/TrustBadges";
 import type { TrustBadge } from "@/lib/auth/trustBadges";
+import { ChatComposeActions } from "@/components/chat/ChatComposeActions";
 
 function mapChatApiError(raw: string | undefined): string {
   const v = (raw || "").trim();
@@ -67,6 +68,7 @@ export type BookingChatPanelProps = {
   /** Язык интерфейса (cookie) — приветствие в чате и быстрые ответы */
   locale?: Locale;
   checkInIso?: string;
+  checkOutIso?: string;
   paymentCode?: string;
   title?: string;
   /** page — встроен в макет; overlay — полноэкранная панель поверх страницы */
@@ -144,6 +146,7 @@ export function BookingChatPanel({
   paymentStatus,
   locale = "ru",
   checkInIso,
+  checkOutIso,
   paymentCode,
   title = "Чат",
   presentation = "page",
@@ -920,6 +923,31 @@ export function BookingChatPanel({
               );
             })}
           </div>
+        ) : null}
+
+        {embeddedInRoom ? (
+          <ChatComposeActions
+            locale={locale}
+            bookingId={bookingId}
+            bookingStatus={effectiveStatus}
+            paymentStatus={effectivePaymentStatus}
+            paymentCode={paymentCode}
+            currentUserRole={currentUserRole}
+            checkOutIso={checkOutIso}
+            canGuestCancel={canGuestCancel}
+            onGuestCancel={() => setConfirmCancelOpen(true)}
+            onCheckoutConfirm={() => {
+              void callAction({
+                nextStatus: "COMPLETED",
+                url: `/api/bookings/${bookingId}/confirm-checkout`,
+                errorPrefix: "Не удалось подтвердить выезд"
+              });
+            }}
+            onDisputeOpened={() => {
+              void pull();
+            }}
+            suppressPaymentLink={suppressPaymentDeepLink}
+          />
         ) : null}
 
         <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />

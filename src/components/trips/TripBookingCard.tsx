@@ -49,7 +49,7 @@ export function TripBookingCard({ locale, user, booking }: Props) {
   const subtotal = Math.max(0, Number(booking.totalPrice) - Number(booking.commission ?? 0));
   const commission = Number(booking.commission ?? 0);
   const eligibleForReview =
-    booking.status === "CONFIRMED" &&
+    (booking.status === "CONFIRMED" || booking.status === "COMPLETED") &&
     booking.paymentStatus === "PAID" &&
     booking.checkOut.getTime() < Date.now() &&
     !booking.review;
@@ -137,9 +137,9 @@ export function TripBookingCard({ locale, user, booking }: Props) {
         <div className="mt-4">
           <LeaveReviewForm
             bookingId={booking.id}
+            locale={locale}
             labels={{
               title: m(locale, "guestDash.leaveReview"),
-              rating: m(locale, "profile.rating"),
               commentPlaceholder: m(locale, "guestDash.reviewCommentPh"),
               imagePlaceholder: m(locale, "guestDash.reviewImagePh"),
               sending: m(locale, "guestDash.reviewSending"),

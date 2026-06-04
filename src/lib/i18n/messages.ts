@@ -20,6 +20,11 @@ function pick(tree: Tree, path: string): string | undefined {
 }
 
 const ru: Tree = {
+  locale: {
+    detectBanner: "Мы определили ваш язык: {lang}. Верно?",
+    detectYes: "Да",
+    detectChange: "Изменить"
+  },
   header: {
     home: "Главная",
     search: "Поиск",
@@ -966,6 +971,11 @@ const ru: Tree = {
     leaveReview: "Оставить отзыв",
     reviewCommentPh: "Расскажите о проживании…",
     reviewImagePh: "Ссылка на фото (необязательно)",
+    reviewCriteriaCleanliness: "Чистота",
+    reviewCriteriaStaff: "Персонал",
+    reviewCriteriaLocation: "Расположение",
+    reviewCriteriaValue: "Цена/качество",
+    reviewCriteriaOverall: "Общая оценка",
     reviewSending: "Отправка…",
     complaintPlaceholder: "Опишите проблему кратко…",
     adminOnlyNotice:
@@ -1569,15 +1579,27 @@ const ru: Tree = {
         "4": "Решение по спору будет отображено в вашем кабинете."
       }
     },
+    actionPay: "Оплата",
+    actionCheckout: "Выезд подтверждён",
+    actionsGroup: "Действия по брони",
+    cancelBooking: "Отменить бронь",
+    checkoutConfirmedSystem: "Гость подтвердил выезд. Спасибо за проживание — можете оставить отзыв в «Мои бронирования».",
     dispute: {
       title: "Спор по брони",
-      open: "Открыть спор",
+      open: "Низоъ",
       openStatus: "Спор в обработке",
       placeholder: "Опишите проблему (минимум 10 символов)",
+      sheetHint: "Опишите проблему — мы создадим тикет и подключим администратора.",
+      openedSystem: "Спор открыт — администратор подключится в течение 2 часов.",
       submit: "Отправить",
       error: "Не удалось открыть спор"
     },
     readReceipt: "Прочитано"
+  },
+  searchGeo: {
+    nearbyHint: "Сначала отели в {city}",
+    useMyLocation: "Ближе ко мне",
+    locationDenied: "Не удалось получить геолокацию"
   },
   splash: {
     subtitle: "Жильё по всему Таджикистану"
@@ -1585,6 +1607,11 @@ const ru: Tree = {
 };
 
 const tg: Tree = {
+  locale: {
+    detectBanner: "Забони шуморо муайян кардем: {lang}. Дуруст аст?",
+    detectYes: "Бале",
+    detectChange: "Тағйир додан"
+  },
   header: {
     home: "Асосӣ",
     search: "Ҷустуҷӯ",
@@ -2530,6 +2557,11 @@ const tg: Tree = {
     leaveReview: "Назар гузоштан",
     reviewCommentPh: "Дар бораи ҷойгиршавӣ нависед…",
     reviewImagePh: "Пайванд ба сурат (ихтиёрӣ)",
+    reviewCriteriaCleanliness: "Тозагӣ",
+    reviewCriteriaStaff: "Персонал",
+    reviewCriteriaLocation: "Ҷойгиршавӣ",
+    reviewCriteriaValue: "Нарх/сифат",
+    reviewCriteriaOverall: "Умумӣ",
     reviewSending: "Фиристода мешавад…",
     complaintPlaceholder: "Мушкилро кӯтоҳ нависед…",
     adminOnlyNotice:
@@ -3104,20 +3136,37 @@ const tg: Tree = {
         "4": "Қарор дар кабинети шумо намоиш дода мешавад."
       }
     },
+    actionPay: "Пардохт",
+    actionCheckout: "Хуруҷ тасдиқ шуд",
+    actionsGroup: "Амалҳо оид ба брон",
+    cancelBooking: "Бронро бекор кунед",
+    checkoutConfirmedSystem: "Меҳмон хуруҷро тасдиқ кард. Ташаккур — дар «Бронҳои ман» метавонед назар гузоред.",
     dispute: {
       title: "Низоъ оид ба брон",
-      open: "Кушодани низоъ",
+      open: "Низоъ",
       openStatus: "Низоъ дар коркард",
       placeholder: "Мушкилотро тавсиф кунед (ҳадди ақал 10 аломат)",
+      sheetHint: "Мушкилотро тавсиф кунед — мо тикет месозем ва админро ҷалб мекунем.",
+      openedSystem: "Низоъ кушода шуд — админ дар давоми 2 соат пайваст мешавад.",
       submit: "Ирсол",
       error: "Кушода нашуд"
     },
     readReceipt: "Хонда шуд"
   },
+  searchGeo: {
+    nearbyHint: "Аввалан меҳмонхонаҳо дар {city}",
+    useMyLocation: "Наздиктар ба ман",
+    locationDenied: "Геолокатсия дастрас нашуд"
+  },
   splash: { subtitle: "Ҷойгиршавӣ дар саросари Тоҷикистон" }
 };
 
 const en: Tree = {
+  locale: {
+    detectBanner: "We detected your language: {lang}. Is that correct?",
+    detectYes: "Yes",
+    detectChange: "Change"
+  },
   header: {
     home: "Home",
     search: "Search",
@@ -4062,6 +4111,11 @@ const en: Tree = {
     leaveReview: "Leave a review",
     reviewCommentPh: "Tell us about your stay…",
     reviewImagePh: "Image URL (optional)",
+    reviewCriteriaCleanliness: "Cleanliness",
+    reviewCriteriaStaff: "Staff",
+    reviewCriteriaLocation: "Location",
+    reviewCriteriaValue: "Value for money",
+    reviewCriteriaOverall: "Overall",
     reviewSending: "Sending…",
     complaintPlaceholder: "Briefly describe the issue…",
     adminOnlyNotice:
@@ -4636,15 +4690,27 @@ const en: Tree = {
         "4": "The dispute resolution will appear in your dashboard."
       }
     },
+    actionPay: "Payment",
+    actionCheckout: "Checkout confirmed",
+    actionsGroup: "Booking actions",
+    cancelBooking: "Cancel booking",
+    checkoutConfirmedSystem: "Guest confirmed checkout. Thank you — you can leave a review under My bookings.",
     dispute: {
       title: "Booking dispute",
-      open: "Open dispute",
+      open: "Dispute",
       openStatus: "Dispute in progress",
       placeholder: "Describe the issue (at least 10 characters)",
+      sheetHint: "Describe the issue — we will open a ticket and notify an administrator.",
+      openedSystem: "Dispute opened — an administrator will join within 2 hours.",
       submit: "Submit",
       error: "Could not open dispute"
     },
     readReceipt: "Read"
+  },
+  searchGeo: {
+    nearbyHint: "Hotels in {city} shown first",
+    useMyLocation: "Closer to me",
+    locationDenied: "Could not get your location"
   },
   splash: { subtitle: "Stays across Tajikistan" }
 };
