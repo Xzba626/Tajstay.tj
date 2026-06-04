@@ -7,8 +7,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
 import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
-import LogoutButton from "@/components/LogoutButton";
-import { BrandMark } from "@/components/brand/BrandMark";
 import type { AdminMobileShellLabels } from "@/components/admin/mobile/AdminMobileShell";
 
 type DrawerItem = { section: string; label: string };
@@ -88,8 +86,7 @@ export function AdminMobileDrawer({
               if (info.offset.x > 80) onClose();
             }}
           >
-            <div className="admin-mobile-drawer__head">
-              <BrandMark className="h-8 w-auto" />
+            <div className="admin-mobile-drawer__head admin-mobile-drawer__head--close-only">
               <button type="button" className="admin-mobile-header__icon-btn" onClick={onClose} aria-label={m(locale, "admin.cancel")}>
                 <X size={22} aria-hidden />
               </button>
@@ -118,15 +115,6 @@ export function AdminMobileDrawer({
                 </button>
               ))}
             </nav>
-
-            <div className="admin-mobile-drawer__footer">
-              <Link href="/profile" className="admin-mobile-drawer__link" onClick={onClose}>
-                {labels.profile}
-              </Link>
-              <div className="admin-mobile-drawer__logout">
-                <LogoutButton label={labels.logout} variant="row" />
-              </div>
-            </div>
           </motion.aside>
         </>
       ) : null}

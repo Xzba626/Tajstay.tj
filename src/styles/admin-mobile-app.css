@@ -326,6 +326,11 @@
   margin-bottom: 1.25rem;
 }
 
+.admin-mobile-drawer__head--close-only {
+  justify-content: flex-end;
+  margin-bottom: 0.5rem;
+}
+
 .admin-mobile-drawer__profile {
   display: flex;
   gap: 0.75rem;

@@ -11,6 +11,10 @@ import { PaymentCountdown } from "@/app/payment/[code]/PaymentCountdown";
 import { TrustBadges } from "@/components/auth/TrustBadges";
 import type { TrustBadge } from "@/lib/auth/trustBadges";
 import { ChatComposeActions } from "@/components/chat/ChatComposeActions";
+import {
+  BookingChatRoomContext,
+  type BookingChatRoomContextProps
+} from "@/components/chat/BookingChatRoomContext";
 
 function mapChatApiError(raw: string | undefined): string {
   const v = (raw || "").trim();
@@ -86,6 +90,8 @@ export type BookingChatPanelProps = {
   suppressReviewActions?: boolean;
   /** Внутри BookingRoom: без дублирующего header, на всю высоту колонки */
   embeddedInRoom?: boolean;
+  /** Бронь / оплата / таймлайн — внутри ленты чата */
+  roomContext?: Omit<BookingChatRoomContextProps, "expiresAtIso" | "paymentTimerPaused">;
 };
 
 function timeLabel(iso: string): string {
@@ -158,7 +164,8 @@ export function BookingChatPanel({
   density = "default",
   suppressPaymentDeepLink = false,
   suppressReviewActions = false,
-  embeddedInRoom = false
+  embeddedInRoom = false,
+  roomContext
 }: BookingChatPanelProps) {
   const [items, setItems] = useState<ChatMessage[]>([]);
   const [text, setText] = useState("");
@@ -698,6 +705,13 @@ export function BookingChatPanel({
         ref={scrollRef}
         className="chat-messages min-h-0 flex-1 overflow-y-auto overscroll-contain sm:min-h-[280px]"
       >
+        {embeddedInRoom && roomContext ? (
+          <BookingChatRoomContext
+            {...roomContext}
+            expiresAtIso={liveBooking?.expiresAt ?? null}
+            paymentTimerPaused={liveBooking?.paymentTimerPaused}
+          />
+        ) : null}
         {chatArchived ? (
           <div className="mx-auto max-w-md rounded-2xl border border-amber-400/20 bg-amber-500/10 px-4 py-3 text-center text-sm text-amber-100/90 backdrop-blur-md">
             Переписка перенесена в архив (хранение по политике сервиса). Сообщения ниже доступны для просмотра. Отправка недоступна.
