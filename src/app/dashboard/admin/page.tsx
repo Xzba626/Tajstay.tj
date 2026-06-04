@@ -31,6 +31,9 @@ import {
   type AdminMobileDashboardStats,
   type AdminMobileQuickAction
 } from "@/components/admin/mobile/AdminMobileDashboard";
+import { fetchLastSessionsForUsers, type UserLastSession } from "@/lib/admin/userLastSessions";
+import { userAgentLabel } from "@/lib/auth/userAgentLabel";
+import { formatUserDisplayName } from "@/lib/users/displayName";
 
 export const dynamic = "force-dynamic";
 
@@ -154,6 +157,7 @@ export default async function AdminDashboardPage({
   let mobileDashboardStats: AdminMobileDashboardStats | null = null;
   let mobileQuickActions: AdminMobileQuickAction[] = [];
   let mobileActivity: AdminMobileActivityItem[] = [];
+  let userLastSessions = new Map<number, UserLastSession>();
 
   if (activeSection === "dashboard") {
     const startOfToday = new Date();
@@ -323,6 +327,7 @@ export default async function AdminDashboardPage({
       skip: (page - 1) * pageSize,
       take: pageSize
     });
+    userLastSessions = await fetchLastSessionsForUsers(users.map((u) => u.id));
   } else if (activeSection === "owner-access") {
     const where = {
       role: "OWNER",
@@ -910,23 +915,52 @@ export default async function AdminDashboardPage({
           ]}
         />
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="hidden grid-cols-[1.2fr_1fr_1fr_1.4fr] gap-4 border-b border-slate-100 bg-slate-50/80 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 md:grid">
-            <div>{m(locale, "admin.name")}</div>
+          <div className="hidden grid-cols-[1.2fr_1fr_1fr_1.1fr_1.2fr] gap-4 border-b border-slate-100 bg-slate-50/80 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 lg:grid">
+            <div>{m(locale, "admin.userName")}</div>
             <div>{m(locale, "profile.email")}</div>
             <div>{m(locale, "profile.phone")}</div>
+            <div>{m(locale, "admin.userDevice")}</div>
             <div>{m(locale, "admin.management")}</div>
           </div>
           <ul className="divide-y divide-slate-100">
-            {users.map((u) => (
+            {users.map((u) => {
+              const displayName = formatUserDisplayName(u);
+              const session = userLastSessions.get(u.id);
+              return (
               <li key={u.id} className="px-4 py-4 transition-colors hover:bg-slate-50/80 md:px-5">
-                <div className="grid gap-4 md:grid-cols-[1.2fr_1fr_1fr_1.4fr] md:items-center">
+                <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr_1fr_1.1fr_1.2fr] lg:items-start">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-medium text-slate-900">{u.name}</span>
+                    <div className="min-w-0">
+                      <span className="font-medium text-slate-900">{displayName}</span>
+                      {displayName !== u.name && u.name?.trim() ? (
+                        <div className="text-xs text-slate-500">{u.name}</div>
+                      ) : null}
+                    </div>
                     <StatusBadge variant={roleVariant(u.role)}>{tRole(u.role)}</StatusBadge>
                     {u.isBanned && <StatusBadge variant="danger">{m(locale, "admin.ban")}</StatusBadge>}
                   </div>
-                  <div className="text-sm text-slate-600">{u.email ?? "—"}</div>
-                  <div className="text-sm text-slate-600">{u.phone}</div>
+                  <div className="text-sm text-slate-600">
+                    <span className="font-medium text-slate-400 lg:hidden">{m(locale, "profile.email")}: </span>
+                    {u.email ?? "—"}
+                  </div>
+                  <div className="text-sm text-slate-600">
+                    <span className="font-medium text-slate-400 lg:hidden">{m(locale, "profile.phone")}: </span>
+                    {u.phone}
+                  </div>
+                  <div className="text-sm text-slate-600">
+                    <span className="font-medium text-slate-400 lg:hidden">{m(locale, "admin.userDevice")}: </span>
+                    {session ? (
+                      <>
+                        <div>{userAgentLabel(session.userAgent)}</div>
+                        <div className="text-xs text-slate-500">
+                          {session.ip ? `${session.ip} · ` : ""}
+                          {formatDateTimeShort(locale, session.at)}
+                        </div>
+                      </>
+                    ) : (
+                      <span className="text-slate-400">{m(locale, "admin.noDeviceData")}</span>
+                    )}
+                  </div>
                   <div>
                     <form action="/api/admin/users/update" method="post" className="flex flex-wrap items-center gap-2">
                       <input type="hidden" name="id" value={u.id} />
@@ -946,7 +980,8 @@ export default async function AdminDashboardPage({
                   </div>
                 </div>
               </li>
-            ))}
+            );
+            })}
           </ul>
         </div>
         {!users.length && <EmptyState title={m(locale, "admin.emptyResults")} description={m(locale, "admin.emptyResultsHint")} />}
