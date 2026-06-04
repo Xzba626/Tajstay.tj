@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
 import { SearchExperience } from "@/widgets/search-filters/SearchExperience";
+import { headers } from "next/headers";
+import { getCityFromRequestHeaders, sortHotelsByNearbyCity } from "@/lib/geo/ipCity";
 
 const BOOK_ERR_KEYS: Record<string, string> = {
   invalid: "checkout.errInvalid",
@@ -41,11 +43,14 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function SearchPage({ searchParams }: Props) {
   const locale = getLocale();
+  const hdrs = headers();
+  const nearbyCity = searchParams.city ? null : await getCityFromRequestHeaders(hdrs);
   const bookErr = (searchParams.bookErr ?? "").trim();
   const errPath = BOOK_ERR_KEYS[bookErr];
-  const hotels = await searchApprovedHotels({
+  const hotelsRaw = await searchApprovedHotels({
     q: searchParams.q,
     city: searchParams.city,
+    nearbyCity: nearbyCity ?? undefined,
     guests: Number(searchParams.guests || 1),
     minPrice: searchParams.minPrice ? Number(searchParams.minPrice) : undefined,
     maxPrice: searchParams.maxPrice ? Number(searchParams.maxPrice) : undefined,
@@ -56,6 +61,7 @@ export default async function SearchPage({ searchParams }: Props) {
     ratingMin: searchParams.ratingMin ? Number(searchParams.ratingMin) : undefined,
     sortBy: searchParams.sortBy ?? "POPULAR"
   });
+  const hotels = sortHotelsByNearbyCity(hotelsRaw, nearbyCity);
 
   return (
     <div className="mx-auto flex w-[94%] max-w-7xl flex-col justify-center space-y-8 px-0 py-8 sm:w-full sm:px-6 lg:px-8">
@@ -76,6 +82,7 @@ export default async function SearchPage({ searchParams }: Props) {
         <SearchExperience
           initialHotels={hotels}
           locale={locale}
+          nearbyCity={nearbyCity}
           initialFilters={{
             q: searchParams.q,
             city: searchParams.city,

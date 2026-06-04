@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { searchApprovedHotels } from "@/lib/services/search";
+import { getCityFromRequestHeaders } from "@/lib/geo/ipCity";
 
 export async function GET(req: NextRequest) {
   const url = req.nextUrl;
+  const nearbyCity = await getCityFromRequestHeaders(req.headers);
+  const lat = Number(url.searchParams.get("lat") ?? "");
+  const lng = Number(url.searchParams.get("lng") ?? "");
+  const origin =
+    Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180
+      ? { lat, lng }
+      : undefined;
   const q = url.searchParams.get("q") ?? undefined;
   const city = url.searchParams.get("city") ?? undefined;
   const guests = Number(url.searchParams.get("guests") ?? "1");
@@ -15,6 +23,8 @@ export async function GET(req: NextRequest) {
   const hotels = await searchApprovedHotels({
     q,
     city,
+    nearbyCity: city ? undefined : nearbyCity ?? undefined,
+    origin,
     guests: Number.isFinite(guests) && guests > 0 ? guests : 1,
     minPrice: Number.isFinite(minPrice) ? minPrice : undefined,
     maxPrice: Number.isFinite(maxPrice) ? maxPrice : undefined,

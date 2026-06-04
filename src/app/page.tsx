@@ -17,10 +17,15 @@ import { PageContainer, SectionContainer, ContentGrid, EmptyStateCard } from "@/
 import { HomeSectionHeader } from "@/components/home/HomeSectionHeader";
 import { HomeReviewsSection } from "@/components/home/HomeReviewsSection";
 import { HomeHeroMobile } from "@/components/home/HomeHeroMobile";
+import { headers } from "next/headers";
+import { getCityFromRequestHeaders, sortHotelsByNearbyCity } from "@/lib/geo/ipCity";
 
 export default async function HomePage() {
   const locale = getLocale();
-  const featured = await searchApprovedHotels({});
+  const hdrs = headers();
+  const nearbyCity = await getCityFromRequestHeaders(hdrs);
+  const featuredRaw = await searchApprovedHotels({});
+  const featured = sortHotelsByNearbyCity(featuredRaw, nearbyCity);
   const content = await getSiteContent();
 
   const destinationCards = [

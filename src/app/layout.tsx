@@ -14,6 +14,7 @@ import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { AppShell } from "@/components/navigation/AppShell";
 import { CookieConsent } from "@/components/layout/CookieConsent";
 import { SplashScreen } from "@/components/layout/SplashScreen";
+import { LocaleDetectBanner } from "@/components/layout/LocaleDetectBanner";
 import { PageBackdrop } from "@/components/effects/PageBackdrop";
 import { GlobalToast } from "@/components/layout/GlobalToast";
 import { PwaClientShell } from "@/components/pwa/PwaClientShell";
@@ -96,6 +97,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           <SplashScreen />
           <PageBackdrop />
           <GlobalToast />
+          <LocaleDetectBanner locale={locale} />
           <PwaClientShell
             isAuthed={Boolean(user)}
             initialUnreadCount={unreadCount}
