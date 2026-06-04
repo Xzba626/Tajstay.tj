@@ -168,6 +168,8 @@ export function ProfileTelegramChangeClient({ locale, currentTelegramLabel, curr
       backLabel={m(locale, "common.back")}
       title={m(locale, "profile.changeTelegram")}
       hint={m(locale, "profile.contactTelegramHint")}
+      helpKey="telegramChange"
+      locale={locale}
     >
       <div className="profile-panel profile-panel--stack mt-4">
         <p className="text-sm text-[var(--text-muted)]">

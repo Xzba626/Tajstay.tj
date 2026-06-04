@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
 import { AmenityCheckboxGrid } from "@/components/owner/AmenityCheckboxGrid";
+import { FieldLabelRow } from "@/components/ui/FieldLabelRow";
 
 type HotelOption = { id: number; name: string };
 type RoomTypeRow = {
@@ -176,10 +177,22 @@ export function OwnerRoomTypesPanel({
             <option value="range">{m(locale, "owner.pms.bulkRange")}</option>
             <option value="prefix">{m(locale, "owner.pms.bulkPrefix")}</option>
           </select>
-          <input name="from" type="number" placeholder="101" className="h-11 rounded-xl border border-white/15 bg-slate-950 px-3 text-sm text-white" />
-          <input name="to" type="number" placeholder="120" className="h-11 rounded-xl border border-white/15 bg-slate-950 px-3 text-sm text-white" />
-          <input name="prefix" placeholder="A-" className="h-11 rounded-xl border border-white/15 bg-slate-950 px-3 text-sm text-white" />
-          <input name="count" type="number" min={1} placeholder="10" className="h-11 rounded-xl border border-white/15 bg-slate-950 px-3 text-sm text-white" />
+          <div>
+            <FieldLabelRow locale={locale} variant="dark" label={m(locale, "owner.pms.bulkFrom")} helpKey="bulkRange" />
+            <input name="from" type="number" placeholder="101" className="h-11 w-full rounded-xl border border-white/15 bg-slate-950 px-3 text-sm text-white" />
+          </div>
+          <div>
+            <FieldLabelRow locale={locale} variant="dark" label={m(locale, "owner.pms.bulkTo")} helpKey="bulkRange" />
+            <input name="to" type="number" placeholder="120" className="h-11 w-full rounded-xl border border-white/15 bg-slate-950 px-3 text-sm text-white" />
+          </div>
+          <div>
+            <FieldLabelRow locale={locale} variant="dark" label={m(locale, "owner.pms.bulkPrefixLabel")} helpKey="bulkPrefix" />
+            <input name="prefix" placeholder="A-" className="h-11 w-full rounded-xl border border-white/15 bg-slate-950 px-3 text-sm text-white" />
+          </div>
+          <div>
+            <FieldLabelRow locale={locale} variant="dark" label={m(locale, "owner.pms.bulkCount")} helpKey="bulkPrefix" />
+            <input name="count" type="number" min={1} placeholder="10" className="h-11 w-full rounded-xl border border-white/15 bg-slate-950 px-3 text-sm text-white" />
+          </div>
           <input name="bulkPrice" type="number" min={0} required placeholder={m(locale, "owner.priceNight")} className="h-11 rounded-xl border border-white/15 bg-slate-950 px-3 text-sm text-white" />
           <input name="bulkCapacity" type="number" min={1} defaultValue={2} className="h-11 rounded-xl border border-white/15 bg-slate-950 px-3 text-sm text-white" />
           <button type="submit" className="h-11 rounded-xl bg-emerald-700 px-4 text-sm font-semibold text-white md:col-span-2">

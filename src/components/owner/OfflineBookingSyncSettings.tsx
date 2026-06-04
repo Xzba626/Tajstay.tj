@@ -3,6 +3,7 @@
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
 import type { OwnerPmsSettings } from "@/lib/pms/ownerPmsSettings";
+import { FieldHelp } from "@/components/ui/FieldHelp";
 
 type Props = {
   locale: Locale;
@@ -24,11 +25,17 @@ export function OfflineBookingSyncSettings({ locale, settings, saved }: Props) {
       <form action="/api/owner/offline-settings" method="post" className="offline-sync-card__form">
         <label className="offline-sync-card__row">
           <input type="checkbox" name="offlineCloudSync" value="1" defaultChecked={settings.offlineCloudSync} />
-          <span>{m(locale, "owner.offline.syncCloud")}</span>
+          <span className="flex flex-1 flex-wrap items-center gap-2">
+            {m(locale, "owner.offline.syncCloud")}
+            <FieldHelp locale={locale} helpKey="offlineSyncCloud" variant="dark" />
+          </span>
         </label>
         <p className="offline-sync-card__note">{m(locale, "owner.offline.syncCloudNote")}</p>
 
-        <label className="offline-sync-card__label">{m(locale, "owner.offline.syncInterval")}</label>
+        <div className="offline-sync-card__label-row flex flex-wrap items-center gap-2">
+          <span className="offline-sync-card__label">{m(locale, "owner.offline.syncInterval")}</span>
+          <FieldHelp locale={locale} helpKey="offlineSyncInterval" variant="dark" />
+        </div>
         <select
           name="offlineSyncInterval"
           defaultValue={settings.offlineSyncInterval}
