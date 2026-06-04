@@ -1542,6 +1542,9 @@ const ru: Tree = {
     adminCancelBooking: "Отменить бронь (админ)",
     confirmPayBig: "Подтвердить оплату и бронь",
     you: "Вы",
+    send: "Отправить",
+    messagePlaceholder: "Сообщение…",
+    quickReplies: "Быстрые ответы",
     modalBack: "Назад",
     adminCancelTitle: "Отменить бронирование?",
     adminCancelDesc:
@@ -3071,6 +3074,9 @@ const tg: Tree = {
     adminCancelBooking: "Бронро бекор кунед (админ)",
     confirmPayBig: "Пардохт ва бронро тасдиқ кунед",
     you: "Шумо",
+    send: "Фиристодан",
+    messagePlaceholder: "Паём…",
+    quickReplies: "Ҷавобҳои тез",
     modalBack: "Бозгашт",
     adminCancelTitle: "Бронро бекор кунем?",
     adminCancelDesc:
@@ -4597,6 +4603,9 @@ const en: Tree = {
     adminCancelBooking: "Cancel booking (admin)",
     confirmPayBig: "Confirm payment & booking",
     you: "You",
+    send: "Send",
+    messagePlaceholder: "Message…",
+    quickReplies: "Quick replies",
     modalBack: "Back",
     adminCancelTitle: "Cancel this booking?",
     adminCancelDesc:

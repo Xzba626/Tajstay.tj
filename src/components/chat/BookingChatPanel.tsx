@@ -128,6 +128,14 @@ function avatarLetter(name: string): string {
   return t.slice(0, 1).toUpperCase();
 }
 
+function SendPlaneIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M2.01 21 23 12 2.01 3 2 10l15 2-15 2z" />
+    </svg>
+  );
+}
+
 export function BookingChatPanel({
   bookingId,
   currentUserId,
@@ -166,6 +174,7 @@ export function BookingChatPanel({
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const initialScrollDone = useRef(false);
 
   const applyMessagesPayload = useCallback((json: {
     messages?: ChatMessage[];
@@ -264,13 +273,21 @@ export function BookingChatPanel({
   }, [pull, bookingId]);
 
   useEffect(() => {
+    initialScrollDone.current = false;
+  }, [bookingId]);
+
+  useEffect(() => {
     const el = scrollRef.current;
-    if (el) {
-      el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
-    } else {
-      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [items.length, chatArchived]);
+    if (!el || items.length === 0) return;
+
+    const scrollToEnd = () => {
+      const behavior = initialScrollDone.current ? "smooth" : "auto";
+      el.scrollTo({ top: el.scrollHeight, behavior });
+      initialScrollDone.current = true;
+    };
+
+    requestAnimationFrame(() => requestAnimationFrame(scrollToEnd));
+  }, [items, chatArchived]);
 
   const canSubmit = useMemo(() => (text.trim().length > 0 || !!file) && !sending && canSend && !chatArchived, [text, file, sending, canSend, chatArchived]);
 
@@ -697,10 +714,8 @@ export function BookingChatPanel({
             {groupedItems.map((row) => {
               if (row.kind === "date") {
                 return (
-                  <div key={row.key} className="my-2 flex justify-center">
-                    <span className="rounded-full border border-white/10 bg-white/5 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
-                      {row.label}
-                    </span>
+                  <div key={row.key} className="chat-date-divider">
+                    <span>{row.label}</span>
                   </div>
                 );
               }
@@ -710,15 +725,9 @@ export function BookingChatPanel({
               const fromGuest = msg.senderRole === "GUEST";
               if (system) {
                 return (
-                  <div key={row.key} className="mx-auto my-1 max-w-[92%]">
-                    <div className="rounded-xl border border-violet-400/20 bg-violet-500/10 px-3 py-2 text-center">
-                      <p className="text-[11px] leading-snug text-violet-100/90">
-                        <span aria-hidden className="mr-1">
-                          🛡️
-                        </span>
-                        {msg.message.replace(/^🛡️\s*/, "")}
-                      </p>
-                      <p className="mt-1 text-[9px] text-violet-300/50">{timeLabel(msg.createdAt)}</p>
+                  <div key={row.key} className="flex justify-center px-1 py-0.5">
+                    <div className="chat-bubble chat-bubble--system">
+                      {msg.message.replace(/^🛡️\s*/, "")}
                     </div>
                   </div>
                 );
@@ -729,7 +738,7 @@ export function BookingChatPanel({
                   className={`chat-bubble-row ${fromGuest ? "chat-bubble-row--mine" : "chat-bubble-row--theirs"} ${row.showMeta ? "mt-2" : "mt-0.5"}`}
                 >
                   <div
-                    className={`chat-bubble ${fromGuest ? "chat-bubble--mine" : "chat-bubble--theirs"}`}
+                    className={`group chat-bubble ${fromGuest ? "chat-bubble--mine" : "chat-bubble--theirs"}`}
                   >
                     {isAdmin && !isSyntheticArchiveChatMessageId(msg.id) ? (
                       <button
@@ -742,24 +751,22 @@ export function BookingChatPanel({
                       </button>
                     ) : null}
                     {row.showMeta ? (
-                      <div
-                        className={`mb-1 flex items-center justify-between gap-2 text-[10px] ${fromGuest ? "text-emerald-100/90" : "text-slate-400"}`}
-                      >
+                      <div className="chat-bubble__meta mb-1 flex items-center justify-between gap-2">
                         <span className="font-medium">{mine ? m(locale, "chat.you") : msg.senderName}</span>
-                        <span>
+                        <span className="chat-bubble__time">
                           {timeLabel(msg.createdAt)}
                           {mine && msg.readAt ? (
-                            <span className="ml-1 text-emerald-200/70" title={m(locale, "chat.readReceipt")}>
+                            <span className="chat-bubble__read ml-1" title={m(locale, "chat.readReceipt")}>
                               ✓✓
                             </span>
                           ) : null}
                         </span>
                       </div>
                     ) : (
-                      <div className={`text-right text-[9px] ${fromGuest ? "text-emerald-100/60" : "text-slate-500"}`}>
+                      <div className="chat-bubble__time text-right">
                         {timeLabel(msg.createdAt)}
                         {mine && msg.readAt ? (
-                          <span className="ml-1 text-emerald-200/70" title={m(locale, "chat.readReceipt")}>
+                          <span className="chat-bubble__read ml-1" title={m(locale, "chat.readReceipt")}>
                             ✓✓
                           </span>
                         ) : null}
@@ -864,36 +871,21 @@ export function BookingChatPanel({
         ) : null}
 
         {isGuest && canSend && (effectiveStatus === "WAITING_PAYMENT" || effectiveStatus === "WAIT_PROOF") ? (
-          <div className="chat-compose__quick">
-            <button
-              type="button"
-              disabled={sending}
-              onClick={() => void sendQuickReply(m(locale, "chat.quickPaidBtn"))}
-              className="rounded-full border border-emerald-400/25 bg-emerald-500/10 px-3 py-2 text-[11px] font-semibold text-emerald-100 disabled:opacity-50"
-            >
+          <div className="chat-compose__quick" role="group" aria-label={m(locale, "chat.quickReplies")}>
+            <button type="button" disabled={sending} onClick={() => void sendQuickReply(m(locale, "chat.quickPaidBtn"))}>
               {m(locale, "chat.quickPaidBtn")}
             </button>
-            <button
-              type="button"
-              disabled={sending}
-              onClick={() => void sendQuickReply(m(locale, "chat.quickUploadReceipt"))}
-              className="rounded-full border border-white/12 bg-white/5 px-3 py-2 text-[11px] font-semibold text-slate-200 disabled:opacity-50"
-            >
+            <button type="button" disabled={sending} onClick={() => void sendQuickReply(m(locale, "chat.quickUploadReceipt"))}>
               {m(locale, "chat.quickUploadReceipt")}
             </button>
-            <button
-              type="button"
-              disabled={sending}
-              onClick={() => void sendQuickReply(m(locale, "chat.quickAlmostThere"))}
-              className="rounded-full border border-white/12 bg-white/5 px-3 py-2 text-[11px] font-semibold text-slate-200 disabled:opacity-50"
-            >
+            <button type="button" disabled={sending} onClick={() => void sendQuickReply(m(locale, "chat.quickAlmostThere"))}>
               {m(locale, "chat.quickAlmostThere")}
             </button>
           </div>
         ) : null}
 
         {isOwner && canSend && !chatArchived ? (
-          <div className="flex flex-wrap gap-2">
+          <div className="chat-compose__quick" role="group" aria-label={m(locale, "chat.quickReplies")}>
             {HOST_QUICK_KEYS.map((k) => {
               const label = m(locale, `chat.quickReply.host.${k}`);
               return (
@@ -903,7 +895,6 @@ export function BookingChatPanel({
                   disabled={sending}
                   title={label}
                   onClick={() => void sendQuickReply(label)}
-                  className="max-w-[220px] truncate rounded-full border border-emerald-400/25 bg-emerald-500/10 px-3 py-2 text-[11px] font-semibold text-emerald-100 disabled:opacity-50"
                 >
                   {label}
                 </button>
@@ -913,7 +904,7 @@ export function BookingChatPanel({
         ) : null}
 
         {isAdmin && canSend && !chatArchived ? (
-          <div className="flex flex-wrap gap-2">
+          <div className="chat-compose__quick" role="group" aria-label={m(locale, "chat.quickReplies")}>
             {ADMIN_QUICK_KEYS.map((k) => {
               const label = m(locale, `chat.quickReply.admin.${k}`);
               return (
@@ -923,7 +914,6 @@ export function BookingChatPanel({
                   disabled={sending}
                   title={label}
                   onClick={() => void sendQuickReply(label)}
-                  className="max-w-[220px] truncate rounded-full border border-indigo-400/25 bg-indigo-500/10 px-3 py-2 text-[11px] font-semibold text-indigo-100 disabled:opacity-50"
                 >
                   {label}
                 </button>
@@ -947,7 +937,7 @@ export function BookingChatPanel({
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder={chatArchived ? "Архив…" : "Сообщение…"}
+            placeholder={chatArchived ? "Архив…" : m(locale, "chat.messagePlaceholder")}
             disabled={chatArchived || !canSend}
             rows={1}
             className="chat-compose__input disabled:opacity-50"
@@ -966,8 +956,9 @@ export function BookingChatPanel({
             }}
             disabled={!canSubmit}
             className="chat-compose__send disabled:opacity-45"
+            aria-label={m(locale, "chat.send")}
           >
-            {sending ? "…" : "Отпр."}
+            {sending ? <span className="text-sm font-bold">…</span> : <SendPlaneIcon />}
           </button>
         </div>
         {error ? <div className="text-xs text-red-300">{error}</div> : null}
