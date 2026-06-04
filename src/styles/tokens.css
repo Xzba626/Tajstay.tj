@@ -105,11 +105,12 @@
   --taj-public-surface: rgba(1, 47, 26, 0.72);
   --taj-public-surface-strong: rgba(1, 47, 26, 0.86);
 
-  /* Chat */
-  --taj-chat-bg: #f7fcf9;
+  /* Chat — messenger on emerald shell */
+  --taj-chat-bg: rgba(1, 47, 26, 0.28);
   --taj-chat-bubble-guest: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-  --taj-chat-bubble-host: #ffffff;
-  --taj-chat-input-bg: #ffffff;
+  --taj-chat-bubble-host: rgba(1, 47, 26, 0.92);
+  --taj-chat-bubble-host-text: #e2f4ea;
+  --taj-chat-input-bg: rgba(1, 47, 26, 0.72);
 
   /* Legacy DS aliases */
   --ds-primary: var(--taj-emerald-700);
