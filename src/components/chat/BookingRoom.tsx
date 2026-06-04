@@ -2,6 +2,13 @@
 
 import Link from "next/link";
 import { BookingChatPanel } from "@/components/chat/BookingChatPanel";
+import { BookingChatHeader } from "@/components/chat/BookingChatHeader";
+import { PaymentMethodsBlock } from "@/components/chat/PaymentMethodsBlock";
+import { ProofUploadPanel } from "@/components/chat/ProofUploadPanel";
+import { BookingTimeline } from "@/components/chat/BookingTimeline";
+import { ReviewBanner } from "@/components/chat/ReviewBanner";
+import { PaymentReviewCard } from "@/components/chat/PaymentReviewCard";
+import { GuestReviewWaitingCard } from "@/components/chat/GuestReviewWaitingCard";
 import type { BookingTimelineEvent } from "@/lib/chat/bookingTimeline";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
@@ -111,29 +118,64 @@ export function BookingRoom(props: BookingRoomProps) {
         <Link href="/dashboard/messages">{m(locale, "bookingRoom.allMessages")}</Link>
       </nav>
 
-      <div className="chat-page__thread chat-page__thread--solo">
-        <BookingChatPanel
-          bookingId={bookingId}
-          currentUserId={currentUserId}
-          currentUserRole={currentUserRole}
-          locale={locale}
-          bookingStatus={bookingStatus}
-          paymentStatus={paymentStatus}
-          checkInIso={checkInIso}
-          checkOutIso={checkOutIso}
-          paymentCode={publicCode ?? undefined}
-          presentation="page"
-          title={title}
-          hotelName={hotelName}
-          roomTitle={roomTitle}
-          counterpartPreview={counterpartPreview}
-          counterpartTrustBadges={counterpartTrustBadges}
-          suppressPaymentDeepLink
-          suppressReviewActions={showReviewCard}
-          embeddedInRoom
-          density="compact"
-          roomContext={roomContext}
-        />
+      <BookingChatHeader
+        locale={locale}
+        hotelName={hotelName}
+        roomTitle={roomTitle}
+        coverImageUrl={coverImageUrl}
+        checkInIso={checkInIso}
+        checkOutIso={checkOutIso}
+        guestCount={guestCount}
+        totalPrice={Number(totalPrice)}
+        currency={currency}
+        bookingStatus={bookingStatus}
+        paymentStatus={paymentStatus}
+        publicCode={publicCode}
+        compact
+      />
+
+      {showReviewUi ? (
+        <ReviewBanner locale={locale} role={currentUserRole} proofReviewDeadlineAt={proofReviewDeadlineAt} />
+      ) : null}
+
+      {proofSent && !isOnReview ? (
+        <div className="chat-proof-card" role="status">
+          <span className="chat-proof-card__status chat-proof-card__status--pending">{m(locale, "bookingRoom.proof.sentBanner")}</span>
+        </div>
+      ) : null}
+
+      <div className="chat-page__layout">
+        <main className="chat-page__thread">
+          <BookingChatPanel
+            bookingId={bookingId}
+            currentUserId={currentUserId}
+            currentUserRole={currentUserRole}
+            locale={locale}
+            bookingStatus={bookingStatus}
+            paymentStatus={paymentStatus}
+            checkInIso={checkInIso}
+            checkOutIso={checkOutIso}
+            paymentCode={publicCode ?? undefined}
+            presentation="page"
+            title={title}
+            hotelName={hotelName}
+            roomTitle={roomTitle}
+            counterpartPreview={counterpartPreview}
+            counterpartTrustBadges={counterpartTrustBadges}
+            suppressPaymentDeepLink={showPaymentFlow || isOnReview}
+            suppressReviewActions={showReviewCard}
+            embeddedInRoom
+            density="compact"
+          />
+        </main>
+
+        <aside className="chat-page__aside chat-page__aside--collapsible lg:!block">
+          <details className="lg:hidden">
+            <summary>{m(locale, "bookingRoom.header.payment")} & {m(locale, "bookingRoom.header.dates")}</summary>
+            <div className="chat-page__aside-inner">{asideContent}</div>
+          </details>
+          <div className="hidden space-y-2 lg:block">{asideContent}</div>
+        </aside>
       </div>
     </div>
   );

@@ -11,10 +11,6 @@ import { PaymentCountdown } from "@/app/payment/[code]/PaymentCountdown";
 import { TrustBadges } from "@/components/auth/TrustBadges";
 import type { TrustBadge } from "@/lib/auth/trustBadges";
 import { ChatComposeActions } from "@/components/chat/ChatComposeActions";
-import {
-  BookingChatRoomContext,
-  type BookingChatRoomContextProps
-} from "@/components/chat/BookingChatRoomContext";
 
 function mapChatApiError(raw: string | undefined): string {
   const v = (raw || "").trim();
