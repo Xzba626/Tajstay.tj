@@ -30,7 +30,7 @@ export default async function ProfilePage() {
   if (!full) return null;
 
   return (
-    <PageContainer width="narrow" className="pb-10">
+    <PageContainer width="narrow" className="profile-hub-page pb-6">
       <ProfileHubView locale={locale} user={full} logoutLabel={m(locale, "userMenu.logout")} />
     </PageContainer>
   );

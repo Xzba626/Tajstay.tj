@@ -22,12 +22,12 @@ type DayCol = { key: string; day: number; month: number };
 
 const CELL_CLASS: Record<CalendarCellKind, string> = {
   available:
-    "owner-cal-cell border border-emerald-600/30 bg-transparent hover:bg-emerald-500/[0.12] md:h-7 md:w-7",
-  blocked: "owner-cal-cell border border-slate-500 bg-slate-600/75 hover:bg-slate-600",
-  customPrice: "owner-cal-cell border border-violet-400/80 bg-violet-500/35 hover:bg-violet-500/50",
-  online: "owner-cal-cell border border-[#22C55E] bg-[rgba(34,197,94,0.35)] hover:bg-[rgba(34,197,94,0.48)]",
-  offline: "owner-cal-cell border border-orange-400 bg-orange-500/40 hover:bg-orange-500/55",
-  onlinePending: "owner-cal-cell border border-[#FBBF24] bg-[rgba(251,191,36,0.22)] hover:bg-[rgba(251,191,36,0.34)]"
+    "owner-cal-cell owner-cal-cell--square border border-emerald-600/30 bg-transparent hover:bg-emerald-500/[0.12]",
+  blocked: "owner-cal-cell owner-cal-cell--square border border-slate-500 bg-slate-600/80 hover:bg-slate-600",
+  customPrice: "owner-cal-cell owner-cal-cell--square border border-violet-400/80 bg-violet-500/40 hover:bg-violet-500/55",
+  online: "owner-cal-cell owner-cal-cell--square border border-[#22C55E] bg-[rgba(34,197,94,0.42)] hover:bg-[rgba(34,197,94,0.55)]",
+  offline: "owner-cal-cell owner-cal-cell--square border border-orange-400 bg-orange-500/45 hover:bg-orange-500/58",
+  onlinePending: "owner-cal-cell owner-cal-cell--square border border-[#FBBF24] bg-[rgba(251,191,36,0.28)] hover:bg-[rgba(251,191,36,0.4)]"
 };
 
 const BOOKING_KINDS: CalendarCellKind[] = ["online", "offline", "onlinePending"];
@@ -200,13 +200,15 @@ export function OwnerCalendar({
           <div className="text-sm font-semibold">{m(locale, "owner.calendar.gridTitle")}</div>
           <p className="mt-0.5 text-xs text-slate-500">{m(locale, "owner.calendar.clickHint")}</p>
         </div>
-        <div className="flex max-w-full flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] text-slate-600">
-          {legend.map((item) => (
-            <span key={item.kind} className="inline-flex shrink-0 items-center gap-1.5">
-              <span className={`owner-cal-cell h-3 w-3 shrink-0 ${CELL_CLASS[item.kind].replace(/md:h-7 md:w-7/g, "")}`} />
-              <span className="whitespace-nowrap">{item.label}</span>
-            </span>
-          ))}
+        <div className="owner-cal-legend-wrap mt-2 max-w-full">
+          <div className="owner-cal-legend flex gap-2 overflow-x-auto pb-1 text-[10px] text-slate-600">
+            {legend.map((item) => (
+              <span key={item.kind} className="owner-cal-legend__item inline-flex shrink-0 items-center gap-1">
+                <span className={`owner-cal-cell owner-cal-cell--legend ${CELL_CLASS[item.kind]}`} />
+                <span className="whitespace-nowrap">{item.label}</span>
+              </span>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -339,7 +341,7 @@ export function OwnerCalendar({
         </div>
       ) : null}
 
-      <div className="owner-calendar-scroll mt-3 max-h-[min(70vh,520px)] overflow-auto rounded-xl border">
+      <div className="owner-calendar-scroll owner-calendar-scroll--fade mt-3 max-h-[min(70vh,520px)] overflow-auto rounded-xl border">
         <table className="min-w-[720px] border-collapse text-xs md:min-w-[980px]">
           <thead className="sticky top-0 z-20">
             <tr className="bg-slate-50">
@@ -409,9 +411,9 @@ export function OwnerCalendar({
                         type="button"
                         title={tip}
                         onClick={() => onCellClick(r.id, d.key, kind)}
-                        className={`mx-auto flex h-8 w-8 items-center justify-center rounded-full transition ring-offset-1 md:h-7 md:w-7 ${CELL_CLASS[kind]} ${
+                        className={`mx-auto flex items-center justify-center transition ring-offset-1 ${CELL_CLASS[kind]} ${
                           selected ? "ring-2 ring-emerald-600 ring-offset-white" : ""
-                        } ${kind === "available" ? "rounded-full" : "rounded-md"}`}
+                        }`}
                         aria-pressed={selected}
                         aria-label={`${r.title} ${d.key} ${tip}`}
                       />
@@ -489,18 +491,6 @@ export function OwnerCalendar({
         </>
       ) : null}
 
-      <style jsx>{`
-        .owner-cal-cell {
-          min-height: 1.75rem;
-          min-width: 1.75rem;
-        }
-        @media (min-width: 768px) {
-          .owner-cal-cell {
-            min-height: 1.5rem;
-            min-width: 1.5rem;
-          }
-        }
-      `}</style>
     </div>
   );
 }

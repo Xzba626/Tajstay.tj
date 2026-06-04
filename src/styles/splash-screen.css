@@ -1,0 +1,128 @@
+.taj-splash {
+  background: linear-gradient(145deg, #012f1a 0%, #004724 42%, #006b38 100%);
+}
+
+.taj-splash__stage {
+  position: relative;
+  display: flex;
+  min-height: 10rem;
+  width: min(100%, 20rem);
+  align-items: center;
+  justify-content: center;
+}
+
+.taj-splash__plane {
+  position: absolute;
+  color: rgba(248, 250, 252, 0.92);
+  filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.35));
+  animation: taj-splash-plane 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes taj-splash-plane {
+  from {
+    opacity: 0;
+    transform: translate(-120%, 12px) rotate(-12deg);
+  }
+  35% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: translate(110%, -8px) rotate(8deg);
+  }
+}
+
+.taj-splash__icons {
+  display: flex;
+  gap: 1.25rem;
+  animation: taj-splash-icons 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.taj-splash__icon {
+  display: flex;
+  height: 3rem;
+  width: 3rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1rem;
+  background: rgba(1, 47, 26, 0.55);
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  color: #f8fafc;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+}
+
+.taj-splash__icon:nth-child(2) {
+  animation: taj-splash-icon-pop 0.45s 0.08s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.taj-splash__icon:nth-child(1) {
+  animation: taj-splash-icon-pop 0.45s 0s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.taj-splash__icon:nth-child(3) {
+  animation: taj-splash-icon-pop 0.45s 0.16s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes taj-splash-icons {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes taj-splash-icon-pop {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.taj-splash__logo-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  animation: taj-splash-logo-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.taj-splash__logo-glow {
+  position: relative;
+  padding: 0.35rem;
+  border-radius: 1.5rem;
+  background: radial-gradient(circle at 50% 40%, rgba(212, 175, 55, 0.45), transparent 68%);
+  box-shadow:
+    0 0 40px rgba(212, 175, 55, 0.35),
+    0 0 80px rgba(34, 197, 94, 0.15);
+}
+
+.taj-splash__logo-glow img {
+  display: block;
+  filter: drop-shadow(0 12px 32px rgba(0, 0, 0, 0.4));
+}
+
+.taj-splash__subtitle {
+  font-size: 0.875rem;
+  color: rgba(216, 241, 226, 0.9);
+  text-align: center;
+  max-width: 16rem;
+  line-height: 1.4;
+}
+
+@keyframes taj-splash-logo-in {
+  from {
+    opacity: 0;
+    transform: scale(0.88) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}

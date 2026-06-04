@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Bell, ChevronRight, CreditCard, Lock, Settings, Shield, User } from "lucide-react";
+import { Bell, ChevronRight, CreditCard, Lock, Settings, Shield } from "lucide-react";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
 import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
@@ -26,7 +26,7 @@ type Props = {
   logoutLabel: string;
 };
 
-function MenuRow({ href, icon: Icon, label }: { href: string; icon: typeof User; label: string }) {
+function MenuRow({ href, icon: Icon, label }: { href: string; icon: typeof Lock; label: string }) {
   return (
     <Link href={href} className="mockup-menu__item">
       <Icon size={18} className="shrink-0 text-[var(--text-secondary)]" aria-hidden />
@@ -41,9 +41,9 @@ export function ProfileHubView({ locale, user, logoutLabel }: Props) {
   const subtitle = profileContactSubtitle(user);
 
   return (
-    <div className="mockup-screen !px-0">
+    <div className="mockup-screen profile-hub-screen !px-0">
       <div className="profile-hero-card">
-        <ProfileAvatar name={fullName} imageUrl={user.image ?? user.telegramPhotoUrl} size="lg" />
+        <ProfileAvatar name={fullName} imageUrl={user.image ?? user.telegramPhotoUrl} size="lg" className="profile-avatar--gold-ring" />
         <div className="profile-hero-card__name">{fullName}</div>
         {subtitle ? <div className="profile-hero-card__sub">{subtitle}</div> : null}
         <Link href="/profile/edit" className="btn-primary profile-hero-card__cta">
@@ -60,16 +60,11 @@ export function ProfileHubView({ locale, user, logoutLabel }: Props) {
           <div className="mockup-stat-tile__value">{user.favorites.length}</div>
           <div className="mockup-stat-tile__label">{m(locale, "profile.statFavorites")}</div>
         </Link>
-        <div className="mockup-stat-tile">
+        <div className="mockup-stat-tile mockup-stat-tile--muted" aria-disabled>
           <div className="mockup-stat-tile__value">0</div>
           <div className="mockup-stat-tile__label">{m(locale, "profile.statCashback")}</div>
         </div>
       </div>
-
-      <h2 className="profile-section-title">{m(locale, "profile.sectionProfile")}</h2>
-      <nav className="mockup-menu" aria-label={m(locale, "profile.sectionProfile")}>
-        <MenuRow href="/profile/edit" icon={User} label={m(locale, "profile.editProfile")} />
-      </nav>
 
       <h2 className="profile-section-title">{m(locale, "profile.sectionAccount")}</h2>
       <nav className="mockup-menu" aria-label={m(locale, "profile.sectionAccount")}>
@@ -88,7 +83,7 @@ export function ProfileHubView({ locale, user, logoutLabel }: Props) {
       ) : null}
 
       {user.role === "OWNER" ? (
-        <Link href="/dashboard/owner" className="mockup-host-banner mt-4">
+        <Link href="/dashboard/owner" className="mockup-host-banner mockup-host-banner--owner mt-4">
           <div className="mockup-host-banner__title">{m(locale, "profile.navOwner")}</div>
           <div className="mockup-host-banner__desc">{m(locale, "profile.navOwnerDesc")}</div>
         </Link>
@@ -101,10 +96,8 @@ export function ProfileHubView({ locale, user, logoutLabel }: Props) {
         </Link>
       ) : null}
 
-      <div className="mockup-menu mt-4">
-        <div className="mockup-menu__item border-0 p-0">
-          <LogoutButton label={logoutLabel} variant="row" />
-        </div>
+      <div className="profile-hub-screen__logout">
+        <LogoutButton label={logoutLabel} confirmMessage={m(locale, "userMenu.logoutConfirm")} variant="row" />
       </div>
     </div>
   );

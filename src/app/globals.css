@@ -17,6 +17,8 @@
 @import "../styles/admin-mobile-app.css";
 @import "../styles/btn-glass.css";
 @import "../styles/chat.css";
+@import "../styles/splash-screen.css";
+@import "../styles/owner-calendar.css";
 
 @tailwind base;
 @tailwind components;
