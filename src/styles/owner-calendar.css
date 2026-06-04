@@ -1,0 +1,44 @@
+.owner-cal-cell--square {
+  width: 1.65rem;
+  height: 1.65rem;
+  border-radius: 0.3rem;
+}
+
+.owner-cal-cell--legend {
+  width: 0.85rem;
+  height: 0.85rem;
+  min-width: 0.85rem;
+  min-height: 0.85rem;
+  border-radius: 0.2rem;
+}
+
+.owner-cal-legend-wrap {
+  position: relative;
+}
+
+.owner-cal-legend {
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.owner-cal-legend::-webkit-scrollbar {
+  display: none;
+}
+
+.owner-cal-legend__item {
+  padding: 0.2rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(248, 250, 252, 0.8);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+.owner-calendar-scroll--fade {
+  position: relative;
+  mask-image: linear-gradient(to right, #000 0%, #000 calc(100% - 2.5rem), transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, #000 0%, #000 calc(100% - 2.5rem), transparent 100%);
+}
+
+.owner-cal-override-form select:invalid,
+.owner-cal-override-form select option[value=""][disabled] {
+  color: #64748b;
+}

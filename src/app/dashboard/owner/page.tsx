@@ -26,6 +26,7 @@ import { OwnerDashboardKpis } from "@/components/owner/OwnerDashboardKpis";
 import { OfflineBookingForm } from "@/components/owner/OfflineBookingForm";
 import { OfflineBookingsList } from "@/components/owner/OfflineBookingsList";
 import { OwnerCalendar } from "@/components/owner/OwnerCalendar";
+import { CalendarOverrideForm } from "@/components/owner/CalendarOverrideForm";
 import { OwnerBookingConfirmButton } from "@/components/owner/OwnerBookingConfirmButton";
 import { OwnerHelpTips } from "@/components/owner/OwnerHelpTips";
 import ReviewReplyForm from "@/components/ReviewReplyForm";
@@ -1394,31 +1395,14 @@ export default async function OwnerDashboardPage({
             <EmptyState title={m(locale, "owner.calendarEmpty")} />
           ) : (
             <>
-              <form action="/api/owner/overrides" method="post" className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-5">
-                <select name="roomId" className="rounded-xl border px-3 py-2 md:col-span-2">
-                  {rooms.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.hotel.name} · {r.title}
-                    </option>
-                  ))}
-                </select>
-                <input name="date" type="date" className="rounded-xl border px-3 py-2" required />
-                <label className="flex items-center gap-2 rounded-xl border px-3 py-2 text-sm md:col-span-1">
-                  <input type="checkbox" name="isBlocked" defaultChecked={false} />
-                  {m(locale, "owner.block")}
-                </label>
-                <input
-                  name="customPrice"
-                  type="number"
-                  min={0}
-                  step={1}
-                  placeholder={m(locale, "owner.priceIfOpen")}
-                  className="rounded-xl border px-3 py-2 md:col-span-1"
-                />
-                <button type="submit" className="rounded-xl bg-emerald-700 px-4 py-2 font-medium text-white md:col-span-5">
-                  {m(locale, "owner.saveOverride")}
-                </button>
-              </form>
+              <CalendarOverrideForm
+                locale={locale}
+                action="/api/owner/overrides"
+                rooms={rooms.map((r) => ({
+                  id: r.id,
+                  label: `${r.hotel.name} · ${r.title}`
+                }))}
+              />
 
               <div className="rounded-2xl border bg-white p-4">
                 <div className="text-sm font-semibold">{m(locale, "owner.overridesTitle")}</div>

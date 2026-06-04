@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { CalendarDays, Package, TrendingUp, Users } from "lucide-react";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
 import { formatDateTimeShort } from "@/lib/i18n/format";
+import type { LucideIcon } from "lucide-react";
 
 export type AdminMobileDashboardStats = {
   hotelTotal: number;
@@ -40,62 +41,52 @@ type Props = {
 };
 
 export function AdminMobileDashboard({ locale, stats, quickActions, activity }: Props) {
-  const router = useRouter();
-
-  const statCards = [
+  const statCards: { icon: LucideIcon; value: string; label: string; sub: string }[] = [
     {
-      icon: "📦",
+      icon: Package,
       value: String(stats.hotelTotal),
       label: m(locale, "admin.hotelsTotal"),
       sub: m(locale, "admin.mobileStatHotelsToday", { count: stats.hotelsToday })
     },
     {
-      icon: "👥",
+      icon: Users,
       value: String(stats.userTotal),
       label: m(locale, "admin.users"),
       sub: m(locale, "admin.mobileStatUsersToday", { count: stats.usersToday })
     },
     {
-      icon: "📅",
+      icon: CalendarDays,
       value: `${stats.activeBookings} ${m(locale, "admin.mobileActiveBookings")}`,
       label: m(locale, "admin.bookingsTotal"),
       sub: m(locale, "admin.mobileStatBookingsNew", { count: stats.newBookings })
     },
     {
-      icon: "💰",
+      icon: TrendingUp,
       value: `${stats.revenue30.toLocaleString(locale === "en" ? "en-US" : "ru-RU")} TJS`,
       label: m(locale, "admin.revenue30"),
       sub: m(locale, "admin.mobileStatRevenueMonth", { percent: stats.revenueGrowthPercent })
     }
   ];
 
-  const refresh = () => router.refresh();
-
   return (
     <div className="admin-mobile-dashboard lg:hidden">
-      <div
-        className="admin-mobile-dashboard__pull-hint"
-        onTouchEnd={(e) => {
-          const touch = e.changedTouches[0];
-          if (touch && touch.clientY > 120) return;
-          refresh();
-        }}
-      />
-
       <div className="admin-mobile-stats-grid">
-        {statCards.map((card) => (
-          <article key={card.label} className="admin-mobile-stat-card">
-            <span className="admin-mobile-stat-card__icon" aria-hidden>
-              {card.icon}
-            </span>
-            <div className="admin-mobile-stat-card__value">{card.value}</div>
-            <div className="admin-mobile-stat-card__label">{card.label}</div>
-            <div className="admin-mobile-stat-card__sub">{card.sub}</div>
-          </article>
-        ))}
+        {statCards.map((card) => {
+          const Icon = card.icon;
+          return (
+            <article key={card.label} className="admin-mobile-stat-card">
+              <span className="admin-mobile-stat-card__icon" aria-hidden>
+                <Icon size={22} strokeWidth={1.75} />
+              </span>
+              <div className="admin-mobile-stat-card__value">{card.value}</div>
+              <div className="admin-mobile-stat-card__label">{card.label}</div>
+              <div className="admin-mobile-stat-card__sub">{card.sub}</div>
+            </article>
+          );
+        })}
       </div>
 
-      <div className="admin-mobile-quick-actions" role="list">
+      <div className="admin-mobile-quick-actions admin-mobile-quick-actions--scroll" role="list">
         {quickActions.map((action) => (
           <Link
             key={action.section}
@@ -104,9 +95,7 @@ export function AdminMobileDashboard({ locale, stats, quickActions, activity }: 
             role="listitem"
           >
             <span>{action.label}</span>
-            {action.count > 0 ? (
-              <span className="admin-mobile-quick-actions__badge">{action.count}</span>
-            ) : null}
+            {action.count > 0 ? <span className="admin-mobile-quick-actions__badge">{action.count}</span> : null}
           </Link>
         ))}
       </div>

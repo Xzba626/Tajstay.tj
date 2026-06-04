@@ -10,14 +10,16 @@ type Props = {
   label: string;
   loadingLabel?: string;
   variant?: "button" | "row";
+  confirmMessage?: string;
 };
 
-export default function LogoutButton({ label, loadingLabel = "…", variant = "button" }: Props) {
+export default function LogoutButton({ label, loadingLabel = "…", variant = "button", confirmMessage }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function logout() {
+    if (confirmMessage && typeof window !== "undefined" && !window.confirm(confirmMessage)) return;
     if (typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate(10);
     setLoading(true);
     setError(null);
@@ -42,14 +44,18 @@ export default function LogoutButton({ label, loadingLabel = "…", variant = "b
           disabled={loading}
           onClick={() => void logout()}
           className={cn(
-            "profile-actions__item profile-actions__item--danger !border-0",
+            "profile-logout-btn w-full",
             loading && "opacity-60"
           )}
         >
           <LogOut size={18} className="shrink-0" aria-hidden />
-          <span className="flex-1 text-left text-sm font-medium">{label}</span>
+          <span className="flex-1 text-left text-sm font-semibold">{label}</span>
         </button>
-        {error ? <p className="px-4 pb-2 text-xs text-red-300" role="alert">{error}</p> : null}
+        {error ? (
+          <p className="px-4 pb-2 text-xs text-red-300" role="alert">
+            {error}
+          </p>
+        ) : null}
       </div>
     );
   }
@@ -59,7 +65,11 @@ export default function LogoutButton({ label, loadingLabel = "…", variant = "b
       <Button type="button" variant="danger" size="sm" loading={loading} onClick={() => void logout()}>
         {label}
       </Button>
-      {error ? <p className="mt-2 text-xs text-red-300" role="alert">{error}</p> : null}
+      {error ? (
+        <p className="mt-2 text-xs text-red-300" role="alert">
+          {error}
+        </p>
+      ) : null}
       {loading ? <span className="sr-only">{loadingLabel}</span> : null}
     </div>
   );
