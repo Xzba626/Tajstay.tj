@@ -60,7 +60,12 @@ export function SearchExperience({ initialHotels, initialFilters, locale, nearby
     return params.toString();
   }, [debouncedFilters, geoCoords]);
 
+  const datesInvalid = Boolean(
+    debouncedFilters.checkIn && debouncedFilters.checkOut && debouncedFilters.checkOut <= debouncedFilters.checkIn
+  );
+
   useEffect(() => {
+    if (datesInvalid) return;
     const controller = new AbortController();
     async function run() {
       setLoading(true);
@@ -84,7 +89,7 @@ export function SearchExperience({ initialHotels, initialFilters, locale, nearby
     return () => {
       controller.abort();
     };
-  }, [queryString, retryTick]);
+  }, [queryString, retryTick, datesInvalid]);
 
   useEffect(() => {
     if (!focusedHotelId) return;
@@ -123,7 +128,7 @@ export function SearchExperience({ initialHotels, initialFilters, locale, nearby
       return;
     }
     if (checkOut <= checkIn) {
-      setDateError("Дата выезда должна быть позже даты заезда.");
+      setDateError(m(locale, "search.errDates"));
       return;
     }
     setDateError(null);

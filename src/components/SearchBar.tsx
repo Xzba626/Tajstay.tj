@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useMemo, useState, type FormEvent } from "react";
 import { t, type Locale } from "@/lib/i18n/dictionaries";
 import { m } from "@/lib/i18n/messages";
 
@@ -19,10 +22,23 @@ export function SearchBar({ locale = "ru" }: Props) {
     m(locale, "cities.badakhshan")
   ];
   const popularCityValues = ["Dushanbe", "Khujand", "Penjikent", "Badakhshan"];
+  const [checkIn, setCheckIn] = useState("");
+  const [checkOut, setCheckOut] = useState("");
+  const [dateError, setDateError] = useState<string | null>(null);
+  const todayIso = useMemo(() => new Date().toISOString().slice(0, 10), []);
+
+  function onSubmit(e: FormEvent<HTMLFormElement>) {
+    if (checkIn && checkOut && checkOut <= checkIn) {
+      e.preventDefault();
+      setDateError(m(locale, "search.errDates"));
+      return;
+    }
+    setDateError(null);
+  }
 
   return (
     <div className="home-search-card home-search-card--premium">
-      <form action="/search" method="get" className="home-search-form-wrap">
+      <form action="/search" method="get" className="home-search-form-wrap" onSubmit={onSubmit} noValidate>
         <datalist id="popular-cities">
           {popularCityValues.map((city) => (
             <option key={city} value={city} />
@@ -52,14 +68,36 @@ export function SearchBar({ locale = "ru" }: Props) {
           <label className="home-search-item">
             <span className="home-search-label">{m(locale, "search.checkIn")}</span>
             <div className="home-search-control">
-              <input name="checkIn" type="date" aria-label={m(locale, "search.checkIn")} className="home-search-input" />
+              <input
+                name="checkIn"
+                type="date"
+                value={checkIn}
+                min={todayIso}
+                onChange={(e) => {
+                  setCheckIn(e.target.value);
+                  setDateError(null);
+                }}
+                aria-label={m(locale, "search.checkIn")}
+                className="home-search-input"
+              />
             </div>
           </label>
 
           <label className="home-search-item">
             <span className="home-search-label">{m(locale, "search.checkOut")}</span>
             <div className="home-search-control">
-              <input name="checkOut" type="date" aria-label={m(locale, "search.checkOut")} className="home-search-input" />
+              <input
+                name="checkOut"
+                type="date"
+                value={checkOut}
+                min={checkIn || todayIso}
+                onChange={(e) => {
+                  setCheckOut(e.target.value);
+                  setDateError(null);
+                }}
+                aria-label={m(locale, "search.checkOut")}
+                className="home-search-input"
+              />
             </div>
           </label>
 
@@ -90,6 +128,12 @@ export function SearchBar({ locale = "ru" }: Props) {
             </button>
           </div>
         </div>
+
+        {dateError ? (
+          <p className="mt-3 text-sm font-medium text-amber-200" role="alert">
+            {dateError}
+          </p>
+        ) : null}
 
         <div className="home-search-mobile-submit md:hidden">
           <button type="submit" className="home-search-submit home-search-submit--mobile w-full" aria-label={m(locale, "search.button")}>
