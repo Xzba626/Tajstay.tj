@@ -33,6 +33,8 @@ export async function GET(req: NextRequest) {
     parking: url.searchParams.get("parking") === "true",
     ratingMin: Number.isFinite(Number(url.searchParams.get("ratingMin"))) ? Number(url.searchParams.get("ratingMin")) : undefined,
     propertyType: (url.searchParams.get("propertyType") as any) ?? "ANY",
+    checkIn,
+    checkOut,
     sortBy
   });
 

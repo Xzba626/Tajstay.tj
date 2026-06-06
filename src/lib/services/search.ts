@@ -4,6 +4,11 @@ import { safeDbQuery } from "@/lib/db/safeDb";
 import { scoreHotelByIntent } from "@/lib/services/searchIntent";
 import { citiesMatch } from "@/lib/geo/cities";
 import { sortByDistance, type GeoCoords } from "@/lib/geo/distance";
+import {
+  ACTIVE_OFFLINE_BOOKING_STATUSES,
+  INACTIVE_ONLINE_BOOKING_STATUSES
+} from "@/lib/booking/availability";
+import { BOOKING_SOURCE } from "@/lib/domain/booking";
 
 export type PropertyTypeFilter = "ANY" | "HOTEL" | "HOSTEL" | "GUEST_HOUSE" | "APARTMENT" | "ECO_HOUSE";
 
@@ -21,9 +26,44 @@ type SearchInput = {
   parking?: boolean;
   ratingMin?: number;
   sortBy?: "POPULAR" | "PRICE_ASC" | "RATING_DESC";
+  checkIn?: string;
+  checkOut?: string;
   /** Visitor GPS — sort by distance when set */
   origin?: GeoCoords;
 };
+
+function parseSearchDateOnly(value?: string): Date | undefined {
+  if (!value?.trim()) return undefined;
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
+  if (!match) return undefined;
+  const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
+  return Number.isNaN(date.getTime()) ? undefined : date;
+}
+
+function roomAvailableForDatesFilter(checkIn: Date, checkOut: Date): Prisma.RoomWhereInput {
+  return {
+    bookings: {
+      none: {
+        AND: [
+          { checkIn: { lt: checkOut } },
+          { checkOut: { gt: checkIn } },
+          {
+            OR: [
+              {
+                source: BOOKING_SOURCE.PLATFORM,
+                status: { notIn: [...INACTIVE_ONLINE_BOOKING_STATUSES] }
+              },
+              {
+                source: BOOKING_SOURCE.OWNER_MANUAL,
+                offlineStatus: { in: [...ACTIVE_OFFLINE_BOOKING_STATUSES] }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  };
+}
 
 export async function searchApprovedHotels(input: SearchInput) {
   return safeDbQuery("searchApprovedHotels", () => searchApprovedHotelsQuery(input), []);
@@ -39,20 +79,27 @@ async function searchApprovedHotelsQuery(input: SearchInput) {
   }
   if (input.parking) amenitiesAnd.push({ amenities: { contains: '"parking"' } });
 
+  const checkIn = parseSearchDateOnly(input.checkIn);
+  const checkOut = parseSearchDateOnly(input.checkOut);
+  const hasDateRange = Boolean(checkIn && checkOut && checkOut.getTime() > checkIn.getTime());
+
+  const roomMatch: Prisma.RoomWhereInput = {
+    capacity: input.guests ? { gte: input.guests } : undefined,
+    price: {
+      gte: input.minPrice ?? undefined,
+      lte: input.maxPrice ?? undefined
+    },
+    ...(amenitiesAnd.length ? { AND: amenitiesAnd } : {}),
+    ...(hasDateRange ? roomAvailableForDatesFilter(checkIn!, checkOut!) : {})
+  };
+
   const where: Prisma.HotelWhereInput = {
     status: "APPROVED",
     city: input.city ? { contains: input.city } : undefined,
     propertyType: input.propertyType && input.propertyType !== "ANY" ? input.propertyType : undefined,
     rating: input.ratingMin != null ? { gte: input.ratingMin } : undefined,
     rooms: {
-      some: {
-        capacity: input.guests ? { gte: input.guests } : undefined,
-        price: {
-          gte: input.minPrice ?? undefined,
-          lte: input.maxPrice ?? undefined
-        },
-        ...(amenitiesAnd.length ? { AND: amenitiesAnd } : {})
-      }
+      some: roomMatch
     }
   };
 
