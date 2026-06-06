@@ -4,6 +4,7 @@ import { requireUser } from "@/lib/auth/requireAuth";
 import { addBookingSystemMessage } from "@/lib/chat/bookingChat";
 import { bookingHotel } from "@/lib/pms/bookingContext";
 import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
+import { guestBookingCancelAllowed } from "@/lib/booking/guestCancel";
 
 type CancelResult = { ok: true } | { ok: false; error: string };
 
@@ -14,13 +15,6 @@ async function pickAdminId(): Promise<number | null> {
     select: { id: true }
   });
   return admin?.id ?? null;
-}
-
-function cancelAllowed(input: { status: string; paymentStatus: string }): boolean {
-  // After payment confirmation, cancellation must go through admin dispute flow.
-  if (input.status === "CONFIRMED" || input.status === "CHECKED_IN" || input.status === "COMPLETED") return false;
-  if (input.paymentStatus === "PAID") return false;
-  return true;
 }
 
 export async function POST(_: NextRequest, { params }: { params: { id: string } }): Promise<NextResponse<CancelResult>> {
@@ -36,7 +30,7 @@ export async function POST(_: NextRequest, { params }: { params: { id: string } 
   });
   if (!booking || booking.userId !== guest.id) return NextResponse.json({ ok: false, error: "Not found" }, { status: 404 });
 
-  if (!cancelAllowed({ status: booking.status, paymentStatus: booking.paymentStatus })) {
+  if (!guestBookingCancelAllowed({ status: booking.status, paymentStatus: booking.paymentStatus })) {
     return NextResponse.json({ ok: false, error: "Нельзя отменить после подтверждения оплаты" }, { status: 409 });
   }
 

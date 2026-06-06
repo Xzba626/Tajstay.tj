@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { isSyntheticArchiveChatMessageId } from "@/lib/chat/archiveMessageIds";
+import { guestBookingCancelAllowed } from "@/lib/booking/guestCancel";
 import { groupChatMessages } from "@/lib/chat/groupMessages";
 import type { Locale } from "@/lib/i18n/locale";
 import { formatBookingStatus } from "@/lib/i18n/bookingStatus";
@@ -441,9 +442,7 @@ export function BookingChatPanel({
 
   const canGuestCancel = useMemo(() => {
     if (!isGuest) return false;
-    if (effectiveStatus === "CONFIRMED" || effectiveStatus === "CHECKED_IN" || effectiveStatus === "COMPLETED") return false;
-    if (effectivePaymentStatus === "PAID") return false;
-    return true;
+    return guestBookingCancelAllowed({ status: effectiveStatus, paymentStatus: effectivePaymentStatus });
   }, [effectiveStatus, effectivePaymentStatus, isGuest]);
 
   const canAdminCancel = useMemo(() => {
