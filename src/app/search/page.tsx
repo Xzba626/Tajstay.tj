@@ -59,6 +59,8 @@ export default async function SearchPage({ searchParams }: Props) {
     breakfast: searchParams.breakfast === "on" || searchParams.breakfast === "true",
     parking: searchParams.parking === "on" || searchParams.parking === "true",
     ratingMin: searchParams.ratingMin ? Number(searchParams.ratingMin) : undefined,
+    checkIn: searchParams.checkIn,
+    checkOut: searchParams.checkOut,
     sortBy: searchParams.sortBy ?? "POPULAR"
   });
   const hotels = sortHotelsByNearbyCity(hotelsRaw, nearbyCity);
