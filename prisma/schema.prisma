@@ -59,6 +59,7 @@ model User {
   disputesAgainst     Dispute[]           @relation("DisputesAgainst")
   pushSubscriptions   PushSubscription[]
   telegramChangeRequests TelegramChangeRequest[]
+  deviceSessions      UserDeviceSession[]
 }
 
 model Account {
@@ -704,6 +705,24 @@ model AuthAuditLog {
   @@index([userId])
   @@index([event])
   @@index([createdAt])
+}
+
+/// Latest device fingerprint per user (server IP/geo/UA + client language/screen).
+model UserDeviceSession {
+  id             Int      @id @default(autoincrement())
+  userId         Int
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ip             String?
+  city           String?
+  countryCode    String?
+  userAgent      String?
+  systemLanguage String?
+  screenWidth    Int?
+  screenHeight   Int?
+  lastSeenAt     DateTime @default(now()) @updatedAt
+  createdAt      DateTime @default(now())
+
+  @@index([userId, lastSeenAt])
 }
 
 /// Per-owner payment requisites shown to guests during checkout / booking room.

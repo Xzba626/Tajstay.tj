@@ -1,14 +1,8 @@
 import { normalizeCityKey } from "@/lib/geo/cities";
+import { clientIpFromHeaders } from "@/lib/geo/clientIp";
 
 const CACHE = new Map<string, { city: string | null; at: number }>();
 const TTL_MS = 60 * 60 * 1000;
-
-function parseClientIp(forwarded: string | null): string | null {
-  if (!forwarded) return null;
-  const first = forwarded.split(",")[0]?.trim();
-  if (!first || first === "127.0.0.1" || first === "::1") return null;
-  return first;
-}
 
 type IpApiResponse = {
   status?: string;
@@ -53,8 +47,7 @@ export async function getCityFromIp(ip: string | null): Promise<string | null> {
 }
 
 export async function getCityFromRequestHeaders(headers: Headers): Promise<string | null> {
-  const ip = parseClientIp(headers.get("x-forwarded-for") ?? headers.get("x-real-ip"));
-  return getCityFromIp(ip);
+  return getCityFromIp(clientIpFromHeaders(headers));
 }
 
 export function sortHotelsByNearbyCity<T extends { city: string }>(hotels: T[], nearbyCity: string | null): T[] {

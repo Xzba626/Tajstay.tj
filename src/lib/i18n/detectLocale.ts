@@ -1,9 +1,9 @@
 import type { Locale } from "./locale";
-import { defaultLocale, normalizeLocale } from "./locale";
+import { normalizeLocale } from "./locale";
 
 /** Map Accept-Language / region hints to TajStay locales. */
 export function detectLocaleFromAcceptLanguage(header: string | null): Locale {
-  if (!header?.trim()) return defaultLocale;
+  if (!header?.trim()) return "en";
 
   const parts = header
     .split(",")

@@ -953,9 +953,17 @@ export default async function AdminDashboardPage({
                       <>
                         <div>{userAgentLabel(session.userAgent)}</div>
                         <div className="text-xs text-slate-500">
-                          {session.ip ? `${session.ip} · ` : ""}
-                          {formatDateTimeShort(locale, session.at)}
+                          {[session.ip, session.city, session.countryCode].filter(Boolean).join(" · ") || "—"}
                         </div>
+                        {session.systemLanguage || (session.screenWidth && session.screenHeight) ? (
+                          <div className="text-xs text-slate-500">
+                            {session.systemLanguage ?? "—"}
+                            {session.screenWidth && session.screenHeight
+                              ? ` · ${session.screenWidth}×${session.screenHeight}`
+                              : ""}
+                          </div>
+                        ) : null}
+                        <div className="text-xs text-slate-400">{formatDateTimeShort(locale, session.at)}</div>
                       </>
                     ) : (
                       <span className="text-slate-400">{m(locale, "admin.noDeviceData")}</span>
