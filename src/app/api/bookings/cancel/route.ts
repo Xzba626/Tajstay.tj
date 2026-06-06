@@ -1,18 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/requireAuth";
-import { BOOKING_STATUS } from "@/lib/domain/booking";
+import { guestBookingCancelAllowed } from "@/lib/booking/guestCancel";
 import { publicUrl } from "@/lib/http/publicOrigin";
 import { bookingHotel } from "@/lib/pms/bookingContext";
 import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
-
-function canCancel(status: string): boolean {
-  return (
-    status === BOOKING_STATUS.WAIT_PROOF ||
-    status === BOOKING_STATUS.ON_REVIEW ||
-    status === BOOKING_STATUS.REJECTED
-  );
-}
 
 export async function POST(req: NextRequest) {
   const user = await requireUser(["GUEST", "OWNER", "ADMIN"]);
@@ -30,7 +22,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  if (!canCancel(booking.status)) {
+  if (!guestBookingCancelAllowed({ status: booking.status, paymentStatus: booking.paymentStatus })) {
     return NextResponse.redirect(publicUrl(req, `/payment/${encodeURIComponent(code)}`));
   }
 
@@ -39,7 +31,7 @@ export async function POST(req: NextRequest) {
   await prisma.booking.update({
     where: { id: booking.id },
     data: {
-      status: BOOKING_STATUS.CANCELLED,
+      status: "CANCELLED_BY_GUEST",
       paymentStatus: booking.paymentStatus === "PAID" ? "REFUNDED" : booking.paymentStatus
     }
   });

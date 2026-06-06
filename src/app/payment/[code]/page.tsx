@@ -11,6 +11,7 @@ import { PaymentAfterPay } from "./PaymentAfterPay";
 import { GuestPaymentDealClient } from "./GuestPaymentDealClient";
 import { bookingHotel, bookingRoomTitle } from "@/lib/pms/bookingContext";
 import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
+import { guestBookingCancelAllowed } from "@/lib/booking/guestCancel";
 
 export const dynamic = "force-dynamic";
 
@@ -45,8 +46,10 @@ export default async function PaymentPage({
   const isConfirmed = booking.status === "CONFIRMED" || booking.status === "COMPLETED";
   const isOnReview = booking.status === "ON_REVIEW";
   const canSubmitProof = booking.status === "WAITING_PAYMENT" || booking.status === "WAIT_PROOF" || booking.status === "REJECTED";
-  const canCancel =
-    booking.status === "WAITING_PAYMENT" || booking.status === "WAIT_PROOF" || booking.status === "ON_REVIEW" || booking.status === "REJECTED";
+  const canCancel = guestBookingCancelAllowed({
+    status: booking.status,
+    paymentStatus: booking.paymentStatus
+  });
   const autoOpenAfter =
     (searchParams?.after ?? "").trim() === "1" ||
     booking.status === "WAITING_PAYMENT" ||
