@@ -5,6 +5,7 @@ import { guestBookingCancelAllowed } from "@/lib/booking/guestCancel";
 import { publicUrl } from "@/lib/http/publicOrigin";
 import { bookingHotel } from "@/lib/pms/bookingContext";
 import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
+import { dispatchBookingCancelledEmails } from "@/lib/email/bookingEmailDispatch";
 
 export async function POST(req: NextRequest) {
   const user = await requireUser(["GUEST", "OWNER", "ADMIN"]);
@@ -43,6 +44,10 @@ export async function POST(req: NextRequest) {
       type: "BOOKING_CANCELLED_BY_GUEST",
       isRead: false
     }
+  });
+
+  void dispatchBookingCancelledEmails(booking.id, "guest").catch((e) => {
+    console.error("[bookings/cancel] cancelled emails failed", booking.id, e);
   });
 
   return NextResponse.redirect(publicUrl(req, `/payment/${encodeURIComponent(code)}`));
