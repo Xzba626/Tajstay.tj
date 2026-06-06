@@ -1,4 +1,10 @@
 {
   "buildCommand": "node scripts/vercel-build.mjs",
-  "installCommand": "npm install"
+  "installCommand": "npm install",
+  "crons": [
+    {
+      "path": "/api/cron/booking-reminders",
+      "schedule": "0 9 * * *"
+    }
+  ]
 }

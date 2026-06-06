@@ -5,6 +5,7 @@ import { addBookingSystemMessage } from "@/lib/chat/bookingChat";
 import { bookingHotel } from "@/lib/pms/bookingContext";
 import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
 import { guestBookingCancelAllowed } from "@/lib/booking/guestCancel";
+import { dispatchBookingCancelledEmails } from "@/lib/email/bookingEmailDispatch";
 
 type CancelResult = { ok: true } | { ok: false; error: string };
 
@@ -58,6 +59,10 @@ export async function POST(_: NextRequest, { params }: { params: { id: string } 
     bookingId: id,
     message: "🛡️ Система: Бронирование отменено пользователем. Сессия закрыта."
   }).catch(() => undefined);
+
+  void dispatchBookingCancelledEmails(id, "guest").catch((e) => {
+    console.error("[bookings/cancel-by-guest] cancelled emails failed", id, e);
+  });
 
   return NextResponse.json({ ok: true }, { status: 200 });
 }

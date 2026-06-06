@@ -12,6 +12,7 @@ import { normalizePhone } from "@/lib/validation/phone";
 import { publicUrl } from "@/lib/http/publicOrigin";
 import { isPlaceholderAccountPhone } from "@/lib/auth/accountPhone";
 import { initializeBookingChatRoom } from "@/lib/chat/initializeBookingChat";
+import { dispatchBookingCreatedEmails } from "@/lib/email/bookingEmailDispatch";
 
 function bookingFormRedirect(
   req: NextRequest,
@@ -203,6 +204,10 @@ export async function POST(req: NextRequest) {
         }
       });
     }
+
+    void dispatchBookingCreatedEmails(booking.id).catch((e) => {
+      console.error("[bookings] booking created emails failed", booking.id, e);
+    });
 
     try {
       const chatInit = await initializeBookingChatRoom(booking.id);

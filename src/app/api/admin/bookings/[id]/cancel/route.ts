@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/requireAuth";
 import { BOOKING_STATUS } from "@/lib/domain/booking";
 import { addBookingSystemMessage } from "@/lib/chat/bookingChat";
+import { dispatchBookingCancelledEmails } from "@/lib/email/bookingEmailDispatch";
 
 const BLOCKED = new Set([
   BOOKING_STATUS.COMPLETED,
@@ -57,6 +58,10 @@ export async function POST(_: NextRequest, { params }: { params: { id: string } 
       }
     });
   }
+
+  void dispatchBookingCancelledEmails(id, "admin").catch((e) => {
+    console.error("[admin/cancel] cancelled emails failed", id, e);
+  });
 
   return NextResponse.json({ ok: true }, { status: 200 });
 }

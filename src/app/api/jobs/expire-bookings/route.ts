@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { BOOKING_STATUS } from "@/lib/domain/booking";
 import { addBookingSystemMessage } from "@/lib/chat/bookingChat";
+import { dispatchBookingCancelledEmails } from "@/lib/email/bookingEmailDispatch";
 
 export const dynamic = "force-dynamic";
 
@@ -62,6 +63,9 @@ export async function POST(req: NextRequest) {
         }).catch(() => undefined)
       )
     );
+    for (const b of expired) {
+      void dispatchBookingCancelledEmails(b.id, "system", "Не оплачена вовремя").catch(() => undefined);
+    }
   }
 
   const reviewIds = reviewTimedOut.map((b) => b.id);

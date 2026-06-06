@@ -6,6 +6,7 @@ import { addBookingSystemMessage } from "@/lib/chat/bookingChat";
 import { createNotification } from "@/lib/notifications/create";
 import { m } from "@/lib/i18n/messages";
 import { getLocale } from "@/lib/i18n/get-locale";
+import { dispatchReviewRequestEmail } from "@/lib/email/bookingEmailDispatch";
 
 function startOfLocalDay(d: Date): Date {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -52,6 +53,10 @@ export async function POST(_req: Request, ctx: { params: Promise<{ id: string }>
     type: "REVIEW_AVAILABLE",
     bookingId: id,
     link: `/dashboard/bookings`
+  });
+
+  void dispatchReviewRequestEmail(id).catch((e) => {
+    console.error("[confirm-checkout] review email failed", id, e);
   });
 
   return NextResponse.json({ ok: true, status: BOOKING_STATUS.COMPLETED });
