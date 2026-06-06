@@ -1,0 +1,36 @@
+import type { BookingTimelineEvent } from "@/lib/chat/bookingTimeline";
+import type { Locale } from "@/lib/i18n/locale";
+import type { TrustBadge } from "@/lib/auth/trustBadges";
+
+export type BookingRoomProps = {
+  locale: Locale;
+  bookingId: number;
+  currentUserId: number;
+  currentUserRole: "GUEST" | "OWNER" | "ADMIN";
+  isGuest: boolean;
+  backHref: string;
+  title: string;
+  counterpartPreview: string;
+  counterpartTrustBadges?: TrustBadge[];
+  guestLabel: string;
+  hotelName: string;
+  roomTitle: string;
+  coverImageUrl: string | null;
+  checkInIso: string;
+  checkOutIso: string;
+  guestCount: number;
+  totalPrice: number;
+  currency: string;
+  bookingStatus: string;
+  paymentStatus: string;
+  publicCode: string | null;
+  paymentMethods: string[];
+  timeline: BookingTimelineEvent[];
+  proofSent?: boolean;
+  paymentProofUrl?: string | null;
+  guestDocumentUrl?: string | null;
+  proofSubmittedAt?: string | null;
+  proofReviewDeadlineAt?: string | null;
+  proofAmount?: number | null;
+  proofComment?: string | null;
+};

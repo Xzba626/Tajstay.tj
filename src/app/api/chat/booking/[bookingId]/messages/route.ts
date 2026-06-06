@@ -6,8 +6,11 @@ import { markBookingChatMessagesRead } from "@/lib/chat/markMessagesRead";
 import { BOOKING_STATUS } from "@/lib/domain/booking";
 import { saveChatAttachmentFile } from "@/lib/uploads/saveChatAttachment";
 import { canAccessBookingChat } from "@/lib/chat/bookingAccess";
+import { rowToChatMessageDto } from "@/lib/chat/messageDto";
 import { bookingHotel } from "@/lib/pms/bookingContext";
 import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
+import { triggerBookingChatEvent } from "@/lib/pusher/server";
+import { PUSHER_EVENTS } from "@/lib/pusher/config";
 
 const TERMINAL_NO_NEW_MESSAGES = new Set<string>([
   BOOKING_STATUS.EXPIRED,
@@ -141,6 +144,7 @@ export async function POST(req: NextRequest, { params }: { params: { bookingId: 
   const proofFromGuestStatuses = [BOOKING_STATUS.WAITING_PAYMENT, BOOKING_STATUS.WAIT_PROOF] as const;
 
   let proofJustSubmitted = false;
+  const pushedMessages: ReturnType<typeof rowToChatMessageDto>[] = [];
   await prisma.$transaction(async (tx) => {
     if (isGuest && imageUrl) {
       const transitioned = await tx.booking.updateMany({
@@ -160,7 +164,7 @@ export async function POST(req: NextRequest, { params }: { params: { bookingId: 
       proofJustSubmitted = transitioned.count > 0;
     }
 
-    await tx.chatMessage.create({
+    const created = await tx.chatMessage.create({
       data: {
         bookingId,
         senderId: user.id,
@@ -169,9 +173,11 @@ export async function POST(req: NextRequest, { params }: { params: { bookingId: 
         body: message || (imageUrl ? "📎" : ""),
         imageUrl,
         isArchived: false,
-        deletedAt: null
+        deletedAt: null,
+        status: "SENT"
       }
     });
+    pushedMessages.push(rowToChatMessageDto(created));
 
     if (proofJustSubmitted) {
       await tx.notification.create({
@@ -182,7 +188,7 @@ export async function POST(req: NextRequest, { params }: { params: { bookingId: 
           isRead: false
         }
       });
-      await tx.chatMessage.create({
+      const sys = await tx.chatMessage.create({
         data: {
           bookingId,
           senderId: 0,
@@ -191,11 +197,17 @@ export async function POST(req: NextRequest, { params }: { params: { bookingId: 
           body: "🛡️ Система: Чек получен. Отведено 5 минут на проверку администратором и владельцем.",
           imageUrl: null,
           isArchived: false,
-          deletedAt: null
+          deletedAt: null,
+          status: "SENT"
         }
       });
+      pushedMessages.push(rowToChatMessageDto(sys));
     }
   });
+
+  for (const msg of pushedMessages) {
+    await triggerBookingChatEvent(bookingId, PUSHER_EVENTS.NEW_MESSAGE, { message: msg });
+  }
 
   const adminRow = await prisma.user.findFirst({
     where: { role: "ADMIN" },

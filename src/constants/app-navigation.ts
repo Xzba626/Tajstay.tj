@@ -2,7 +2,7 @@ import type { LucideIcon } from "lucide-react";
 import { CalendarDays, Heart, Home, Search, User } from "lucide-react";
 
 /** Routes where mobile bottom tab bar is hidden (auth + role dashboards). */
-export const SHELL_HIDDEN_PREFIXES = ["/auth", "/dashboard/admin", "/dashboard/owner"] as const;
+export const SHELL_HIDDEN_PREFIXES = ["/auth", "/dashboard/admin", "/dashboard/owner", "/chat"] as const;
 
 export type BottomTabId = "home" | "search" | "favorites" | "bookings" | "profile";
 

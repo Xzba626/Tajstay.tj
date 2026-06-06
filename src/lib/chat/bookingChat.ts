@@ -1,5 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { syntheticArchiveChatMessageId } from "@/lib/chat/archiveMessageIds";
+import { rowToChatMessageDto } from "@/lib/chat/messageDto";
+import { PUSHER_EVENTS } from "@/lib/pusher/config";
+import { triggerBookingChatEvent } from "@/lib/pusher/server";
 import { deletePublicUploadUrl } from "@/lib/uploads/deletePublicUpload";
 
 export const BOOKING_CHAT_LOG_TYPE = "BOOKING_CHAT_MESSAGE";
@@ -193,7 +196,7 @@ export async function addBookingChatMessage(input: {
 export async function addBookingSystemMessage(input: { bookingId: number; message: string }) {
   const text = input.message.trim();
   if (!text) return;
-  await prisma.chatMessage.create({
+  const created = await prisma.chatMessage.create({
     data: {
       bookingId: input.bookingId,
       senderId: 0,
@@ -202,8 +205,12 @@ export async function addBookingSystemMessage(input: { bookingId: number; messag
       body: text,
       imageUrl: null,
       isArchived: false,
-      deletedAt: null
+      deletedAt: null,
+      status: "SENT"
     }
+  });
+  await triggerBookingChatEvent(input.bookingId, PUSHER_EVENTS.NEW_MESSAGE, {
+    message: rowToChatMessageDto(created)
   });
 }
 
