@@ -47,8 +47,8 @@ export function MessagesInbox({ locale, role }: { locale: Locale; role: string }
 
   const visibleFilters = role === "ADMIN" ? FILTERS : FILTERS.filter((f) => f !== "admin");
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async (opts?: { silent?: boolean }) => {
+    if (!opts?.silent) setLoading(true);
     try {
       const params = new URLSearchParams({ filter });
       if (search.trim()) params.set("q", search.trim());
@@ -59,14 +59,18 @@ export function MessagesInbox({ locale, role }: { locale: Locale; role: string }
       const json = (await res.json()) as { items?: InboxItem[] };
       setItems(json.items ?? []);
     } catch {
-      setItems([]);
+      if (!opts?.silent) setItems([]);
     } finally {
-      setLoading(false);
+      if (!opts?.silent) setLoading(false);
     }
   }, [filter, search]);
 
   useEffect(() => {
     void load();
+    const interval = window.setInterval(() => {
+      void load({ silent: true });
+    }, 12_000);
+    return () => window.clearInterval(interval);
   }, [load]);
 
   return (

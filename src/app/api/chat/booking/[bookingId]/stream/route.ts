@@ -5,14 +5,16 @@ import { canAccessBookingChat } from "@/lib/chat/bookingAccess";
 import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
-export async function GET(req: NextRequest, ctx: { params: Promise<{ bookingId: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: { bookingId: string } }) {
   const user = await requireUser(["GUEST", "OWNER", "ADMIN"]);
   if (!user) return new Response("Unauthorized", { status: 401 });
 
-  const { bookingId: raw } = await ctx.params;
-  const bookingId = Number(raw);
-  if (!Number.isFinite(bookingId)) return new Response("Bad request", { status: 400 });
+  const bookingId = Number.parseInt(String(params.bookingId ?? "").trim(), 10);
+  if (!Number.isFinite(bookingId) || bookingId < 1) {
+    return new Response("Bad request", { status: 400 });
+  }
 
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
@@ -27,12 +29,21 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ bookingId: 
   let closed = false;
 
   const stream = new ReadableStream({
-    async start(controller) {
+    start(controller) {
       const send = (payload: unknown) => {
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify(payload)}\n\n`));
+        if (closed) return;
+        try {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(payload)}\n\n`));
+        } catch {
+          closed = true;
+        }
       };
 
       send({ type: "connected", bookingId });
+
+      const heartbeat = setInterval(() => {
+        send({ type: "ping", t: Date.now() });
+      }, 15_000);
 
       const tick = async () => {
         if (closed) return;
@@ -51,18 +62,23 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ bookingId: 
           });
           if (rows.length) send({ type: "messages", count: rows.length });
         } catch {
-          // ignore transient errors
+          send({ type: "error", retry: true });
         }
       };
 
       const interval = setInterval(() => {
         void tick();
-      }, 2500);
+      }, 2_500);
 
       req.signal.addEventListener("abort", () => {
         closed = true;
         clearInterval(interval);
-        controller.close();
+        clearInterval(heartbeat);
+        try {
+          controller.close();
+        } catch {
+          /* already closed */
+        }
       });
     }
   });
@@ -71,7 +87,8 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ bookingId: 
     headers: {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache, no-transform",
-      Connection: "keep-alive"
+      Connection: "keep-alive",
+      "X-Accel-Buffering": "no"
     }
   });
 }

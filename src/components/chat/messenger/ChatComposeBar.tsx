@@ -61,11 +61,15 @@ export function ChatComposeBar({ locale, disabled, sending, onSend, onInput, err
   async function submit() {
     if (!canSubmit) return;
     const payload = { text, file };
-    setText("");
-    setFile(null);
-    if (fileRef.current) fileRef.current.value = "";
-    await onSend(payload);
-    resizeTextarea();
+    try {
+      await onSend(payload);
+      setText("");
+      setFile(null);
+      if (fileRef.current) fileRef.current.value = "";
+      resizeTextarea();
+    } catch {
+      /* parent shows error; keep draft */
+    }
   }
 
   return (

@@ -15,30 +15,13 @@ import {
   BookingChatRoomContext,
   type BookingChatRoomContextProps
 } from "@/components/chat/BookingChatRoomContext";
-
-function mapChatApiError(raw: string | undefined): string {
-  const v = (raw || "").trim();
-  const lower = v.toLowerCase();
-  if (lower === "invalid bookingid" || v === "Invalid bookingId")
-    return "Неверная ссылка на чат. Обновите страницу или откройте бронь из «Мои бронирования».";
-  if (lower === "invalid" || lower === "invalid id" || lower === "invalid payload")
-    return "Запрос отклонён. Обновите страницу, выйдите и войдите снова или откройте чат из «Мои бронирования».";
-  if (v === "Unauthorized") return "Сессия истекла — войдите снова.";
-  if (v === "Forbidden") return "Нет доступа к этому чату.";
-  if (lower === "not found") return "Бронирование не найдено.";
-  if (lower === "admin not configured") return "Поддержка временно недоступна. Напишите через страницу «Контакты».";
-  return v || "";
-}
-
-function messageFromChatResponse(res: Response, json: { error?: string }): string {
-  const mapped = mapChatApiError(json.error);
-  if (mapped) return mapped;
-  if (res.status === 401) return "Сессия истекла — войдите снова.";
-  if (res.status === 404) return "Бронирование не найдено.";
-  if (res.status === 403) return "Нет доступа к этому чату.";
-  if (res.status >= 500) return "Сервер временно недоступен. Попробуйте через минуту.";
-  return `Ошибка сети (${res.status})`;
-}
+import {
+  CHAT_POLL_INTERVAL_MS,
+  connectBookingChatStream,
+  fetchChatMessages,
+  messageFromChatResponse,
+  postChatMessage
+} from "@/lib/chat/chatClient";
 
 type ChatMessage = {
   id: number;
@@ -202,17 +185,7 @@ export function BookingChatPanel({
   }, []);
 
   const pull = useCallback(async () => {
-    const res = await fetch(`/api/chat/booking/${bookingId}/messages`, { cache: "no-store", credentials: "include" });
-    const json = (await res.json().catch(() => ({}))) as {
-      messages?: ChatMessage[];
-      error?: string;
-      chatArchived?: boolean;
-      canSend?: boolean;
-      booking?: LiveBookingSnap;
-    };
-    if (!res.ok) {
-      throw new Error(messageFromChatResponse(res, json));
-    }
+    const json = await fetchChatMessages(bookingId);
     setError(null);
     applyMessagesPayload(json);
   }, [bookingId, applyMessagesPayload]);
@@ -255,30 +228,22 @@ export function BookingChatPanel({
       if (mounted) setError(e instanceof Error ? e.message : "Не удалось загрузить чат");
     });
 
-    let es: EventSource | null = null;
-    if (typeof EventSource !== "undefined") {
-      es = new EventSource(`/api/chat/booking/${bookingId}/stream`);
-      es.onmessage = () => {
-        if (!mounted) return;
-        pull().catch(() => undefined);
-      };
-      es.onerror = () => {
-        es?.close();
-        es = null;
-      };
-    }
+    const disconnectStream = connectBookingChatStream(bookingId, () => {
+      if (!mounted) return;
+      pull().catch(() => undefined);
+    });
 
     const t = window.setInterval(() => {
       if (!mounted) return;
       pull().catch((e) => {
-        if (mounted) setError(e instanceof Error ? e.message : "Не удалось загрузить чат");
+        if (mounted) setError(e instanceof Error ? e.message : "Не удалось обновить чат");
       });
-    }, es ? 8000 : 3500);
+    }, CHAT_POLL_INTERVAL_MS);
 
     return () => {
       mounted = false;
       window.clearInterval(t);
-      es?.close();
+      disconnectStream();
     };
   }, [pull, bookingId]);
 
@@ -320,20 +285,7 @@ export function BookingChatPanel({
     setSending(true);
     setError(null);
     try {
-      const res = await fetch(`/api/chat/booking/${bookingId}/messages`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", accept: "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ message: t })
-      });
-      const json = (await res.json().catch(() => ({}))) as {
-        messages?: ChatMessage[];
-        error?: string;
-        canSend?: boolean;
-        chatArchived?: boolean;
-        booking?: LiveBookingSnap;
-      };
-      if (!res.ok) throw new Error(messageFromChatResponse(res, json));
+      const json = await postChatMessage(bookingId, { text: t });
       applyMessagesPayload(json);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Ошибка отправки");
@@ -435,32 +387,7 @@ export function BookingChatPanel({
     setSending(true);
     setError(null);
     try {
-      let res: Response;
-      if (file) {
-        const fd = new FormData();
-        fd.set("message", text.trim());
-        fd.set("file", file);
-        res = await fetch(`/api/chat/booking/${bookingId}/messages`, {
-          method: "POST",
-          credentials: "include",
-          body: fd
-        });
-      } else {
-        res = await fetch(`/api/chat/booking/${bookingId}/messages`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ message: text.trim() })
-        });
-      }
-      const json = (await res.json().catch(() => ({}))) as {
-        messages?: ChatMessage[];
-        error?: string;
-        chatArchived?: boolean;
-        canSend?: boolean;
-        booking?: LiveBookingSnap;
-      };
-      if (!res.ok) throw new Error(messageFromChatResponse(res, json as { error?: string }));
+      const json = await postChatMessage(bookingId, { text: text.trim(), file });
       applyMessagesPayload(json);
       setText("");
       setFile(null);

@@ -76,7 +76,11 @@ export async function GET(_: NextRequest, { params }: { params: { bookingId: str
     );
   }
 
-  await markBookingChatMessagesRead(bookingId, user.id);
+  try {
+    await markBookingChatMessagesRead(bookingId, user.id);
+  } catch {
+    /* best-effort — do not block message loading */
+  }
 
   let messages =
     user.role === "ADMIN" && (archivedFlag || locked)
