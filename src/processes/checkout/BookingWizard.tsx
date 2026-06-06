@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button, Card, Input } from "@/shared/ui";
 import { DcNextPaymentCard } from "@/components/payment/DcNextPaymentCard";
+import { DateAvailabilityCalendar } from "@/components/booking/DateAvailabilityCalendar";
 
 type Props = {
   labels: {
@@ -107,11 +108,121 @@ export function BookingWizard({ labels, defaults, pricePerNight, finance, dcRetu
   const [phone, setPhone] = useState(defaults.phone ?? "");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [availabilityChecking, setAvailabilityChecking] = useState(false);
+  const [datesAvailable, setDatesAvailable] = useState<boolean | null>(null);
+  const [conflictingDates, setConflictingDates] = useState<string[]>([]);
+  const [bookedDisabledDates, setBookedDisabledDates] = useState<string[]>([]);
+  const availabilityRequestId = useRef(0);
+
+  const disabledDatesSet = useMemo(() => new Set(bookedDisabledDates), [bookedDisabledDates]);
+
+  const checkAvailability = useCallback(
+    async (inDate: string, outDate: string): Promise<boolean> => {
+      if (!inDate || !outDate || !defaults.roomId && !defaults.roomTypeId) {
+        setDatesAvailable(null);
+        setConflictingDates([]);
+        return true;
+      }
+      const nightsCount = calcNights(inDate, outDate);
+      if (!nightsCount) {
+        setDatesAvailable(null);
+        setConflictingDates([]);
+        return false;
+      }
+
+      const reqId = ++availabilityRequestId.current;
+      setAvailabilityChecking(true);
+      try {
+        const res = await fetch("/api/bookings/check-availability", {
+          method: "POST",
+          headers: { "content-type": "application/json", accept: "application/json" },
+          body: JSON.stringify({
+            room_id: defaults.roomId ?? undefined,
+            room_type_id: defaults.roomTypeId ?? undefined,
+            check_in: inDate,
+            check_out: outDate
+          })
+        });
+        const json = (await res.json().catch(() => ({}))) as {
+          available?: boolean;
+          conflicting_dates?: string[];
+        };
+        if (reqId !== availabilityRequestId.current) return json.available !== false;
+
+        const available = res.ok && json.available !== false;
+        setDatesAvailable(available);
+        setConflictingDates(Array.isArray(json.conflicting_dates) ? json.conflicting_dates : []);
+        return available;
+      } catch {
+        if (reqId === availabilityRequestId.current) {
+          setDatesAvailable(null);
+          setConflictingDates([]);
+        }
+        return true;
+      } finally {
+        if (reqId === availabilityRequestId.current) setAvailabilityChecking(false);
+      }
+    },
+    [defaults.roomId, defaults.roomTypeId]
+  );
+
+  useEffect(() => {
+    if (!defaults.roomId) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch(`/api/rooms/${defaults.roomId}/booked-dates`, {
+          headers: { accept: "application/json" }
+        });
+        const json = (await res.json().catch(() => ({}))) as { disabledDates?: string[] };
+        if (!cancelled && Array.isArray(json.disabledDates)) {
+          setBookedDisabledDates(json.disabledDates);
+        }
+      } catch {
+        /* keep empty */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [defaults.roomId]);
+
+  useEffect(() => {
+    if (!checkIn || !checkOut) {
+      setDatesAvailable(null);
+      setConflictingDates([]);
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      void checkAvailability(checkIn, checkOut);
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [checkIn, checkOut, checkAvailability]);
+
+  const handleDateChange = useCallback(
+    (field: "checkIn" | "checkOut", value: string) => {
+      if (field === "checkIn") setCheckIn(value);
+      else setCheckOut(value);
+
+      const nextIn = field === "checkIn" ? value : checkIn;
+      const nextOut = field === "checkOut" ? value : checkOut;
+      if (nextIn && nextOut && calcNights(nextIn, nextOut)) {
+        void checkAvailability(nextIn, nextOut);
+      } else {
+        setDatesAvailable(null);
+        setConflictingDates([]);
+      }
+    },
+    [checkIn, checkOut, checkAvailability]
+  );
 
   const runBookingSubmit = useCallback(async () => {
     if (submitInFlight.current) return;
     const formEl = formRef.current;
     if (!formEl) return;
+
+    const available = await checkAvailability(checkIn, checkOut);
+    if (!available) return;
 
     submitInFlight.current = true;
     setSubmitting(true);
@@ -133,6 +244,10 @@ export function BookingWizard({ labels, defaults, pricePerNight, finance, dcRetu
         | { error?: string };
       if (!res.ok || !("ok" in json)) {
         const errRaw = String((json as { error?: string })?.error ?? "").trim();
+        if (res.status === 409 || errRaw === "unavailable") {
+          setDatesAvailable(false);
+          throw new Error(mapBookingApiError("unavailable"));
+        }
         throw new Error(mapBookingApiError(errRaw));
       }
 
@@ -153,7 +268,7 @@ export function BookingWizard({ labels, defaults, pricePerNight, finance, dcRetu
       submitInFlight.current = false;
       setSubmitting(false);
     }
-  }, []);
+  }, [checkIn, checkOut, checkAvailability]);
 
   const stepTitle = useMemo(() => {
     if (step === 1) return labels.titleStep1;
@@ -163,6 +278,8 @@ export function BookingWizard({ labels, defaults, pricePerNight, finance, dcRetu
 
   const payMethodLabel = labels.payDc;
   const nights = calcNights(checkIn, checkOut);
+  const datesConflict = datesAvailable === false;
+  const canProceedFromStep1 = Boolean(nights) && !datesConflict && !availabilityChecking;
   const totalByDates = nights ? Number((pricePerNight * nights).toFixed(2)) : null;
   const mobileField =
     "h-14 w-full rounded-2xl border border-white/20 bg-white/12 px-4 text-sm text-slate-100 shadow-[0_10px_30px_rgba(2,6,23,0.30)] outline-none transition placeholder:text-slate-200/70 focus:border-emerald-300 focus:ring-2 focus:ring-emerald-300/30";
@@ -280,8 +397,8 @@ export function BookingWizard({ labels, defaults, pricePerNight, finance, dcRetu
                       name="checkIn"
                       type="date"
                       value={checkIn}
-                      onChange={(e) => setCheckIn(e.target.value)}
-                      className={`${mobileField} cursor-pointer`}
+                      onChange={(e) => handleDateChange("checkIn", e.target.value)}
+                      className={`${mobileField} cursor-pointer ${datesConflict ? "border-red-400/60 focus:border-red-400 focus:ring-red-400/30" : ""}`}
                     />
                   </label>
                   <label className="grid gap-1">
@@ -296,11 +413,60 @@ export function BookingWizard({ labels, defaults, pricePerNight, finance, dcRetu
                       name="checkOut"
                       type="date"
                       value={checkOut}
-                      onChange={(e) => setCheckOut(e.target.value)}
-                      className={`${mobileField} cursor-pointer`}
+                      onChange={(e) => handleDateChange("checkOut", e.target.value)}
+                      className={`${mobileField} cursor-pointer ${datesConflict ? "border-red-400/60 focus:border-red-400 focus:ring-red-400/30" : ""}`}
                     />
                   </label>
                 </div>
+
+                {defaults.roomId ? (
+                  <DateAvailabilityCalendar
+                    disabledDates={disabledDatesSet}
+                    checkIn={checkIn}
+                    checkOut={checkOut}
+                    onSelectDate={(iso) => {
+                      if (!checkIn || (checkIn && checkOut)) {
+                        handleDateChange("checkIn", iso);
+                        setCheckOut("");
+                        return;
+                      }
+                      if (iso <= checkIn) {
+                        handleDateChange("checkIn", iso);
+                        return;
+                      }
+                      handleDateChange("checkOut", iso);
+                    }}
+                  />
+                ) : null}
+
+                {availabilityChecking ? (
+                  <div className="flex items-center gap-2 text-xs text-slate-300" role="status" aria-live="polite">
+                    <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-emerald-300/30 border-t-emerald-300" />
+                    Проверяем доступность дат…
+                  </div>
+                ) : null}
+
+                {datesConflict ? (
+                  <div
+                    className="rounded-lg border border-red-500 bg-red-100 px-4 py-3"
+                    style={{ background: "#FEE2E2", borderColor: "#EF4444" }}
+                    role="alert"
+                  >
+                    <p className="font-semibold text-red-600" style={{ color: "#DC2626" }}>
+                      ⚠️ Эти даты уже заняты
+                    </p>
+                    <p className="mt-1 text-sm" style={{ color: "#7F1D1D" }}>
+                      Номер недоступен с {checkIn} по {checkOut}. Пожалуйста, выберите другие даты.
+                      {conflictingDates.length > 0 ? (
+                        <span className="mt-1 block text-xs opacity-90">
+                          Занятые ночи: {conflictingDates.slice(0, 8).join(", ")}
+                          {conflictingDates.length > 8 ? "…" : ""}
+                        </span>
+                      ) : null}
+                    </p>
+                  </div>
+                ) : null}
+
                 <label className="grid gap-1">
                   <span className={labelRow}>
                     <span className={labelIcon} aria-hidden>
@@ -396,8 +562,21 @@ export function BookingWizard({ labels, defaults, pricePerNight, finance, dcRetu
               {step < 3 ? (
                 <Button
                   type="button"
-                  disabled={step === 1 && !nights}
-                  onClick={() => setStep((s) => (s < 3 ? ((s + 1) as Step) : s))}
+                  disabled={(step === 1 && !canProceedFromStep1) || availabilityChecking}
+                  className={
+                    step === 1 && (!canProceedFromStep1 || availabilityChecking)
+                      ? "cursor-not-allowed bg-slate-600 text-slate-300 opacity-70 hover:bg-slate-600"
+                      : undefined
+                  }
+                  onClick={() => {
+                    if (step === 1) {
+                      void checkAvailability(checkIn, checkOut).then((ok) => {
+                        if (ok) setStep(2);
+                      });
+                      return;
+                    }
+                    setStep((s) => (s < 3 ? ((s + 1) as Step) : s));
+                  }}
                 >
                   {labels.next}
                 </Button>

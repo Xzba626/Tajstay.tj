@@ -9,6 +9,31 @@ export const OCCUPYING_ONLINE_STATUSES = [
   BOOKING_STATUS.COMPLETED
 ] as const;
 
+/** Any non-cancelled online booking that holds inventory for new guest bookings */
+export const ACTIVE_ONLINE_BOOKING_STATUSES = [
+  BOOKING_STATUS.WAITING_PAYMENT,
+  BOOKING_STATUS.WAIT_PROOF,
+  BOOKING_STATUS.ON_REVIEW,
+  BOOKING_STATUS.PENDING_OWNER,
+  BOOKING_STATUS.CONFIRMED,
+  BOOKING_STATUS.CHECKED_IN,
+  BOOKING_STATUS.COMPLETED
+] as const;
+
+export const INACTIVE_ONLINE_BOOKING_STATUSES = [
+  BOOKING_STATUS.CANCELLED,
+  "CANCELLED_BY_GUEST",
+  BOOKING_STATUS.EXPIRED,
+  BOOKING_STATUS.REJECTED
+] as const;
+
+export const ACTIVE_OFFLINE_BOOKING_STATUSES = [
+  OFFLINE_STATUS.PENDING,
+  OFFLINE_STATUS.CONFIRMED,
+  OFFLINE_STATUS.CHECKED_IN,
+  OFFLINE_STATUS.CHECKED_OUT
+] as const;
+
 /** Pending online — show in calendar only, do not block new confirmations */
 export const PENDING_ONLINE_STATUSES = [
   BOOKING_STATUS.WAITING_PAYMENT,
@@ -117,6 +142,133 @@ export class DatesUnavailableError extends Error {
   }
 }
 
+function nightsInRange(checkIn: Date, checkOut: Date): string[] {
+  const nights: string[] = [];
+  let cur = normalizeDateOnly(checkIn);
+  const end = normalizeDateOnly(checkOut);
+  while (cur.getTime() < end.getTime()) {
+    nights.push(cur.toISOString().slice(0, 10));
+    cur = addDays(cur, 1);
+  }
+  return nights;
+}
+
+function activeBookingWhere(excludeBookingId?: number) {
+  return {
+    ...(excludeBookingId ? { id: { not: excludeBookingId } } : {}),
+    OR: [
+      {
+        source: BOOKING_SOURCE.PLATFORM,
+        status: { in: [...ACTIVE_ONLINE_BOOKING_STATUSES] }
+      },
+      {
+        source: BOOKING_SOURCE.OWNER_MANUAL,
+        offlineStatus: { in: [...ACTIVE_OFFLINE_BOOKING_STATUSES] }
+      }
+    ]
+  };
+}
+
+export type AvailabilityCheckResult = {
+  available: boolean;
+  conflicting_dates: string[];
+  conflicts: Array<{ checkIn: string; checkOut: string }>;
+};
+
+export async function checkRoomDateAvailability(params: {
+  roomId: number;
+  checkIn: Date;
+  checkOut: Date;
+  excludeBookingId?: number;
+}): Promise<AvailabilityCheckResult> {
+  const { roomId, checkIn, checkOut, excludeBookingId } = params;
+  if (checkOut.getTime() <= checkIn.getTime()) {
+    return { available: false, conflicting_dates: [], conflicts: [] };
+  }
+
+  const requestedNights = new Set(nightsInRange(checkIn, checkOut));
+  const conflicts = await prisma.booking.findMany({
+    where: {
+      roomId,
+      checkIn: { lt: checkOut },
+      checkOut: { gt: checkIn },
+      ...activeBookingWhere(excludeBookingId)
+    },
+    select: { checkIn: true, checkOut: true },
+    orderBy: { checkIn: "asc" }
+  });
+
+  const conflicting_dates = new Set<string>();
+  for (const b of conflicts) {
+    for (const night of nightsInRange(b.checkIn, b.checkOut)) {
+      if (requestedNights.has(night)) conflicting_dates.add(night);
+    }
+  }
+
+  const blocked = await prisma.roomDateOverride.findMany({
+    where: {
+      roomId,
+      isBlocked: true,
+      date: { gte: normalizeDateOnly(checkIn), lt: normalizeDateOnly(checkOut) }
+    },
+    select: { date: true }
+  });
+  for (const row of blocked) {
+    conflicting_dates.add(normalizeDateOnly(row.date).toISOString().slice(0, 10));
+  }
+
+  return {
+    available: conflicting_dates.size === 0,
+    conflicting_dates: [...conflicting_dates].sort(),
+    conflicts: conflicts.map((b) => ({
+      checkIn: b.checkIn.toISOString().slice(0, 10),
+      checkOut: b.checkOut.toISOString().slice(0, 10)
+    }))
+  };
+}
+
+export async function getRoomBookedDateRanges(
+  roomId: number,
+  from: Date,
+  to: Date
+): Promise<{ ranges: Array<{ checkIn: string; checkOut: string }>; disabledDates: string[] }> {
+  const bookings = await prisma.booking.findMany({
+    where: {
+      roomId,
+      checkIn: { lt: to },
+      checkOut: { gt: from },
+      ...activeBookingWhere()
+    },
+    select: { checkIn: true, checkOut: true },
+    orderBy: { checkIn: "asc" }
+  });
+
+  const disabled = new Set<string>();
+  for (const b of bookings) {
+    for (const night of nightsInRange(b.checkIn, b.checkOut)) {
+      if (night >= from.toISOString().slice(0, 10) && night < to.toISOString().slice(0, 10)) {
+        disabled.add(night);
+      }
+    }
+  }
+
+  const blocked = await prisma.roomDateOverride.findMany({
+    where: { roomId, isBlocked: true, date: { gte: from, lt: to } },
+    select: { date: true }
+  });
+  for (const row of blocked) {
+    disabled.add(normalizeDateOnly(row.date).toISOString().slice(0, 10));
+  }
+
+  return {
+    ranges: bookings.map((b) => ({
+      checkIn: b.checkIn.toISOString().slice(0, 10),
+      checkOut: b.checkOut.toISOString().slice(0, 10)
+    })),
+    disabledDates: [...disabled].sort()
+  };
+}
+
 export async function assertDatesAvailable(params: {
   roomId: number;
   checkIn: Date;
@@ -128,26 +280,8 @@ export async function assertDatesAvailable(params: {
     throw new DatesUnavailableError("Invalid dates");
   }
 
-  const overlap = await prisma.booking.findFirst({
-    where: {
-      roomId,
-      id: excludeBookingId ? { not: excludeBookingId } : undefined,
-      checkIn: { lt: checkOut },
-      checkOut: { gt: checkIn },
-      OR: [
-        {
-          source: BOOKING_SOURCE.PLATFORM,
-          status: { in: [...OCCUPYING_ONLINE_STATUSES] }
-        },
-        {
-          source: BOOKING_SOURCE.OWNER_MANUAL,
-          offlineStatus: { in: [...OCCUPYING_OFFLINE_STATUSES] }
-        }
-      ]
-    },
-    select: { id: true }
-  });
-  if (overlap) throw new DatesUnavailableError();
+  const result = await checkRoomDateAvailability({ roomId, checkIn, checkOut, excludeBookingId });
+  if (!result.available) throw new DatesUnavailableError();
 
   const nightsStart = normalizeDateOnly(checkIn);
   const nightsEnd = normalizeDateOnly(checkOut);

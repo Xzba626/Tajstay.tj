@@ -252,7 +252,13 @@ export async function POST(req: NextRequest) {
     return response;
   } catch (err: unknown) {
     const code = bookingErrorCode(err);
-    if (wantsJson) return NextResponse.json({ error: code }, { status: 500 });
+    const status = code === "unavailable" ? 409 : 500;
+    if (wantsJson) {
+      return NextResponse.json(
+        { error: code, message: "Номер недоступен на выбранные даты. Выберите другие дни." },
+        { status }
+      );
+    }
     return bookingFormRedirect(req, { roomId, checkIn: checkInRaw, checkOut: checkOutRaw, code });
   }
 }
