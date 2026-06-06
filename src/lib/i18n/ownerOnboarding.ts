@@ -106,7 +106,10 @@ const RU = {
   errUpload: "Загрузите обязательное фото",
   errFileType: "Только JPG, PNG или WebP",
   errFileSize: "Файл больше 5 МБ",
-  errGeneric: "Не удалось отправить заявку. Попробуйте позже."
+  errGeneric: "Не удалось отправить заявку. Попробуйте позже.",
+  errTimeout: "Сервер не ответил вовремя. Проверьте интернет и попробуйте снова.",
+  errPayloadTooLarge: "Фото слишком большие. Мы сжали их автоматически — попробуйте ещё раз или выберите файлы поменьше.",
+  btnCompressing: "Подготовка фото…"
 } as const;
 
 const TG: OwnerOnboardingLabels = {
@@ -215,7 +218,10 @@ const TG: OwnerOnboardingLabels = {
   errUpload: "Сурати ҳатмиро бор кунед",
   errFileType: "Танҳо JPG, PNG ё WebP",
   errFileSize: "Файл аз 5 МБ калонтар аст",
-  errGeneric: "Фиристодан муваффақ нашуд. Баъдтар кӯшиш кунед."
+  errGeneric: "Фиристодан муваффақ нашуд. Баъдтар кӯшиш кунед.",
+  errTimeout: "Сервер ба вақт ҷавоб надод. Интернетро санҷед ва боз кӯшиш кунед.",
+  errPayloadTooLarge: "Суратҳо хеле калонанд. Боз кӯшиш кунед ё файлҳои хурдтар интихоб кунед.",
+  btnCompressing: "Омодасозии суратҳо…"
 };
 
 const EN: OwnerOnboardingLabels = {
@@ -324,7 +330,10 @@ const EN: OwnerOnboardingLabels = {
   errUpload: "Upload the required photo",
   errFileType: "Only JPG, PNG, or WebP",
   errFileSize: "File exceeds 5 MB",
-  errGeneric: "Could not submit. Please try again."
+  errGeneric: "Could not submit. Please try again.",
+  errTimeout: "The server did not respond in time. Check your connection and try again.",
+  errPayloadTooLarge: "Photos are too large. Try again or pick smaller files.",
+  btnCompressing: "Preparing photos…"
 };
 
 export type OwnerOnboardingLabels = { [K in keyof typeof RU]: string };
