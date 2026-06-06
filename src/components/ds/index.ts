@@ -19,4 +19,8 @@ export { DashboardShell } from "./DashboardShell";
 export { DashboardSection } from "./DashboardSection";
 export { ContentGrid } from "./ContentGrid";
 export { StickyActions } from "./StickyActions";
+export { Stack } from "./Stack";
+export { Cluster } from "./Cluster";
+export { FilterChip } from "./FilterChip";
+export type { FilterChipTone } from "./FilterChip";
 export type { TajButtonVariant, TajButtonSize, TajCardVariant, TajCardPadding } from "./types";
