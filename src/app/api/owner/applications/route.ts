@@ -5,15 +5,14 @@ import { requireUser } from "@/lib/auth/requireAuth";
 import { OWNER_APPLICATION_STATUS } from "@/lib/domain/booking";
 import { clientIp, rateLimit } from "@/lib/security/rateLimit";
 import { normalizePhone } from "@/lib/validation/phone";
-import { saveUploadFile } from "@/lib/uploads/saveUpload";
 import { ImageUploadError } from "@/lib/uploads/imageUploadError";
-import type { OwnerApplicationMeta } from "@/lib/owner/applicationMeta";
+import type { OwnerApplicationFileSlot, OwnerApplicationMeta } from "@/lib/owner/applicationMeta";
+import { saveOwnerApplicationDocument, saveOwnerApplicationPhoto } from "@/lib/uploads/saveApplicationFile";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-const MAX_FILE = 5 * 1024 * 1024;
 const UPLOAD_DIR = "owner-applications";
 
 const jsonSchema = z
@@ -46,15 +45,41 @@ const jsonSchema = z
     }
   });
 
-async function saveOptionalFile(form: FormData, key: string): Promise<string | undefined> {
+async function saveOptionalPhoto(form: FormData, key: string): Promise<string | undefined> {
   const f = form.get(key);
   if (!(f instanceof File) || f.size <= 0) return undefined;
   try {
-    return await saveUploadFile(f, UPLOAD_DIR, MAX_FILE);
+    return await saveOwnerApplicationPhoto(f, UPLOAD_DIR);
   } catch (err) {
     if (err instanceof ImageUploadError) throw err;
     throw new ImageUploadError("store_failed", "Upload failed");
   }
+}
+
+async function saveDualSlot(form: FormData, base: string): Promise<OwnerApplicationFileSlot | undefined> {
+  const photo = form.get(`${base}Photo`);
+  if (photo instanceof File && photo.size > 0) {
+    try {
+      const photo_url = await saveOwnerApplicationPhoto(photo, UPLOAD_DIR);
+      return { photo_url, file_type: "photo" };
+    } catch (err) {
+      if (err instanceof ImageUploadError) throw err;
+      throw new ImageUploadError("store_failed", "Upload failed");
+    }
+  }
+
+  const document = form.get(`${base}Document`);
+  if (document instanceof File && document.size > 0) {
+    try {
+      const document_url = await saveOwnerApplicationDocument(document, UPLOAD_DIR);
+      return { document_url, file_type: "document" };
+    } catch (err) {
+      if (err instanceof ImageUploadError) throw err;
+      throw new ImageUploadError("store_failed", "Upload failed");
+    }
+  }
+
+  return undefined;
 }
 
 async function ensureNoPending(userId: number) {
@@ -114,18 +139,24 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-      const [identity, facade, room, bathroom, identityBack, selfie, propertyDoc] = await Promise.all([
-        saveOptionalFile(form, "identity"),
-        saveOptionalFile(form, "facade"),
-        saveOptionalFile(form, "room"),
-        saveOptionalFile(form, "bathroom"),
-        saveOptionalFile(form, "identityBack"),
-        saveOptionalFile(form, "selfie"),
-        saveOptionalFile(form, "propertyDoc")
+      const [identity, identityBack, propertyDoc, facade, room, bathroom, selfie] = await Promise.all([
+        saveDualSlot(form, "identity"),
+        saveDualSlot(form, "identityBack"),
+        saveDualSlot(form, "propertyDoc"),
+        saveOptionalPhoto(form, "facade"),
+        saveOptionalPhoto(form, "room"),
+        saveOptionalPhoto(form, "bathroom"),
+        saveOptionalPhoto(form, "selfie")
       ]);
 
       if (!identity) {
-        return NextResponse.json({ error: "Загрузите фото паспорта / ID" }, { status: 400 });
+        return NextResponse.json({ error: "Загрузите фото или документ паспорта (лицевая сторона)" }, { status: 400 });
+      }
+      if (!identityBack) {
+        return NextResponse.json({ error: "Загрузите фото или документ паспорта (задняя сторона)" }, { status: 400 });
+      }
+      if (!propertyDoc) {
+        return NextResponse.json({ error: "Загрузите фото или документ на объект" }, { status: 400 });
       }
       if (!facade || !room || !bathroom) {
         return NextResponse.json({ error: "Загрузите фото объекта (фасад, комната, санузел)" }, { status: 400 });
