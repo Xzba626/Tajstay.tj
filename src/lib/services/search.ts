@@ -40,29 +40,64 @@ function parseSearchDateOnly(value?: string): Date | undefined {
   return Number.isNaN(date.getTime()) ? undefined : date;
 }
 
-function roomAvailableForDatesFilter(checkIn: Date, checkOut: Date): Prisma.RoomWhereInput {
+function conflictingBookingsWhere(checkIn: Date, checkOut: Date): Prisma.BookingWhereInput {
   return {
-    bookings: {
-      none: {
-        AND: [
-          { checkIn: { lt: checkOut } },
-          { checkOut: { gt: checkIn } },
+    AND: [
+      { checkIn: { lt: checkOut } },
+      { checkOut: { gt: checkIn } },
+      {
+        OR: [
           {
-            OR: [
-              {
-                source: BOOKING_SOURCE.PLATFORM,
-                status: { notIn: [...INACTIVE_ONLINE_BOOKING_STATUSES] }
-              },
-              {
-                source: BOOKING_SOURCE.OWNER_MANUAL,
-                offlineStatus: { in: [...ACTIVE_OFFLINE_BOOKING_STATUSES] }
-              }
-            ]
+            source: BOOKING_SOURCE.PLATFORM,
+            status: { notIn: [...INACTIVE_ONLINE_BOOKING_STATUSES] }
+          },
+          {
+            source: BOOKING_SOURCE.OWNER_MANUAL,
+            offlineStatus: { in: [...ACTIVE_OFFLINE_BOOKING_STATUSES] }
           }
         ]
       }
+    ]
+  };
+}
+
+function roomAvailableForDatesFilter(checkIn: Date, checkOut: Date): Prisma.RoomWhereInput {
+  return {
+    bookings: {
+      none: conflictingBookingsWhere(checkIn, checkOut)
     }
   };
+}
+
+type RoomWithBookings = {
+  capacity: number;
+  price: Prisma.Decimal | number;
+  amenities: string;
+  bookings?: { id: number }[];
+};
+
+function roomMeetsSearchFilters(room: RoomWithBookings, input: SearchInput): boolean {
+  if (input.guests && room.capacity < input.guests) return false;
+  const price = Number(room.price);
+  if (input.minPrice != null && price < input.minPrice) return false;
+  if (input.maxPrice != null && price > input.maxPrice) return false;
+  if (input.wifi && !room.amenities.includes('"wifi"')) return false;
+  if (input.breakfast && !room.amenities.includes('"breakfast_included"') && !room.amenities.includes('"breakfast"')) {
+    return false;
+  }
+  if (input.parking && !room.amenities.includes('"parking"')) return false;
+  return true;
+}
+
+type HotelAvailabilityData = {
+  rooms: RoomWithBookings[];
+  roomTypes?: Array<{ rooms: RoomWithBookings[] }>;
+};
+
+function countAvailableRoomsForDates(hotel: HotelAvailabilityData, input: SearchInput): number {
+  const typedRooms = hotel.roomTypes?.flatMap((rt) => rt.rooms) ?? [];
+  const candidates = typedRooms.length > 0 ? typedRooms : hotel.rooms;
+  return candidates.filter((room) => roomMeetsSearchFilters(room, input) && (room.bookings?.length ?? 0) === 0).length;
 }
 
 export async function searchApprovedHotels(input: SearchInput) {
@@ -111,7 +146,32 @@ async function searchApprovedHotelsQuery(input: SearchInput) {
   const hotels = await prisma.hotel.findMany({
     where,
     include: {
-      rooms: true
+      rooms: hasDateRange
+        ? {
+            include: {
+              bookings: {
+                where: conflictingBookingsWhere(checkIn!, checkOut!),
+                select: { id: true }
+              }
+            }
+          }
+        : true,
+      ...(hasDateRange
+        ? {
+            roomTypes: {
+              include: {
+                rooms: {
+                  include: {
+                    bookings: {
+                      where: conflictingBookingsWhere(checkIn!, checkOut!),
+                      select: { id: true }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        : {})
     },
     orderBy
   });
@@ -157,13 +217,28 @@ async function searchApprovedHotelsQuery(input: SearchInput) {
     });
   }
 
+  const withAvailability = hotels.map((hotel) => {
+    const availableRoomsCount = hasDateRange
+      ? countAvailableRoomsForDates(hotel as unknown as HotelAvailabilityData, input)
+      : undefined;
+    const { roomTypes: _roomTypes, rooms, ...rest } = hotel;
+    return {
+      ...rest,
+      rooms: rooms.map((room) => {
+        const { bookings: _bookings, ...roomRest } = room as (typeof room) & { bookings?: { id: number }[] };
+        return roomRest;
+      }),
+      ...(availableRoomsCount != null ? { availableRoomsCount } : {})
+    };
+  });
+
   if (input.origin) {
     return sortByDistance(
-      hotels.map((h) => ({ ...h, lat: h.latitude, lng: h.longitude })),
+      withAvailability.map((h) => ({ ...h, lat: h.latitude, lng: h.longitude })),
       input.origin
     );
   }
 
-  return hotels;
+  return withAvailability;
 }
 
