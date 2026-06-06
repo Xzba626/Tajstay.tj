@@ -41,6 +41,7 @@ export function hotelStatusVariant(status: string): Variant {
     case "PENDING":
       return "warning";
     case "REJECTED":
+    case "DELETED":
       return "danger";
     default:
       return "neutral";

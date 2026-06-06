@@ -23,6 +23,7 @@ import { buildOwnerPricingInsights } from "@/lib/services/ownerInsights";
 import { BookingChatLauncher } from "@/components/chat/BookingChatPanel";
 import { RoomPhotoCarousel } from "@/components/RoomPhotoCarousel";
 import { OwnerDashboardKpis } from "@/components/owner/OwnerDashboardKpis";
+import { OwnerHotelPropertyExtras } from "@/components/owner/OwnerHotelPropertyExtras";
 import { OfflineBookingForm } from "@/components/owner/OfflineBookingForm";
 import { OfflineBookingsList } from "@/components/owner/OfflineBookingsList";
 import { OwnerCalendar } from "@/components/owner/OwnerCalendar";
@@ -203,7 +204,7 @@ export default async function OwnerDashboardPage({
 
   if (activeSection === "overview") {
     [hotels, pendingCount, revenueAgg, recentBookings, dashboardKpis] = await Promise.all([
-      prisma.hotel.findMany({ where: { ownerId: user.id }, include: { rooms: true } }),
+      prisma.hotel.findMany({ where: { ownerId: user.id, status: { not: "DELETED" } }, include: { rooms: true } }),
       prisma.booking.count({ where: { room: { hotel: { ownerId: user.id } }, status: "PENDING_OWNER" } }),
       prisma.booking.aggregate({
         where: {
@@ -223,9 +224,9 @@ export default async function OwnerDashboardPage({
       getOwnerDashboardKpis(user.id)
     ]);
   } else if (activeSection === "properties") {
-    hotels = await prisma.hotel.findMany({ where: { ownerId: user.id }, include: { rooms: true }, orderBy: { createdAt: "desc" } });
+    hotels = await prisma.hotel.findMany({ where: { ownerId: user.id, status: { not: "DELETED" } }, include: { rooms: true }, orderBy: { createdAt: "desc" } });
   } else if (activeSection === "rooms") {
-    hotels = await prisma.hotel.findMany({ where: { ownerId: user.id }, orderBy: { createdAt: "desc" } });
+    hotels = await prisma.hotel.findMany({ where: { ownerId: user.id, status: { not: "DELETED" } }, orderBy: { createdAt: "desc" } });
     roomTypes = await prisma.roomType.findMany({
       where: { hotel: { ownerId: user.id } },
       include: { _count: { select: { rooms: true } } },
@@ -289,7 +290,7 @@ export default async function OwnerDashboardPage({
       orderBy: [{ roomNumber: "asc" }, { id: "asc" }]
     });
   } else if (activeSection === "offline-bookings") {
-    hotels = await prisma.hotel.findMany({ where: { ownerId: user.id }, include: { rooms: true }, orderBy: { createdAt: "desc" } });
+    hotels = await prisma.hotel.findMany({ where: { ownerId: user.id, status: { not: "DELETED" } }, include: { rooms: true }, orderBy: { createdAt: "desc" } });
     roomTypes = await prisma.roomType.findMany({
       where: { hotel: { ownerId: user.id } },
       include: { hotel: true },
@@ -345,7 +346,7 @@ export default async function OwnerDashboardPage({
   } else if (activeSection === "finances") {
     [ownerPayouts, revenueAgg, dashboardKpis] = await Promise.all([
       prisma.payout.findMany({
-        where: { ownerId: user.id },
+        where: { ownerId: user.id, status: { not: "DELETED" } },
         include: { booking: { include: bookingWithHotelInclude } },
         orderBy: { createdAt: "desc" },
         take: 50
@@ -363,7 +364,7 @@ export default async function OwnerDashboardPage({
     ]);
   } else if (activeSection === "statistics" || activeSection === "help") {
     [hotels, dashboardKpis, pendingCount, recentBookings] = await Promise.all([
-      prisma.hotel.findMany({ where: { ownerId: user.id }, include: { rooms: true } }),
+      prisma.hotel.findMany({ where: { ownerId: user.id, status: { not: "DELETED" } }, include: { rooms: true } }),
       getOwnerDashboardKpis(user.id),
       prisma.booking.count({
         where: { AND: [ownerBookingWhere(user.id), { status: "PENDING_OWNER" }] }
@@ -377,7 +378,7 @@ export default async function OwnerDashboardPage({
     ]);
   } else if (activeSection === "calendar") {
     const cal = await getOwnerCalendarData(user.id, 30);
-    hotels = await prisma.hotel.findMany({ where: { ownerId: user.id }, orderBy: { createdAt: "desc" } });
+    hotels = await prisma.hotel.findMany({ where: { ownerId: user.id, status: { not: "DELETED" } }, orderBy: { createdAt: "desc" } });
     rooms = cal.rooms;
     calendarCells = cal.cells;
     calendarCellMeta = cal.cellMeta;
@@ -838,6 +839,12 @@ export default async function OwnerDashboardPage({
                       {m(locale, "owner.saveHotel")}
                     </button>
                   </form>
+
+                  <OwnerHotelPropertyExtras
+                    hotelId={h.id}
+                    status={h.status}
+                    rejectionReason={h.rejectionReason}
+                  />
                 </div>
               ))}
             </div>

@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { AdminBookingPayCountdown } from "@/components/admin/AdminBookingPayCountdown";
 import { AdminOwnerApplicationActions } from "@/components/admin/AdminOwnerApplicationActions";
+import { AdminHotelModerationActions } from "@/components/admin/AdminHotelModerationActions";
 import { OWNER_APPLICATION_STATUS } from "@/lib/domain/booking";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { formatBookingStatus } from "@/lib/i18n/bookingStatus";
@@ -73,14 +74,20 @@ export default async function AdminDashboardPage({
   const locale = getLocale();
   const params = searchParams ? await searchParams : undefined;
   const sectionParam = params?.section;
-  const activeSection: AdminSection = sectionParam && VALID_SECTIONS.has(sectionParam as AdminSection) ? (sectionParam as AdminSection) : "dashboard";
+  const isModerationSection = sectionParam === "moderation";
+  const activeSection: AdminSection =
+    sectionParam && VALID_SECTIONS.has(sectionParam as AdminSection)
+      ? (sectionParam as AdminSection)
+      : isModerationSection
+        ? "hotels"
+        : "dashboard";
   const tStatus = (status: string) => formatBookingStatus(locale, status);
   const tRole = (role: string) => m(locale, `roles.${role}`);
 
   const pageSize = 20;
   const page = Math.max(1, Number(params?.page ?? "1") || 1);
   const q = (params?.q ?? "").trim();
-  const status = (params?.status ?? "").trim();
+  const status = (params?.status ?? (isModerationSection ? "PENDING" : "")).trim();
   const role = (params?.role ?? "").trim();
   const paymentStatus = (params?.paymentStatus ?? "").trim();
   const resetToken = (params?.resetToken ?? "").trim();
@@ -294,6 +301,8 @@ export default async function AdminDashboardPage({
     });
   } else if (activeSection === "hotels") {
     const where = {
+      deletedAt: null,
+      status: { not: "DELETED" },
       ...(status ? { status } : {}),
       ...(q
         ? {
@@ -305,10 +314,15 @@ export default async function AdminDashboardPage({
     totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
     hotels = await prisma.hotel.findMany({
       where,
-      include: { owner: true },
-      orderBy: { createdAt: "desc" },
+      include: { owner: true, photos: { orderBy: { sortOrder: "asc" } } },
+      orderBy: [{ status: "asc" }, { createdAt: "asc" }],
       skip: (page - 1) * pageSize,
       take: pageSize
+    });
+    hotels.sort((a, b) => {
+      if (a.status === "PENDING" && b.status !== "PENDING") return -1;
+      if (b.status === "PENDING" && a.status !== "PENDING") return 1;
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
     });
   } else if (activeSection === "users") {
     const where = {
@@ -813,7 +827,7 @@ export default async function AdminDashboardPage({
           <h2 className="text-lg font-bold text-slate-900">{m(locale, "admin.moderateHotels")}</h2>
         </div>
         <DataToolbar
-          section="hotels"
+          section={isModerationSection ? "moderation" : "hotels"}
           submitLabel={m(locale, "search.search")}
           fields={[
             { kind: "search", name: "q", placeholder: m(locale, "admin.searchPlaceholder") },
@@ -870,6 +884,37 @@ export default async function AdminDashboardPage({
                   )}
                   {risk.level === "HIGH" && <div className="mt-1 text-xs font-semibold text-red-600">AUTO FLAGGED FOR MANUAL REVIEW</div>}
                 </div>
+              </div>
+              <AdminHotelModerationActions
+                hotelId={hotel.id}
+                hotelName={hotel.name}
+                city={hotel.city}
+                address={hotel.address}
+                description={hotel.description}
+                propertyType={hotel.propertyType}
+                status={hotel.status}
+                createdAt={hotel.createdAt.toISOString()}
+                coverImageUrl={hotel.coverImageUrl}
+                photos={hotel.photos ?? []}
+                owner={{
+                  name: hotel.owner.name,
+                  email: hotel.owner.email,
+                  phone: hotel.owner.phone
+                }}
+                labels={{
+                  approve: m(locale, "admin.approve"),
+                  reject: m(locale, "admin.reject"),
+                  rejectReason: m(locale, "admin.rejectReason"),
+                  confirmApproveTitle: m(locale, "admin.confirmApproveTitle"),
+                  confirmApproveDesc: m(locale, "admin.confirmApproveDesc"),
+                  confirmApproveCta: m(locale, "admin.confirmApproveCta"),
+                  cancel: m(locale, "admin.cancel"),
+                  processing: m(locale, "admin.processing"),
+                  submittedAt: "Дата подачи",
+                  host: "Хост"
+                }}
+              />
+              <div className="mt-3 border-t border-slate-100 pt-3">
                 <form action="/api/admin/hotels/moderate" method="post" className="flex flex-col gap-2 sm:flex-row sm:items-center">
                   <input type="hidden" name="id" value={hotel.id} />
                   <select name="status" defaultValue={hotel.status} className="rounded-xl border border-slate-200 px-3 py-2 text-sm">
@@ -877,8 +922,8 @@ export default async function AdminDashboardPage({
                     <option value="APPROVED">{tStatus("APPROVED")}</option>
                     <option value="REJECTED">{tStatus("REJECTED")}</option>
                   </select>
-                  <button className="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white">
-                    {m(locale, "admin.save")}
+                  <button className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700">
+                    {m(locale, "admin.save")} (статус)
                   </button>
                 </form>
               </div>

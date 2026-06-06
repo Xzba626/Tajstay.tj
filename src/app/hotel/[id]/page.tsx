@@ -115,6 +115,12 @@ export default async function HotelDetailPage({
 
   if (!hotel) notFound();
 
+  const isOwnerOrAdmin =
+    user?.role === "ADMIN" || (user?.role === "OWNER" && hotel.ownerId === user.id);
+  if ((hotel.status !== "APPROVED" || hotel.deletedAt) && !isOwnerOrAdmin) {
+    notFound();
+  }
+
   const isFavorite =
     user?.role === "GUEST"
       ? Boolean(

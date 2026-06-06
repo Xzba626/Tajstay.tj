@@ -8,6 +8,8 @@ import { savePublicImageFile } from "@/lib/uploads/savePublicImage";
 import { ImageUploadError } from "@/lib/uploads/imageUploadError";
 import { agentLog } from "@/lib/debug/agentLog";
 import { getPublicOriginFromRequest } from "@/lib/http/publicOrigin";
+import { createNotification } from "@/lib/notifications/create";
+import { sendHotelPendingAdminEmail } from "@/lib/email/hotelModerationEmails";
 
 export const runtime = "nodejs";
 
@@ -59,7 +61,7 @@ function uploadErrorCode(err: ImageUploadError): string {
   }
 }
 
-/** Создание объекта владельцем после одобрения заявки — без повторной модерации админом. */
+/** Создание объекта владельцем — отправляется на модерацию (PENDING). */
 export async function POST(req: NextRequest) {
   try {
     const owner = await getOwnerUser();
@@ -125,8 +127,23 @@ export async function POST(req: NextRequest) {
         longitude,
         propertyType,
         coverImageUrl,
-        status: "APPROVED"
+        status: "PENDING"
       }
+    });
+
+    await createNotification({
+      userId: owner.id,
+      type: "HOTEL_PENDING_REVIEW",
+      message: "Ваш объект принят на проверку. Обычно это занимает до 24 часов.",
+      link: "/dashboard/owner?section=properties"
+    });
+
+    await sendHotelPendingAdminEmail({
+      ownerName: owner.name,
+      ownerEmail: owner.email,
+      hotelName: hotel.name,
+      hotelAddress: hotel.address,
+      hotelId: hotel.id
     });
 
     // #region agent log

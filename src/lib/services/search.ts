@@ -130,6 +130,7 @@ async function searchApprovedHotelsQuery(input: SearchInput) {
 
   const where: Prisma.HotelWhereInput = {
     status: "APPROVED",
+    deletedAt: null,
     city: input.city ? { contains: input.city } : undefined,
     propertyType: input.propertyType && input.propertyType !== "ANY" ? input.propertyType : undefined,
     rating: input.ratingMin != null ? { gte: input.ratingMin } : undefined,

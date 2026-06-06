@@ -234,8 +234,8 @@ export function SignInClient({
     if (isLoginSubmitting) return;
     setFormError(null);
     setIsLoginSubmitting(true);
+    const email = loginEmail.trim().toLowerCase();
     try {
-      const email = loginEmail.trim().toLowerCase();
       if (!email || !loginPassword) {
         setFormError(L.fieldRequired);
         return;
@@ -255,7 +255,12 @@ export function SignInClient({
       await postJson("/api/auth/email/login", { email, password: loginPassword });
       await refreshMe();
     } catch (err: unknown) {
-      setFormError(mapApiErrorMessage(err instanceof Error ? err.message : ""));
+      const msg = err instanceof Error ? err.message : "";
+      if (msg.toLowerCase().includes("email_not_verified")) {
+        window.location.href = `/auth/verify-pending?email=${encodeURIComponent(email)}`;
+        return;
+      }
+      setFormError(mapApiErrorMessage(msg));
     } finally {
       setIsLoginSubmitting(false);
     }
@@ -279,11 +284,15 @@ export function SignInClient({
     }
     setIsRegisterSubmitting(true);
     try {
-      await postJson("/api/auth/email/register-email", {
+      const regResult = await postJson<{ verifyPending?: boolean }>("/api/auth/email/register-email", {
         name: regName.trim(),
         email: regEmail.trim().toLowerCase(),
         password: regPassword
       });
+      if (regResult.verifyPending) {
+        window.location.href = `/auth/verify-pending?email=${encodeURIComponent(regEmail.trim().toLowerCase())}`;
+        return;
+      }
       await refreshMe();
     } catch (err: unknown) {
       setFormError(mapApiErrorMessage(err instanceof Error ? err.message : ""));
