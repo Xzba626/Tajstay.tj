@@ -9,6 +9,10 @@ import { saveUploadFile } from "@/lib/uploads/saveUpload";
 import { ImageUploadError } from "@/lib/uploads/imageUploadError";
 import type { OwnerApplicationMeta } from "@/lib/owner/applicationMeta";
 
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 const MAX_FILE = 5 * 1024 * 1024;
 const UPLOAD_DIR = "owner-applications";
 
@@ -110,25 +114,31 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-      const identity = await saveOptionalFile(form, "identity");
+      const [identity, facade, room, bathroom, identityBack, selfie, propertyDoc] = await Promise.all([
+        saveOptionalFile(form, "identity"),
+        saveOptionalFile(form, "facade"),
+        saveOptionalFile(form, "room"),
+        saveOptionalFile(form, "bathroom"),
+        saveOptionalFile(form, "identityBack"),
+        saveOptionalFile(form, "selfie"),
+        saveOptionalFile(form, "propertyDoc")
+      ]);
+
       if (!identity) {
         return NextResponse.json({ error: "Загрузите фото паспорта / ID" }, { status: 400 });
       }
-      const facade = await saveOptionalFile(form, "facade");
-      const room = await saveOptionalFile(form, "room");
-      const bathroom = await saveOptionalFile(form, "bathroom");
       if (!facade || !room || !bathroom) {
         return NextResponse.json({ error: "Загрузите фото объекта (фасад, комната, санузел)" }, { status: 400 });
       }
 
       const uploads = {
         identity,
-        identityBack: await saveOptionalFile(form, "identityBack"),
-        selfie: await saveOptionalFile(form, "selfie"),
+        identityBack,
+        selfie,
         facade,
         room,
         bathroom,
-        propertyDoc: await saveOptionalFile(form, "propertyDoc")
+        propertyDoc
       };
 
       const meta: OwnerApplicationMeta = {
@@ -171,7 +181,8 @@ export async function POST(req: NextRequest) {
       if (err instanceof ImageUploadError) {
         return NextResponse.json({ error: err.message }, { status: 400 });
       }
-      throw err;
+      console.error("[owner/applications] multipart submit failed", err);
+      return NextResponse.json({ error: "Не удалось сохранить заявку. Попробуйте позже." }, { status: 500 });
     }
   }
 
