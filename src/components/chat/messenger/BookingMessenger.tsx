@@ -42,6 +42,7 @@ export function BookingMessenger(props: BookingMessengerProps) {
     error,
     setError,
     typingName,
+    connectionStatus,
     pull,
     sendMessage,
     onComposeInput
@@ -96,7 +97,9 @@ export function BookingMessenger(props: BookingMessengerProps) {
     try {
       await sendMessage(payload);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Ошибка отправки");
+      const msg = e instanceof Error ? e.message : "Ошибка отправки";
+      setError(msg);
+      throw e;
     } finally {
       setSending(false);
     }
@@ -166,6 +169,14 @@ export function BookingMessenger(props: BookingMessengerProps) {
         timerPaused={liveBooking?.paymentTimerPaused}
         timerPausedLabel={m(locale, "chat.timerPaused")}
       />
+
+      {connectionStatus === "offline" || connectionStatus === "reconnecting" ? (
+        <div className="messenger-connection-banner" role="status">
+          {connectionStatus === "offline"
+            ? m(locale, "chat.connectionOffline")
+            : m(locale, "chat.connectionReconnecting")}
+        </div>
+      ) : null}
 
       <ChatMessageList
         locale={locale}

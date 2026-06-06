@@ -1601,7 +1601,9 @@ const ru: Tree = {
     readReceipt: "Прочитано",
     typing: "печатает",
     checkoutConfirmBody: "Подтвердить выезд? После этого можно оставить отзыв в «Мои бронирования».",
-    checkoutConfirmYes: "Да, я выехал"
+    checkoutConfirmYes: "Да, я выехал",
+    connectionOffline: "Нет связи с сервером. Сообщения обновятся автоматически.",
+    connectionReconnecting: "Переподключение…"
   },
   searchGeo: {
     nearbyHint: "Сначала отели в {city}",
@@ -3165,7 +3167,9 @@ const tg: Tree = {
     readReceipt: "Хонда шуд",
     typing: "мехонад",
     checkoutConfirmBody: "Хуруҷро тасдиқ мекунед? Баъд метавонед дар «Бронҳои ман» баҳо гузоред.",
-    checkoutConfirmYes: "Бале, баромадам"
+    checkoutConfirmYes: "Бале, баромадам",
+    connectionOffline: "Пайвастшавӣ нест. Паёмҳо ба таври худкор навсозӣ мешаванд.",
+    connectionReconnecting: "Аз нав пайваст шуда истодааст…"
   },
   searchGeo: {
     nearbyHint: "Аввалан меҳмонхонаҳо дар {city}",
@@ -4726,7 +4730,9 @@ const en: Tree = {
     readReceipt: "Read",
     typing: "is typing",
     checkoutConfirmBody: "Confirm checkout? You can leave a review in My bookings afterward.",
-    checkoutConfirmYes: "Yes, I checked out"
+    checkoutConfirmYes: "Yes, I checked out",
+    connectionOffline: "No server connection. Messages will refresh automatically.",
+    connectionReconnecting: "Reconnecting…"
   },
   searchGeo: {
     nearbyHint: "Hotels in {city} shown first",

@@ -773,6 +773,17 @@ body.chat-fullscreen-route .flex.min-h-screen {
   color: #fecaca;
 }
 
+.messenger-connection-banner {
+  flex-shrink: 0;
+  padding: 0.35rem 0.65rem;
+  text-align: center;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #fde68a;
+  background: rgba(217, 119, 6, 0.18);
+  border-bottom: 1px solid rgba(251, 191, 36, 0.25);
+}
+
 .messenger-header {
   display: flex;
   flex-shrink: 0;
