@@ -1598,7 +1598,10 @@ const ru: Tree = {
       submit: "Отправить",
       error: "Не удалось открыть спор"
     },
-    readReceipt: "Прочитано"
+    readReceipt: "Прочитано",
+    typing: "печатает",
+    checkoutConfirmBody: "Подтвердить выезд? После этого можно оставить отзыв в «Мои бронирования».",
+    checkoutConfirmYes: "Да, я выехал"
   },
   searchGeo: {
     nearbyHint: "Сначала отели в {city}",
@@ -3159,7 +3162,10 @@ const tg: Tree = {
       submit: "Ирсол",
       error: "Кушода нашуд"
     },
-    readReceipt: "Хонда шуд"
+    readReceipt: "Хонда шуд",
+    typing: "мехонад",
+    checkoutConfirmBody: "Хуруҷро тасдиқ мекунед? Баъд метавонед дар «Бронҳои ман» баҳо гузоред.",
+    checkoutConfirmYes: "Бале, баромадам"
   },
   searchGeo: {
     nearbyHint: "Аввалан меҳмонхонаҳо дар {city}",
@@ -4717,7 +4723,10 @@ const en: Tree = {
       submit: "Submit",
       error: "Could not open dispute"
     },
-    readReceipt: "Read"
+    readReceipt: "Read",
+    typing: "is typing",
+    checkoutConfirmBody: "Confirm checkout? You can leave a review in My bookings afterward.",
+    checkoutConfirmYes: "Yes, I checked out"
   },
   searchGeo: {
     nearbyHint: "Hotels in {city} shown first",

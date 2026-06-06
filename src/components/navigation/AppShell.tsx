@@ -9,11 +9,13 @@ export function AppShell() {
   const pathname = usePathname() ?? "/";
 
   useEffect(() => {
-    const shell = !isShellHiddenRoute(pathname);
-    document.body.classList.toggle("app-shell", shell);
-    document.body.classList.toggle("app-shell--hidden-nav", !shell);
+    const hidden = isShellHiddenRoute(pathname);
+    const chatFullscreen = pathname.startsWith("/chat");
+    document.body.classList.toggle("app-shell", !hidden && !chatFullscreen);
+    document.body.classList.toggle("app-shell--hidden-nav", hidden || chatFullscreen);
+    document.body.classList.toggle("chat-fullscreen-route", chatFullscreen);
     return () => {
-      document.body.classList.remove("app-shell", "app-shell--hidden-nav");
+      document.body.classList.remove("app-shell", "app-shell--hidden-nav", "chat-fullscreen-route");
     };
   }, [pathname]);
 
