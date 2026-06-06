@@ -14,6 +14,7 @@ import { normalizePhone } from "@/lib/validation/phone";
 import { OwnerOnboardingSidebar } from "@/components/owner-onboarding/OwnerOnboardingSidebar";
 import { OwnerStatusPanel } from "@/components/owner-onboarding/OwnerStatusPanel";
 import { FileUploadCard } from "@/components/owner-onboarding/FileUploadCard";
+import { DualFileUploadCard } from "@/components/owner-onboarding/DualFileUploadCard";
 import { compressImageFileForUpload } from "@/lib/uploads/compressImageClient";
 
 type Defaults = { fullName: string; phone: string; email: string };
@@ -241,6 +242,16 @@ export function OwnerOnboardingExperience({ L, ownerNav, defaults }: Props) {
     if (slot.document) fd.append(`${base}Document`, slot.document);
   }
 
+  async function compressDualSlot(slot: DualSlotFiles): Promise<DualSlotFiles> {
+    if (!slot.photo) return slot;
+    return { ...slot, photo: await compressImageFileForUpload(slot.photo) };
+  }
+
+  async function compressPhotoFile(file: File | null): Promise<File | null> {
+    if (!file) return null;
+    return compressImageFileForUpload(file);
+  }
+
   async function submit() {
     const allErrors = validateAll();
     const missingDual = getMissingDualSlotLabels();
@@ -257,14 +268,19 @@ export function OwnerOnboardingExperience({ L, ownerNav, defaults }: Props) {
     setLoading(true);
     setLoadingPhase("compress");
     setFormError(null);
+    setMissingDualSummary([]);
 
-    const compressedUploads: UploadState = { ...uploads };
+    let compressedUploads: UploadState;
     try {
-      const keys = Object.keys(uploads) as (keyof UploadState)[];
-      for (const key of keys) {
-        const file = uploads[key];
-        if (file) compressedUploads[key] = await compressImageFileForUpload(file);
-      }
+      compressedUploads = {
+        identity: await compressDualSlot(uploads.identity),
+        identityBack: await compressDualSlot(uploads.identityBack),
+        propertyDoc: await compressDualSlot(uploads.propertyDoc),
+        selfie: await compressPhotoFile(uploads.selfie),
+        facade: await compressPhotoFile(uploads.facade),
+        room: await compressPhotoFile(uploads.room),
+        bathroom: await compressPhotoFile(uploads.bathroom)
+      };
     } catch {
       setFormError(L.errGeneric);
       setLoading(false);
@@ -290,13 +306,13 @@ export function OwnerOnboardingExperience({ L, ownerNav, defaults }: Props) {
     if (houseRules) fd.append("houseRules", houseRules);
     if (adminComment) fd.append("adminComment", adminComment);
     fd.append("consent", "true");
-    if (compressedUploads.identity) fd.append("identity", compressedUploads.identity);
-    if (compressedUploads.identityBack) fd.append("identityBack", compressedUploads.identityBack);
+    appendDualSlot(fd, "identity", compressedUploads.identity);
+    appendDualSlot(fd, "identityBack", compressedUploads.identityBack);
+    appendDualSlot(fd, "propertyDoc", compressedUploads.propertyDoc);
     if (compressedUploads.selfie) fd.append("selfie", compressedUploads.selfie);
     if (compressedUploads.facade) fd.append("facade", compressedUploads.facade);
     if (compressedUploads.room) fd.append("room", compressedUploads.room);
     if (compressedUploads.bathroom) fd.append("bathroom", compressedUploads.bathroom);
-    if (compressedUploads.propertyDoc) fd.append("propertyDoc", compressedUploads.propertyDoc);
 
     const controller = new AbortController();
     const timeoutMs = 120_000;

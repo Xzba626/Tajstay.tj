@@ -13,7 +13,6 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-const MAX_FILE = 5 * 1024 * 1024;
 const UPLOAD_DIR = "owner-applications";
 
 const jsonSchema = z
@@ -140,24 +139,22 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-      const [identity, facade, room, bathroom, identityBack, selfie, propertyDoc] = await Promise.all([
-        saveOptionalFile(form, "identity"),
-        saveOptionalFile(form, "facade"),
-        saveOptionalFile(form, "room"),
-        saveOptionalFile(form, "bathroom"),
-        saveOptionalFile(form, "identityBack"),
-        saveOptionalFile(form, "selfie"),
-        saveOptionalFile(form, "propertyDoc")
+      const [identity, identityBack, propertyDoc, facade, room, bathroom, selfie] = await Promise.all([
+        saveDualSlot(form, "identity"),
+        saveDualSlot(form, "identityBack"),
+        saveDualSlot(form, "propertyDoc"),
+        saveOptionalPhoto(form, "facade"),
+        saveOptionalPhoto(form, "room"),
+        saveOptionalPhoto(form, "bathroom"),
+        saveOptionalPhoto(form, "selfie")
       ]);
 
       if (!identity) {
         return NextResponse.json({ error: "Загрузите фото или документ паспорта (лицевая сторона)" }, { status: 400 });
       }
-      const identityBack = await saveDualSlot(form, "identityBack");
       if (!identityBack) {
         return NextResponse.json({ error: "Загрузите фото или документ паспорта (задняя сторона)" }, { status: 400 });
       }
-      const propertyDoc = await saveDualSlot(form, "propertyDoc");
       if (!propertyDoc) {
         return NextResponse.json({ error: "Загрузите фото или документ на объект" }, { status: 400 });
       }
