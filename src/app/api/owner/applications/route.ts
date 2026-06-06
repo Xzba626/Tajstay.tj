@@ -5,11 +5,10 @@ import { requireUser } from "@/lib/auth/requireAuth";
 import { OWNER_APPLICATION_STATUS } from "@/lib/domain/booking";
 import { clientIp, rateLimit } from "@/lib/security/rateLimit";
 import { normalizePhone } from "@/lib/validation/phone";
-import { saveUploadFile } from "@/lib/uploads/saveUpload";
 import { ImageUploadError } from "@/lib/uploads/imageUploadError";
-import type { OwnerApplicationMeta } from "@/lib/owner/applicationMeta";
+import type { OwnerApplicationFileSlot, OwnerApplicationMeta } from "@/lib/owner/applicationMeta";
+import { saveOwnerApplicationDocument, saveOwnerApplicationPhoto } from "@/lib/uploads/saveApplicationFile";
 
-const MAX_FILE = 5 * 1024 * 1024;
 const UPLOAD_DIR = "owner-applications";
 
 const jsonSchema = z
@@ -42,15 +41,41 @@ const jsonSchema = z
     }
   });
 
-async function saveOptionalFile(form: FormData, key: string): Promise<string | undefined> {
+async function saveOptionalPhoto(form: FormData, key: string): Promise<string | undefined> {
   const f = form.get(key);
   if (!(f instanceof File) || f.size <= 0) return undefined;
   try {
-    return await saveUploadFile(f, UPLOAD_DIR, MAX_FILE);
+    return await saveOwnerApplicationPhoto(f, UPLOAD_DIR);
   } catch (err) {
     if (err instanceof ImageUploadError) throw err;
     throw new ImageUploadError("store_failed", "Upload failed");
   }
+}
+
+async function saveDualSlot(form: FormData, base: string): Promise<OwnerApplicationFileSlot | undefined> {
+  const photo = form.get(`${base}Photo`);
+  if (photo instanceof File && photo.size > 0) {
+    try {
+      const photo_url = await saveOwnerApplicationPhoto(photo, UPLOAD_DIR);
+      return { photo_url, file_type: "photo" };
+    } catch (err) {
+      if (err instanceof ImageUploadError) throw err;
+      throw new ImageUploadError("store_failed", "Upload failed");
+    }
+  }
+
+  const document = form.get(`${base}Document`);
+  if (document instanceof File && document.size > 0) {
+    try {
+      const document_url = await saveOwnerApplicationDocument(document, UPLOAD_DIR);
+      return { document_url, file_type: "document" };
+    } catch (err) {
+      if (err instanceof ImageUploadError) throw err;
+      throw new ImageUploadError("store_failed", "Upload failed");
+    }
+  }
+
+  return undefined;
 }
 
 async function ensureNoPending(userId: number) {
@@ -110,25 +135,33 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-      const identity = await saveOptionalFile(form, "identity");
+      const identity = await saveDualSlot(form, "identity");
       if (!identity) {
-        return NextResponse.json({ error: "Загрузите фото паспорта / ID" }, { status: 400 });
+        return NextResponse.json({ error: "Загрузите фото или документ паспорта (лицевая сторона)" }, { status: 400 });
       }
-      const facade = await saveOptionalFile(form, "facade");
-      const room = await saveOptionalFile(form, "room");
-      const bathroom = await saveOptionalFile(form, "bathroom");
+      const identityBack = await saveDualSlot(form, "identityBack");
+      if (!identityBack) {
+        return NextResponse.json({ error: "Загрузите фото или документ паспорта (задняя сторона)" }, { status: 400 });
+      }
+      const propertyDoc = await saveDualSlot(form, "propertyDoc");
+      if (!propertyDoc) {
+        return NextResponse.json({ error: "Загрузите фото или документ на объект" }, { status: 400 });
+      }
+      const facade = await saveOptionalPhoto(form, "facade");
+      const room = await saveOptionalPhoto(form, "room");
+      const bathroom = await saveOptionalPhoto(form, "bathroom");
       if (!facade || !room || !bathroom) {
         return NextResponse.json({ error: "Загрузите фото объекта (фасад, комната, санузел)" }, { status: 400 });
       }
 
       const uploads = {
         identity,
-        identityBack: await saveOptionalFile(form, "identityBack"),
-        selfie: await saveOptionalFile(form, "selfie"),
+        identityBack,
+        selfie: await saveOptionalPhoto(form, "selfie"),
         facade,
         room,
         bathroom,
-        propertyDoc: await saveOptionalFile(form, "propertyDoc")
+        propertyDoc
       };
 
       const meta: OwnerApplicationMeta = {

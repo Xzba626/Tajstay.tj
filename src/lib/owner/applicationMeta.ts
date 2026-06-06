@@ -1,11 +1,20 @@
+export type OwnerApplicationFileSlot = {
+  photo_url?: string;
+  document_url?: string;
+  file_type: "photo" | "document";
+};
+
+/** Legacy entries may be a plain URL string. */
+export type OwnerApplicationUploadValue = string | OwnerApplicationFileSlot;
+
 export type OwnerApplicationUploads = {
-  identity?: string;
-  identityBack?: string;
-  selfie?: string;
-  facade?: string;
-  room?: string;
-  bathroom?: string;
-  propertyDoc?: string;
+  identity?: OwnerApplicationUploadValue;
+  identityBack?: OwnerApplicationUploadValue;
+  selfie?: OwnerApplicationUploadValue;
+  facade?: OwnerApplicationUploadValue;
+  room?: OwnerApplicationUploadValue;
+  bathroom?: OwnerApplicationUploadValue;
+  propertyDoc?: OwnerApplicationUploadValue;
   extraPhotos?: string[];
 };
 

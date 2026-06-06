@@ -4,27 +4,33 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { OwnerOnboardingLabels } from "@/lib/i18n/ownerOnboarding";
 import type { OwnerAppNavState } from "@/lib/navigation/getNavContext";
+import {
+  type DualSlotFiles,
+  dualSlotFilled,
+  validateDualSlot,
+  validateOwnerPhotoFile
+} from "@/lib/owner/applicationUpload";
 import { normalizePhone } from "@/lib/validation/phone";
 import { OwnerOnboardingSidebar } from "@/components/owner-onboarding/OwnerOnboardingSidebar";
 import { OwnerStatusPanel } from "@/components/owner-onboarding/OwnerStatusPanel";
 import { FileUploadCard } from "@/components/owner-onboarding/FileUploadCard";
+import { DualFileUploadCard } from "@/components/owner-onboarding/DualFileUploadCard";
 
 type Defaults = { fullName: string; phone: string; email: string };
 
 type FieldErrors = Record<string, string>;
 
 type UploadState = {
-  identity: File | null;
-  identityBack: File | null;
+  identity: DualSlotFiles;
+  identityBack: DualSlotFiles;
   selfie: File | null;
   facade: File | null;
   room: File | null;
   bathroom: File | null;
-  propertyDoc: File | null;
+  propertyDoc: DualSlotFiles;
 };
 
-const MAX_FILE = 5 * 1024 * 1024;
-const ACCEPT_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const emptyDualSlot = (): DualSlotFiles => ({ photo: null, document: null });
 
 type Props = {
   L: OwnerOnboardingLabels;
@@ -88,6 +94,7 @@ export function OwnerOnboardingExperience({ L, ownerNav, defaults }: Props) {
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [errors, setErrors] = useState<FieldErrors>({});
+  const [missingDualSummary, setMissingDualSummary] = useState<string[]>([]);
 
   const [fullName, setFullName] = useState(defaults.fullName);
   const [phone, setPhone] = useState(defaults.phone);
@@ -107,16 +114,33 @@ export function OwnerOnboardingExperience({ L, ownerNav, defaults }: Props) {
   const [consent, setConsent] = useState(false);
 
   const [uploads, setUploads] = useState<UploadState>({
-    identity: null,
-    identityBack: null,
+    identity: emptyDualSlot(),
+    identityBack: emptyDualSlot(),
     selfie: null,
     facade: null,
     room: null,
     bathroom: null,
-    propertyDoc: null
+    propertyDoc: emptyDualSlot()
   });
 
-  const setUpload = useCallback((key: keyof UploadState, file: File | null) => {
+  const dualUploadLabels = useMemo(
+    () => ({
+      photoSection: L.uploadPhotoSection,
+      photoReq: L.uploadPhotoReq,
+      uploadPhoto: L.uploadPhotoBtn,
+      or: L.uploadOr,
+      documentSection: L.uploadDocumentSection,
+      documentReq: L.uploadDocumentReq,
+      uploadDocument: L.uploadDocumentBtn,
+      documentBadge: L.uploadDocumentBadge,
+      remove: L.uploadRemove,
+      required: L.required,
+      optional: L.optional
+    }),
+    [L]
+  );
+
+  const setUpload = useCallback((key: "selfie" | "facade" | "room" | "bathroom", file: File | null) => {
     setUploads((prev) => ({ ...prev, [key]: file }));
     setErrors((prev) => {
       const next = { ...prev };
@@ -125,13 +149,43 @@ export function OwnerOnboardingExperience({ L, ownerNav, defaults }: Props) {
     });
   }, []);
 
+  const setDualUpload = useCallback((key: "identity" | "identityBack" | "propertyDoc", slot: DualSlotFiles) => {
+    setUploads((prev) => ({ ...prev, [key]: slot }));
+    setErrors((prev) => {
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+    setMissingDualSummary([]);
+  }, []);
+
   const wizardLabels = [L.wizardStep1, L.wizardStep2, L.wizardStep3, L.wizardStep4];
 
-  function validateFile(file: File | null, required: boolean): string | undefined {
+  function dualSlotErrorMessage(code: ReturnType<typeof validateDualSlot>): string | undefined {
+    if (!code) return undefined;
+    if (code === "missing") return L.errDualMissing;
+    if (code === "photo_type") return L.errPhotoType;
+    if (code === "photo_size") return L.errPhotoSize;
+    if (code === "doc_type") return L.errDocType;
+    if (code === "doc_size") return L.errDocSize;
+    return L.errDualMissing;
+  }
+
+  function validatePhotoFile(file: File | null, required: boolean): string | undefined {
     if (!file) return required ? L.errUpload : undefined;
-    if (!ACCEPT_TYPES.includes(file.type)) return L.errFileType;
-    if (file.size > MAX_FILE) return L.errFileSize;
+    const err = validateOwnerPhotoFile(file);
+    if (err === "type") return L.errPhotoType;
+    if (err === "size") return L.errPhotoSize;
     return undefined;
+  }
+
+  function getMissingDualSlotLabels(state = uploads): string[] {
+    const slots = [
+      { slot: state.identity, label: L.uploadIdentity },
+      { slot: state.identityBack, label: L.uploadIdentityBack },
+      { slot: state.propertyDoc, label: L.uploadPropertyDoc }
+    ];
+    return slots.filter((item) => !dualSlotFilled(item.slot)).map((item) => `${item.label} ${L.errMissingFieldItem}`);
   }
 
   function validateStep(step: number): FieldErrors {
@@ -147,20 +201,20 @@ export function OwnerOnboardingExperience({ L, ownerNav, defaults }: Props) {
       if (!address.trim()) e.address = L.errRequired;
     }
     if (step === 2) {
-      const idErr = validateFile(uploads.identity, true);
+      const idErr = dualSlotErrorMessage(validateDualSlot(uploads.identity, true));
       if (idErr) e.identity = idErr;
-      const fErr = validateFile(uploads.facade, true);
+      const backErr = dualSlotErrorMessage(validateDualSlot(uploads.identityBack, true));
+      if (backErr) e.identityBack = backErr;
+      const propErr = dualSlotErrorMessage(validateDualSlot(uploads.propertyDoc, true));
+      if (propErr) e.propertyDoc = propErr;
+      const fErr = validatePhotoFile(uploads.facade, true);
       if (fErr) e.facade = fErr;
-      const rErr = validateFile(uploads.room, true);
+      const rErr = validatePhotoFile(uploads.room, true);
       if (rErr) e.room = rErr;
-      const bErr = validateFile(uploads.bathroom, true);
+      const bErr = validatePhotoFile(uploads.bathroom, true);
       if (bErr) e.bathroom = bErr;
-      if (uploads.identityBack) {
-        const ib = validateFile(uploads.identityBack, false);
-        if (ib) e.identityBack = ib;
-      }
       if (uploads.selfie) {
-        const s = validateFile(uploads.selfie, false);
+        const s = validatePhotoFile(uploads.selfie, false);
         if (s) e.selfie = s;
       }
       if (documentUrl.trim() && !documentUrl.trim().toLowerCase().startsWith("https://")) {
@@ -181,9 +235,16 @@ export function OwnerOnboardingExperience({ L, ownerNav, defaults }: Props) {
 
   const showForm = ownerNav.kind === "none" || ownerNav.kind === "rejected";
 
+  function appendDualSlot(fd: FormData, base: string, slot: DualSlotFiles) {
+    if (slot.photo) fd.append(`${base}Photo`, slot.photo);
+    if (slot.document) fd.append(`${base}Document`, slot.document);
+  }
+
   async function submit() {
     const allErrors = validateAll();
+    const missingDual = getMissingDualSlotLabels();
     setErrors(allErrors);
+    setMissingDualSummary(missingDual);
     if (Object.keys(allErrors).length) {
       if (mobileWizard) {
         const firstStep = [0, 1, 2, 3].find((s) => Object.keys(validateStep(s)).length > 0) ?? 0;
@@ -194,6 +255,7 @@ export function OwnerOnboardingExperience({ L, ownerNav, defaults }: Props) {
 
     setLoading(true);
     setFormError(null);
+    setMissingDualSummary([]);
     const fd = new FormData();
     fd.append("fullName", fullName.trim());
     fd.append("phone", phone.trim());
@@ -211,13 +273,13 @@ export function OwnerOnboardingExperience({ L, ownerNav, defaults }: Props) {
     if (houseRules) fd.append("houseRules", houseRules);
     if (adminComment) fd.append("adminComment", adminComment);
     fd.append("consent", "true");
-    if (uploads.identity) fd.append("identity", uploads.identity);
-    if (uploads.identityBack) fd.append("identityBack", uploads.identityBack);
+    appendDualSlot(fd, "identity", uploads.identity);
+    appendDualSlot(fd, "identityBack", uploads.identityBack);
+    appendDualSlot(fd, "propertyDoc", uploads.propertyDoc);
     if (uploads.selfie) fd.append("selfie", uploads.selfie);
     if (uploads.facade) fd.append("facade", uploads.facade);
     if (uploads.room) fd.append("room", uploads.room);
     if (uploads.bathroom) fd.append("bathroom", uploads.bathroom);
-    if (uploads.propertyDoc) fd.append("propertyDoc", uploads.propertyDoc);
 
     try {
       const res = await fetch("/api/owner/applications", {
@@ -312,13 +374,39 @@ export function OwnerOnboardingExperience({ L, ownerNav, defaults }: Props) {
         {L.sectionDocuments}
       </h3>
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        <FileUploadCard name="identity" label={L.uploadIdentity} required chooseLabel={L.uploadChoose} removeLabel={L.uploadRemove} reqLabel={L.uploadReq} optionalLabel={L.optional} requiredLabel={L.required} error={errors.identity} onFileChange={(f) => setUpload("identity", f)} />
-        <FileUploadCard name="identityBack" label={L.uploadIdentityBack} hint={L.uploadIdentityBackHint} chooseLabel={L.uploadChoose} removeLabel={L.uploadRemove} reqLabel={L.uploadReq} optionalLabel={L.optional} requiredLabel={L.required} error={errors.identityBack} onFileChange={(f) => setUpload("identityBack", f)} />
-        <FileUploadCard name="facade" label={L.uploadFacade} required chooseLabel={L.uploadChoose} removeLabel={L.uploadRemove} reqLabel={L.uploadReq} optionalLabel={L.optional} requiredLabel={L.required} error={errors.facade} onFileChange={(f) => setUpload("facade", f)} />
-        <FileUploadCard name="room" label={L.uploadRoom} required chooseLabel={L.uploadChoose} removeLabel={L.uploadRemove} reqLabel={L.uploadReq} optionalLabel={L.optional} requiredLabel={L.required} error={errors.room} onFileChange={(f) => setUpload("room", f)} />
-        <FileUploadCard name="bathroom" label={L.uploadBathroom} required chooseLabel={L.uploadChoose} removeLabel={L.uploadRemove} reqLabel={L.uploadReq} optionalLabel={L.optional} requiredLabel={L.required} error={errors.bathroom} onFileChange={(f) => setUpload("bathroom", f)} />
-        <FileUploadCard name="selfie" label={L.uploadSelfie} hint={L.uploadSelfieHint} chooseLabel={L.uploadChoose} removeLabel={L.uploadRemove} reqLabel={L.uploadReq} optionalLabel={L.optional} requiredLabel={L.required} error={errors.selfie} onFileChange={(f) => setUpload("selfie", f)} />
-        <FileUploadCard name="propertyDoc" label={L.uploadPropertyDoc} hint={L.uploadPropertyDocHint} chooseLabel={L.uploadChoose} removeLabel={L.uploadRemove} reqLabel={L.uploadReq} optionalLabel={L.optional} requiredLabel={L.required} error={errors.propertyDoc} onFileChange={(f) => setUpload("propertyDoc", f)} />
+        <DualFileUploadCard
+          name="identity"
+          label={L.uploadIdentity}
+          required
+          labels={dualUploadLabels}
+          value={uploads.identity}
+          onChange={(slot) => setDualUpload("identity", slot)}
+          error={errors.identity}
+        />
+        <DualFileUploadCard
+          name="identityBack"
+          label={L.uploadIdentityBack}
+          hint={L.uploadIdentityBackHint}
+          required
+          labels={dualUploadLabels}
+          value={uploads.identityBack}
+          onChange={(slot) => setDualUpload("identityBack", slot)}
+          error={errors.identityBack}
+        />
+        <FileUploadCard name="facade" label={L.uploadFacade} required chooseLabel={L.uploadChoose} removeLabel={L.uploadRemove} reqLabel={L.uploadPhotoReq} optionalLabel={L.optional} requiredLabel={L.required} error={errors.facade} onFileChange={(f) => setUpload("facade", f)} />
+        <FileUploadCard name="room" label={L.uploadRoom} required chooseLabel={L.uploadChoose} removeLabel={L.uploadRemove} reqLabel={L.uploadPhotoReq} optionalLabel={L.optional} requiredLabel={L.required} error={errors.room} onFileChange={(f) => setUpload("room", f)} />
+        <FileUploadCard name="bathroom" label={L.uploadBathroom} required chooseLabel={L.uploadChoose} removeLabel={L.uploadRemove} reqLabel={L.uploadPhotoReq} optionalLabel={L.optional} requiredLabel={L.required} error={errors.bathroom} onFileChange={(f) => setUpload("bathroom", f)} />
+        <FileUploadCard name="selfie" label={L.uploadSelfie} hint={L.uploadSelfieHint} chooseLabel={L.uploadChoose} removeLabel={L.uploadRemove} reqLabel={L.uploadPhotoReq} optionalLabel={L.optional} requiredLabel={L.required} error={errors.selfie} onFileChange={(f) => setUpload("selfie", f)} />
+        <DualFileUploadCard
+          name="propertyDoc"
+          label={L.uploadPropertyDoc}
+          hint={L.uploadPropertyDocHint}
+          required
+          labels={dualUploadLabels}
+          value={uploads.propertyDoc}
+          onChange={(slot) => setDualUpload("propertyDoc", slot)}
+          error={errors.propertyDoc}
+        />
       </div>
       <div className="mt-4">
         <Field id="documentUrl" label={L.documentUrl} optionalLabel={L.optional} requiredLabel={L.required} error={errors.documentUrl}>
@@ -404,8 +492,11 @@ export function OwnerOnboardingExperience({ L, ownerNav, defaults }: Props) {
 
   function nextStep() {
     const stepErrors = validateStep(wizardStep);
+    const missingDual = wizardStep === 2 ? getMissingDualSlotLabels() : [];
     setErrors(stepErrors);
+    setMissingDualSummary(missingDual);
     if (Object.keys(stepErrors).length) return;
+    setMissingDualSummary([]);
     setWizardStep((s) => Math.min(3, s + 1));
   }
 
@@ -469,6 +560,17 @@ export function OwnerOnboardingExperience({ L, ownerNav, defaults }: Props) {
             ) : (
               <div className="mt-6 space-y-8">{desktopForm}</div>
             )}
+
+            {missingDualSummary.length ? (
+              <div className="mt-4 rounded-xl border border-red-400/30 bg-red-950/40 px-4 py-3 text-sm text-red-200" role="alert">
+                <p className="font-semibold">❌ {L.errMissingFieldsTitle}</p>
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-xs">
+                  {missingDualSummary.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
 
             {formError ? (
               <div className="mt-4 rounded-xl border border-red-400/30 bg-red-950/40 px-4 py-3 text-sm text-red-200" role="alert">

@@ -2898,6 +2898,38 @@ select:focus,
   padding: 0.85rem;
 }
 
+.owner-dual-upload-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.owner-upload-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: rgba(148, 163, 184, 0.85);
+  font-size: 0.8125rem;
+}
+
+.owner-upload-divider::before,
+.owner-upload-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.owner-document-file {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.2);
+}
+
 .owner-wizard-steps {
   display: flex;
   flex-wrap: wrap;
