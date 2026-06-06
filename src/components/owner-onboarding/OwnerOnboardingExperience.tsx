@@ -14,7 +14,7 @@ import { normalizePhone } from "@/lib/validation/phone";
 import { OwnerOnboardingSidebar } from "@/components/owner-onboarding/OwnerOnboardingSidebar";
 import { OwnerStatusPanel } from "@/components/owner-onboarding/OwnerStatusPanel";
 import { FileUploadCard } from "@/components/owner-onboarding/FileUploadCard";
-import { DualFileUploadCard } from "@/components/owner-onboarding/DualFileUploadCard";
+import { compressImageFileForUpload } from "@/lib/uploads/compressImageClient";
 
 type Defaults = { fullName: string; phone: string; email: string };
 
@@ -92,6 +92,7 @@ export function OwnerOnboardingExperience({ L, ownerNav, defaults }: Props) {
   const [wizardStep, setWizardStep] = useState(0);
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingPhase, setLoadingPhase] = useState<"idle" | "compress" | "upload">("idle");
   const [formError, setFormError] = useState<string | null>(null);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [missingDualSummary, setMissingDualSummary] = useState<string[]>([]);
@@ -254,8 +255,24 @@ export function OwnerOnboardingExperience({ L, ownerNav, defaults }: Props) {
     }
 
     setLoading(true);
+    setLoadingPhase("compress");
     setFormError(null);
-    setMissingDualSummary([]);
+
+    const compressedUploads: UploadState = { ...uploads };
+    try {
+      const keys = Object.keys(uploads) as (keyof UploadState)[];
+      for (const key of keys) {
+        const file = uploads[key];
+        if (file) compressedUploads[key] = await compressImageFileForUpload(file);
+      }
+    } catch {
+      setFormError(L.errGeneric);
+      setLoading(false);
+      setLoadingPhase("idle");
+      return;
+    }
+
+    setLoadingPhase("upload");
     const fd = new FormData();
     fd.append("fullName", fullName.trim());
     fd.append("phone", phone.trim());
@@ -273,30 +290,49 @@ export function OwnerOnboardingExperience({ L, ownerNav, defaults }: Props) {
     if (houseRules) fd.append("houseRules", houseRules);
     if (adminComment) fd.append("adminComment", adminComment);
     fd.append("consent", "true");
-    appendDualSlot(fd, "identity", uploads.identity);
-    appendDualSlot(fd, "identityBack", uploads.identityBack);
-    appendDualSlot(fd, "propertyDoc", uploads.propertyDoc);
-    if (uploads.selfie) fd.append("selfie", uploads.selfie);
-    if (uploads.facade) fd.append("facade", uploads.facade);
-    if (uploads.room) fd.append("room", uploads.room);
-    if (uploads.bathroom) fd.append("bathroom", uploads.bathroom);
+    if (compressedUploads.identity) fd.append("identity", compressedUploads.identity);
+    if (compressedUploads.identityBack) fd.append("identityBack", compressedUploads.identityBack);
+    if (compressedUploads.selfie) fd.append("selfie", compressedUploads.selfie);
+    if (compressedUploads.facade) fd.append("facade", compressedUploads.facade);
+    if (compressedUploads.room) fd.append("room", compressedUploads.room);
+    if (compressedUploads.bathroom) fd.append("bathroom", compressedUploads.bathroom);
+    if (compressedUploads.propertyDoc) fd.append("propertyDoc", compressedUploads.propertyDoc);
+
+    const controller = new AbortController();
+    const timeoutMs = 120_000;
+    const timer = window.setTimeout(() => controller.abort(), timeoutMs);
 
     try {
       const res = await fetch("/api/owner/applications", {
         method: "POST",
         credentials: "include",
-        body: fd
+        body: fd,
+        signal: controller.signal
       });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.error ?? L.errGeneric);
+      const data = (await res.json().catch(() => ({}))) as { error?: string; ok?: boolean };
+      if (!res.ok) {
+        if (res.status === 413) throw new Error(L.errPayloadTooLarge);
+        if (res.status === 403) throw new Error(data.error ?? L.errGeneric);
+        if (res.status === 409) throw new Error(data.error ?? L.errGeneric);
+        throw new Error(data.error ?? L.errGeneric);
+      }
+      if (!data.ok) throw new Error(data.error ?? L.errGeneric);
       setSubmitted(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err: unknown) {
-      setFormError(err instanceof Error ? err.message : L.errGeneric);
+      const aborted =
+        (err instanceof Error && err.name === "AbortError") ||
+        (typeof DOMException !== "undefined" && err instanceof DOMException && err.name === "AbortError");
+      setFormError(aborted ? L.errTimeout : err instanceof Error ? err.message : L.errGeneric);
     } finally {
+      window.clearTimeout(timer);
       setLoading(false);
+      setLoadingPhase("idle");
     }
   }
+
+  const loadingLabel =
+    loadingPhase === "compress" ? L.btnCompressing : loadingPhase === "upload" ? L.btnSending : L.btnSubmit;
 
   const personalSection = (
     <section className="owner-form-section" aria-labelledby="sec-personal">
@@ -593,13 +629,13 @@ export function OwnerOnboardingExperience({ L, ownerNav, defaults }: Props) {
                   </button>
                 ) : (
                   <button type="button" disabled={loading} onClick={() => void submit()} className="owner-onboarding-submit min-h-[48px] flex-1">
-                    {loading ? L.btnSending : L.btnSubmit}
+                    {loading ? loadingLabel : L.btnSubmit}
                   </button>
                 )}
               </div>
             ) : (
               <button type="button" disabled={loading} onClick={() => void submit()} className="owner-onboarding-submit mt-8 w-full min-h-[52px]">
-                {loading ? L.btnSending : L.btnSubmit}
+                {loading ? loadingLabel : L.btnSubmit}
               </button>
             )}
           </div>

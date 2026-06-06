@@ -9,6 +9,11 @@ import { ImageUploadError } from "@/lib/uploads/imageUploadError";
 import type { OwnerApplicationFileSlot, OwnerApplicationMeta } from "@/lib/owner/applicationMeta";
 import { saveOwnerApplicationDocument, saveOwnerApplicationPhoto } from "@/lib/uploads/saveApplicationFile";
 
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
+const MAX_FILE = 5 * 1024 * 1024;
 const UPLOAD_DIR = "owner-applications";
 
 const jsonSchema = z
@@ -135,7 +140,16 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-      const identity = await saveDualSlot(form, "identity");
+      const [identity, facade, room, bathroom, identityBack, selfie, propertyDoc] = await Promise.all([
+        saveOptionalFile(form, "identity"),
+        saveOptionalFile(form, "facade"),
+        saveOptionalFile(form, "room"),
+        saveOptionalFile(form, "bathroom"),
+        saveOptionalFile(form, "identityBack"),
+        saveOptionalFile(form, "selfie"),
+        saveOptionalFile(form, "propertyDoc")
+      ]);
+
       if (!identity) {
         return NextResponse.json({ error: "Загрузите фото или документ паспорта (лицевая сторона)" }, { status: 400 });
       }
@@ -147,9 +161,6 @@ export async function POST(req: NextRequest) {
       if (!propertyDoc) {
         return NextResponse.json({ error: "Загрузите фото или документ на объект" }, { status: 400 });
       }
-      const facade = await saveOptionalPhoto(form, "facade");
-      const room = await saveOptionalPhoto(form, "room");
-      const bathroom = await saveOptionalPhoto(form, "bathroom");
       if (!facade || !room || !bathroom) {
         return NextResponse.json({ error: "Загрузите фото объекта (фасад, комната, санузел)" }, { status: 400 });
       }
@@ -157,7 +168,7 @@ export async function POST(req: NextRequest) {
       const uploads = {
         identity,
         identityBack,
-        selfie: await saveOptionalPhoto(form, "selfie"),
+        selfie,
         facade,
         room,
         bathroom,
@@ -204,7 +215,8 @@ export async function POST(req: NextRequest) {
       if (err instanceof ImageUploadError) {
         return NextResponse.json({ error: err.message }, { status: 400 });
       }
-      throw err;
+      console.error("[owner/applications] multipart submit failed", err);
+      return NextResponse.json({ error: "Не удалось сохранить заявку. Попробуйте позже." }, { status: 500 });
     }
   }
 

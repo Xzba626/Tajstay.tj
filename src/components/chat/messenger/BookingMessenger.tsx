@@ -7,6 +7,7 @@ import { ChatComposeBar } from "@/components/chat/messenger/ChatComposeBar";
 import { ChatMessageList } from "@/components/chat/messenger/ChatMessageList";
 import { ChatMessengerHeader } from "@/components/chat/messenger/ChatMessengerHeader";
 import { useBookingChat } from "@/hooks/useBookingChat";
+import { guestBookingCancelAllowed } from "@/lib/booking/guestCancel";
 import { m } from "@/lib/i18n/messages";
 
 export type BookingMessengerProps = BookingRoomProps;
@@ -61,10 +62,7 @@ export function BookingMessenger(props: BookingMessengerProps) {
 
   const canGuestCancel = useMemo(() => {
     if (!isGuest) return false;
-    if (effectiveStatus === "CONFIRMED" || effectiveStatus === "CHECKED_IN" || effectiveStatus === "COMPLETED")
-      return false;
-    if (effectivePaymentStatus === "PAID") return false;
-    return true;
+    return guestBookingCancelAllowed({ status: effectiveStatus, paymentStatus: effectivePaymentStatus });
   }, [effectiveStatus, effectivePaymentStatus, isGuest]);
 
   const callAction = useCallback(
