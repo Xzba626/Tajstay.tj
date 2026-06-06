@@ -6,7 +6,7 @@ import { m } from "@/lib/i18n/messages";
 import { HotelCardShell } from "@/components/HotelCardShell";
 
 type Props = {
-  hotel: Hotel & { rooms: Room[] };
+  hotel: Hotel & { rooms: Room[]; availableRoomsCount?: number };
   locale?: Locale;
   variant?: "accent" | "list";
   hrefQuery?: {
@@ -55,6 +55,8 @@ export function HotelCard({ hotel, locale = "ru", variant = "accent", hrefQuery 
   const minPrice = hotel.rooms.length ? Math.min(...hotel.rooms.map((r) => Number(r.price))) : 0;
   const query = buildQueryString(hrefQuery);
   const availableRooms = hotel.rooms.filter((r) => r.availability).length;
+  const scarcityCount = hotel.availableRoomsCount;
+  const showScarcity = scarcityCount != null && scarcityCount > 0 && scarcityCount < 3;
   const cityMap: Record<string, string> = {
     dushanbe: m(locale, "cities.dushanbe"),
     khujand: m(locale, "cities.khujand"),
@@ -130,8 +132,18 @@ export function HotelCard({ hotel, locale = "ru", variant = "accent", hrefQuery 
           {hotel.description || "Комфортное жильё в самом сердце города"}
         </p>
 
-        {/* Availability indicator */}
-        {availableRooms > 0 && (
+        {/* Scarcity when few rooms left for selected dates */}
+        {showScarcity ? (
+          <div className="mt-2 flex items-center gap-1.5">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-70" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500" />
+            </span>
+            <span className="text-xs font-semibold text-amber-100">
+              {m(locale, "search.roomsLeft", { count: String(scarcityCount) })}
+            </span>
+          </div>
+        ) : scarcityCount == null && availableRooms > 0 ? (
           <div className="mt-2 flex items-center gap-1.5">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-60" />
@@ -141,7 +153,7 @@ export function HotelCard({ hotel, locale = "ru", variant = "accent", hrefQuery 
               {availableRooms} {availableRooms === 1 ? "номер" : "номера"} свободно
             </span>
           </div>
-        )}
+        ) : null}
 
         <div className="mt-3 flex items-center justify-between gap-3 border-t border-[var(--taj-color-border)] pt-3">
           <div className="min-w-0">

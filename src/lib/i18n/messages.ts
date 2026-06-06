@@ -328,7 +328,9 @@ const ru: Tree = {
     details: "Подробнее",
     bookNow: "Забронировать",
     payNow: "Оплатить сейчас",
-    payOnArrival: "Оплата при заселении"
+    payOnArrival: "Оплата при заселении",
+    errDates: "Дата выезда должна быть позже даты заезда",
+    roomsLeft: "Осталось {count} номера"
   },
   pms: {
     viewByType: "По категориям",
@@ -1923,7 +1925,9 @@ const tg: Tree = {
     details: "Тафсилот",
     bookNow: "Брон кардан",
     payNow: "Ҳозир пардохт",
-    payOnArrival: "Пардохт ҳангоми ҷойгиршавӣ"
+    payOnArrival: "Пардохт ҳангоми ҷойгиршавӣ",
+    errDates: "Рӯи рафтан бояд баъд аз омадан бошад",
+    roomsLeft: "Монда {count} ҳуҷра"
   },
   pms: {
     viewByType: "Аз рӯи категория",
@@ -3486,7 +3490,9 @@ const en: Tree = {
     details: "Details",
     bookNow: "Book now",
     payNow: "Pay now",
-    payOnArrival: "Pay on arrival"
+    payOnArrival: "Pay on arrival",
+    errDates: "Check-out must be after check-in",
+    roomsLeft: "{count} rooms left"
   },
   pms: {
     viewByType: "By category",
