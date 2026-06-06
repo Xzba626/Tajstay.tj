@@ -3,7 +3,8 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/requireAuth";
 import { clientIp, rateLimit } from "@/lib/security/rateLimit";
-import { bookingHotel } from "@/lib/pms/bookingContext";
+import { bookingHotelOptional } from "@/lib/pms/bookingContext";
+import { recalculateHotelRating } from "@/lib/reviews/recalculateHotelRating";
 import { BOOKING_STATUS } from "@/lib/domain/booking";
 import {
   averageCriteriaRating,
@@ -118,17 +119,13 @@ export async function POST(req: Request) {
     }
   });
 
-  const hotelId = bookingHotel(booking).id;
-  const hotelReviews = await prisma.review.findMany({
-    where: { booking: { room: { hotelId } } },
-    select: { rating: true }
-  });
-  const avg = hotelReviews.length ? hotelReviews.reduce((s, r) => s + r.rating, 0) / hotelReviews.length : 0;
+  const hotel = bookingHotelOptional(booking);
+  if (!hotel) {
+    console.error("[review] Cannot find hotelId for booking", booking.id);
+    return NextResponse.json({ error: "Невозможно определить отель для этой брони" }, { status: 400 });
+  }
 
-  await prisma.hotel.update({
-    where: { id: hotelId },
-    data: { rating: Number(avg.toFixed(2)) }
-  });
+  await recalculateHotelRating(hotel.id);
 
   return NextResponse.json({ ok: true, reviewId: review.id });
 }
