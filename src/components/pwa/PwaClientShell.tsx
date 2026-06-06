@@ -5,6 +5,7 @@ import { PwaInstallPrompt, type PwaInstallLabels } from "@/components/pwa/PwaIns
 import { PwaProvider } from "@/components/pwa/PwaProvider";
 import { PwaPushPrompt, type PwaPushLabels } from "@/components/pwa/PwaPushPrompt";
 import { AuthStateSync } from "@/components/auth/AuthStateSync";
+import { DeviceSessionReporter } from "@/components/analytics/DeviceSessionReporter";
 
 export function PwaClientShell({
   isAuthed,
@@ -25,6 +26,7 @@ export function PwaClientShell({
       {isAuthed ? (
         <>
           <AuthStateSync />
+          <DeviceSessionReporter />
           <NotificationPollerProvider enabled initialUnreadCount={initialUnreadCount} toastLabel={toastLabel} />
         </>
       ) : null}
