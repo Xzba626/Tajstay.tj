@@ -84,6 +84,12 @@ const authConfig = {
     signIn: "/auth/sign-in"
   },
   callbacks: {
+    async signIn({ user }: any) {
+      if (user?.email && !user.emailVerified) {
+        return `/auth/verify-pending?email=${encodeURIComponent(user.email)}`;
+      }
+      return true;
+    },
     async session({ session, user }: any) {
       if (session.user) {
         session.user.id = String(user.id);

@@ -43,8 +43,9 @@ model User {
   reviewedBookings    Booking[]           @relation("BookingProofReviewedBy")
   notes               Notification[]      @relation("UserNotifications")
   sessions            Session[]
-  passwordResetTokens PasswordResetToken[]
-  emailOtps           EmailOtp[]
+  passwordResetTokens       PasswordResetToken[]
+  emailVerificationTokens   EmailVerificationToken[]
+  emailOtps                 EmailOtp[]
   favorites           Favorite[]
   complaints          Complaint[]
   accounts            Account[]
@@ -113,11 +114,13 @@ model Hotel {
   /// URL обложки (внешняя ссылка или /uploads/…)
   coverImageUrl  String?
   rating         Float    @default(0)
-  status         String   @default("PENDING")
-  latitude       Float
-  longitude      Float
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  status           String    @default("PENDING")
+  rejectionReason  String?
+  deletedAt        DateTime?
+  latitude         Float
+  longitude        Float
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   rooms      Room[]
   roomTypes  RoomType[]
@@ -583,6 +586,15 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int      @unique
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 }
 
 model PasswordResetToken {
