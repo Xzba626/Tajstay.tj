@@ -1,8 +1,12 @@
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/auth/password";
+import { ensurePropertyTypesSeeded } from "@/lib/propertyTypes/seed";
 
 /** Демо-данные для разработки (admin / owner / guest, отель, бронь). */
 export async function runDevSeed() {
+  await ensurePropertyTypesSeeded();
+  const hotelType = await prisma.propertyType.findUnique({ where: { code: "HOTEL" } });
+
   const adminPass = await hashPassword("Admin123!");
   const ownerPass = await hashPassword("Owner123!");
   const guestPass = await hashPassword("Guest123!");
@@ -80,7 +84,7 @@ export async function runDevSeed() {
 
   const hotel = await prisma.hotel.upsert({
     where: { id: 1 },
-    update: { status: "APPROVED" },
+    update: { status: "APPROVED", propertyTypeId: hotelType?.id ?? null, propertyType: "HOTEL" },
     create: {
       id: 1,
       ownerId: owner.id,
@@ -92,7 +96,8 @@ export async function runDevSeed() {
       rating: 4.8,
       latitude: 38.5598,
       longitude: 68.787,
-      propertyType: "HOTEL"
+      propertyType: "HOTEL",
+      propertyTypeId: hotelType?.id ?? null
     }
   });
 

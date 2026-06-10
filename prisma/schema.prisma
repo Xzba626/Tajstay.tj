@@ -102,6 +102,20 @@ model OwnerApplication {
   reviewedBy   User?     @relation("OwnerApplicationReviewedBy", fields: [reviewedById], references: [id])
 }
 
+model PropertyType {
+  id        String   @id @default(cuid())
+  /// Legacy filter code (HOTEL, APARTMENT, …) for search compatibility
+  code      String   @unique
+  nameRu    String
+  nameTg    String
+  nameEn    String
+  icon      String?
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  hotels    Hotel[]
+}
+
 model Hotel {
   id             Int      @id @default(autoincrement())
   owner          User     @relation("OwnerHotels", fields: [ownerId], references: [id])
@@ -110,6 +124,9 @@ model Hotel {
   city           String
   address        String
   description    String
+  propertyTypeId String?
+  propertyTypeRef PropertyType? @relation(fields: [propertyTypeId], references: [id])
+  /// Denormalized code synced from PropertyType (search/filters)
   propertyType   String   @default("HOTEL")
   /// URL обложки (внешняя ссылка или /uploads/…)
   coverImageUrl  String?
@@ -319,6 +336,9 @@ model Booking {
   proofReviewedAt  DateTime?
   proofReviewedById Int?
   proofReviewedBy   User?   @relation("BookingProofReviewedBy", fields: [proofReviewedById], references: [id])
+  paymentApprovedAt DateTime?
+  paymentApprovedBy Int?
+  cancellationReason String?
   /// Guest identity document (passport/ID) for verification by owner/admin
   guestDocumentUrl String?
   guestDocumentSubmittedAt DateTime?
