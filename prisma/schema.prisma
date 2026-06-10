@@ -61,6 +61,21 @@ model User {
   pushSubscriptions   PushSubscription[]
   telegramChangeRequests TelegramChangeRequest[]
   deviceSessions      UserDeviceSession[]
+  paymentApprovedBookings Booking[] @relation("BookingPaymentApprovedBy")
+}
+
+model PropertyType {
+  id        String   @id @default(cuid())
+  /// Stable slug for search filters and legacy mapping (HOTEL, APARTMENT, …)
+  code      String   @unique
+  nameRu    String
+  nameTg    String
+  nameEn    String
+  icon      String?
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  hotels    Hotel[]
 }
 
 model Account {

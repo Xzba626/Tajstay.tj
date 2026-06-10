@@ -71,6 +71,17 @@ export default async function MapPage({ searchParams }: { searchParams?: MapSear
     };
   });
 
+  const hasFilters = Boolean(
+    params.city ||
+      params.checkIn ||
+      params.checkOut ||
+      minPriceRaw ||
+      maxPriceRaw ||
+      params.guests ||
+      ratingRaw ||
+      (params.propertyType && params.propertyType !== "ANY")
+  );
+
   return (
     <div className="mx-auto max-w-7xl space-y-5 px-4 py-8 sm:px-6 lg:px-8">
       <h1 className="text-2xl font-semibold">{m(locale, "search.mapMode")}</h1>
@@ -84,7 +95,10 @@ export default async function MapPage({ searchParams }: { searchParams?: MapSear
           <p className="mt-2 text-sm text-slate-400">{m(locale, "admin.emptyResultsHint")}</p>
         </div>
       )}
-      <MapClient hotels={mapHotels} labels={{ fromPrice: m(locale, "search.fromPrice"), details: m(locale, "search.details") }} />
+      <MapClient
+        hotels={mapHotels}
+        labels={{ fromPrice: m(locale, "search.fromPrice"), details: m(locale, "search.details") }}
+      />
     </div>
   );
 }

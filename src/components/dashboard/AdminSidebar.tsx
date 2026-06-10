@@ -13,6 +13,7 @@ export type AdminSidebarLabels = {
   items: {
     dashboard: string;
     content: string;
+    propertyTypes: string;
     applications: string;
     hotels: string;
     users: string;
@@ -31,6 +32,7 @@ function buildItems(labels: AdminSidebarLabels): SidebarItem[] {
   return [
     { href: "#dashboard", label: labels.items.dashboard },
     { href: "#content", label: labels.items.content },
+    { href: "#property-types", label: labels.items.propertyTypes },
     { href: "#applications", label: labels.items.applications },
     { href: "#hotels", label: labels.items.hotels },
     { href: "#users", label: labels.items.users },

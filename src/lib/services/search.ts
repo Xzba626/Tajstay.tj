@@ -9,6 +9,7 @@ import {
   INACTIVE_ONLINE_BOOKING_STATUSES
 } from "@/lib/booking/availability";
 import { BOOKING_SOURCE } from "@/lib/domain/booking";
+import { normalizePropertyTypeFilterCode } from "@/lib/property-types/seed";
 
 export type PropertyTypeFilter = "ANY" | "HOTEL" | "HOSTEL" | "GUEST_HOUSE" | "APARTMENT" | "ECO_HOUSE";
 
@@ -104,6 +105,9 @@ export async function searchApprovedHotels(input: SearchInput) {
   return safeDbQuery("searchApprovedHotels", () => searchApprovedHotelsQuery(input), []);
 }
 
+/** Alias used by map page (Part 3 spec). */
+export const searchHotels = searchApprovedHotels;
+
 async function searchApprovedHotelsQuery(input: SearchInput) {
   const amenitiesAnd: Prisma.RoomWhereInput[] = [];
   if (input.wifi) amenitiesAnd.push({ amenities: { contains: '"wifi"' } });
@@ -128,11 +132,18 @@ async function searchApprovedHotelsQuery(input: SearchInput) {
     ...(hasDateRange ? roomAvailableForDatesFilter(checkIn!, checkOut!) : {})
   };
 
+  const propertyTypeCode =
+    input.propertyType && input.propertyType !== "ANY"
+      ? normalizePropertyTypeFilterCode(input.propertyType)
+      : undefined;
+
   const where: Prisma.HotelWhereInput = {
     status: "APPROVED",
     deletedAt: null,
     city: input.city ? { contains: input.city } : undefined,
-    propertyType: input.propertyType && input.propertyType !== "ANY" ? input.propertyType : undefined,
+    ...(propertyTypeCode
+      ? { propertyType: { code: propertyTypeCode, isActive: true } }
+      : {}),
     rating: input.ratingMin != null ? { gte: input.ratingMin } : undefined,
     rooms: {
       some: roomMatch
@@ -147,6 +158,7 @@ async function searchApprovedHotelsQuery(input: SearchInput) {
   const hotels = await prisma.hotel.findMany({
     where,
     include: {
+      propertyType: true,
       rooms: hasDateRange
         ? {
             include: {
@@ -242,4 +254,3 @@ async function searchApprovedHotelsQuery(input: SearchInput) {
 
   return withAvailability;
 }
-

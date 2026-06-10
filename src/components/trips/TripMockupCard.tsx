@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AppImage } from "@/components/ui/AppImage";
+import { BookingActions } from "@/components/trips/BookingActions";
 import { bookingHotelOptional } from "@/lib/pms/bookingContext";
 import type { Locale } from "@/lib/i18n/locale";
 import { formatBookingStatus } from "@/lib/i18n/bookingStatus";
@@ -14,6 +15,8 @@ type BookingSlice = {
   cancellationReason?: string | null;
   checkIn: Date;
   checkOut: Date;
+  cancellationReason?: string | null;
+  review?: { id: number } | null;
   assignedRoom?: { hotel: { id: number; name: string; coverImageUrl?: string | null } } | null;
   room: { hotel: { id: number; name: string; coverImageUrl?: string | null } } | null;
   roomType: { hotel: { id: number; name: string; coverImageUrl?: string | null } } | null;

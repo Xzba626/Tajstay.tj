@@ -30,6 +30,8 @@ import { OfflineBookingsList } from "@/components/owner/OfflineBookingsList";
 import { OwnerCalendar } from "@/components/owner/OwnerCalendar";
 import { CalendarOverrideForm } from "@/components/owner/CalendarOverrideForm";
 import { OwnerBookingConfirmButton } from "@/components/owner/OwnerBookingConfirmButton";
+import { OwnerPaymentApproveButton } from "@/components/owner/OwnerPaymentApproveButton";
+import { PropertyTypeSelect } from "@/components/owner/PropertyTypeSelect";
 import { OwnerHelpTips } from "@/components/owner/OwnerHelpTips";
 import ReviewReplyForm from "@/components/ReviewReplyForm";
 import { getOwnerDashboardKpis } from "@/lib/services/ownerDashboardKpis";
@@ -51,8 +53,6 @@ import { getOwnerPmsSettings } from "@/lib/pms/ownerPmsSettings";
 import { toOfflineOwnerView } from "@/lib/pms/offlinePrivacy";
 
 export const dynamic = "force-dynamic";
-
-const PROPERTY_TYPES = ["HOTEL", "HOSTEL", "GUESTHOUSE", "APARTMENT", "ECO"] as const;
 
 type OwnerSection =
   | "overview"
@@ -93,10 +93,6 @@ function looksLikeTestValue(v: unknown) {
 
 function safeText(v: unknown, fallback: string) {
   return looksLikeTestValue(v) ? fallback : String(v ?? "").trim();
-}
-
-function propTypeLabel(locale: Locale, t: string) {
-  return m(locale, `owner.propType.${t}`);
 }
 
 function tStatus(locale: Locale, status: string) {
@@ -1229,9 +1225,14 @@ export default async function OwnerDashboardPage({
                         <div className="mt-1 text-sm text-slate-600">Документ не загружен</div>
                       )}
                     </div>
-                    <div className="mt-3 rounded-lg border border-slate-200/80 bg-white/70 p-3 text-xs text-slate-700">
-                      Подтверждение или отклонение чека выполняет администратор TajStay. Вы можете обсудить детали с гостем в чате ниже.
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <OwnerPaymentApproveButton bookingId={b.id} locale={locale} />
                     </div>
+                  </div>
+                )}
+                {(b.status === "WAITING_PAYMENT" || b.status === "WAIT_PROOF") && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <OwnerPaymentApproveButton bookingId={b.id} locale={locale} />
                   </div>
                 )}
                 {b.status === "PENDING_OWNER" && (
