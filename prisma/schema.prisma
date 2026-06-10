@@ -107,6 +107,15 @@ model OwnerApplication {
   email        String
   businessName String
   documentUrl  String?
+  /// Адрес заявителя (дублируется в applicationMeta для расширенного онбординга).
+  address      String?
+  /// ИНН / идентификационный номер.
+  inn          String?
+  /// Пути к приватным файлам (не публичные URL).
+  passportFront String?
+  passportBack  String?
+  selfieWithDoc String?
+  propertyDoc   String?
   comment      String?
   /// Extended onboarding: property details, upload URLs, applicant type (JSON).
   applicationMeta Json?
@@ -115,20 +124,24 @@ model OwnerApplication {
   reviewedAt   DateTime?
   reviewedById Int?
   reviewedBy   User?     @relation("OwnerApplicationReviewedBy", fields: [reviewedById], references: [id])
+
+  documentViewLogs OwnerApplicationDocumentViewLog[]
 }
 
-model PropertyType {
-  id        String   @id @default(cuid())
-  /// Legacy filter code (HOTEL, APARTMENT, …) for search compatibility
-  code      String   @unique
-  nameRu    String
-  nameTg    String
-  nameEn    String
-  icon      String?
-  isActive  Boolean  @default(true)
-  sortOrder Int      @default(0)
-  createdAt DateTime @default(now())
-  hotels    Hotel[]
+/// Аудит просмотра конфиденциальных документов заявки (только ADMIN).
+model OwnerApplicationDocumentViewLog {
+  id            Int              @id @default(autoincrement())
+  applicationId Int
+  application   OwnerApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  adminId       Int
+  fileType      String
+  ip            String?
+  userAgent     String?
+  createdAt     DateTime         @default(now())
+
+  @@index([applicationId])
+  @@index([adminId])
+  @@index([createdAt])
 }
 
 model Hotel {
@@ -353,6 +366,7 @@ model Booking {
   proofReviewedBy   User?   @relation("BookingProofReviewedBy", fields: [proofReviewedById], references: [id])
   paymentApprovedAt DateTime?
   paymentApprovedBy Int?
+  paymentApprovedByUser User? @relation("BookingPaymentApprovedBy", fields: [paymentApprovedBy], references: [id])
   cancellationReason String?
   /// Guest identity document (passport/ID) for verification by owner/admin
   guestDocumentUrl String?
