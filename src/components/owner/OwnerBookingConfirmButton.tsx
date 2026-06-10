@@ -10,9 +10,10 @@ type Props = {
   locale: Locale;
   label?: string;
   className?: string;
+  apiBase?: string;
 };
 
-export function OwnerBookingConfirmButton({ bookingId, locale, label, className }: Props) {
+export function OwnerBookingConfirmButton({ bookingId, locale, label, className, apiBase = "/api/owner" }: Props) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -24,7 +25,7 @@ export function OwnerBookingConfirmButton({ bookingId, locale, label, className 
     setError(null);
     setToast(null);
     try {
-      const res = await fetch(`/api/owner/bookings/${bookingId}/confirm`, {
+      const res = await fetch(`${apiBase}/bookings/${bookingId}/confirm`, {
         method: "POST",
         credentials: "include",
         headers: { Accept: "application/json", "X-Requested-With": "fetch" }
