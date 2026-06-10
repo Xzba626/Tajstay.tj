@@ -11,6 +11,8 @@ export type PaymentReviewCardProps = {
   locale: Locale;
   bookingId: number;
   canAct: boolean;
+  /** Who confirms payment: owner at check-in vs admin review */
+  approveAs?: "admin" | "owner";
   guestLabel: string;
   totalPrice: number;
   currency: string;
@@ -35,7 +37,8 @@ export function PaymentReviewCard(props: PaymentReviewCardProps) {
     proofSubmittedAt,
     proofReviewDeadlineAt,
     proofAmount,
-    proofComment
+    proofComment,
+    approveAs = "admin"
   } = props;
 
   const router = useRouter();
@@ -49,11 +52,15 @@ export function PaymentReviewCard(props: PaymentReviewCardProps) {
     setBusy(true);
     setToast(null);
     try {
-      const res = await fetch("/api/bookings/confirm-payment", {
+      const url =
+        approveAs === "owner"
+          ? `/api/owner/bookings/${bookingId}/payment-approve`
+          : "/api/bookings/confirm-payment";
+      const res = await fetch(url, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json", accept: "application/json" },
-        body: JSON.stringify({ bookingId })
+        body: approveAs === "owner" ? undefined : JSON.stringify({ bookingId })
       });
       const json = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) throw new Error(json.error || m(locale, "bookingRoom.review.confirmFailed"));
