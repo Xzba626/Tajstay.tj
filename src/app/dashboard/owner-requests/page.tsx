@@ -3,6 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { OWNER_APPLICATION_STATUS } from "@/lib/domain/booking";
 import { listOwnerRequestFileTypes } from "@/lib/owner/ownerRequestFiles";
+import { getLocale } from "@/lib/i18n/get-locale";
+import { formatBookingStatus } from "@/lib/i18n/bookingStatus";
+import { m } from "@/lib/i18n/messages";
 
 type Props = { searchParams: { status?: string } };
 
@@ -16,14 +19,9 @@ function statusBadge(status: string) {
   return "bg-amber-100 text-amber-900";
 }
 
-function statusLabel(status: string) {
-  if (status === OWNER_APPLICATION_STATUS.APPROVED) return "Одобрена";
-  if (status === OWNER_APPLICATION_STATUS.REJECTED) return "Отклонена";
-  return "На рассмотрении";
-}
-
 export default async function OwnerRequestsPage({ searchParams }: Props) {
   await requireAdmin();
+  const locale = getLocale();
 
   const statusFilter = searchParams.status?.trim().toUpperCase();
   const where =
@@ -39,31 +37,43 @@ export default async function OwnerRequestsPage({ searchParams }: Props) {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Заявки на статус владельца</h1>
-          <p className="mt-1 text-sm text-slate-600">Документы доступны только через защищённый API</p>
+          <h1 className="text-2xl font-bold text-slate-900">{m(locale, "admin.ownerRequestsTitle")}</h1>
+          <p className="mt-1 text-sm text-slate-600">{m(locale, "admin.ownerRequestsHint")}</p>
         </div>
         <div className="flex flex-wrap gap-2 text-sm">
-          <FilterLink href="/dashboard/owner-requests" active={!statusFilter} label="Все" />
-          <FilterLink href="/dashboard/owner-requests?status=PENDING" active={statusFilter === "PENDING"} label="Ожидают" />
-          <FilterLink href="/dashboard/owner-requests?status=APPROVED" active={statusFilter === "APPROVED"} label="Одобрены" />
-          <FilterLink href="/dashboard/owner-requests?status=REJECTED" active={statusFilter === "REJECTED"} label="Отклонены" />
+          <FilterLink href="/dashboard/owner-requests" active={!statusFilter} label={m(locale, "admin.ownerRequestsAll")} />
+          <FilterLink
+            href="/dashboard/owner-requests?status=PENDING"
+            active={statusFilter === "PENDING"}
+            label={m(locale, "admin.ownerRequestsPending")}
+          />
+          <FilterLink
+            href="/dashboard/owner-requests?status=APPROVED"
+            active={statusFilter === "APPROVED"}
+            label={m(locale, "admin.ownerRequestsApproved")}
+          />
+          <FilterLink
+            href="/dashboard/owner-requests?status=REJECTED"
+            active={statusFilter === "REJECTED"}
+            label={m(locale, "admin.ownerRequestsRejected")}
+          />
         </div>
       </div>
 
       {!rows.length ? (
         <p className="rounded-2xl border border-dashed border-slate-200 bg-white px-6 py-10 text-center text-slate-500">
-          Заявок нет
+          {m(locale, "admin.ownerRequestsEmpty")}
         </p>
       ) : (
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
           <table className="min-w-full text-sm">
             <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
               <tr>
-                <th className="px-4 py-3">Заявитель</th>
-                <th className="px-4 py-3">Телефон</th>
-                <th className="px-4 py-3">Статус</th>
-                <th className="px-4 py-3">Документы</th>
-                <th className="px-4 py-3">Дата</th>
+                <th className="px-4 py-3">{m(locale, "admin.ownerRequestsApplicant")}</th>
+                <th className="px-4 py-3">{m(locale, "profile.phone")}</th>
+                <th className="px-4 py-3">{m(locale, "admin.filterStatus")}</th>
+                <th className="px-4 py-3">{m(locale, "admin.ownerRequestsDocuments")}</th>
+                <th className="px-4 py-3">{m(locale, "admin.ownerRequestsDate")}</th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
@@ -76,17 +86,19 @@ export default async function OwnerRequestsPage({ searchParams }: Props) {
                     <td className="px-4 py-3 text-slate-600">{row.phone}</td>
                     <td className="px-4 py-3">
                       <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusBadge(row.status)}`}>
-                        {statusLabel(row.status)}
+                        {formatBookingStatus(locale, row.status)}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-slate-600">{fileCount} файл(ов)</td>
-                    <td className="px-4 py-3 text-slate-500">{row.createdAt.toLocaleString("ru-RU")}</td>
+                    <td className="px-4 py-3 text-slate-600">
+                      {m(locale, "admin.ownerRequestsFilesCount", { count: fileCount })}
+                    </td>
+                    <td className="px-4 py-3 text-slate-500">{row.createdAt.toLocaleString(locale === "en" ? "en-GB" : locale === "tg" ? "tg-TJ" : "ru-RU")}</td>
                     <td className="px-4 py-3 text-right">
                       <Link
                         href={`/dashboard/owner-requests/${row.id}`}
                         className="font-medium text-emerald-700 hover:underline"
                       >
-                        Открыть
+                        {m(locale, "admin.ownerRequestsOpen")}
                       </Link>
                     </td>
                   </tr>
