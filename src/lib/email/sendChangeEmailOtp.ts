@@ -1,5 +1,6 @@
 import { getEmailFrom } from "@/lib/email/from";
 import { getResendClient } from "@/lib/email/resend";
+import { confirmationCodeEmailSubject, renderConfirmationCodeEmail } from "@/lib/email/templates";
 
 export async function sendChangeEmailOtpEmail(input: {
   to: string;
@@ -8,15 +9,15 @@ export async function sendChangeEmailOtpEmail(input: {
   const resend = getResendClient();
   if (!resend) return { ok: true, skipped: true };
 
-  const codeDisplay =
-    input.code.length > 3 ? `${input.code.slice(0, 3)} ${input.code.slice(3)}` : input.code;
+  const to = input.to.trim();
+  if (!to) return { ok: false };
 
   try {
     const { error } = await resend.emails.send({
       from: getEmailFrom(),
-      to: input.to.trim(),
-      subject: "Подтверждение нового email — TajStay",
-      html: `<p>Ваш код для смены email в TajStay: <strong>${codeDisplay}</strong></p><p>Код действует 10 минут.</p>`
+      to,
+      subject: confirmationCodeEmailSubject("change_email"),
+      html: renderConfirmationCodeEmail(input.code.trim(), "change_email")
     });
     return error ? { ok: false } : { ok: true };
   } catch {

@@ -1,4 +1,5 @@
 import { safeSend } from "@/lib/email/safeSend";
+import { paymentConfirmedEmailSubject, renderPaymentConfirmedEmail } from "@/lib/email/templates";
 
 export async function sendBookingConfirmedEmail(input: {
   guestEmail: string | null | undefined;
@@ -7,21 +8,20 @@ export async function sendBookingConfirmedEmail(input: {
   checkIn: Date;
   checkOut: Date;
   publicCode: string | null;
+  dashboardUrl?: string;
 }) {
   if (!input.guestEmail?.trim()) return { ok: true, skipped: true };
 
-  const code = input.publicCode ?? "—";
-  const dates = `${input.checkIn.toISOString().slice(0, 10)} – ${input.checkOut.toISOString().slice(0, 10)}`;
-
   return safeSend({
     to: input.guestEmail,
-    subject: "TajStay: бронирование подтверждено",
-    html: `
-      <h2>Бронирование подтверждено</h2>
-      <p>Здравствуйте, ${input.guestName}!</p>
-      <p>Хозяин подтвердил получение оплаты по брони <strong>${code}</strong>.</p>
-      <p><strong>${input.hotelName}</strong><br/>${dates}</p>
-      <p>Приятного пребывания!</p>
-    `
+    subject: paymentConfirmedEmailSubject(input.publicCode),
+    html: renderPaymentConfirmedEmail({
+      guestName: input.guestName,
+      hotelName: input.hotelName,
+      checkIn: input.checkIn,
+      checkOut: input.checkOut,
+      publicCode: input.publicCode,
+      dashboardUrl: input.dashboardUrl
+    })
   });
 }
