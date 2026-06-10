@@ -166,7 +166,8 @@ export function BookingChatRoomContext(props: BookingChatRoomContextProps) {
         <PaymentReviewCard
           locale={locale}
           bookingId={bookingId}
-          canAct={isAdmin}
+          canAct={isAdmin || isOwner}
+          approveAs={isOwner && !isAdmin ? "owner" : "admin"}
           guestLabel={guestLabel}
           totalPrice={Number(totalPrice)}
           currency={currency}

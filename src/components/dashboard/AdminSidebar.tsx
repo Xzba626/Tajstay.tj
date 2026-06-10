@@ -22,6 +22,7 @@ export type AdminSidebarLabels = {
     finance: string;
     complaints: string;
     notifications: string;
+    propertyTypes: string;
   };
 };
 
@@ -39,6 +40,7 @@ function buildItems(labels: AdminSidebarLabels): SidebarItem[] {
     { href: "#bookings", label: labels.items.bookings },
     { href: "#finance", label: labels.items.finance },
     { href: "#complaints", label: labels.items.complaints },
+    { href: "#property-types", label: labels.items.propertyTypes },
     { href: "#notifications", label: labels.items.notifications }
   ];
 }

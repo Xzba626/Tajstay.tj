@@ -5,11 +5,14 @@ import { bookingHotelOptional } from "@/lib/pms/bookingContext";
 import type { Locale } from "@/lib/i18n/locale";
 import { formatBookingStatus } from "@/lib/i18n/bookingStatus";
 import { m } from "@/lib/i18n/messages";
+import { BookingActions } from "./BookingActions";
 
 type BookingSlice = {
   id: number;
   status: string;
+  paymentStatus: string;
   publicCode: string | null;
+  cancellationReason?: string | null;
   checkIn: Date;
   checkOut: Date;
   cancellationReason?: string | null;
@@ -17,6 +20,7 @@ type BookingSlice = {
   assignedRoom?: { hotel: { id: number; name: string; coverImageUrl?: string | null } } | null;
   room: { hotel: { id: number; name: string; coverImageUrl?: string | null } } | null;
   roomType: { hotel: { id: number; name: string; coverImageUrl?: string | null } } | null;
+  review?: { id: number } | null;
 };
 
 function statusClass(status: string): string {
@@ -36,8 +40,8 @@ export function TripMockupCard({ locale, booking }: { locale: Locale; booking: B
   const code = booking.publicCode ? `#${booking.publicCode}` : `#TS${booking.id}`;
 
   return (
-    <article className="mockup-list-card !block">
-      <Link href={`/chat/booking/${booking.id}`} className="flex gap-[0.85rem] no-underline text-inherit">
+    <article className="mockup-list-card mockup-list-card--with-actions">
+      <Link href={`/chat/booking/${booking.id}`} className="mockup-list-card__link">
         <div className="mockup-list-card__media">
           {hotel.coverImageUrl ? (
             <AppImage src={hotel.coverImageUrl} alt={hotel.name} fill className="object-cover" sizes="88px" />
@@ -56,15 +60,7 @@ export function TripMockupCard({ locale, booking }: { locale: Locale; booking: B
           </div>
         </div>
       </Link>
-      <BookingActions
-        booking={{
-          id: booking.id,
-          status: booking.status,
-          publicCode: booking.publicCode,
-          hasReview: Boolean(booking.review),
-          cancellationReason: booking.cancellationReason
-        }}
-      />
+      <BookingActions booking={booking} />
     </article>
   );
 }

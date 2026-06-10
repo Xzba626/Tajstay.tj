@@ -2,56 +2,54 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getAdminUser } from "@/lib/auth/requireAdmin";
+import { forbiddenJson } from "@/lib/auth/apiResponses";
 
 const createSchema = z.object({
-  code: z.string().min(1).max(32).regex(/^[A-Z0-9_]+$/i),
+  code: z.string().min(1).max(32),
   nameRu: z.string().min(1).max(120),
   nameTg: z.string().min(1).max(120),
   nameEn: z.string().min(1).max(120),
-  icon: z.string().max(64).optional().nullable(),
+  icon: z.string().max(64).optional(),
   isActive: z.boolean().optional(),
   sortOrder: z.number().int().optional()
 });
 
 export async function GET() {
   const admin = await getAdminUser();
-  if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!admin) return forbiddenJson();
 
-  const rows = await prisma.propertyType.findMany({
-    orderBy: { sortOrder: "asc" },
+  const types = await prisma.propertyType.findMany({
+    orderBy: [{ sortOrder: "asc" }, { nameRu: "asc" }],
     include: { _count: { select: { hotels: true } } }
   });
-
-  return NextResponse.json({ data: rows });
+  return NextResponse.json({ types });
 }
 
 export async function POST(req: NextRequest) {
   const admin = await getAdminUser();
-  if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!admin) return forbiddenJson();
 
-  const body = await req.json().catch(() => null);
+  const body = await req.json().catch(() => ({}));
   const parsed = createSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
-  }
+  if (!parsed.success) return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
 
+  const code = parsed.data.code.trim().toUpperCase();
   const maxOrder = await prisma.propertyType.aggregate({ _max: { sortOrder: true } });
-  const sortOrder = parsed.data.sortOrder ?? (maxOrder._max.sortOrder ?? 0) + 1;
 
   try {
-    const row = await prisma.propertyType.create({
+    const created = await prisma.propertyType.create({
       data: {
-        code: parsed.data.code.toUpperCase(),
-        nameRu: parsed.data.nameRu,
-        nameTg: parsed.data.nameTg,
-        nameEn: parsed.data.nameEn,
-        icon: parsed.data.icon ?? null,
+        code,
+        nameRu: parsed.data.nameRu.trim(),
+        nameTg: parsed.data.nameTg.trim(),
+        nameEn: parsed.data.nameEn.trim(),
+        icon: parsed.data.icon?.trim() || null,
         isActive: parsed.data.isActive ?? true,
-        sortOrder
+        sortOrder: parsed.data.sortOrder ?? (maxOrder._max.sortOrder ?? 0) + 1
       }
     });
-    return NextResponse.json({ data: row }, { status: 201 });
+    return NextResponse.json({ ok: true, type: created });
   } catch {
-    return NextResponse.json({ error: "Код уже существует" }, { status: 409 });
+    return NextResponse.json({ error: "Code already exists" }, { status: 409 });
   }
 }

@@ -3,44 +3,42 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export function CancelBookingButton({
-  bookingId,
-  label = "Отменить",
-  className = "btn-secondary text-sm !w-auto !px-3 !py-1.5"
-}: {
-  bookingId: number;
-  label?: string;
-  className?: string;
-}) {
+export function CancelBookingButton({ bookingId }: { bookingId: number }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  async function onCancel() {
+  async function handleCancel() {
     if (busy) return;
     if (!window.confirm("Отменить бронирование?")) return;
     setBusy(true);
+    setError(null);
     try {
       const res = await fetch(`/api/bookings/${bookingId}/cancel-by-guest`, {
         method: "POST",
-        credentials: "include",
-        headers: { Accept: "application/json", "X-Requested-With": "fetch" }
+        credentials: "include"
       });
-      const json = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string };
-      if (!res.ok) {
-        window.alert(json.error ?? "Не удалось отменить бронь");
-        return;
-      }
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error((json as { error?: string }).error ?? "Не удалось отменить");
       router.refresh();
-    } catch {
-      window.alert("Не удалось отменить бронь");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Ошибка");
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <button type="button" disabled={busy} onClick={() => void onCancel()} className={className}>
-      {busy ? "…" : label}
-    </button>
+    <span className="inline-flex flex-col gap-1">
+      <button
+        type="button"
+        disabled={busy}
+        onClick={() => void handleCancel()}
+        className="mockup-btn mockup-btn--ghost text-red-200"
+      >
+        {busy ? "Отмена…" : "✕ Отменить"}
+      </button>
+      {error ? <span className="text-xs text-red-300">{error}</span> : null}
+    </span>
   );
 }

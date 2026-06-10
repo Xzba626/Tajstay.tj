@@ -5,6 +5,7 @@ import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { AdminBookingPayCountdown } from "@/components/admin/AdminBookingPayCountdown";
 import { AdminOwnerApplicationActions } from "@/components/admin/AdminOwnerApplicationActions";
 import { AdminHotelModerationActions } from "@/components/admin/AdminHotelModerationActions";
+import { AdminPropertyTypesPanel } from "@/components/admin/AdminPropertyTypesPanel";
 import { OWNER_APPLICATION_STATUS } from "@/lib/domain/booking";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { formatBookingStatus } from "@/lib/i18n/bookingStatus";
@@ -50,7 +51,8 @@ type AdminSection =
   | "bookings"
   | "finance"
   | "notifications"
-  | "complaints";
+  | "complaints"
+  | "property-types";
 
 const VALID_SECTIONS = new Set<AdminSection>([
   "dashboard",
@@ -63,7 +65,8 @@ const VALID_SECTIONS = new Set<AdminSection>([
   "bookings",
   "finance",
   "notifications",
-  "complaints"
+  "complaints",
+  "property-types"
 ]);
 
 export default async function AdminDashboardPage({
@@ -1402,6 +1405,16 @@ export default async function AdminDashboardPage({
         {!complaints.length && <EmptyState title={m(locale, "admin.complaintsEmpty")} />}
         <Pagination page={page} totalPages={totalPages} />
       </section>}
+
+      {activeSection === "property-types" && (
+        <section id="property-types" className="scroll-mt-28 space-y-4">
+          <div className="flex items-center gap-2">
+            <span className="h-8 w-1 rounded-full bg-teal-500" aria-hidden />
+            <h2 className="text-lg font-bold text-slate-900">Категории объектов</h2>
+          </div>
+          <AdminPropertyTypesPanel />
+        </section>
+      )}
     </div>
   );
 }

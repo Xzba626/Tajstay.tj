@@ -1,7 +1,7 @@
 import dynamic from "next/dynamic";
 import { headers } from "next/headers";
-import { searchHotels, type PropertyTypeFilter } from "@/lib/services/search";
-import { getCityFromRequestHeaders } from "@/lib/geo/ipCity";
+import { searchApprovedHotels, type PropertyTypeFilter } from "@/lib/services/search";
+import { getCityFromRequestHeaders, sortHotelsByNearbyCity } from "@/lib/geo/ipCity";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
 
@@ -10,17 +10,17 @@ const MapClient = dynamic(() => import("./MapClient"), {
 });
 
 type MapSearchParams = {
-  q?: string;
   city?: string;
   checkIn?: string;
   checkOut?: string;
-  minPrice?: string;
-  maxPrice?: string;
   priceMin?: string;
   priceMax?: string;
+  minPrice?: string;
+  maxPrice?: string;
   guests?: string;
   rating?: string;
   ratingMin?: string;
+  q?: string;
   propertyType?: PropertyTypeFilter;
   wifi?: string;
   breakfast?: string;
@@ -30,30 +30,34 @@ type MapSearchParams = {
 
 export default async function MapPage({ searchParams }: { searchParams?: MapSearchParams }) {
   const locale = getLocale();
-  const params = searchParams ?? {};
   const hdrs = headers();
-  const nearbyCity = params.city ? null : await getCityFromRequestHeaders(hdrs);
+  const nearbyCity = searchParams?.city ? null : await getCityFromRequestHeaders(hdrs);
 
-  const minPriceRaw = params.minPrice ?? params.priceMin;
-  const maxPriceRaw = params.maxPrice ?? params.priceMax;
-  const ratingRaw = params.ratingMin ?? params.rating;
+  const minRaw = searchParams?.minPrice ?? searchParams?.priceMin;
+  const maxRaw = searchParams?.maxPrice ?? searchParams?.priceMax;
+  const minPrice = minRaw && Number.isFinite(Number(minRaw)) ? Number(minRaw) : undefined;
+  const maxPrice = maxRaw && Number.isFinite(Number(maxRaw)) ? Number(maxRaw) : undefined;
+  const ratingRaw = searchParams?.ratingMin ?? searchParams?.rating;
+  const ratingMin = ratingRaw && Number.isFinite(Number(ratingRaw)) ? Number(ratingRaw) : undefined;
 
-  const hotels = await searchHotels({
-    q: params.q,
-    city: params.city,
+  const hotelsRaw = await searchApprovedHotels({
+    q: searchParams?.q,
+    city: searchParams?.city,
     nearbyCity: nearbyCity ?? undefined,
-    checkIn: params.checkIn,
-    checkOut: params.checkOut,
-    guests: params.guests ? Number(params.guests) : undefined,
-    minPrice: minPriceRaw ? Number(minPriceRaw) : undefined,
-    maxPrice: maxPriceRaw ? Number(maxPriceRaw) : undefined,
-    ratingMin: ratingRaw ? Number(ratingRaw) : undefined,
-    propertyType: params.propertyType ?? "ANY",
-    wifi: params.wifi === "on" || params.wifi === "true",
-    breakfast: params.breakfast === "on" || params.breakfast === "true",
-    parking: params.parking === "on" || params.parking === "true",
-    sortBy: params.sortBy ?? "POPULAR"
+    guests: searchParams?.guests ? Number(searchParams.guests) : 1,
+    minPrice,
+    maxPrice,
+    propertyType: searchParams?.propertyType ?? "ANY",
+    wifi: searchParams?.wifi === "on" || searchParams?.wifi === "true",
+    breakfast: searchParams?.breakfast === "on" || searchParams?.breakfast === "true",
+    parking: searchParams?.parking === "on" || searchParams?.parking === "true",
+    ratingMin,
+    checkIn: searchParams?.checkIn,
+    checkOut: searchParams?.checkOut,
+    sortBy: searchParams?.sortBy ?? "POPULAR"
   });
+
+  const hotels = sortHotelsByNearbyCity(hotelsRaw, nearbyCity);
 
   const mapHotels = hotels.map((hotel) => {
     const fromPrice = hotel.rooms.length ? Math.min(...hotel.rooms.map((r) => Number(r.price))) : 0;
@@ -82,9 +86,8 @@ export default async function MapPage({ searchParams }: { searchParams?: MapSear
     <div className="mx-auto max-w-7xl space-y-5 px-4 py-8 sm:px-6 lg:px-8">
       <h1 className="text-2xl font-semibold">{m(locale, "search.mapMode")}</h1>
       <p className="text-sm text-slate-500">
-        {hasFilters
-          ? `Найдено объектов: ${mapHotels.length}`
-          : m(locale, "admin.moderateHotels")}
+        {mapHotels.length} {m(locale, "admin.hotelsTotal").toLowerCase()}
+        {searchParams?.city ? ` · ${searchParams.city}` : ""}
       </p>
       {!mapHotels.length && (
         <div className="glass-panel rounded-2xl border border-dashed border-slate-700 px-6 py-10 text-center text-slate-300">

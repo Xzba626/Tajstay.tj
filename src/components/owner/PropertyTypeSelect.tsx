@@ -1,32 +1,38 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { Locale } from "@/lib/i18n/locale";
+import { propertyTypeLabel, type PropertyTypeRow } from "@/lib/propertyTypes/labels";
 
 type Props = {
+  locale: Locale;
   name?: string;
-  defaultValue?: string;
-  required?: boolean;
+  defaultTypeId?: string | null;
+  defaultCode?: string | null;
   className?: string;
+  required?: boolean;
 };
 
 export function PropertyTypeSelect({
+  locale,
   name = "propertyTypeId",
-  defaultValue,
-  required = true,
-  className = "h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20"
+  defaultTypeId,
+  defaultCode,
+  className,
+  required
 }: Props) {
-  const [options, setOptions] = useState<Array<{ id: string; name: string }>>([]);
+  const [types, setTypes] = useState<PropertyTypeRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
-    void fetch("/api/property-types", { credentials: "include" })
+    fetch("/api/property-types", { credentials: "include" })
       .then((r) => r.json())
-      .then((json: { data?: Array<{ id: string; name: string }> }) => {
-        if (!cancelled) setOptions(json.data ?? []);
+      .then((json: { types?: PropertyTypeRow[] }) => {
+        if (!cancelled) setTypes(json.types ?? []);
       })
       .catch(() => {
-        if (!cancelled) setOptions([]);
+        if (!cancelled) setTypes([]);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -36,13 +42,23 @@ export function PropertyTypeSelect({
     };
   }, []);
 
+  const resolvedDefault =
+    defaultTypeId ??
+    types.find((t) => t.code === (defaultCode ?? "HOTEL").toUpperCase())?.id ??
+    types[0]?.id ??
+    "";
+
   return (
-    <select name={name} defaultValue={defaultValue} required={required} className={className} disabled={loading}>
-      {loading ? <option value="">Загрузка…</option> : null}
-      {!loading && !options.length ? <option value="">Нет категорий</option> : null}
-      {options.map((opt) => (
-        <option key={opt.id} value={opt.id}>
-          {opt.name}
+    <select
+      name={name}
+      defaultValue={resolvedDefault}
+      required={required}
+      disabled={loading || !types.length}
+      className={className}
+    >
+      {types.map((t) => (
+        <option key={t.id} value={t.id}>
+          {propertyTypeLabel(locale, t)}
         </option>
       ))}
     </select>

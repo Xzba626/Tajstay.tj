@@ -10,7 +10,7 @@ import { agentLog } from "@/lib/debug/agentLog";
 import { getPublicOriginFromRequest } from "@/lib/http/publicOrigin";
 import { createNotification } from "@/lib/notifications/create";
 import { sendHotelPendingAdminEmail } from "@/lib/email/hotelModerationEmails";
-import { resolvePropertyTypeId } from "@/lib/property-types/seed";
+import { resolvePropertyTypeId } from "@/lib/propertyTypes/seed";
 
 export const runtime = "nodejs";
 const DEFAULT_LAT = 38.5598;
@@ -86,14 +86,19 @@ export async function POST(req: NextRequest) {
     const description = String(form.get("description") ?? "").trim();
     const latitude = parseCoord(form.get("latitude")) ?? DEFAULT_LAT;
     const longitude = parseCoord(form.get("longitude")) ?? DEFAULT_LNG;
-    const propertyTypeRaw = String(form.get("propertyTypeId") ?? form.get("propertyType") ?? "HOTEL");
-    const propertyTypeId = await resolvePropertyTypeId(propertyTypeRaw);
+    const propertyTypeId = String(form.get("propertyTypeId") ?? "").trim();
+    const propertyTypeLegacy = String(form.get("propertyType") ?? "").trim();
     const coverFile = form.get("coverFile");
 
     if (!name || !city || !address || !description) {
       return redirectBack(req, "hotel");
     }
-    if (!propertyTypeId) {
+
+    const typeRow = await resolvePropertyTypeId({
+      propertyTypeId: propertyTypeId || null,
+      propertyTypeCode: propertyTypeLegacy || "HOTEL"
+    });
+    if (!typeRow) {
       return redirectBack(req, "hotel");
     }
 
@@ -125,7 +130,8 @@ export async function POST(req: NextRequest) {
         description,
         latitude,
         longitude,
-        propertyTypeId,
+        propertyTypeId: typeRow.id,
+        propertyType: typeRow.code,
         coverImageUrl,
         status: "PENDING"
       }

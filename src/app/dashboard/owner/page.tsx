@@ -24,6 +24,7 @@ import { BookingChatLauncher } from "@/components/chat/BookingChatPanel";
 import { RoomPhotoCarousel } from "@/components/RoomPhotoCarousel";
 import { OwnerDashboardKpis } from "@/components/owner/OwnerDashboardKpis";
 import { OwnerHotelPropertyExtras } from "@/components/owner/OwnerHotelPropertyExtras";
+import { PropertyTypeSelect } from "@/components/owner/PropertyTypeSelect";
 import { OfflineBookingForm } from "@/components/owner/OfflineBookingForm";
 import { OfflineBookingsList } from "@/components/owner/OfflineBookingsList";
 import { OwnerCalendar } from "@/components/owner/OwnerCalendar";
@@ -445,7 +446,12 @@ export default async function OwnerDashboardPage({
           </div>
           <div className="md:col-span-2">
             <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.fieldType")}</label>
-            <PropertyTypeSelect defaultValue="pt_hotel" />
+            <PropertyTypeSelect
+              locale={locale}
+              defaultCode="HOTEL"
+              required
+              className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20"
+            />
           </div>
           <div className="md:col-span-2">
             <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.fieldDescription")}</label>
@@ -731,7 +737,13 @@ export default async function OwnerDashboardPage({
 
                         <div className="md:col-span-2">
                           <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.fieldType")}</label>
-                          <PropertyTypeSelect defaultValue={h.propertyTypeId ?? "pt_hotel"} />
+                          <PropertyTypeSelect
+                            locale={locale}
+                            defaultTypeId={h.propertyTypeId}
+                            defaultCode={h.propertyType}
+                            required
+                            className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20"
+                          />
                           <div className="mt-1.5 text-xs text-slate-500">{m(locale, "owner.fieldTypeHelp")}</div>
                         </div>
 

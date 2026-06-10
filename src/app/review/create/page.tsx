@@ -1,13 +1,11 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/requireAuth";
-import LeaveReviewForm from "@/app/dashboard/guest/leave-review-form";
-import { bookingHotelOptional } from "@/lib/pms/bookingContext";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
-
-export const dynamic = "force-dynamic";
+import LeaveReviewForm from "@/app/dashboard/guest/leave-review-form";
+import { bookingHotel } from "@/lib/pms/bookingContext";
+import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
 
 export default async function ReviewCreatePage({
   searchParams
@@ -15,50 +13,29 @@ export default async function ReviewCreatePage({
   searchParams?: { bookingId?: string };
 }) {
   const locale = getLocale();
-  const user = await requireUser();
+  const user = await requireUser(["GUEST", "ADMIN"]);
   if (!user) redirect("/auth/sign-in?next=/review/create");
 
   const bookingId = Number(searchParams?.bookingId ?? "");
-  if (!bookingId) {
-    return (
-      <div className="mx-auto max-w-lg px-4 py-16 text-center">
-        <p className="text-brand-200">Укажите bookingId в ссылке.</p>
-        <Link href="/dashboard/bookings" className="btn-primary mt-4 inline-flex !w-auto px-6">
-          К поездкам
-        </Link>
-      </div>
-    );
-  }
+  if (!bookingId) redirect("/dashboard/bookings");
 
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
-    include: {
-      review: true,
-      assignedRoom: { include: { hotel: true } },
-      room: { include: { hotel: true } },
-      roomType: { include: { hotel: true } }
-    }
+    include: { ...bookingWithHotelInclude, review: true }
   });
-
-  if (!booking || booking.userId !== user.id) {
+  if (!booking || (user.role !== "ADMIN" && booking.userId !== user.id)) {
     redirect("/dashboard/bookings");
   }
-  if (booking.review) {
-    redirect("/dashboard/bookings?tab=history");
-  }
-  if (booking.status !== "COMPLETED" && booking.status !== "CONFIRMED") {
-    redirect("/dashboard/bookings");
-  }
+  if (booking.review) redirect("/dashboard/bookings?tab=history");
 
-  const hotel = bookingHotelOptional(booking);
+  const hotel = bookingHotel(booking);
 
   return (
-    <div className="mx-auto max-w-lg px-4 py-8">
-      <Link href="/dashboard/bookings" className="text-sm text-brand-300 hover:underline">
-        ← {m(locale, "tripsHub.title")}
-      </Link>
-      <h1 className="mt-4 text-2xl font-bold text-white">{m(locale, "guestDash.leaveReview")}</h1>
-      {hotel ? <p className="mt-1 text-sm text-brand-200">{hotel.name}</p> : null}
+    <div className="mx-auto max-w-lg px-4 py-10">
+      <h1 className="text-2xl font-bold text-white">{m(locale, "guestDash.leaveReview")}</h1>
+      <p className="mt-2 text-sm text-brand-200">
+        {hotel.name} · {booking.checkIn.toISOString().slice(0, 10)} – {booking.checkOut.toISOString().slice(0, 10)}
+      </p>
       <div className="mt-6">
         <LeaveReviewForm
           bookingId={booking.id}
@@ -68,8 +45,8 @@ export default async function ReviewCreatePage({
             commentPlaceholder: m(locale, "guestDash.reviewCommentPh"),
             imagePlaceholder: m(locale, "guestDash.reviewImagePh"),
             sending: m(locale, "guestDash.reviewSending"),
-            submit: m(locale, "guestDash.reviewSubmit"),
-            error: m(locale, "guestDash.reviewError")
+            submit: m(locale, "guestDash.leaveReview"),
+            error: m(locale, "auth.errorGeneric")
           }}
         />
       </div>
