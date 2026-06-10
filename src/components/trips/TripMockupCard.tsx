@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AppImage } from "@/components/ui/AppImage";
+import { BookingActions } from "@/components/trips/BookingActions";
 import { bookingHotelOptional } from "@/lib/pms/bookingContext";
 import type { Locale } from "@/lib/i18n/locale";
 import { formatBookingStatus } from "@/lib/i18n/bookingStatus";
@@ -11,6 +12,8 @@ type BookingSlice = {
   publicCode: string | null;
   checkIn: Date;
   checkOut: Date;
+  cancellationReason?: string | null;
+  review?: { id: number } | null;
   assignedRoom?: { hotel: { id: number; name: string; coverImageUrl?: string | null } } | null;
   room: { hotel: { id: number; name: string; coverImageUrl?: string | null } } | null;
   roomType: { hotel: { id: number; name: string; coverImageUrl?: string | null } } | null;
@@ -33,24 +36,35 @@ export function TripMockupCard({ locale, booking }: { locale: Locale; booking: B
   const code = booking.publicCode ? `#${booking.publicCode}` : `#TS${booking.id}`;
 
   return (
-    <Link href={`/chat/booking/${booking.id}`} className="mockup-list-card">
-      <div className="mockup-list-card__media">
-        {hotel.coverImageUrl ? (
-          <AppImage src={hotel.coverImageUrl} alt={hotel.name} fill className="object-cover" sizes="88px" />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center text-2xl opacity-30">🏨</div>
-        )}
-      </div>
-      <div className="mockup-list-card__body">
-        <div className="mockup-list-card__title line-clamp-2">{hotel.name}</div>
-        <div className="mockup-list-card__meta">{dates}</div>
-        <div className="mockup-list-card__row">
-          <span className="mockup-list-card__meta">{code}</span>
-          <span className={`mockup-status ${statusClass(booking.status)}`}>
-            {formatBookingStatus(locale, booking.status)}
-          </span>
+    <article className="mockup-list-card !block">
+      <Link href={`/chat/booking/${booking.id}`} className="flex gap-[0.85rem] no-underline text-inherit">
+        <div className="mockup-list-card__media">
+          {hotel.coverImageUrl ? (
+            <AppImage src={hotel.coverImageUrl} alt={hotel.name} fill className="object-cover" sizes="88px" />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-2xl opacity-30">🏨</div>
+          )}
         </div>
-      </div>
-    </Link>
+        <div className="mockup-list-card__body">
+          <div className="mockup-list-card__title line-clamp-2">{hotel.name}</div>
+          <div className="mockup-list-card__meta">{dates}</div>
+          <div className="mockup-list-card__row">
+            <span className="mockup-list-card__meta">{code}</span>
+            <span className={`mockup-status ${statusClass(booking.status)}`}>
+              {formatBookingStatus(locale, booking.status)}
+            </span>
+          </div>
+        </div>
+      </Link>
+      <BookingActions
+        booking={{
+          id: booking.id,
+          status: booking.status,
+          publicCode: booking.publicCode,
+          hasReview: Boolean(booking.review),
+          cancellationReason: booking.cancellationReason
+        }}
+      />
+    </article>
   );
 }

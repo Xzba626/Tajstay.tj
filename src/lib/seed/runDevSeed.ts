@@ -1,8 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/auth/password";
+import { seedPropertyTypes } from "@/lib/property-types/seed";
 
 /** Демо-данные для разработки (admin / owner / guest, отель, бронь). */
 export async function runDevSeed() {
+  await seedPropertyTypes();
   const adminPass = await hashPassword("Admin123!");
   const ownerPass = await hashPassword("Owner123!");
   const guestPass = await hashPassword("Guest123!");
@@ -92,7 +94,7 @@ export async function runDevSeed() {
       rating: 4.8,
       latitude: 38.5598,
       longitude: 68.787,
-      propertyType: "HOTEL"
+      propertyTypeId: "pt_hotel"
     }
   });
 

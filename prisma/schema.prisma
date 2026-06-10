@@ -61,6 +61,21 @@ model User {
   pushSubscriptions   PushSubscription[]
   telegramChangeRequests TelegramChangeRequest[]
   deviceSessions      UserDeviceSession[]
+  paymentApprovedBookings Booking[] @relation("BookingPaymentApprovedBy")
+}
+
+model PropertyType {
+  id        String   @id @default(cuid())
+  /// Stable slug for search filters and legacy mapping (HOTEL, APARTMENT, …)
+  code      String   @unique
+  nameRu    String
+  nameTg    String
+  nameEn    String
+  icon      String?
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  hotels    Hotel[]
 }
 
 model Account {
@@ -110,7 +125,8 @@ model Hotel {
   city           String
   address        String
   description    String
-  propertyType   String   @default("HOTEL")
+  propertyTypeId String?
+  propertyType   PropertyType? @relation(fields: [propertyTypeId], references: [id])
   /// URL обложки (внешняя ссылка или /uploads/…)
   coverImageUrl  String?
   rating         Float    @default(0)
@@ -319,6 +335,10 @@ model Booking {
   proofReviewedAt  DateTime?
   proofReviewedById Int?
   proofReviewedBy   User?   @relation("BookingProofReviewedBy", fields: [proofReviewedById], references: [id])
+  paymentApprovedAt   DateTime?
+  paymentApprovedById Int?
+  paymentApprovedBy   User?   @relation("BookingPaymentApprovedBy", fields: [paymentApprovedById], references: [id])
+  cancellationReason  String?
   /// Guest identity document (passport/ID) for verification by owner/admin
   guestDocumentUrl String?
   guestDocumentSubmittedAt DateTime?

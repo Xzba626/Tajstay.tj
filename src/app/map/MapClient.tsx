@@ -1,13 +1,18 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
-import Link from "next/link";
-import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
+import { useEffect, useMemo, useRef, type MutableRefObject } from "react";
+import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import "leaflet.markercluster/dist/MarkerCluster.css";
+import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import L from "leaflet";
-import type { Marker as LeafletMarker, Map as LeafletMap } from "leaflet";
+import "leaflet.markercluster";
+import type { Map as LeafletMap, Marker as LeafletMarker, MarkerClusterGroup } from "leaflet";
 
-// Fix default icon paths in bundlers.
+type LeafletWithCluster = typeof L & {
+  markerClusterGroup: (options?: object) => MarkerClusterGroup;
+};
+
 L.Icon.Default.mergeOptions({
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
   iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
@@ -22,6 +27,62 @@ export type MapHotel = {
   longitude: number;
   fromPrice: number;
 };
+
+function MarkerClusterLayer({
+  hotels,
+  labels,
+  focusedHotelId,
+  highlightedHotelId,
+  onHotelSelect,
+  markerRefs
+}: {
+  hotels: MapHotel[];
+  labels: { fromPrice: string; details: string };
+  focusedHotelId?: number | null;
+  highlightedHotelId?: number | null;
+  onHotelSelect?: (hotelId: number) => void;
+  markerRefs: MutableRefObject<Record<number, LeafletMarker>>;
+}) {
+  const map = useMap();
+
+  useEffect(() => {
+    const cluster = (L as LeafletWithCluster).markerClusterGroup();
+    markerRefs.current = {};
+
+    hotels.forEach((h) => {
+      const marker = L.marker([h.latitude, h.longitude], {
+        opacity: highlightedHotelId && highlightedHotelId !== h.id ? 0.6 : 1
+      });
+      marker.bindPopup(`
+        <div class="space-y-2 text-sm">
+          <div class="font-semibold">${h.name}</div>
+          <div class="text-slate-600">${h.city}</div>
+          <div>${labels.fromPrice} <span class="font-semibold">${h.fromPrice} TJS</span></div>
+          <a class="text-emerald-700 hover:underline" href="/hotel/${h.id}">${labels.details}</a>
+        </div>
+      `);
+      marker.on("click", () => onHotelSelect?.(h.id));
+      markerRefs.current[h.id] = marker;
+      cluster.addLayer(marker);
+    });
+
+    map.addLayer(cluster);
+    return () => {
+      map.removeLayer(cluster);
+      cluster.clearLayers();
+    };
+  }, [hotels, labels.details, labels.fromPrice, highlightedHotelId, map, markerRefs, onHotelSelect]);
+
+  useEffect(() => {
+    if (!focusedHotelId) return;
+    const hotel = hotels.find((item) => item.id === focusedHotelId);
+    if (!hotel) return;
+    map.flyTo([hotel.latitude, hotel.longitude], 11, { duration: 0.7 });
+    markerRefs.current[focusedHotelId]?.openPopup();
+  }, [focusedHotelId, hotels, map, markerRefs]);
+
+  return null;
+}
 
 export default function MapClient({
   hotels,
@@ -42,15 +103,6 @@ export default function MapClient({
   const mapRef = useRef<LeafletMap | null>(null);
   const markerRefs = useRef<Record<number, LeafletMarker>>({});
 
-  useEffect(() => {
-    if (!focusedHotelId || !mapRef.current) return;
-    const hotel = hotels.find((item) => item.id === focusedHotelId);
-    if (!hotel) return;
-    mapRef.current.flyTo([hotel.latitude, hotel.longitude], 11, { duration: 0.7 });
-    const marker = markerRefs.current[focusedHotelId];
-    marker?.openPopup();
-  }, [focusedHotelId, hotels]);
-
   return (
     <div className="rounded-2xl border bg-white p-3">
       <div className={`${heightClass} overflow-hidden rounded-xl`}>
@@ -59,39 +111,21 @@ export default function MapClient({
             attribution='&copy; OpenStreetMap contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-          {hotels.map((h) => (
-            <Marker
-              key={h.id}
-              position={[h.latitude, h.longitude]}
-              ref={(marker) => {
-                if (!marker) return;
-                markerRefs.current[h.id] = marker;
-              }}
-              eventHandlers={{
-                click: () => onHotelSelect?.(h.id)
-              }}
-              opacity={highlightedHotelId && highlightedHotelId !== h.id ? 0.6 : 1}
-            >
-              <Popup>
-                <div className="space-y-2 text-sm">
-                  <div className="font-semibold">
-                    {h.name}
-                    {highlightedHotelId === h.id ? " • в фокусе" : ""}
-                  </div>
-                  <div className="text-slate-600">{h.city}</div>
-                  <div>
-                    {labels.fromPrice} <span className="font-semibold">{h.fromPrice} TJS</span>
-                  </div>
-                  <Link className="text-emerald-700 hover:underline" href={`/hotel/${h.id}`}>
-                    {labels.details}
-                  </Link>
-                </div>
-              </Popup>
-            </Marker>
-          ))}
+          <MarkerClusterLayer
+            hotels={hotels}
+            labels={labels}
+            focusedHotelId={focusedHotelId}
+            highlightedHotelId={highlightedHotelId}
+            onHotelSelect={onHotelSelect}
+            markerRefs={markerRefs}
+          />
         </MapContainer>
       </div>
+      {hotels.length > 0 ? (
+        <p className="mt-2 text-xs text-slate-500">
+          Маркеры группируются при отдалении — увеличьте масштаб для деталей.
+        </p>
+      ) : null}
     </div>
   );
 }
-

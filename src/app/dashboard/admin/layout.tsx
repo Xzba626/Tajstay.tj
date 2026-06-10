@@ -35,6 +35,7 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
     items: {
       dashboard: m(locale, "adminNav.dashboard"),
       content: m(locale, "adminNav.content"),
+      propertyTypes: "Категории",
       applications: m(locale, "adminNav.applications"),
       hotels: m(locale, "adminNav.hotels"),
       users: m(locale, "adminNav.users"),

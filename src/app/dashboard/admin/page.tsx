@@ -35,12 +35,14 @@ import {
 import { fetchLastSessionsForUsers, type UserLastSession } from "@/lib/admin/userLastSessions";
 import { userAgentLabel } from "@/lib/auth/userAgentLabel";
 import { formatUserDisplayName } from "@/lib/users/displayName";
+import { PropertyTypesAdmin } from "@/components/admin/PropertyTypesAdmin";
 
 export const dynamic = "force-dynamic";
 
 type AdminSection =
   | "dashboard"
   | "content"
+  | "property-types"
   | "applications"
   | "hotels"
   | "users"
@@ -53,6 +55,7 @@ type AdminSection =
 const VALID_SECTIONS = new Set<AdminSection>([
   "dashboard",
   "content",
+  "property-types",
   "applications",
   "hotels",
   "users",
@@ -314,7 +317,7 @@ export default async function AdminDashboardPage({
     totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
     hotels = await prisma.hotel.findMany({
       where,
-      include: { owner: true, photos: { orderBy: { sortOrder: "asc" } } },
+      include: { owner: true, propertyType: true, photos: { orderBy: { sortOrder: "asc" } } },
       orderBy: [{ status: "asc" }, { createdAt: "asc" }],
       skip: (page - 1) * pageSize,
       take: pageSize
@@ -771,6 +774,16 @@ export default async function AdminDashboardPage({
         </div>
       </section>}
 
+      {activeSection === "property-types" && (
+        <section id="property-types" className="scroll-mt-28 space-y-4">
+          <div className="flex items-center gap-2">
+            <span className="h-8 w-1 rounded-full bg-amber-400" aria-hidden />
+            <h2 className="text-lg font-bold text-slate-100">Категории объектов</h2>
+          </div>
+          <PropertyTypesAdmin />
+        </section>
+      )}
+
       {activeSection === "applications" && <section id="applications" className="scroll-mt-28 space-y-4">
         <div className="flex items-center gap-2">
           <span className="h-8 w-1 rounded-full bg-amber-500" aria-hidden />
@@ -891,7 +904,7 @@ export default async function AdminDashboardPage({
                 city={hotel.city}
                 address={hotel.address}
                 description={hotel.description}
-                propertyType={hotel.propertyType}
+                propertyType={hotel.propertyType?.nameRu ?? hotel.propertyType?.code ?? "—"}
                 status={hotel.status}
                 createdAt={hotel.createdAt.toISOString()}
                 coverImageUrl={hotel.coverImageUrl}

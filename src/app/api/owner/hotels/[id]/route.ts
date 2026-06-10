@@ -6,8 +6,7 @@ import { forbiddenJson } from "@/lib/auth/apiResponses";
 import { publicUrl } from "@/lib/http/publicOrigin";
 import { savePublicImageFile } from "@/lib/uploads/savePublicImage";
 import { ImageUploadError } from "@/lib/uploads/imageUploadError";
-
-const PROPERTY_TYPES = new Set(["HOTEL", "HOSTEL", "GUESTHOUSE", "APARTMENT", "ECO"]);
+import { resolvePropertyTypeId } from "@/lib/property-types/seed";
 
 function parseCoord(input: FormDataEntryValue | null): number | null {
   const raw = String(input ?? "").trim();
@@ -42,7 +41,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const description = String(form.get("description") ?? "").trim();
     const latitude = parseCoord(form.get("latitude"));
     const longitude = parseCoord(form.get("longitude"));
-    const propertyType = String(form.get("propertyType") ?? "HOTEL");
+    const propertyTypeRaw = String(form.get("propertyTypeId") ?? form.get("propertyType") ?? "HOTEL");
+    const propertyTypeId = await resolvePropertyTypeId(propertyTypeRaw);
     const coverFile = form.get("coverFile");
     let coverImageUrl: string | null = hotel.coverImageUrl;
 
@@ -61,7 +61,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     if (!name || !city || !address || !description) {
       return redirectProperties(req, "hotel");
     }
-    if (!PROPERTY_TYPES.has(propertyType)) {
+    if (!propertyTypeId) {
       return redirectProperties(req, "hotel");
     }
 
@@ -74,7 +74,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         description,
         latitude: latitude ?? hotel.latitude,
         longitude: longitude ?? hotel.longitude,
-        propertyType,
+        propertyTypeId,
         coverImageUrl,
         status: hotel.status
       }
