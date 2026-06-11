@@ -49,7 +49,11 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  if (path.startsWith("/dashboard/admin") || path.startsWith("/dashboard/owner")) {
+  if (
+    path.startsWith("/dashboard/admin") ||
+    path.startsWith("/dashboard/owner") ||
+    path.startsWith("/dashboard/owner-requests")
+  ) {
     const legacyToken = req.cookies.get(SESSION_COOKIE)?.value ?? "";
     const authjsToken = AUTHJS_COOKIES.map((k) => req.cookies.get(k)?.value).find(Boolean) ?? "";
     const hasSession = (legacyToken && looksLikeLegacySessionToken(legacyToken)) || !!authjsToken;
@@ -74,6 +78,7 @@ export const config = {
     "/api/telegram/webhook/:path*",
     "/dashboard/admin/:path*",
     "/dashboard/owner/:path*",
+    "/dashboard/owner-requests/:path*",
     "/((?!_next/static|_next/image|.*\\.(?:ico|png|jpg|jpeg|gif|webp|svg|woff2?)$).*)"
   ]
 };

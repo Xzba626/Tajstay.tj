@@ -811,13 +811,14 @@ export default async function AdminDashboardPage({
                   {app.businessName} · {app.phone} · {app.email}
                 </div>
                 <div className="mt-1 text-xs text-slate-500">{m(locale, "admin.owner")}: {app.user.name} (id {app.userId})</div>
-                {app.documentUrl && (
-                  <div className="mt-3">
-                    <a className="text-sm font-medium text-emerald-700 underline underline-offset-2" href={app.documentUrl} target="_blank" rel="noreferrer">
-                      {m(locale, "admin.document")}
-                    </a>
-                  </div>
-                )}
+                <div className="mt-3">
+                  <a
+                    className="text-sm font-medium text-emerald-700 underline underline-offset-2"
+                    href={`/dashboard/owner-requests/${app.id}`}
+                  >
+                    Открыть заявку и документы
+                  </a>
+                </div>
                 <AdminOwnerApplicationActions
                   applicationId={app.id}
                   labels={{
