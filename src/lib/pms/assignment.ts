@@ -2,25 +2,37 @@ import { prisma } from "@/lib/prisma";
 import { assertDatesAvailable, DatesUnavailableError } from "@/lib/booking/availability";
 import { findAvailablePhysicalRoom } from "@/lib/pms/inventory";
 import { getBookingPhysicalRoomId } from "@/lib/pms/types";
+import { moderatorBookingWhere, moderatorHotelWhere } from "@/lib/pms/moderatorQueries";
+import { ownerBookingWhere } from "@/lib/pms/ownerQueries";
+
+type AssignActor = { ownerId: number } | { moderatorUserId: number };
+
+function bookingActorWhere(actor: AssignActor) {
+  if ("ownerId" in actor) return ownerBookingWhere(actor.ownerId);
+  return moderatorBookingWhere(actor.moderatorUserId);
+}
+
+function roomActorWhere(actor: AssignActor, roomId: number) {
+  if ("ownerId" in actor) {
+    return { id: roomId, hotel: { ownerId: actor.ownerId } };
+  }
+  return { id: roomId, hotel: moderatorHotelWhere(actor.moderatorUserId) };
+}
 
 export async function assignBookingToRoom(params: {
   bookingId: number;
   roomId: number;
-  ownerId: number;
-}): Promise<{ ok: true } | { ok: false; error: string }> {
+} & AssignActor): Promise<{ ok: true } | { ok: false; error: string }> {
   const booking = await prisma.booking.findFirst({
     where: {
       id: params.bookingId,
-      OR: [
-        { room: { hotel: { ownerId: params.ownerId } } },
-        { roomType: { hotel: { ownerId: params.ownerId } } }
-      ]
+      ...bookingActorWhere(params)
     }
   });
   if (!booking) return { ok: false, error: "not_found" };
 
   const room = await prisma.room.findFirst({
-    where: { id: params.roomId, hotel: { ownerId: params.ownerId } },
+    where: roomActorWhere(params, params.roomId),
     select: { id: true, roomTypeId: true, hotelId: true }
   });
   if (!room) return { ok: false, error: "room_not_found" };
