@@ -1,11 +1,6 @@
 import Link from "next/link";
 import { AppImage } from "@/components/ui/AppImage";
 import { BookingActions } from "@/components/trips/BookingActions";
-import { bookingHotelOptional } from "@/lib/pms/bookingContext";
-import type { Locale } from "@/lib/i18n/locale";
-import { formatBookingStatus } from "@/lib/i18n/bookingStatus";
-import { m } from "@/lib/i18n/messages";
-import { BookingActions } from "./BookingActions";
 
 type BookingSlice = {
   id: number;
