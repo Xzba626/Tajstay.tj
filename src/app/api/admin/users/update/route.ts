@@ -12,14 +12,14 @@ export async function POST(req: NextRequest) {
   const id = Number(form.get("id"));
   const role = String(form.get("role"));
   const isBanned = form.get("isBanned") === "on";
-  if (!id || !["GUEST", "OWNER", "ADMIN"].includes(role)) {
+  if (!id || !["GUEST", "OWNER", "ADMIN", "HOTEL_MODERATOR"].includes(role)) {
     return NextResponse.redirect(publicUrl(req, "/dashboard/admin"));
   }
 
   await prisma.user.update({
     where: { id },
     data: {
-      role: role as "GUEST" | "OWNER" | "ADMIN",
+      role: role as "GUEST" | "OWNER" | "ADMIN" | "HOTEL_MODERATOR",
       isBanned
     }
   });

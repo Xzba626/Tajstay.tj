@@ -121,6 +121,7 @@ export async function dispatchBookingConfirmedEmails(bookingId: number) {
     hotelAddress: hotel.address,
     checkIn: booking.checkIn,
     checkOut: booking.checkOut,
+    bookingCode: booking.publicCode,
     hostPhone: hotel.owner.phone || undefined,
     chatUrl: `${base}/chat/booking/${booking.id}`
   });

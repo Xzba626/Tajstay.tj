@@ -5,7 +5,6 @@ import { bookingHotelOptional } from "@/lib/pms/bookingContext";
 import type { Locale } from "@/lib/i18n/locale";
 import { formatBookingStatus } from "@/lib/i18n/bookingStatus";
 import { m } from "@/lib/i18n/messages";
-import { BookingActions } from "./BookingActions";
 
 type BookingSlice = {
   id: number;
@@ -15,12 +14,10 @@ type BookingSlice = {
   cancellationReason?: string | null;
   checkIn: Date;
   checkOut: Date;
-  cancellationReason?: string | null;
   review?: { id: number } | null;
   assignedRoom?: { hotel: { id: number; name: string; coverImageUrl?: string | null } } | null;
   room: { hotel: { id: number; name: string; coverImageUrl?: string | null } } | null;
   roomType: { hotel: { id: number; name: string; coverImageUrl?: string | null } } | null;
-  review?: { id: number } | null;
 };
 
 function statusClass(status: string): string {

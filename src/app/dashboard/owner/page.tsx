@@ -31,7 +31,6 @@ import { OwnerCalendar } from "@/components/owner/OwnerCalendar";
 import { CalendarOverrideForm } from "@/components/owner/CalendarOverrideForm";
 import { OwnerBookingConfirmButton } from "@/components/owner/OwnerBookingConfirmButton";
 import { OwnerPaymentApproveButton } from "@/components/owner/OwnerPaymentApproveButton";
-import { PropertyTypeSelect } from "@/components/owner/PropertyTypeSelect";
 import { OwnerHelpTips } from "@/components/owner/OwnerHelpTips";
 import ReviewReplyForm from "@/components/ReviewReplyForm";
 import { getOwnerDashboardKpis } from "@/lib/services/ownerDashboardKpis";

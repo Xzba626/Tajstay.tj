@@ -142,7 +142,7 @@ async function searchApprovedHotelsQuery(input: SearchInput) {
     deletedAt: null,
     city: input.city ? { contains: input.city } : undefined,
     ...(propertyTypeCode
-      ? { propertyType: { code: propertyTypeCode, isActive: true } }
+      ? { propertyTypeRef: { code: propertyTypeCode, isActive: true } }
       : {}),
     rating: input.ratingMin != null ? { gte: input.ratingMin } : undefined,
     rooms: {
@@ -158,7 +158,7 @@ async function searchApprovedHotelsQuery(input: SearchInput) {
   const hotels = await prisma.hotel.findMany({
     where,
     include: {
-      propertyType: true,
+      propertyTypeRef: true,
       rooms: hasDateRange
         ? {
             include: {

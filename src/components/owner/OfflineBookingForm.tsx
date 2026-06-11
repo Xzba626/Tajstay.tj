@@ -23,7 +23,8 @@ export function OfflineBookingForm({
   defaultRoomId,
   defaultCheckIn,
   defaultCheckOut,
-  variant = "full"
+  variant = "full",
+  apiBase = "/api/owner"
 }: {
   locale: Locale;
   roomTypes: RoomTypeOption[];
@@ -35,6 +36,7 @@ export function OfflineBookingForm({
   defaultCheckOut?: string;
   /** full = owner archive; staff = reception (no phone/email required) */
   variant?: "full" | "staff";
+  apiBase?: string;
 }) {
   const isStaff = variant === "staff";
   const defaultTypeId = useMemo(() => {
@@ -53,7 +55,7 @@ export function OfflineBookingForm({
 
   return (
     <form
-      action="/api/owner/offline-bookings"
+      action={`${apiBase}/offline-bookings`}
       method="post"
       className="offline-booking-form grid gap-3 md:grid-cols-2"
     >
