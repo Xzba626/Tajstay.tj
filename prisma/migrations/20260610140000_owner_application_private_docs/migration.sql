@@ -1,13 +1,13 @@
--- AlterTable
-ALTER TABLE "OwnerApplication" ADD COLUMN "address" TEXT;
-ALTER TABLE "OwnerApplication" ADD COLUMN "inn" TEXT;
-ALTER TABLE "OwnerApplication" ADD COLUMN "passportFront" TEXT;
-ALTER TABLE "OwnerApplication" ADD COLUMN "passportBack" TEXT;
-ALTER TABLE "OwnerApplication" ADD COLUMN "selfieWithDoc" TEXT;
-ALTER TABLE "OwnerApplication" ADD COLUMN "propertyDoc" TEXT;
+-- Owner application private document fields (idempotent)
 
--- CreateTable
-CREATE TABLE "OwnerApplicationDocumentViewLog" (
+ALTER TABLE "OwnerApplication" ADD COLUMN IF NOT EXISTS "address" TEXT;
+ALTER TABLE "OwnerApplication" ADD COLUMN IF NOT EXISTS "inn" TEXT;
+ALTER TABLE "OwnerApplication" ADD COLUMN IF NOT EXISTS "passportFront" TEXT;
+ALTER TABLE "OwnerApplication" ADD COLUMN IF NOT EXISTS "passportBack" TEXT;
+ALTER TABLE "OwnerApplication" ADD COLUMN IF NOT EXISTS "selfieWithDoc" TEXT;
+ALTER TABLE "OwnerApplication" ADD COLUMN IF NOT EXISTS "propertyDoc" TEXT;
+
+CREATE TABLE IF NOT EXISTS "OwnerApplicationDocumentViewLog" (
     "id" SERIAL NOT NULL,
     "applicationId" INTEGER NOT NULL,
     "adminId" INTEGER NOT NULL,
@@ -19,10 +19,12 @@ CREATE TABLE "OwnerApplicationDocumentViewLog" (
     CONSTRAINT "OwnerApplicationDocumentViewLog_pkey" PRIMARY KEY ("id")
 );
 
--- CreateIndex
-CREATE INDEX "OwnerApplicationDocumentViewLog_applicationId_idx" ON "OwnerApplicationDocumentViewLog"("applicationId");
-CREATE INDEX "OwnerApplicationDocumentViewLog_adminId_idx" ON "OwnerApplicationDocumentViewLog"("adminId");
-CREATE INDEX "OwnerApplicationDocumentViewLog_createdAt_idx" ON "OwnerApplicationDocumentViewLog"("createdAt");
+CREATE INDEX IF NOT EXISTS "OwnerApplicationDocumentViewLog_applicationId_idx" ON "OwnerApplicationDocumentViewLog"("applicationId");
+CREATE INDEX IF NOT EXISTS "OwnerApplicationDocumentViewLog_adminId_idx" ON "OwnerApplicationDocumentViewLog"("adminId");
+CREATE INDEX IF NOT EXISTS "OwnerApplicationDocumentViewLog_createdAt_idx" ON "OwnerApplicationDocumentViewLog"("createdAt");
 
--- AddForeignKey
-ALTER TABLE "OwnerApplicationDocumentViewLog" ADD CONSTRAINT "OwnerApplicationDocumentViewLog_applicationId_fkey" FOREIGN KEY ("applicationId") REFERENCES "OwnerApplication"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+  ALTER TABLE "OwnerApplicationDocumentViewLog" ADD CONSTRAINT "OwnerApplicationDocumentViewLog_applicationId_fkey" FOREIGN KEY ("applicationId") REFERENCES "OwnerApplication"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
