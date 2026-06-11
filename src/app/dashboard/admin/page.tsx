@@ -25,6 +25,7 @@ import { Pagination } from "@/components/ui/Pagination";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { scoreHotelRisk } from "@/lib/services/riskScoring";
 import { deriveEscrowState } from "@/lib/domain/booking";
+import { formatRiskNoteType } from "@/lib/admin/formatRiskNote";
 import { notificationText } from "@/lib/notifications/text";
 import { isAdminSecurityResetConfigured } from "@/lib/admin-security";
 import {
@@ -498,11 +499,11 @@ export default async function AdminDashboardPage({
         </div>
         {riskNotes.length > 0 && (
           <div className="glass-panel rounded-2xl p-5">
-            <h3 className="text-sm font-bold text-slate-100">Risk history (auto flags)</h3>
+            <h3 className="text-sm font-bold text-slate-100">{m(locale, "admin.riskHistoryTitle")}</h3>
             <ul className="mt-3 space-y-2 text-xs text-slate-200">
               {riskNotes.map((note) => (
                 <li key={note.id} className="rounded-lg border border-white/10 bg-white/5 px-3 py-2">
-                  {note.type} · {formatDateTimeShort(locale, note.createdAt)}
+                  {formatRiskNoteType(locale, note.type)} · {formatDateTimeShort(locale, note.createdAt)}
                 </li>
               ))}
             </ul>
@@ -781,7 +782,7 @@ export default async function AdminDashboardPage({
         <section id="property-types" className="scroll-mt-28 space-y-4">
           <div className="flex items-center gap-2">
             <span className="h-8 w-1 rounded-full bg-amber-400" aria-hidden />
-            <h2 className="text-lg font-bold text-slate-100">Категории объектов</h2>
+            <h2 className="text-lg font-bold text-slate-100">{m(locale, "admin.propertyTypesSection")}</h2>
           </div>
           <PropertyTypesAdmin />
         </section>
@@ -816,7 +817,7 @@ export default async function AdminDashboardPage({
                     className="text-sm font-medium text-emerald-700 underline underline-offset-2"
                     href={`/dashboard/owner-requests/${app.id}`}
                   >
-                    Открыть заявку и документы
+                    {m(locale, "admin.openApplication")}
                   </a>
                 </div>
                 <AdminOwnerApplicationActions
@@ -897,9 +898,13 @@ export default async function AdminDashboardPage({
                     </span>
                   </div>
                   {risk.reasons.length > 0 && (
-                    <div className="mt-2 text-xs text-slate-500">Signals: {risk.reasons.join(", ")}</div>
+                    <div className="mt-2 text-xs text-slate-500">
+                      {m(locale, "admin.riskSignals")}: {risk.reasons.join(", ")}
+                    </div>
                   )}
-                  {risk.level === "HIGH" && <div className="mt-1 text-xs font-semibold text-red-600">AUTO FLAGGED FOR MANUAL REVIEW</div>}
+                  {risk.level === "HIGH" && (
+                    <div className="mt-1 text-xs font-semibold text-red-600">{m(locale, "admin.riskAutoFlag")}</div>
+                  )}
                 </div>
               </div>
               <AdminHotelModerationActions
@@ -927,8 +932,8 @@ export default async function AdminDashboardPage({
                   confirmApproveCta: m(locale, "admin.confirmApproveCta"),
                   cancel: m(locale, "admin.cancel"),
                   processing: m(locale, "admin.processing"),
-                  submittedAt: "Дата подачи",
-                  host: "Хост"
+                  submittedAt: m(locale, "admin.submittedAt"),
+                  host: m(locale, "admin.hostLabel")
                 }}
               />
               <div className="mt-3 border-t border-slate-100 pt-3">
@@ -940,7 +945,7 @@ export default async function AdminDashboardPage({
                     <option value="REJECTED">{tStatus("REJECTED")}</option>
                   </select>
                   <button className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700">
-                    {m(locale, "admin.save")} (статус)
+                    {m(locale, "admin.saveStatus")}
                   </button>
                 </form>
               </div>
@@ -1182,7 +1187,7 @@ export default async function AdminDashboardPage({
                   {b.room.hotel.name} · {b.checkIn.toISOString().slice(0, 10)} — {b.checkOut.toISOString().slice(0, 10)} · {b.phone}
                 </span>
                 <span className="flex items-center gap-2">
-                  <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Таймер</span>
+                  <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">{m(locale, "admin.timer")}</span>
                   <AdminBookingPayCountdown
                     expiresAtIso={b.expiresAt ? b.expiresAt.toISOString() : null}
                     active={b.status === "WAITING_PAYMENT" || b.status === "WAIT_PROOF"}
@@ -1192,20 +1197,22 @@ export default async function AdminDashboardPage({
               <div className="mt-1 text-sm font-medium text-slate-800">
                 {Number(b.totalPrice)} TJS · {m(locale, "admin.commission")} {Number(b.commission)} TJS
               </div>
-              <div className="mt-1 text-xs text-slate-500">Escrow: {deriveEscrowState({ status: b.status, paymentStatus: b.paymentStatus })}</div>
+              <div className="mt-1 text-xs text-slate-500">
+                {m(locale, "admin.escrow")}: {tStatus(deriveEscrowState({ status: b.status, paymentStatus: b.paymentStatus }))}
+              </div>
               <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-4">
                 <Link
                   href={`/chat/booking/${b.id}`}
                   className="inline-flex items-center rounded-xl bg-teal-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-500"
                 >
-                  Открыть чат
+                  {m(locale, "admin.openChat")}
                 </Link>
                 {b.publicCode ? (
                   <Link
                     href={`/payment/${encodeURIComponent(b.publicCode)}`}
                     className="inline-flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50"
                   >
-                    Страница оплаты
+                    {m(locale, "admin.paymentPage")}
                   </Link>
                 ) : null}
               </div>
@@ -1411,7 +1418,7 @@ export default async function AdminDashboardPage({
         <section id="property-types" className="scroll-mt-28 space-y-4">
           <div className="flex items-center gap-2">
             <span className="h-8 w-1 rounded-full bg-teal-500" aria-hidden />
-            <h2 className="text-lg font-bold text-slate-900">Категории объектов</h2>
+            <h2 className="text-lg font-bold text-slate-900">{m(locale, "admin.propertyTypesSection")}</h2>
           </div>
           <AdminPropertyTypesPanel />
         </section>
