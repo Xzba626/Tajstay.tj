@@ -6,6 +6,7 @@ import { bookingHotel } from "@/lib/pms/bookingContext";
 import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
 import { addBookingSystemMessage } from "@/lib/chat/bookingChat";
 import { createNotification } from "@/lib/notifications/create";
+import { appBaseUrl } from "@/lib/email/bookingEmails";
 import { sendBookingConfirmedEmail } from "@/lib/email/sendBookingConfirmedEmail";
 
 const ALLOWED_STATUSES = [
@@ -104,7 +105,8 @@ export async function confirmBookingPaymentOwner(bookingId: number, ownerId: num
       hotelName: hotel.name,
       checkIn: booking.checkIn,
       checkOut: booking.checkOut,
-      publicCode: booking.publicCode
+      publicCode: booking.publicCode,
+      dashboardUrl: `${appBaseUrl()}/chat/booking/${bookingId}`
     });
   }
 

@@ -1,6 +1,7 @@
 import { getSessionUser } from "@/lib/auth/session";
+import type { UserRole } from "@/lib/auth/permissions";
 
-export type UserRole = "GUEST" | "OWNER" | "ADMIN";
+export type { UserRole } from "@/lib/auth/permissions";
 
 export async function requireUser(allowedRoles?: UserRole[]) {
   const user = await getSessionUser();

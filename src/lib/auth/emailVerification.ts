@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { safeSend } from "@/lib/email/safeSend";
+import { renderEmailVerificationEmail } from "@/lib/email/templates";
 
 const TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
 
@@ -26,19 +27,8 @@ export async function sendEmailVerificationEmail(input: { to: string; token: str
   const verifyUrl = buildEmailVerificationUrl(input.token);
   const result = await safeSend({
     to: input.to,
-    subject: "TajStay: Подтвердите ваш email",
-    html: `
-      <h2>Подтвердите ваш email</h2>
-      <p>Нажмите на кнопку ниже чтобы подтвердить аккаунт:</p>
-      <a href="${verifyUrl}" style="
-        display:inline-block;background:#1a6b3c;color:white;
-        padding:12px 24px;border-radius:8px;text-decoration:none;
-      ">Подтвердить email</a>
-      <p style="color:#666;font-size:12px;">
-        Ссылка действительна 24 часа.
-        Если вы не регистрировались — проигнорируйте это письмо.
-      </p>
-    `
+    subject: "TajStay: подтвердите ваш email",
+    html: renderEmailVerificationEmail(verifyUrl)
   });
   return { ok: result.ok, skipped: "skipped" in result ? result.skipped : undefined };
 }
