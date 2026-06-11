@@ -11,9 +11,17 @@ type Props = {
   canViewPii: boolean;
   canViewFinances: boolean;
   canEditStatus: boolean;
+  apiBase?: string;
 };
 
-export function OfflineBookingsList({ locale, bookings, canViewPii, canViewFinances, canEditStatus }: Props) {
+export function OfflineBookingsList({
+  locale,
+  bookings,
+  canViewPii,
+  canViewFinances,
+  canEditStatus,
+  apiBase = "/api/owner"
+}: Props) {
   return (
     <div className="space-y-3">
       {bookings.map((b) => (
@@ -61,7 +69,7 @@ export function OfflineBookingsList({ locale, bookings, canViewPii, canViewFinan
           ) : null}
 
           {canEditStatus ? (
-            <form action={`/api/owner/offline-bookings/${b.id}`} method="post" className="mt-3 flex flex-wrap items-end gap-2">
+            <form action={`${apiBase}/offline-bookings/${b.id}`} method="post" className="mt-3 flex flex-wrap items-end gap-2">
               <div>
                 <label className="mb-1 block text-xs font-semibold text-white/55">{m(locale, "owner.offline.statusLabel")}</label>
                 <select

@@ -1,4 +1,13 @@
 import { safeSend } from "@/lib/email/safeSend";
+import {
+  emailButton,
+  emailDetailCard,
+  emailParagraph,
+  emailStatusBlock,
+  emailTitle
+} from "@/lib/email/templates/components";
+import { escapeHtml } from "@/lib/email/templates/escape";
+import { renderEmailLayout } from "@/lib/email/templates/layout";
 
 function adminEmail(): string {
   return process.env.ADMIN_EMAIL?.trim() || "admin@tajstay.site";
@@ -18,25 +27,38 @@ export async function sendHotelPendingAdminEmail(input: {
   const link = `${siteUrl()}/dashboard/admin?section=moderation&id=${input.hotelId}`;
   return safeSend({
     to: adminEmail(),
-    subject: "TajStay: Новый объект требует проверки",
-    html: `
-      <h2>Новый объект на модерацию</h2>
-      <p>Хост: ${input.ownerName} (${input.ownerEmail ?? "—"})</p>
-      <p>Объект: ${input.hotelName}</p>
-      <p>Адрес: ${input.hotelAddress}</p>
-      <a href="${link}">Открыть на модерацию</a>
-    `
+    subject: "TajStay: новый объект требует проверки",
+    html: renderEmailLayout({
+      title: "Новый объект на модерацию",
+      preheader: `${input.hotelName} ожидает проверки`,
+      body: `
+        ${emailTitle("Новый объект на модерацию")}
+        ${emailStatusBlock("warning", "Требуется проверка администратора")}
+        ${emailDetailCard([
+          { label: "Владелец", value: escapeHtml(input.ownerName) },
+          { label: "Email", value: escapeHtml(input.ownerEmail ?? "—") },
+          { label: "Объект", value: escapeHtml(input.hotelName) },
+          { label: "Адрес", value: escapeHtml(input.hotelAddress) }
+        ])}
+        ${emailButton("Открыть модерацию", link)}
+      `
+    })
   });
 }
 
 export async function sendHotelApprovedOwnerEmail(input: { to: string; hotelName: string }) {
   return safeSend({
     to: input.to,
-    subject: "TajStay: Объект одобрен",
-    html: `
-      <h2>Объект одобрен</h2>
-      <p>Ваш объект «${input.hotelName}» одобрен и теперь виден гостям на TajStay.</p>
-    `
+    subject: "TajStay: объект одобрен",
+    html: renderEmailLayout({
+      title: "Объект одобрен",
+      preheader: `${input.hotelName} опубликован на TajStay`,
+      body: `
+        ${emailTitle("Объект одобрен")}
+        ${emailStatusBlock("success", "Опубликован", "Ваш объект теперь виден гостям на TajStay.")}
+        ${emailParagraph(`Объект <strong>${escapeHtml(input.hotelName)}</strong> успешно прошёл модерацию.`)}
+      `
+    })
   });
 }
 
@@ -47,12 +69,16 @@ export async function sendHotelRejectedOwnerEmail(input: {
 }) {
   return safeSend({
     to: input.to,
-    subject: "TajStay: Объект отклонён",
-    html: `
-      <h2>Объект отклонён</h2>
-      <p>Объект «${input.hotelName}» не прошёл модерацию.</p>
-      <p><strong>Причина:</strong> ${input.reason}</p>
-      <p>Исправьте замечания и подайте объект на проверку снова в личном кабинете.</p>
-    `
+    subject: "TajStay: объект отклонён",
+    html: renderEmailLayout({
+      title: "Объект отклонён",
+      preheader: `${input.hotelName} не прошёл модерацию`,
+      body: `
+        ${emailTitle("Объект отклонён")}
+        ${emailStatusBlock("danger", "Не прошёл модерацию", escapeHtml(input.reason))}
+        ${emailParagraph(`Объект <strong>${escapeHtml(input.hotelName)}</strong> пока не опубликован.`)}
+        ${emailParagraph("Исправьте замечания и отправьте объект на повторную проверку в личном кабинете.")}
+      `
+    })
   });
 }

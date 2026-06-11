@@ -1,5 +1,21 @@
-import { getEmailFrom } from "@/lib/email/from";
-import { getResendClient } from "@/lib/email/resend";
+import { safeSend } from "@/lib/email/safeSend";
+import {
+  bookingCancelledEmailSubject,
+  bookingConfirmedEmailSubject,
+  renderBookingCancelledEmail,
+  renderBookingConfirmedEmail,
+  type BookingCancelledBy
+} from "@/lib/email/templates";
+import { escapeHtml } from "@/lib/email/templates/escape";
+import {
+  emailButton,
+  emailDetailCard,
+  emailMuted,
+  emailParagraph,
+  emailStatusBlock,
+  emailTitle
+} from "@/lib/email/templates/components";
+import { renderEmailLayout } from "@/lib/email/templates/layout";
 
 function appBaseUrl(): string {
   return (
@@ -9,22 +25,8 @@ function appBaseUrl(): string {
   ).replace(/\/$/, "");
 }
 
-async function safeSend(params: { to: string; subject: string; html: string }) {
-  const resend = getResendClient();
-  if (!resend) return;
-  const to = params.to.trim();
-  if (!to) return;
-  try {
-    const { error } = await resend.emails.send({
-      from: getEmailFrom(),
-      to,
-      subject: params.subject,
-      html: params.html
-    });
-    if (error) console.error("[email] send failed:", error);
-  } catch (e) {
-    console.error("[email] send failed:", e);
-  }
+function formatDate(d: Date): string {
+  return d.toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
 }
 
 export async function sendBookingCreatedEmail(params: {
@@ -38,32 +40,29 @@ export async function sendBookingCreatedEmail(params: {
   currency: string;
   paymentUrl: string;
 }) {
+  const html = renderEmailLayout({
+    title: `Бронь ${params.bookingCode} создана`,
+    preheader: `Оплатите бронь в ${params.hotelName}`,
+    body: `
+      ${emailTitle("Бронь создана")}
+      ${emailStatusBlock("warning", "Ожидает оплаты", "Завершите оплату, чтобы закрепить бронирование за собой.")}
+      ${emailParagraph(`Здравствуйте, <strong>${escapeHtml(params.guestName)}</strong>!`)}
+      ${emailDetailCard([
+        { label: "Номер брони", value: escapeHtml(params.bookingCode) },
+        { label: "Объект", value: escapeHtml(params.hotelName) },
+        { label: "Заезд", value: escapeHtml(formatDate(params.checkIn)) },
+        { label: "Выезд", value: escapeHtml(formatDate(params.checkOut)) },
+        { label: "Сумма", value: escapeHtml(`${params.totalPrice} ${params.currency}`) }
+      ])}
+      ${emailButton("Перейти к оплате", params.paymentUrl)}
+      ${emailMuted("Бронь будет отменена автоматически, если оплата не поступит вовремя.")}
+    `
+  });
+
   await safeSend({
     to: params.guestEmail,
-    subject: `TajStay: Бронь #${params.bookingCode} создана`,
-    html: `
-      <h2>Здравствуйте, ${params.guestName}!</h2>
-      <p>Ваша бронь успешно создана и ожидает оплаты.</p>
-      <table>
-        <tr><td>Отель:</td><td>${params.hotelName}</td></tr>
-        <tr><td>Заезд:</td><td>${params.checkIn.toLocaleDateString("ru")}</td></tr>
-        <tr><td>Выезд:</td><td>${params.checkOut.toLocaleDateString("ru")}</td></tr>
-        <tr><td>Сумма:</td><td>${params.totalPrice} ${params.currency}</td></tr>
-        <tr><td>Номер брони:</td><td>${params.bookingCode}</td></tr>
-      </table>
-      <a href="${params.paymentUrl}" style="
-        display:inline-block;
-        background:#1a6b3c;
-        color:white;
-        padding:12px 24px;
-        border-radius:8px;
-        text-decoration:none;
-        margin-top:16px;
-      ">Перейти к оплате</a>
-      <p style="color:#666;font-size:12px;">
-        Бронь будет отменена автоматически если не оплатить вовремя.
-      </p>
-    `
+    subject: `TajStay: бронь ${params.bookingCode} создана`,
+    html
   });
 }
 
@@ -79,22 +78,31 @@ export async function sendNewBookingToHostEmail(params: {
   totalPrice: number;
   dashboardUrl: string;
 }) {
+  const rows = [
+    { label: "Гость", value: escapeHtml(params.guestName) },
+    { label: "Номер", value: escapeHtml(params.roomName) },
+    { label: "Заезд", value: escapeHtml(formatDate(params.checkIn)) },
+    { label: "Выезд", value: escapeHtml(formatDate(params.checkOut)) },
+    { label: "Сумма", value: escapeHtml(String(params.totalPrice)) }
+  ];
+  if (params.guestPhone) rows.splice(1, 0, { label: "Телефон", value: escapeHtml(params.guestPhone) });
+
+  const html = renderEmailLayout({
+    title: `Новая бронь ${params.bookingCode}`,
+    preheader: `Новая бронь от ${params.guestName}`,
+    body: `
+      ${emailTitle("Новая бронь")}
+      ${emailStatusBlock("info", "Требуется внимание", "Поступила новая бронь на ваш объект.")}
+      ${emailParagraph(`Здравствуйте, <strong>${escapeHtml(params.hostName)}</strong>!`)}
+      ${emailDetailCard(rows)}
+      ${emailButton("Открыть панель управления", params.dashboardUrl)}
+    `
+  });
+
   await safeSend({
     to: params.hostEmail,
-    subject: `TajStay: Новая бронь #${params.bookingCode}`,
-    html: `
-      <h2>Здравствуйте, ${params.hostName}!</h2>
-      <p>Поступила новая бронь на ваш объект.</p>
-      <table>
-        <tr><td>Гость:</td><td>${params.guestName}</td></tr>
-        ${params.guestPhone ? `<tr><td>Телефон:</td><td>${params.guestPhone}</td></tr>` : ""}
-        <tr><td>Номер:</td><td>${params.roomName}</td></tr>
-        <tr><td>Заезд:</td><td>${params.checkIn.toLocaleDateString("ru")}</td></tr>
-        <tr><td>Выезд:</td><td>${params.checkOut.toLocaleDateString("ru")}</td></tr>
-        <tr><td>Сумма:</td><td>${params.totalPrice}</td></tr>
-      </table>
-      <a href="${params.dashboardUrl}">Открыть панель управления</a>
-    `
+    subject: `TajStay: новая бронь ${params.bookingCode}`,
+    html
   });
 }
 
@@ -107,19 +115,21 @@ export async function sendBookingConfirmedEmail(params: {
   checkOut: Date;
   hostPhone?: string;
   chatUrl: string;
+  bookingCode?: string | null;
 }) {
   await safeSend({
     to: params.guestEmail,
-    subject: "TajStay: Бронь подтверждена ✅",
-    html: `
-      <h2>Ваша бронь подтверждена!</h2>
-      <p>Хозяин принял вашу бронь в <strong>${params.hotelName}</strong>.</p>
-      <p>Адрес: ${params.hotelAddress}</p>
-      <p>Заезд: ${params.checkIn.toLocaleDateString("ru")}</p>
-      <p>Выезд: ${params.checkOut.toLocaleDateString("ru")}</p>
-      ${params.hostPhone ? `<p>Телефон хозяина: ${params.hostPhone}</p>` : ""}
-      <a href="${params.chatUrl}">Написать хозяину</a>
-    `
+    subject: bookingConfirmedEmailSubject(params.bookingCode),
+    html: renderBookingConfirmedEmail({
+      guestName: params.guestName,
+      hotelName: params.hotelName,
+      hotelAddress: params.hotelAddress,
+      checkIn: params.checkIn,
+      checkOut: params.checkOut,
+      bookingCode: params.bookingCode,
+      hostPhone: params.hostPhone,
+      chatUrl: params.chatUrl
+    })
   });
 }
 
@@ -127,26 +137,21 @@ export async function sendBookingCancelledEmail(params: {
   email: string;
   name: string;
   bookingCode: string;
-  cancelledBy: "guest" | "host" | "admin" | "system";
+  cancelledBy: BookingCancelledBy;
   reason?: string;
   hotelName: string;
 }) {
-  const cancellerText = {
-    guest: "вами",
-    host: "хозяином",
-    admin: "администрацией TajStay",
-    system: "системой автоматически"
-  }[params.cancelledBy];
-
   await safeSend({
     to: params.email,
-    subject: `TajStay: Бронь #${params.bookingCode} отменена`,
-    html: `
-      <h2>Бронь отменена</h2>
-      <p>Бронь #${params.bookingCode} в ${params.hotelName} была отменена ${cancellerText}.</p>
-      ${params.reason ? `<p>Причина: ${params.reason}</p>` : ""}
-      <a href="${appBaseUrl()}">Найти другой вариант</a>
-    `
+    subject: bookingCancelledEmailSubject(params.bookingCode),
+    html: renderBookingCancelledEmail({
+      name: params.name,
+      bookingCode: params.bookingCode,
+      hotelName: params.hotelName,
+      cancelledBy: params.cancelledBy,
+      reason: params.reason,
+      searchUrl: appBaseUrl()
+    })
   });
 }
 
@@ -159,18 +164,29 @@ export async function sendCheckInReminderEmail(params: {
   hostPhone?: string;
   chatUrl: string;
 }) {
+  const rows = [
+    { label: "Объект", value: escapeHtml(params.hotelName) },
+    { label: "Адрес", value: escapeHtml(params.hotelAddress) },
+    { label: "Заезд", value: escapeHtml(formatDate(params.checkIn)) }
+  ];
+  if (params.hostPhone) rows.push({ label: "Телефон", value: escapeHtml(params.hostPhone) });
+
+  const html = renderEmailLayout({
+    title: "Напоминание о заезде",
+    preheader: `Завтра заезд в ${params.hotelName}`,
+    body: `
+      ${emailTitle("Напоминание о заезде")}
+      ${emailStatusBlock("info", "Завтра заезд", "Проверьте адрес и время заселения заранее.")}
+      ${emailParagraph(`Здравствуйте, <strong>${escapeHtml(params.guestName)}</strong>!`)}
+      ${emailDetailCard(rows)}
+      ${emailButton("Написать хозяину", params.chatUrl)}
+    `
+  });
+
   await safeSend({
     to: params.guestEmail,
-    subject: `TajStay: Завтра заезд в ${params.hotelName}`,
-    html: `
-      <h2>Напоминание о заезде</h2>
-      <p>Здравствуйте, ${params.guestName}!</p>
-      <p>Завтра <strong>${params.checkIn.toLocaleDateString("ru")}</strong>
-         ваш заезд в <strong>${params.hotelName}</strong>.</p>
-      <p>Адрес: ${params.hotelAddress}</p>
-      ${params.hostPhone ? `<p>Если нужно — позвоните хозяину: ${params.hostPhone}</p>` : ""}
-      <a href="${params.chatUrl}">Написать хозяину</a>
-    `
+    subject: `TajStay: завтра заезд в ${params.hotelName}`,
+    html
   });
 }
 
@@ -180,23 +196,22 @@ export async function sendReviewRequestEmail(params: {
   hotelName: string;
   reviewUrl: string;
 }) {
+  const html = renderEmailLayout({
+    title: "Оцените проживание",
+    preheader: `Как прошло пребывание в ${params.hotelName}?`,
+    body: `
+      ${emailTitle("Как прошло пребывание?")}
+      ${emailParagraph(`Здравствуйте, <strong>${escapeHtml(params.guestName)}</strong>!`)}
+      ${emailParagraph(`Надеемся, вам понравилось в <strong>${escapeHtml(params.hotelName)}</strong>.`)}
+      ${emailButton("Оставить отзыв", params.reviewUrl)}
+      ${emailMuted("Ваш отзыв помогает другим путешественникам выбрать лучшее жильё.")}
+    `
+  });
+
   await safeSend({
     to: params.guestEmail,
-    subject: `Как прошло пребывание в ${params.hotelName}?`,
-    html: `
-      <h2>Оцените ваше пребывание</h2>
-      <p>Здравствуйте, ${params.guestName}!</p>
-      <p>Надеемся, вам понравилось в <strong>${params.hotelName}</strong>.</p>
-      <p>Оставьте отзыв — это займёт 1 минуту и поможет другим гостям.</p>
-      <a href="${params.reviewUrl}" style="
-        display:inline-block;
-        background:#1a6b3c;
-        color:white;
-        padding:12px 24px;
-        border-radius:8px;
-        text-decoration:none;
-      ">Оставить отзыв ⭐</a>
-    `
+    subject: `TajStay: оцените проживание в ${params.hotelName}`,
+    html
   });
 }
 

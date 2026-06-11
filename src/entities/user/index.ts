@@ -2,5 +2,5 @@ export type UserEntity = {
   id: number;
   name: string;
   phone: string;
-  role: "GUEST" | "OWNER" | "ADMIN";
+  role: "GUEST" | "HOTEL_MODERATOR" | "OWNER" | "ADMIN";
 };
