@@ -72,14 +72,14 @@ export default async function MapPage({ searchParams }: { searchParams?: MapSear
   });
 
   const hasFilters = Boolean(
-    params.city ||
-      params.checkIn ||
-      params.checkOut ||
-      minPriceRaw ||
-      maxPriceRaw ||
-      params.guests ||
+    searchParams?.city ||
+      searchParams?.checkIn ||
+      searchParams?.checkOut ||
+      minRaw ||
+      maxRaw ||
+      searchParams?.guests ||
       ratingRaw ||
-      (params.propertyType && params.propertyType !== "ANY")
+      (searchParams?.propertyType && searchParams.propertyType !== "ANY")
   );
 
   return (

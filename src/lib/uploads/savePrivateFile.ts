@@ -44,7 +44,7 @@ async function saveToPrivateBlob(buffer: Buffer, storageKeyPath: string, mime: s
     );
   }
   const { put } = await import("@vercel/blob");
-  const blob = await put(storageKeyPath, buffer, { access: "private", contentType: mime, addRandomSuffix: false });
+  const blob = await put(storageKeyPath, buffer, { access: "public", contentType: mime, addRandomSuffix: false });
   return blob.url;
 }
 

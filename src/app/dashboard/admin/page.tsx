@@ -321,7 +321,7 @@ export default async function AdminDashboardPage({
     totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
     hotels = await prisma.hotel.findMany({
       where,
-      include: { owner: true, propertyType: true, photos: { orderBy: { sortOrder: "asc" } } },
+      include: { owner: true, propertyTypeRef: true, photos: { orderBy: { sortOrder: "asc" } } },
       orderBy: [{ status: "asc" }, { createdAt: "asc" }],
       skip: (page - 1) * pageSize,
       take: pageSize

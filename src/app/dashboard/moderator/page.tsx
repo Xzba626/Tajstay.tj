@@ -254,7 +254,7 @@ export default async function ModeratorDashboardPage({
         />
         <OfflineBookingsList
           locale={locale}
-          bookings={offlineBookings.map((b) => toOfflineOwnerView(b))}
+          bookings={offlineBookings.map((b) => toOfflineOwnerView(b, true, false))}
           canViewPii
           canViewFinances={false}
           canEditStatus
