@@ -63,9 +63,7 @@ export function OwnerCalendar({
   days,
   cells,
   cellMeta = {},
-  hotels = [],
-  readOnly = false,
-  offlineBookingBasePath = "/dashboard/owner?section=offline-bookings"
+  hotels = []
 }: {
   locale: Locale;
   rooms: RoomRow[];
@@ -74,9 +72,6 @@ export function OwnerCalendar({
   cells: Record<string, CalendarCellKind>;
   cellMeta?: Record<string, CalendarCellMeta>;
   hotels?: HotelFilter[];
-  /** Hide price/block overrides and range selection (moderator view). */
-  readOnly?: boolean;
-  offlineBookingBasePath?: string;
 }) {
   const router = useRouter();
   const [viewMode, setViewMode] = useState<"room" | "type">("room");
@@ -130,7 +125,6 @@ export function OwnerCalendar({
         return;
       }
       setDetail(null);
-      if (readOnly) return;
       if (roomId !== rId || !rangeStart) {
         setRoomId(rId);
         setRangeStart(dayKey);
@@ -139,7 +133,7 @@ export function OwnerCalendar({
       }
       setRangeEnd(dayKey);
     },
-    [roomId, rangeStart, readOnly]
+    [roomId, rangeStart]
   );
 
   const clearSelection = () => {
@@ -184,7 +178,7 @@ export function OwnerCalendar({
   };
 
   const offlineHref = useMemo(() => {
-    if (!roomId || !rangeStart) return offlineBookingBasePath;
+    if (!roomId || !rangeStart) return "/dashboard/owner?section=offline-bookings";
     const end = rangeEnd ?? rangeStart;
     const endIdx = days.findIndex((d) => d.key === end);
     const checkOut = endIdx >= 0 && endIdx + 1 < days.length ? days[endIdx + 1].key : end;
@@ -194,9 +188,8 @@ export function OwnerCalendar({
       checkIn: rangeStart,
       checkOut
     });
-    const dashboardBase = offlineBookingBasePath.split("?")[0];
-    return `${dashboardBase}?${params.toString()}`;
-  }, [roomId, rangeStart, rangeEnd, days, offlineBookingBasePath]);
+    return `/dashboard/owner?${params.toString()}`;
+  }, [roomId, rangeStart, rangeEnd, days]);
 
   const selectedBookingId = detailMeta?.bookingId ?? null;
 
@@ -278,7 +271,7 @@ export function OwnerCalendar({
         </div>
       )}
 
-      {!readOnly && selectionLabel ? (
+      {selectionLabel ? (
         <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50/80 p-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>

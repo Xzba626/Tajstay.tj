@@ -8,10 +8,9 @@ import type { OfflineBookingPublicView } from "@/lib/pms/offlinePrivacy";
 
 type Props = {
   locale: Locale;
-  apiBase?: string;
 };
 
-export function OfflineBookingStaffSearch({ locale, apiBase = "/api/owner" }: Props) {
+export function OfflineBookingStaffSearch({ locale }: Props) {
   const [q, setQ] = useState("");
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<OfflineBookingPublicView[]>([]);
@@ -24,7 +23,7 @@ export function OfflineBookingStaffSearch({ locale, apiBase = "/api/owner" }: Pr
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${apiBase}/offline-bookings/search?q=${encodeURIComponent(query)}`);
+      const res = await fetch(`/api/owner/offline-bookings/search?q=${encodeURIComponent(query)}`);
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? "failed");
       const items = (json.items ?? []).map((b: OfflineBookingPublicView & { checkIn: string; checkOut: string }) => ({

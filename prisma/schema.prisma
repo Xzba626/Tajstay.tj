@@ -62,8 +62,6 @@ model User {
   telegramChangeRequests TelegramChangeRequest[]
   deviceSessions      UserDeviceSession[]
   paymentApprovedBookings Booking[] @relation("BookingPaymentApprovedBy")
-  hotelModeratorAssignments HotelModerator[] @relation("HotelModeratorUser")
-  hotelModeratorsAssigned   HotelModerator[] @relation("HotelModeratorAssignedBy")
 }
 
 model PropertyType {
@@ -172,7 +170,6 @@ model Hotel {
   rooms      Room[]
   roomTypes  RoomType[]
   staff      HotelStaff[]
-  moderators HotelModerator[]
   favorites  Favorite[]
 
   photos    HotelPhoto[]
@@ -286,21 +283,6 @@ model HotelStaff {
   /// RECEPTIONIST | HOUSEKEEPING
   staffRole String
   createdAt DateTime @default(now())
-
-  @@unique([hotelId, userId])
-  @@index([userId])
-}
-
-/// Назначение модератора отеля (User.role = HOTEL_MODERATOR).
-model HotelModerator {
-  id               Int      @id @default(autoincrement())
-  hotelId          Int
-  hotel            Hotel    @relation(fields: [hotelId], references: [id], onDelete: Cascade)
-  userId           Int
-  user             User     @relation("HotelModeratorUser", fields: [userId], references: [id], onDelete: Cascade)
-  assignedByUserId Int?
-  assignedBy       User?    @relation("HotelModeratorAssignedBy", fields: [assignedByUserId], references: [id], onDelete: SetNull)
-  createdAt        DateTime @default(now())
 
   @@unique([hotelId, userId])
   @@index([userId])
