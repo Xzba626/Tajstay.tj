@@ -59,51 +59,18 @@ function classifyBooking(
   return null;
 }
 
-export async function getModeratorCalendarData(moderatorUserId: number, days = 30) {
-  const hotelIds = (
-    await prisma.hotelModerator.findMany({
-      where: { userId: moderatorUserId, hotel: { deletedAt: null } },
-      select: { hotelId: true }
-    })
-  ).map((r) => r.hotelId);
-  return getCalendarDataForHotelIds(hotelIds, days);
-}
-
 export async function getOwnerCalendarData(ownerId: number, days = 30) {
-  const hotelIds = (
-    await prisma.hotel.findMany({
-      where: { ownerId, deletedAt: null },
-      select: { id: true }
-    })
-  ).map((h) => h.id);
-  return getCalendarDataForHotelIds(hotelIds, days);
-}
-
-async function getCalendarDataForHotelIds(hotelIds: number[], days = 30) {
   const start = toUtcDayStart(new Date());
   const end = addDays(start, days);
 
-  if (!hotelIds.length) {
-    return {
-      rooms: [],
-      roomTypes: [],
-      typeRows: [] as RoomTypeCalendarRow[],
-      days: [] as { key: string; day: number; month: number }[],
-      cells: {} as Record<string, CalendarCellKind>,
-      cellMeta: {} as Record<string, CalendarCellMeta>,
-      overrides: [],
-      bookings: [] as Awaited<ReturnType<typeof prisma.booking.findMany>>
-    };
-  }
-
   const rooms = await prisma.room.findMany({
-    where: { hotelId: { in: hotelIds } },
+    where: { hotel: { ownerId } },
     include: { hotel: true, roomType: true },
     orderBy: [{ hotelId: "asc" }, { roomNumber: "asc" }, { id: "asc" }]
   });
 
   const roomTypes = await prisma.roomType.findMany({
-    where: { hotelId: { in: hotelIds } },
+    where: { hotel: { ownerId } },
     include: { hotel: true },
     orderBy: [{ hotelId: "asc" }, { sortOrder: "asc" }, { name: "asc" }]
   });

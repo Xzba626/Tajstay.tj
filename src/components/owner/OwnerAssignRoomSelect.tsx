@@ -12,15 +12,13 @@ export function OwnerAssignRoomSelect({
   bookingId,
   roomTypeId,
   rooms,
-  assignedRoomId,
-  apiBase = "/api/owner"
+  assignedRoomId
 }: {
   locale: Locale;
   bookingId: number;
   roomTypeId: number | null;
   rooms: RoomOption[];
   assignedRoomId?: number | null;
-  apiBase?: string;
 }) {
   const router = useRouter();
   const [roomId, setRoomId] = useState(assignedRoomId ? String(assignedRoomId) : "");
@@ -33,7 +31,7 @@ export function OwnerAssignRoomSelect({
     if (!roomId) return;
     setBusy(true);
     setError(null);
-    const res = await fetch(`${apiBase}/bookings/${bookingId}/assign-room`, {
+    const res = await fetch(`/api/owner/bookings/${bookingId}/assign-room`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ roomId: Number(roomId) })

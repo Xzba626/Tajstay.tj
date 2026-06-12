@@ -7,7 +7,6 @@
 import { execSync } from "node:child_process";
 import { setTimeout as sleep } from "node:timers/promises";
 import { ensureDirectUrl } from "./ensure-direct-database-url.mjs";
-import { recoverFailedMigrations } from "./recover-failed-migrations.mjs";
 
 function run(cmd) {
   console.log(`[vercel-build] $ ${cmd}`);
@@ -51,7 +50,6 @@ if (process.env.DIRECT_URL?.includes("-pooler")) {
     "[vercel-build] DIRECT_URL still points at pooler — set Neon direct URL in Vercel env"
   );
 }
-recoverFailedMigrations();
 await migrateDeployWithRetry();
 run("npx prisma generate");
 run("npx tsc --noEmit");

@@ -10,7 +10,6 @@ export async function runDevSeed() {
   const adminPass = await hashPassword("Admin123!");
   const ownerPass = await hashPassword("Owner123!");
   const guestPass = await hashPassword("Guest123!");
-  const moderatorPass = await hashPassword("Moderator123!");
 
   const admin = await prisma.user.upsert({
     where: { phone: "+992900000001" },
@@ -83,25 +82,6 @@ export async function runDevSeed() {
     }
   });
 
-  const moderator = await prisma.user.upsert({
-    where: { phone: "+992900000004" },
-    update: {
-      name: "Moderator",
-      email: "moderator@tajstay.local",
-      password: moderatorPass,
-      role: "HOTEL_MODERATOR",
-      verified: true
-    },
-    create: {
-      name: "Moderator",
-      phone: "+992900000004",
-      email: "moderator@tajstay.local",
-      password: moderatorPass,
-      role: "HOTEL_MODERATOR",
-      verified: true
-    }
-  });
-
   const hotel = await prisma.hotel.upsert({
     where: { id: 1 },
     update: { status: "APPROVED", propertyTypeId: hotelType?.id ?? null, propertyType: "HOTEL" },
@@ -119,12 +99,6 @@ export async function runDevSeed() {
       propertyType: "HOTEL",
       propertyTypeId: hotelType?.id ?? null
     }
-  });
-
-  await prisma.hotelModerator.upsert({
-    where: { hotelId_userId: { hotelId: hotel.id, userId: moderator.id } },
-    update: { assignedByUserId: owner.id },
-    create: { hotelId: hotel.id, userId: moderator.id, assignedByUserId: owner.id }
   });
 
   await prisma.room.upsert({
@@ -201,7 +175,6 @@ export async function runDevSeed() {
     adminId: admin.id,
     ownerId: owner.id,
     guestId: guest.id,
-    moderatorId: moderator.id,
     hotelId: hotel.id
   };
 }

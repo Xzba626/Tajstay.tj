@@ -3,7 +3,6 @@ import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import type { User } from "@prisma/client";
 import type { NextResponse } from "next/server";
-import { clearRoleCookie, setRoleCookie } from "@/lib/auth/sessionRole";
 
 const SESSION_COOKIE = "tajstay_session";
 
@@ -63,8 +62,6 @@ export async function createSessionCookie(userId: number, res: NextResponse) {
   const expiresAt = new Date(Date.now() + ttlMs);
   const isProduction = process.env.NODE_ENV === "production";
 
-  const user = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
-
   await prisma.session.create({
     data: {
       token,
@@ -74,10 +71,6 @@ export async function createSessionCookie(userId: number, res: NextResponse) {
       expiresAt
     }
   });
-
-  if (user?.role) {
-    setRoleCookie(res, user.role, expiresAt);
-  }
 
   // Works with NextResponse: res.cookies.set(...)
   res.cookies.set(SESSION_COOKIE, token, {
@@ -91,7 +84,6 @@ export async function createSessionCookie(userId: number, res: NextResponse) {
 
 export function clearSessionCookie(res: NextResponse) {
   const isProduction = process.env.NODE_ENV === "production";
-  clearRoleCookie(res);
   res.cookies.set(SESSION_COOKIE, "", {
     httpOnly: true,
     secure: isProduction,
