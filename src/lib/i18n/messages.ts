@@ -157,7 +157,8 @@ const ru: Tree = {
     helpCenter: "Центр помощи",
     policy: "Политика конфиденциальности",
     terms: "Условия использования",
-    faq: "Помощь / FAQ"
+    faq: "Помощь / FAQ",
+    explore: "Объявления"
   },
   cookies: {
     text: "Мы используем cookie для безопасности, аналитики и улучшения сервиса.",
@@ -165,7 +166,18 @@ const ru: Tree = {
     more: "Подробнее"
   },
   meta: {
-    siteDescription: "Поиск и бронирование жилья в Таджикистане — TajStay"
+    siteDescription: "Поиск и бронирование жилья в Таджикистане — TajStay",
+    aboutTitle: "О сервисе — TajStay",
+    aboutDescription:
+      "TajStay — маркетплейс краткосрочного жилья в Таджикистане: отели, квартиры и эко-домики в Душанбе, Худжанде, Пенджикенте и Памире.",
+    contactTitle: "Контакты — TajStay",
+    contactDescription: "Свяжитесь с поддержкой TajStay по вопросам бронирования и размещения объектов.",
+    policyTitle: "Политика конфиденциальности — TajStay",
+    policyDescription: "Как TajStay обрабатывает и защищает персональные данные пользователей.",
+    termsTitle: "Условия использования — TajStay",
+    termsDescription: "Правила использования платформы бронирования TajStay для гостей и владельцев.",
+    searchTitle: "Поиск жилья — TajStay",
+    searchDescription: "Найдите и сравните отели, квартиры и гостевые дома в Таджикистане по городам, цене и датам."
   },
   legal: {
     aboutText:
@@ -352,6 +364,7 @@ const ru: Tree = {
     pricingExact: "Сумма по выбранным датам и тарифам номера.",
     pricingEstimate: "Ориентир; финальная сумма — при оформлении на сервере.",
     escrowLegal: "Эскроу: выплата владельцу после подтверждения заселения.",
+    bookingTermsNotice: "Оформляя бронь, вы соглашаетесь с",
     step1: "Данные",
     step2: "Оплата",
     step3: "Подтверждение",
@@ -466,6 +479,8 @@ const ru: Tree = {
     confirmPassword: "Подтверждение пароля",
     confirmPasswordPlaceholder: "Повторите пароль",
     agreeTerms: "Я согласен(а) с условиями использования",
+    agreeTermsIntro: "Я согласен(а) с",
+    agreeTermsAnd: "и",
     errPasswordMismatch: "Пароли не совпадают",
     errTermsRequired: "Подтвердите согласие с условиями",
     errorGeneric: "Что-то пошло не так. Попробуйте снова.",
@@ -1847,7 +1862,8 @@ const tg: Tree = {
     helpCenter: "Маркази кӯмак",
     policy: "Сиёсати махфият",
     terms: "Шартҳои истифода",
-    faq: "Кумак / FAQ"
+    faq: "Кумак / FAQ",
+    explore: "Эълонҳо"
   },
   cookies: {
     text: "Мо cookie-ро барои бехатарӣ, таҳлил ва беҳбудии хизматрасонӣ истифода мебарем.",
@@ -1855,7 +1871,18 @@ const tg: Tree = {
     more: "Бештар"
   },
   meta: {
-    siteDescription: "Ҷустуҷӯ ва брони манзил дар Тоҷикистон — TajStay"
+    siteDescription: "Ҷустуҷӯ ва брони манзил дар Тоҷикистон — TajStay",
+    aboutTitle: "Дар бораи хизматрасонӣ — TajStay",
+    aboutDescription:
+      "TajStay — бозори манзили кӯтоҳмуддат дар Тоҷикистон: меҳмонхонаҳо, хонаҳо ва экоҷойҳо дар Душанбе, Хуҷанд, Панҷакент ва Помир.",
+    contactTitle: "Тамос — TajStay",
+    contactDescription: "Бо дастгирии TajStay барои бронкунӣ ва ҷойгиркунии объект тамос гиред.",
+    policyTitle: "Сиёсати махфият — TajStay",
+    policyDescription: "Чӣ тавр TajStay маълумоти шахсии корбаронро коркард ва ҳифз мекунад.",
+    termsTitle: "Шартҳои истифода — TajStay",
+    termsDescription: "Қоидаҳои истифодаи платформаи бронкунии TajStay барои меҳмонон ва соҳибон.",
+    searchTitle: "Ҷустуҷӯи манзил — TajStay",
+    searchDescription: "Мехмонхонаҳо, хонаҳо ва хонаҳои меҳмонро дар Тоҷикистон аз рӯи шаҳр, нарх ва санаҳо ёбед."
   },
   legal: {
     aboutText:
@@ -2042,6 +2069,7 @@ const tg: Tree = {
     pricingExact: "Аз рӯи санаҳо ва нархи хона.",
     pricingEstimate: "Тақрибӣ; ҷамъбаст дар сервер.",
     escrowLegal: "Эскроу: пардохт ба соҳиб пас аз тасдиқ.",
+    bookingTermsNotice: "Бо бронкунӣ шумо розӣ мешавед бо",
     step1: "Маълумот",
     step2: "Пардохт",
     step3: "Тасдиқ",
@@ -2156,6 +2184,8 @@ const tg: Tree = {
     confirmPassword: "Тасдиқи рамз",
     confirmPasswordPlaceholder: "Рамзро такрор кунед",
     agreeTerms: "Ман бо шартҳои истифода розӣ ҳастам",
+    agreeTermsIntro: "Ман розӣ ҳастам бо",
+    agreeTermsAnd: "ва",
     errPasswordMismatch: "Рамзҳо мувофиқ нестанд",
     errTermsRequired: "Розигиро бо шартҳо тасдиқ кунед",
     errorGeneric: "Хато. Аз нав кӯшиш кунед.",
@@ -3504,7 +3534,8 @@ const en: Tree = {
     helpCenter: "Help center",
     policy: "Privacy policy",
     terms: "Terms of use",
-    faq: "Help / FAQ"
+    faq: "Help / FAQ",
+    explore: "Explore"
   },
   cookies: {
     text: "We use cookies for security, analytics and to improve the service.",
@@ -3512,7 +3543,18 @@ const en: Tree = {
     more: "Learn more"
   },
   meta: {
-    siteDescription: "Find and book stays in Tajikistan — TajStay"
+    siteDescription: "Find and book stays in Tajikistan — TajStay",
+    aboutTitle: "About TajStay",
+    aboutDescription:
+      "TajStay is a digital marketplace for short-term accommodation in Tajikistan — hotels, apartments, and eco-stays in Dushanbe, Khujand, Penjikent, and the Pamirs.",
+    contactTitle: "Contact — TajStay",
+    contactDescription: "Reach TajStay support for help with bookings and listing your property.",
+    policyTitle: "Privacy Policy — TajStay",
+    policyDescription: "How TajStay collects, uses, and protects your personal data.",
+    termsTitle: "Terms of Use — TajStay",
+    termsDescription: "Rules for using the TajStay booking platform as a guest or host.",
+    searchTitle: "Find stays — TajStay",
+    searchDescription: "Search and compare hotels, apartments, and guest houses across Tajikistan by city, price, and dates."
   },
   legal: {
     aboutText:
@@ -3698,6 +3740,7 @@ const en: Tree = {
     pricingExact: "Based on your dates and room rates.",
     pricingEstimate: "Estimate; final amount is calculated on the server at checkout.",
     escrowLegal: "Escrow: host payout after stay is verified.",
+    bookingTermsNotice: "By booking, you agree to the",
     step1: "Details",
     step2: "Payment",
     step3: "Confirm",
@@ -3812,6 +3855,8 @@ const en: Tree = {
     confirmPassword: "Confirm password",
     confirmPasswordPlaceholder: "Repeat password",
     agreeTerms: "I agree to the terms of use",
+    agreeTermsIntro: "I agree to the",
+    agreeTermsAnd: "and",
     errPasswordMismatch: "Passwords do not match",
     errTermsRequired: "Please accept the terms",
     errorGeneric: "Something went wrong. Please try again.",

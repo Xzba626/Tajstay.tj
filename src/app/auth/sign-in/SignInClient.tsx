@@ -29,6 +29,10 @@ export type SignInLabels = {
   confirmPassword: string;
   confirmPasswordPlaceholder: string;
   agreeTerms: string;
+  agreeTermsIntro: string;
+  agreeTermsAnd: string;
+  policyLinkLabel: string;
+  termsLinkLabel: string;
   errPasswordMismatch: string;
   errTermsRequired: string;
   errorGeneric: string;
@@ -414,7 +418,16 @@ export function SignInClient({
                       onChange={(e) => setRegAgree(e.target.checked)}
                       aria-invalid={!!formError && !regAgree}
                     />
-                    <span>{L.agreeTerms}</span>
+                    <span>
+                      {L.agreeTermsIntro}{" "}
+                      <Link href="/terms" className="text-emerald-300 underline underline-offset-2">
+                        {L.termsLinkLabel}
+                      </Link>{" "}
+                      {L.agreeTermsAnd}{" "}
+                      <Link href="/policy" className="text-emerald-300 underline underline-offset-2">
+                        {L.policyLinkLabel}
+                      </Link>
+                    </span>
                   </label>
                   <button
                     type="submit"
@@ -528,6 +541,11 @@ export function SignInClient({
                   </>
                 )}
               </p>
+
+              <nav className="taj-auth-legal-links" aria-label="Legal">
+                <Link href="/policy">{L.footerPrivacy}</Link>
+                <Link href="/terms">{L.footerTerms}</Link>
+              </nav>
               </div>
             </div>
           )}

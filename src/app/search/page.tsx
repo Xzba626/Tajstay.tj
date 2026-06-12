@@ -2,6 +2,7 @@ import { searchApprovedHotels, type PropertyTypeFilter } from "@/lib/services/se
 import type { Metadata } from "next";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
+import { buildPageMetadata } from "@/lib/seo/page-metadata";
 import { SearchExperience } from "@/widgets/search-filters/SearchExperience";
 import { headers } from "next/headers";
 import { getCityFromRequestHeaders, sortHotelsByNearbyCity } from "@/lib/geo/ipCity";
@@ -35,10 +36,12 @@ type Props = {
 };
 
 export async function generateMetadata(): Promise<Metadata> {
-  return {
-    title: "Поиск отелей — TajStay",
-    description: "Найдите и сравните отели по городам, цене, рейтингу и датам заезда в TajStay."
-  };
+  const locale = getLocale();
+  return buildPageMetadata({
+    title: m(locale, "meta.searchTitle"),
+    description: m(locale, "meta.searchDescription"),
+    path: "/search"
+  });
 }
 
 export default async function SearchPage({ searchParams }: Props) {
