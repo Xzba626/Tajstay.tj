@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button, Card, Input } from "@/shared/ui";
 import { DcNextPaymentCard } from "@/components/payment/DcNextPaymentCard";
@@ -28,6 +29,8 @@ type Props = {
     guestNoAccountHint: string;
     signedInAccountTitle: string;
     addPhoneBookingHint: string;
+    bookingTermsNotice: string;
+    termsLinkLabel: string;
   };
   defaults: {
     roomId?: number;
@@ -547,6 +550,16 @@ export function BookingWizard({ labels, defaults, pricePerNight, finance, dcRetu
                 </div>
               </div>
             )}
+
+            {step === 3 ? (
+              <p className="text-xs leading-relaxed text-slate-400">
+                {labels.bookingTermsNotice}{" "}
+                <Link href="/terms" className="text-emerald-300/90 underline underline-offset-2 hover:text-emerald-200">
+                  {labels.termsLinkLabel}
+                </Link>
+                .
+              </p>
+            ) : null}
 
             <div className="relative z-10 flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.06] pb-10 pt-5">
               <Button

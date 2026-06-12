@@ -688,6 +688,26 @@ body:has(.taj-auth-page) .taj-auth-page {
   background: none !important;
 }
 
+.taj-auth-legal-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem 1.25rem;
+  margin-top: 0.75rem;
+  font-size: 13px;
+}
+
+.taj-auth-legal-links a {
+  color: rgba(236, 253, 245, 0.55);
+  text-decoration: none;
+}
+
+.taj-auth-legal-links a:hover {
+  color: #6ee7b7;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .taj-form-error {
   border-radius: 14px;
   border: 1px solid rgba(251, 113, 133, 0.35);

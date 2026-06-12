@@ -140,7 +140,9 @@ export default async function BookingPage({
           paymentMethodLabel: m(locale, "checkout.paymentMethodLabel"),
           guestNoAccountHint: m(locale, "checkout.guestNoAccountHint"),
           signedInAccountTitle: m(locale, "checkout.signedInAccountTitle"),
-          addPhoneBookingHint: m(locale, "checkout.addPhoneBookingHint")
+          addPhoneBookingHint: m(locale, "checkout.addPhoneBookingHint"),
+          bookingTermsNotice: m(locale, "checkout.bookingTermsNotice"),
+          termsLinkLabel: m(locale, "footer.terms")
         }}
         defaults={{
           roomId: room?.id,

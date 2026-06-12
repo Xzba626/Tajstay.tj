@@ -1,7 +1,10 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { t } from "@/lib/i18n/dictionaries";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
+import { BRAND } from "@/lib/brand";
+import { buildPageMetadata } from "@/lib/seo/page-metadata";
 import { searchApprovedHotels } from "@/lib/services/search";
 import { HotelCard } from "@/components/HotelCard";
 import { getSiteContent } from "@/lib/site-content";
@@ -19,6 +22,15 @@ import { HomeReviewsSection } from "@/components/home/HomeReviewsSection";
 import { HomeHeroMobile } from "@/components/home/HomeHeroMobile";
 import { headers } from "next/headers";
 import { getCityFromRequestHeaders, sortHotelsByNearbyCity } from "@/lib/geo/ipCity";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = getLocale();
+  return buildPageMetadata({
+    title: BRAND.title,
+    description: m(locale, "meta.siteDescription"),
+    path: "/"
+  });
+}
 
 export default async function HomePage() {
   const locale = getLocale();
