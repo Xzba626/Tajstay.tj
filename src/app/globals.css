@@ -2718,6 +2718,20 @@ select:focus,
   }
 }
 
+.footer-trust-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+@media (min-width: 640px) {
+  .footer-trust-links {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+  }
+}
+
 .footer-trust-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
