@@ -258,14 +258,19 @@
     border-top-color: rgba(255, 255, 255, 0.06);
   }
 
-  body.app-shell .site-footer > div > div:first-child {
+  body.app-shell .site-footer .footer-brand-row {
     display: none;
   }
 
-  body.app-shell .site-footer > div > p {
+  body.app-shell .site-footer .footer-trust-links {
     margin-top: 0;
-    border-top: 0;
-    padding-top: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.35rem 1rem;
+  }
+
+  body.app-shell .site-footer .footer-copyright {
+    margin-top: 0.75rem;
   }
 
   body.app-shell--hidden-nav main {

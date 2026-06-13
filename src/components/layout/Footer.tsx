@@ -11,41 +11,37 @@ export async function Footer() {
 
   const links = [
     { href: "/about", label: m(locale, "footer.about") },
-    { href: "/contacts", label: m(locale, "footer.contactUs") },
+    { href: "/contacts", label: m(locale, "footer.contacts") },
     { href: "/policy", label: m(locale, "footer.policy") },
-    { href: "/terms", label: m(locale, "footer.terms") },
-    { href: "/search", label: m(locale, "footer.explore") },
-    { href: "/faq", label: m(locale, "footer.helpCenter") }
+    { href: "/terms", label: m(locale, "footer.terms") }
   ];
 
   return (
     <footer className="site-footer mt-auto">
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex items-center gap-3">
-            <BrandMark
-              href="/"
-              name={content.brand.siteName}
-              markSrc={content.brand.logoMarkUrl}
-              nameClassName="text-sm sm:text-base"
-            />
-          </div>
-
-          <nav className="footer-trust-grid text-sm" aria-label="Footer">
-            {links.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="text-[var(--taj-text-secondary)] transition hover:text-[var(--taj-text)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--taj-bg)]"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
+        <div className="footer-brand-row">
+          <BrandMark
+            href="/"
+            name={content.brand.siteName}
+            markSrc={content.brand.logoMarkUrl}
+            nameClassName="text-sm sm:text-base"
+          />
         </div>
 
-        <p className="mt-4 border-t border-white/10 pt-4 text-center text-xs text-[var(--taj-text-muted)] sm:text-left">
-          © {year} {m(locale, "footer.rights")}
+        <nav className="footer-trust-links mt-4 text-sm sm:mt-5" aria-label="Footer">
+          {links.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="block py-0.5 text-[var(--taj-text-secondary)] transition hover:text-[var(--taj-text)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--taj-bg)] sm:inline-block sm:py-0 [&:not(:last-child)]:sm:mr-6"
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+
+        <p className="footer-copyright mt-4 border-t border-white/10 pt-4 text-center text-xs text-[var(--taj-text-muted)] sm:text-left">
+          © {year} {content.brand.siteName}. {m(locale, "footer.rights")}
         </p>
       </div>
     </footer>

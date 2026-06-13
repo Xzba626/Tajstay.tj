@@ -151,7 +151,7 @@ const ru: Tree = {
   },
   footer: {
     rights: "Все права защищены.",
-    about: "О сервисе",
+    about: "О нас",
     contacts: "Контакты",
     contactUs: "Связаться с нами",
     helpCenter: "Центр помощи",
