@@ -5,6 +5,7 @@ import { useState } from "react";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
 import { ChatDisputeSheet } from "@/components/chat/ChatDisputeSheet";
+import type { ChatParticipantRole } from "@/components/chat/BookingRoom.types";
 
 type Props = {
   locale: Locale;
@@ -12,7 +13,7 @@ type Props = {
   bookingStatus: string;
   paymentStatus: string;
   paymentCode?: string;
-  currentUserRole: "GUEST" | "OWNER" | "ADMIN";
+  currentUserRole: ChatParticipantRole;
   checkOutIso?: string;
   canGuestCancel: boolean;
   onGuestCancel: () => void;
@@ -60,7 +61,7 @@ export function ChatActionBar({
     paymentCode &&
     (bookingStatus === "WAITING_PAYMENT" || bookingStatus === "WAIT_PROOF");
 
-  const showDispute = currentUserRole !== "ADMIN";
+  const showDispute = currentUserRole === "GUEST";
 
   const showCheckout =
     isGuest &&

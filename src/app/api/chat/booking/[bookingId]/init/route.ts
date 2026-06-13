@@ -6,7 +6,7 @@ import { canAccessBookingChat } from "@/lib/chat/bookingAccess";
 import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
 
 export async function POST(req: NextRequest, { params }: { params: { bookingId: string } }) {
-  const user = await requireUser(["GUEST", "OWNER", "ADMIN"]);
+  const user = await requireUser(["GUEST", "OWNER", "ADMIN", "HOTEL_MODERATOR"]);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const bookingId = Number.parseInt(String(params.bookingId ?? "").trim(), 10);
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest, { params }: { params: { bookingId: 
   });
   if (!booking) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  if (!canAccessBookingChat(booking, user)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!(await canAccessBookingChat(booking, user))) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const result = await initializeBookingChatRoom(bookingId, localeFromBody);
   if (!result.ok && result.reason === "no_admin") {

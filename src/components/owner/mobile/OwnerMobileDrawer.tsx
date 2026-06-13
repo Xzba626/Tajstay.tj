@@ -34,6 +34,7 @@ export function OwnerMobileDrawer({
     { section: "overview", label: labels.items.overview },
     { section: "properties", label: labels.items.properties },
     { section: "rooms", label: labels.items.rooms },
+    { section: "personnel", label: labels.items.personnel },
     { section: "bookings", label: labels.items.bookings },
     { section: "offline-bookings", label: labels.items.offlineBookings },
     { section: "calendar", label: labels.items.calendar },

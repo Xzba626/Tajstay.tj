@@ -14,6 +14,7 @@ export type OwnerSidebarLabels = {
     overview: string;
     properties: string;
     rooms: string;
+    personnel: string;
     bookings: string;
     offlineBookings: string;
     calendar: string;
@@ -33,6 +34,7 @@ function buildItems(labels: OwnerSidebarLabels): SidebarItem[] {
     { section: "overview", label: labels.items.overview },
     { section: "properties", label: labels.items.properties },
     { section: "rooms", label: labels.items.rooms },
+    { section: "personnel", label: labels.items.personnel },
     { section: "bookings", label: labels.items.bookings },
     { section: "offline-bookings", label: labels.items.offlineBookings },
     { section: "calendar", label: labels.items.calendar },
