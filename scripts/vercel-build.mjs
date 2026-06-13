@@ -54,5 +54,6 @@ if (process.env.DIRECT_URL?.includes("-pooler")) {
 recoverFailedMigrations();
 await migrateDeployWithRetry();
 run("npx prisma generate");
+run("rm -rf .next");
 run("npx tsc --noEmit");
 run("npx next build");
