@@ -20,9 +20,7 @@ export default async function ModeratorDashboardLayout({ children }: { children:
     items: {
       bookings: m(locale, "moderator.navBookings"),
       calendar: m(locale, "moderator.navCalendar"),
-      offlineBookings: m(locale, "moderator.navOfflineBookings"),
-      rooms: m(locale, "moderator.navRooms"),
-      guests: m(locale, "moderator.navGuests")
+      messages: m(locale, "moderator.navMessages")
     }
   };
 

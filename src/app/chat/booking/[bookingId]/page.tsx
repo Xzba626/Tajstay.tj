@@ -11,6 +11,7 @@ import { m } from "@/lib/i18n/messages";
 import { getUserTrustBadges } from "@/lib/auth/trustBadges";
 import { bookingHotel, bookingRoomTitle } from "@/lib/pms/bookingContext";
 import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
+import { canAccessBookingChat } from "@/lib/chat/bookingAccess";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +23,7 @@ export default async function BookingChatPage({
   searchParams?: { proofSent?: string };
 }) {
   const locale = getLocale();
-  const user = await requireUser(["GUEST", "OWNER", "ADMIN"]);
+  const user = await requireUser(["GUEST", "OWNER", "ADMIN", "HOTEL_MODERATOR"]);
   if (!user) notFound();
 
   const bookingId = Number(params.bookingId || "");
@@ -37,14 +38,15 @@ export default async function BookingChatPage({
       user: true
     }
   });
-  if (!booking) notFound();
+  if (!booking || !(await canAccessBookingChat(booking, user))) notFound();
 
   const hotel = bookingHotel(booking);
   const isGuest = booking.userId === user.id;
   const guestLabel = getBookingGuestLabel(booking);
   const isOwner = hotel.ownerId === user.id;
+  const isModerator = user.role === "HOTEL_MODERATOR";
   const isAdmin = user.role === "ADMIN";
-  if (!isGuest && !isOwner && !isAdmin) notFound();
+  const isHostSide = isOwner || isModerator || isAdmin;
 
   if (isOwner && (booking.status === "WAITING_PAYMENT" || booking.status === "WAIT_PROOF")) {
     return (
@@ -57,7 +59,7 @@ export default async function BookingChatPage({
     );
   }
 
-  const backHref = isAdmin || isGuest ? "/dashboard/bookings" : "/dashboard/owner";
+  const backHref = isAdmin || isGuest ? "/dashboard/bookings" : isModerator ? "/dashboard/messages" : "/dashboard/owner";
   const title =
     user.role === "ADMIN"
       ? m(locale, "bookingRoom.titleAdmin")
@@ -66,7 +68,7 @@ export default async function BookingChatPage({
         : m(locale, "bookingRoom.titleOwner");
 
   const [paymentMethods, timeline, proofMeta] = await Promise.all([
-    getOwnerPaymentMethods(hotel.ownerId),
+    isHostSide && !isModerator ? getOwnerPaymentMethods(hotel.ownerId) : Promise.resolve([]),
     getBookingTimeline(bookingId),
     getProofMetaFromLogs(bookingId)
   ]);
@@ -81,7 +83,7 @@ export default async function BookingChatPage({
       locale={locale}
       bookingId={bookingId}
       currentUserId={user.id}
-      currentUserRole={user.role as "GUEST" | "OWNER" | "ADMIN"}
+      currentUserRole={user.role as "GUEST" | "OWNER" | "ADMIN" | "HOTEL_MODERATOR"}
       isGuest={isGuest}
       backHref={backHref}
       title={title}

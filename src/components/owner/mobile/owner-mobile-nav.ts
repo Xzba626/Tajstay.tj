@@ -2,6 +2,7 @@ export type OwnerSection =
   | "overview"
   | "properties"
   | "rooms"
+  | "personnel"
   | "bookings"
   | "offline-bookings"
   | "calendar"
@@ -16,6 +17,7 @@ export type OwnerMobileTab = "home" | "properties" | "bookings" | "calendar" | "
 export const OWNER_MOBILE_TABS: OwnerMobileTab[] = ["home", "properties", "bookings", "calendar", "menu"];
 
 const MENU_SECTIONS = new Set<string>([
+  "personnel",
   "finances",
   "statistics",
   "reviews",

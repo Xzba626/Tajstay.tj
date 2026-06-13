@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Pusher not configured" }, { status: 503 });
   }
 
-  const user = await requireUser(["GUEST", "OWNER", "ADMIN"]);
+  const user = await requireUser(["GUEST", "OWNER", "ADMIN", "HOTEL_MODERATOR"]);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.text();
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
     where: { id: bookingId },
     include: bookingWithHotelInclude
   });
-  if (!booking || !canAccessBookingChat(booking, user)) {
+  if (!booking || !(await canAccessBookingChat(booking, user))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

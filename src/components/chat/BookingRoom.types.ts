@@ -2,11 +2,13 @@ import type { BookingTimelineEvent } from "@/lib/chat/bookingTimeline";
 import type { Locale } from "@/lib/i18n/locale";
 import type { TrustBadge } from "@/lib/auth/trustBadges";
 
+export type ChatParticipantRole = "GUEST" | "OWNER" | "ADMIN" | "HOTEL_MODERATOR";
+
 export type BookingRoomProps = {
   locale: Locale;
   bookingId: number;
   currentUserId: number;
-  currentUserRole: "GUEST" | "OWNER" | "ADMIN";
+  currentUserRole: ChatParticipantRole;
   isGuest: boolean;
   backHref: string;
   title: string;

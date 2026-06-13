@@ -13,7 +13,7 @@ const FILTERS = new Set<InboxFilter>([
 ]);
 
 export async function GET(req: NextRequest) {
-  const user = await requireUser(["GUEST", "OWNER", "ADMIN"]);
+  const user = await requireUser(["GUEST", "OWNER", "ADMIN", "HOTEL_MODERATOR"]);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const raw = (req.nextUrl.searchParams.get("filter") ?? "all").trim() as InboxFilter;
