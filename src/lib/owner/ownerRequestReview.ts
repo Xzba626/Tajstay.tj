@@ -4,8 +4,7 @@ import { OWNER_APPLICATION_STATUS } from "@/lib/domain/booking";
 import { createNotification } from "@/lib/notifications/create";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
-import { m } from "@/lib/i18n/messages";
-import { decryptOwnerApplicationRow, encryptOwnerApplicationInput, decryptOwnerApplicationField } from "@/lib/owner/ownerApplicationPii";
+import { decryptOwnerApplicationRow } from "@/lib/owner/ownerApplicationPii";
 import { resolvePropertyTypeId } from "@/lib/propertyTypes/seed";
 
 export async function approveOwnerRequest(applicationId: number, admin: User) {
