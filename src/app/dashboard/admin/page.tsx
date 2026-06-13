@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { AdminBookingPayCountdown } from "@/components/admin/AdminBookingPayCountdown";
 import { AdminOwnerApplicationActions } from "@/components/admin/AdminOwnerApplicationActions";
+import { AdminUserVerifyDocumentsButton } from "@/components/admin/AdminUserVerifyDocumentsButton";
 import { AdminHotelModerationActions } from "@/components/admin/AdminHotelModerationActions";
 import { AdminPropertyTypesPanel } from "@/components/admin/AdminPropertyTypesPanel";
 import { OWNER_APPLICATION_STATUS } from "@/lib/domain/booking";
@@ -172,6 +173,7 @@ export default async function AdminDashboardPage({
   let mobileQuickActions: AdminMobileQuickAction[] = [];
   let mobileActivity: AdminMobileActivityItem[] = [];
   let userLastSessions = new Map<number, UserLastSession>();
+  let latestOwnerAppByUserId = new Map<number, { id: number; status: string }>();
 
   if (activeSection === "dashboard") {
     const startOfToday = new Date();
@@ -349,6 +351,16 @@ export default async function AdminDashboardPage({
       take: pageSize
     });
     userLastSessions = await fetchLastSessionsForUsers(users.map((u) => u.id));
+    const ownerApps = await prisma.ownerApplication.findMany({
+      where: { userId: { in: users.map((u) => u.id) } },
+      orderBy: { createdAt: "desc" },
+      select: { id: true, userId: true, status: true }
+    });
+    for (const app of ownerApps) {
+      if (!latestOwnerAppByUserId.has(app.userId)) {
+        latestOwnerAppByUserId.set(app.userId, { id: app.id, status: app.status });
+      }
+    }
   } else if (activeSection === "owner-access") {
     const where = {
       role: "OWNER",
@@ -1004,6 +1016,7 @@ export default async function AdminDashboardPage({
             {users.map((u) => {
               const displayName = formatUserDisplayName(u);
               const session = userLastSessions.get(u.id);
+              const ownerApp = latestOwnerAppByUserId.get(u.id);
               return (
               <li key={u.id} className="px-4 py-4 transition-colors hover:bg-slate-50/80 md:px-5">
                 <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr_1fr_1.1fr_1.2fr] lg:items-start">
@@ -1016,6 +1029,13 @@ export default async function AdminDashboardPage({
                     </div>
                     <StatusBadge variant={roleVariant(u.role)}>{tRole(u.role)}</StatusBadge>
                     {u.isBanned && <StatusBadge variant="danger">{m(locale, "admin.ban")}</StatusBadge>}
+                    {ownerApp ? (
+                      <AdminUserVerifyDocumentsButton
+                        locale={locale}
+                        applicationId={ownerApp.id}
+                        applicationStatus={ownerApp.status}
+                      />
+                    ) : null}
                   </div>
                   <div className="text-sm text-slate-600">
                     <span className="font-medium text-slate-400 lg:hidden">{m(locale, "profile.email")}: </span>

@@ -53,9 +53,11 @@ export function ProfileBecomeOwnerCard({ locale, role, ownerNav }: Props) {
       >
         <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-emerald-500/10 blur-2xl" />
         <div className="relative">
-          <div className="mb-1 inline-flex items-center gap-2 rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-200 ring-1 ring-emerald-400/25">
-            <span aria-hidden>✓</span>
-            {t("titleOwner")}
+          <div className="mb-1 flex flex-wrap items-center gap-2">
+            <span className="inline-flex shrink-0 items-center gap-2 rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-200 ring-1 ring-emerald-400/25">
+              <span className="shrink-0" aria-hidden>✓</span>
+              <span className="break-words whitespace-normal">{t("titleOwner")}</span>
+            </span>
           </div>
           <h2 id="profile-owner-card-title" className="mt-3 text-lg font-bold tracking-tight text-white sm:text-xl">
             {t("titleOwner")}
@@ -84,20 +86,16 @@ export function ProfileBecomeOwnerCard({ locale, role, ownerNav }: Props) {
       >
         <div className="pointer-events-none absolute -left-6 top-0 h-24 w-24 rounded-full bg-amber-500/10 blur-2xl" />
         <div className="relative">
-          <div className="mb-1 inline-flex items-center gap-2 rounded-full bg-amber-500/15 px-3 py-1 text-xs font-semibold text-amber-200 ring-1 ring-amber-400/25">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-amber-400" aria-hidden />
-            {t("titlePending")}
+          <div className="mb-1 flex flex-wrap items-center gap-2">
+            <span className="inline-flex shrink-0 items-center gap-2 rounded-full bg-amber-500/15 px-3 py-1 text-xs font-semibold text-amber-200 ring-1 ring-amber-400/25">
+              <span className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-amber-400" aria-hidden />
+              <span className="break-words whitespace-normal">{t("titlePending")}</span>
+            </span>
           </div>
-          <h2 id="profile-owner-card-title" className="mt-3 text-lg font-bold text-white sm:text-xl">
+          <h2 id="profile-owner-card-title" className="mt-3 text-lg font-bold leading-snug text-white sm:text-xl">
             {t("titlePending")}
           </h2>
-          <p className="mt-2 text-sm leading-relaxed text-amber-100/90">{t("descPending")}</p>
-          <Link
-            href="/profile/become-owner"
-            className="mt-5 inline-flex min-h-[44px] w-full items-center justify-center rounded-xl border border-amber-300/30 bg-amber-500/10 px-5 text-sm font-semibold text-amber-50 transition hover:bg-amber-500/20 sm:w-auto"
-          >
-            {t("ctaViewApplication")}
-          </Link>
+          <p className="mt-2 break-words whitespace-normal text-sm leading-relaxed text-amber-100/90">{t("descPending")}</p>
         </div>
       </section>
     );
@@ -135,10 +133,10 @@ export function ProfileBecomeOwnerCard({ locale, role, ownerNav }: Props) {
         aria-labelledby="profile-owner-card-title"
       >
         <div className="relative">
-          <h2 id="profile-owner-card-title" className="text-lg font-bold text-emerald-100 sm:text-xl">
+          <h2 id="profile-owner-card-title" className="break-words whitespace-normal text-lg font-bold text-emerald-100 sm:text-xl">
             {t("titleApproved")}
           </h2>
-          <p className="mt-2 text-sm leading-relaxed text-emerald-200/90">{t("descApproved")}</p>
+          <p className="mt-2 break-words whitespace-normal text-sm leading-relaxed text-emerald-200/90">{t("descApproved")}</p>
           <Link href="/dashboard/owner" className="taj-btn taj-btn--primary mt-5 inline-flex min-h-[44px] w-full items-center justify-center sm:w-auto">
             {t("ctaOwnerDashboard")}
           </Link>

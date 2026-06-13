@@ -15,6 +15,7 @@ import {
   validateOwnerPhotoFile
 } from "@/lib/owner/applicationUpload";
 import { notifyOwnerRequestAdmins } from "@/lib/owner/notifyOwnerRequestAdmins";
+import { encryptOwnerApplicationInput, decryptOwnerApplicationField } from "@/lib/owner/ownerApplicationPii";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -208,7 +209,7 @@ export async function POST(req: NextRequest) {
       }
 
       const app = await prisma.ownerApplication.create({
-        data: {
+        data: encryptOwnerApplicationInput({
           userId: user.id,
           fullName: parsed.data.fullName.trim(),
           phone: normalizedPhone,
@@ -223,10 +224,13 @@ export async function POST(req: NextRequest) {
           propertyDoc: storageRefFromSlot(propertyDoc),
           applicationMeta: meta,
           status: OWNER_APPLICATION_STATUS.PENDING
-        }
+        })
       });
 
-      await notifyOwnerRequestAdmins({ applicationId: app.id, fullName: app.fullName });
+      await notifyOwnerRequestAdmins({
+        applicationId: app.id,
+        fullName: decryptOwnerApplicationField(app.fullName) ?? parsed.data.fullName.trim()
+      });
       return NextResponse.json({ ok: true, id: app.id });
     } catch (err) {
       if (err instanceof ImageUploadError) {
@@ -266,7 +270,7 @@ export async function POST(req: NextRequest) {
   };
 
   const app = await prisma.ownerApplication.create({
-    data: {
+    data: encryptOwnerApplicationInput({
       userId: user.id,
       fullName: parsed.data.fullName.trim(),
       phone: normalizedPhone,
@@ -276,9 +280,12 @@ export async function POST(req: NextRequest) {
       comment: parsed.data.adminComment || null,
       applicationMeta: meta,
       status: OWNER_APPLICATION_STATUS.PENDING
-    }
+    })
   });
 
-  await notifyOwnerRequestAdmins({ applicationId: app.id, fullName: app.fullName });
+  await notifyOwnerRequestAdmins({
+    applicationId: app.id,
+    fullName: decryptOwnerApplicationField(app.fullName) ?? parsed.data.fullName.trim()
+  });
   return NextResponse.json({ ok: true, id: app.id });
 }

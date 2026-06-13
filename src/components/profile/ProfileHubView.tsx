@@ -6,6 +6,8 @@ import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
 import { profileContactSubtitle } from "@/lib/profile/contactDisplay";
 import { resolveUserNames } from "@/lib/profile/userName";
 import LogoutButton from "@/components/LogoutButton";
+import type { OwnerAppNavState } from "@/lib/navigation/getNavContext";
+import { ProfileBecomeOwnerCard } from "@/components/profile/ProfileBecomeOwnerCard";
 
 type UserFull = {
   name: string;
@@ -23,6 +25,7 @@ type UserFull = {
 type Props = {
   locale: Locale;
   user: UserFull;
+  ownerNav: OwnerAppNavState;
   logoutLabel: string;
 };
 
@@ -36,7 +39,7 @@ function MenuRow({ href, icon: Icon, label }: { href: string; icon: typeof Lock;
   );
 }
 
-export function ProfileHubView({ locale, user, logoutLabel }: Props) {
+export function ProfileHubView({ locale, user, ownerNav, logoutLabel }: Props) {
   const { fullName } = resolveUserNames(user);
   const subtitle = profileContactSubtitle(user);
 
@@ -76,10 +79,9 @@ export function ProfileHubView({ locale, user, logoutLabel }: Props) {
       </nav>
 
       {user.role === "GUEST" ? (
-        <Link href="/profile/become-owner" className="mockup-host-banner mt-4">
-          <div className="mockup-host-banner__title">{m(locale, "profile.hostBannerTitle")}</div>
-          <div className="mockup-host-banner__desc">{m(locale, "profile.hostBannerDesc")}</div>
-        </Link>
+        <div className="mt-4">
+          <ProfileBecomeOwnerCard locale={locale} role={user.role} ownerNav={ownerNav} />
+        </div>
       ) : null}
 
       {user.role === "OWNER" ? (
