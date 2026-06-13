@@ -14,6 +14,7 @@ import {
   validateOwnerPhotoFile
 } from "@/lib/owner/applicationUpload";
 import { notifyOwnerRequestAdmins } from "@/lib/owner/notifyOwnerRequestAdmins";
+import { encryptOwnerApplicationInput, decryptOwnerApplicationField } from "@/lib/owner/ownerApplicationPii";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -123,7 +124,7 @@ export async function POST(req: NextRequest) {
     const email = (parsed.data.email ?? user.email ?? `${user.id}@tajstay.local`).trim().toLowerCase();
 
     const app = await prisma.ownerApplication.create({
-      data: {
+      data: encryptOwnerApplicationInput({
         userId: user.id,
         fullName: parsed.data.fullName,
         phone: normalizedPhone,
@@ -136,10 +137,13 @@ export async function POST(req: NextRequest) {
         selfieWithDoc,
         propertyDoc,
         status: OWNER_APPLICATION_STATUS.PENDING
-      }
+      })
     });
 
-    await notifyOwnerRequestAdmins({ applicationId: app.id, fullName: app.fullName });
+    await notifyOwnerRequestAdmins({
+      applicationId: app.id,
+      fullName: decryptOwnerApplicationField(app.fullName) ?? parsed.data.fullName
+    });
     return NextResponse.json({ ok: true, id: app.id });
   } catch (err) {
     if (err instanceof ImageUploadError) {

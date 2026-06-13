@@ -4,6 +4,7 @@ import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
 import { ProfileHubView } from "@/components/profile/ProfileHubView";
 import { PageContainer } from "@/components/ds";
+import { getOwnerApplicationNavState } from "@/lib/navigation/getNavContext";
 
 export const dynamic = "force-dynamic";
 
@@ -29,9 +30,11 @@ export default async function ProfilePage() {
 
   if (!full) return null;
 
+  const ownerNav = await getOwnerApplicationNavState(full);
+
   return (
     <PageContainer width="narrow" className="profile-hub-page pb-6">
-      <ProfileHubView locale={locale} user={full} logoutLabel={m(locale, "userMenu.logout")} />
+      <ProfileHubView locale={locale} user={full} ownerNav={ownerNav} logoutLabel={m(locale, "userMenu.logout")} />
     </PageContainer>
   );
 }
