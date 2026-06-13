@@ -50,7 +50,9 @@ export function getOwnerRequestFileRef(application: OwnerApplication, type: Owne
   const meta = parseOwnerApplicationMeta(application.applicationMeta);
   const metaKey = LEGACY_META_MAP[type];
   if (!meta?.uploads || !metaKey) return null;
-  return resolveUploadValue(meta.uploads[metaKey]);
+  const raw = meta.uploads[metaKey];
+  if (Array.isArray(raw)) return raw[0] ?? null;
+  return resolveUploadValue(raw);
 }
 
 export function ownerRequestHasFile(application: OwnerApplication, type: OwnerRequestFileType): boolean {

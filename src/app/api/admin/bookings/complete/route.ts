@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
   if (ownerEmail && booking.publicCode) {
     await sendOwnerPayoutEmail({
       ownerEmail,
-      ownerName: owner?.name,
+      ownerName: owner?.name?.trim() || "Owner",
       hotelName: hotel.name,
       bookingCode: booking.publicCode,
       amount: payoutAmount,

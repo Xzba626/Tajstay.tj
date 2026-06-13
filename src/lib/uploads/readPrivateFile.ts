@@ -54,17 +54,15 @@ async function readLegacyPublicUpload(urlPath: string): Promise<PrivateFileConte
 }
 
 async function readPrivateBlob(blobUrl: string): Promise<PrivateFileContent | null> {
-  if (!process.env.BLOB_READ_WRITE_TOKEN?.trim()) return null;
+  const token = process.env.BLOB_READ_WRITE_TOKEN?.trim();
   try {
-    const { get } = await import("@vercel/blob");
-    const result = await get(blobUrl, { access: "private", token: process.env.BLOB_READ_WRITE_TOKEN });
-    if (!result || result.statusCode !== 200 || !result.stream) return null;
-    const chunks: Buffer[] = [];
-    for await (const chunk of result.stream) {
-      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-    }
-    const buffer = Buffer.concat(chunks);
-    const contentType = result.blob.contentType ?? mimeFromPath(blobUrl);
+    const res = await fetch(
+      blobUrl,
+      token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+    );
+    if (!res.ok) return null;
+    const buffer = Buffer.from(await res.arrayBuffer());
+    const contentType = res.headers.get("content-type") ?? mimeFromPath(blobUrl);
     return { buffer, contentType, filename: filenameFromPath(blobUrl) };
   } catch {
     return null;
