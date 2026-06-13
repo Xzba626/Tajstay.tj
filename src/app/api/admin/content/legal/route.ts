@@ -6,7 +6,8 @@ export async function POST(req: Request) {
     const form = await req.formData();
     await saveLegalPages({
       privacyText: String(form.get("privacyText") ?? ""),
-      termsText: String(form.get("termsText") ?? "")
+      termsText: String(form.get("termsText") ?? ""),
+      aboutText: String(form.get("aboutText") ?? "")
     });
   });
 }

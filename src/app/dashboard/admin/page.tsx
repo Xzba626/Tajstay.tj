@@ -664,8 +664,19 @@ export default async function AdminDashboardPage({
 
         <div className="glass-panel rounded-2xl p-6 shadow-sm">
           <div className="text-sm font-semibold text-slate-100">Юридические страницы</div>
-          <p className="mt-1 text-sm text-slate-300">Редактирование “Политики конфиденциальности” и “Условий”.</p>
+          <p className="mt-1 text-sm text-slate-300">
+            Редактирование «О нас», «Политики конфиденциальности» и «Условий».
+          </p>
           <form action="/api/admin/content/legal" method="post" className="mt-4 space-y-3">
+            <label className="text-sm text-slate-200">
+              О нас (текст)
+              <textarea
+                name="aboutText"
+                defaultValue={content!.legal.aboutText}
+                rows={8}
+                className="ds-input mt-1 h-auto w-full px-3 py-2.5"
+              />
+            </label>
             <label className="text-sm text-slate-200">
               Политика конфиденциальности (текст)
               <textarea
