@@ -5,6 +5,7 @@ import Link from "next/link";
 import { isSyntheticArchiveChatMessageId } from "@/lib/chat/archiveMessageIds";
 import { guestBookingCancelAllowed } from "@/lib/booking/guestCancel";
 import { groupChatMessages } from "@/lib/chat/groupMessages";
+import { chatSenderBadgeClass, chatSenderLabel } from "@/lib/chat/senderLabel";
 import type { Locale } from "@/lib/i18n/locale";
 import { formatBookingStatus } from "@/lib/i18n/bookingStatus";
 import { m } from "@/lib/i18n/messages";
@@ -665,7 +666,6 @@ export function BookingChatPanel({
               const msg = row.msg;
               const mine = msg.senderId === currentUserId;
               const system = msg.senderRole === "SYSTEM";
-              const fromGuest = msg.senderRole === "GUEST";
               if (system) {
                 return (
                   <div key={row.key} className="flex justify-center px-1 py-0.5">
@@ -678,11 +678,13 @@ export function BookingChatPanel({
               return (
                 <div
                   key={row.key}
-                  className={`chat-bubble-row ${fromGuest ? "chat-bubble-row--mine" : "chat-bubble-row--theirs"} ${row.showMeta ? "mt-2" : "mt-0.5"}`}
+                  className={`chat-bubble-row ${mine ? "chat-bubble-row--mine" : "chat-bubble-row--theirs"} ${row.showMeta ? "mt-2" : "mt-0.5"}`}
                 >
-                  <div
-                    className={`group chat-bubble ${fromGuest ? "chat-bubble--mine" : "chat-bubble--theirs"}`}
-                  >
+                  <div className={`chat-bubble-stack ${mine ? "chat-bubble-stack--mine" : "chat-bubble-stack--theirs"}`}>
+                    <span className={chatSenderBadgeClass(msg.senderRole, mine)}>
+                      {chatSenderLabel(locale, msg, mine)}
+                    </span>
+                    <div className={`group chat-bubble ${mine ? "chat-bubble--mine" : "chat-bubble--theirs"}`}>
                     {isAdmin && !isSyntheticArchiveChatMessageId(msg.id) ? (
                       <button
                         type="button"
@@ -694,8 +696,7 @@ export function BookingChatPanel({
                       </button>
                     ) : null}
                     {row.showMeta ? (
-                      <div className="chat-bubble__meta mb-1 flex items-center justify-between gap-2">
-                        <span className="font-medium">{mine ? m(locale, "chat.you") : msg.senderName}</span>
+                      <div className="chat-bubble__meta mb-1 flex items-center justify-end gap-2">
                         <span className="chat-bubble__time">
                           {timeLabel(msg.createdAt)}
                           {mine && msg.readAt ? (
@@ -728,6 +729,7 @@ export function BookingChatPanel({
                     {msg.message && msg.message !== "📎" ? (
                       <div className={`whitespace-pre-wrap break-words ${row.showMeta ? "pt-1" : ""}`}>{msg.message}</div>
                     ) : null}
+                  </div>
                   </div>
                 </div>
               );
