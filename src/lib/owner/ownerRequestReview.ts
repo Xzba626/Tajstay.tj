@@ -4,7 +4,7 @@ import { OWNER_APPLICATION_STATUS } from "@/lib/domain/booking";
 import { createNotification } from "@/lib/notifications/create";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
-import { parseOwnerApplicationMeta } from "@/lib/owner/applicationMeta";
+import { decryptOwnerApplicationRow } from "@/lib/owner/ownerApplicationPii";
 import { resolvePropertyTypeId } from "@/lib/propertyTypes/seed";
 
 export async function approveOwnerRequest(applicationId: number, admin: User) {
@@ -17,7 +17,8 @@ export async function approveOwnerRequest(applicationId: number, admin: User) {
     return { error: "Заявка уже обработана", status: 400 as const };
   }
 
-  const meta = parseOwnerApplicationMeta(application.applicationMeta);
+  const decrypted = decryptOwnerApplicationRow(application);
+  const meta = decrypted.applicationMeta;
 
   await prisma.$transaction(async (tx) => {
     await tx.ownerApplication.update({
@@ -45,9 +46,9 @@ export async function approveOwnerRequest(applicationId: number, admin: User) {
       await tx.hotel.create({
         data: {
           ownerId: application.userId,
-          name: application.businessName || application.fullName,
+          name: decrypted.businessName || decrypted.fullName,
           city: meta?.city || "Душанбе",
-          address: application.address || meta?.address || "—",
+          address: decrypted.address || meta?.address || "—",
           description: meta?.propertyDescription || "Объект создан из заявки владельца",
           latitude: 38.5598,
           longitude: 68.787,

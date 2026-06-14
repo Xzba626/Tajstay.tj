@@ -32,7 +32,21 @@ export type OwnerApplicationMeta = {
   consentAt: string;
 };
 
+import { decryptField, isEncryptedField } from "@/lib/security/fieldEncryption";
+
 export function parseOwnerApplicationMeta(raw: unknown): OwnerApplicationMeta | null {
-  if (!raw || typeof raw !== "object") return null;
-  return raw as OwnerApplicationMeta;
+  if (!raw) return null;
+  if (typeof raw === "string") {
+    const text = isEncryptedField(raw) ? decryptField(raw) : raw;
+    if (!text) return null;
+    try {
+      const parsed = JSON.parse(text);
+      if (parsed && typeof parsed === "object") return parsed as OwnerApplicationMeta;
+    } catch {
+      return null;
+    }
+    return null;
+  }
+  if (typeof raw === "object") return raw as OwnerApplicationMeta;
+  return null;
 }

@@ -7,6 +7,7 @@ import { AdminOwnerApplicationActions } from "@/components/admin/AdminOwnerAppli
 import { AdminHotelModerationActions } from "@/components/admin/AdminHotelModerationActions";
 import { AdminPropertyTypesPanel } from "@/components/admin/AdminPropertyTypesPanel";
 import { OWNER_APPLICATION_STATUS } from "@/lib/domain/booking";
+import { decryptOwnerApplicationRow } from "@/lib/owner/ownerApplicationPii";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { formatBookingStatus } from "@/lib/i18n/bookingStatus";
 import { m } from "@/lib/i18n/messages";
@@ -799,17 +800,19 @@ export default async function AdminDashboardPage({
           </p>
         ) : (
           <div className="grid gap-4 lg:grid-cols-2">
-            {ownerApplications.map((app) => (
+            {ownerApplications.map((app) => {
+              const decrypted = decryptOwnerApplicationRow(app);
+              return (
               <div
                 key={app.id}
                 className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm ring-1 ring-slate-100 transition-shadow hover:shadow-md"
               >
                 <div className="flex flex-wrap items-start justify-between gap-2">
-                  <div className="font-semibold text-slate-900">{app.fullName}</div>
+                  <div className="font-semibold text-slate-900">{decrypted.fullName}</div>
                   <StatusBadge variant="warning">{tStatus("PENDING")}</StatusBadge>
                 </div>
                 <div className="mt-2 text-sm text-slate-600">
-                  {app.businessName} · {app.phone} · {app.email}
+                  {decrypted.businessName} · {decrypted.phone} · {decrypted.email}
                 </div>
                 <div className="mt-1 text-xs text-slate-500">{m(locale, "admin.owner")}: {app.user.name} (id {app.userId})</div>
                 <div className="mt-3">
@@ -834,7 +837,8 @@ export default async function AdminDashboardPage({
                   }}
                 />
               </div>
-            ))}
+            );
+            })}
           </div>
         )}
       </section>}

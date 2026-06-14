@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { isSyntheticArchiveChatMessageId } from "@/lib/chat/archiveMessageIds";
 import { groupChatMessages } from "@/lib/chat/groupMessages";
 import type { ChatMessageDto } from "@/lib/chat/messageDto";
+import { chatSenderBadgeClass, chatSenderLabel } from "@/lib/chat/senderLabel";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
 import { ChatReadTicks } from "@/components/chat/messenger/ChatReadTicks";
@@ -90,7 +91,6 @@ export function ChatMessageList({
             const msg = row.msg;
             const mine = msg.senderId === currentUserId;
             const system = msg.senderRole === "SYSTEM";
-            const fromGuest = msg.senderRole === "GUEST";
 
             if (system) {
               return (
@@ -103,49 +103,56 @@ export function ChatMessageList({
             return (
               <div
                 key={row.key}
-                className={`chat-bubble-row ${fromGuest ? "chat-bubble-row--mine" : "chat-bubble-row--theirs"}`}
+                className={`chat-bubble-row ${mine ? "chat-bubble-row--mine" : "chat-bubble-row--theirs"}`}
               >
-                <div className={`group chat-bubble ${fromGuest ? "chat-bubble--mine" : "chat-bubble--theirs"}`}>
-                  {isAdmin && onAdminDelete && !isSyntheticArchiveChatMessageId(msg.id) ? (
-                    <button
-                      type="button"
-                      title="Скрыть"
-                      onClick={() => onAdminDelete(msg.id)}
-                      className="messenger-messages__delete"
-                    >
-                      ×
-                    </button>
-                  ) : null}
-                  {msg.imageUrl ? (
-                    isPdfUrl(msg.imageUrl) ? (
-                      <a
-                        href={msg.imageUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="messenger-attachment messenger-attachment--pdf"
-                      >
-                        <span className="messenger-attachment__icon" aria-hidden>
-                          PDF
-                        </span>
-                        <span className="messenger-attachment__label">{msg.message && msg.message !== "📎" ? msg.message : "Документ"}</span>
-                      </a>
-                    ) : (
+                <div className={`chat-bubble-stack ${mine ? "chat-bubble-stack--mine" : "chat-bubble-stack--theirs"}`}>
+                  <span className={chatSenderBadgeClass(msg.senderRole, mine)}>
+                    {chatSenderLabel(locale, msg, mine)}
+                  </span>
+                  <div className={`group chat-bubble ${mine ? "chat-bubble--mine" : "chat-bubble--theirs"}`}>
+                    {isAdmin && onAdminDelete && !isSyntheticArchiveChatMessageId(msg.id) ? (
                       <button
                         type="button"
-                        onClick={() => onImageOpen(msg.imageUrl!)}
-                        className="messenger-attachment messenger-attachment--image"
+                        title="Скрыть"
+                        onClick={() => onAdminDelete(msg.id)}
+                        className="messenger-messages__delete"
                       >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={msg.imageUrl} alt="" />
+                        ×
                       </button>
-                    )
-                  ) : null}
-                  {msg.message && msg.message !== "📎" ? (
-                    <div className="messenger-messages__text">{msg.message}</div>
-                  ) : null}
-                  <div className="messenger-messages__meta">
-                    <span className="chat-bubble__time">{timeLabel(msg.createdAt)}</span>
-                    <ChatReadTicks locale={locale} msg={msg} isMine={mine} />
+                    ) : null}
+                    {msg.imageUrl ? (
+                      isPdfUrl(msg.imageUrl) ? (
+                        <a
+                          href={msg.imageUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="messenger-attachment messenger-attachment--pdf"
+                        >
+                          <span className="messenger-attachment__icon" aria-hidden>
+                            PDF
+                          </span>
+                          <span className="messenger-attachment__label">
+                            {msg.message && msg.message !== "📎" ? msg.message : "Документ"}
+                          </span>
+                        </a>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => onImageOpen(msg.imageUrl!)}
+                          className="messenger-attachment messenger-attachment--image"
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={msg.imageUrl} alt="" />
+                        </button>
+                      )
+                    ) : null}
+                    {msg.message && msg.message !== "📎" ? (
+                      <div className="messenger-messages__text">{msg.message}</div>
+                    ) : null}
+                    <div className="messenger-messages__meta">
+                      <span className="chat-bubble__time">{timeLabel(msg.createdAt)}</span>
+                      <ChatReadTicks locale={locale} msg={msg} isMine={mine} />
+                    </div>
                   </div>
                 </div>
               </div>
