@@ -76,7 +76,7 @@ export function DualFileUploadCard({
   const filledKind = value.photo ? "photo" : value.document ? "document" : null;
 
   return (
-    <div className="owner-upload-card owner-dual-upload-card">
+    <div className="owner-upload-card owner-dual-upload-card min-w-0 max-w-full overflow-hidden">
       <div className="flex items-start justify-between gap-2">
         <span className="text-sm font-semibold text-slate-100">{label}</span>
         <span className="shrink-0 rounded-full bg-white/8 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-300">
@@ -104,10 +104,10 @@ export function DualFileUploadCard({
           {value.photo && preview ? (
             <div className="mt-2 overflow-hidden rounded-xl border border-white/12 bg-black/20">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={preview} alt="" className="h-28 w-full object-cover sm:h-32" />
-              <div className="flex items-center justify-between gap-2 border-t border-white/10 px-3 py-2">
-                <span className="truncate text-xs text-slate-300">{value.photo.name}</span>
-                <button type="button" onClick={clearPhoto} className="text-xs font-semibold text-red-300 hover:text-red-200">
+              <img src={preview} alt="" className="h-28 max-w-full w-full object-cover sm:h-32" />
+              <div className="flex min-w-0 items-center justify-between gap-2 border-t border-white/10 px-3 py-2">
+                <span className="min-w-0 flex-1 break-all text-xs text-slate-300">{value.photo.name}</span>
+                <button type="button" onClick={clearPhoto} className="shrink-0 text-xs font-semibold text-red-300 hover:text-red-200">
                   {labels.remove}
                 </button>
               </div>
@@ -139,12 +139,12 @@ export function DualFileUploadCard({
             onChange={(e) => onDocumentChange(e.target.files?.[0] ?? null)}
           />
           {value.document ? (
-            <div className="owner-document-file mt-2">
-              <span className="text-lg" aria-hidden>
+            <div className="owner-document-file mt-2 min-w-0 max-w-full overflow-hidden">
+              <span className="shrink-0 text-lg" aria-hidden>
                 📄
               </span>
-              <span className="min-w-0 flex-1 truncate text-xs text-slate-200">{value.document.name}</span>
-              <button type="button" onClick={clearDocument} className="text-xs font-semibold text-red-300 hover:text-red-200">
+              <span className="min-w-0 flex-1 break-all text-xs text-slate-200">{value.document.name}</span>
+              <button type="button" onClick={clearDocument} className="shrink-0 text-xs font-semibold text-red-300 hover:text-red-200">
                 {labels.remove}
               </button>
             </div>
