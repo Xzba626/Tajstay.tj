@@ -1,4 +1,5 @@
 import type { PropertyTypeFilter } from "@/lib/services/search";
+import { SEARCH_DEFAULT_PAGE_SIZE, SEARCH_MAX_PAGE_SIZE } from "@/lib/services/search";
 
 export type SearchUrlParams = {
   q?: string;
@@ -16,6 +17,8 @@ export type SearchUrlParams = {
   sortBy?: "POPULAR" | "PRICE_ASC" | "RATING_DESC";
   lat?: string;
   lng?: string;
+  page?: string;
+  limit?: string;
 };
 
 export type ParsedSearchQuery = {
@@ -33,6 +36,8 @@ export type ParsedSearchQuery = {
   propertyType: PropertyTypeFilter;
   sortBy: "POPULAR" | "PRICE_ASC" | "RATING_DESC";
   origin?: { lat: number; lng: number };
+  page: number;
+  limit: number;
 };
 
 const PROPERTY_TYPES = new Set<PropertyTypeFilter>([
@@ -86,6 +91,14 @@ export function parseSearchParams(input: URLSearchParams | Record<string, string
   const origin =
     lat != null && lng != null && Math.abs(lat) <= 90 && Math.abs(lng) <= 180 ? { lat, lng } : undefined;
 
+  const pageRaw = parseOptionalNumber(get("page"));
+  const limitRaw = parseOptionalNumber(get("limit"));
+  const page = pageRaw != null && pageRaw > 0 ? Math.floor(pageRaw) : 1;
+  const limit =
+    limitRaw != null && limitRaw > 0
+      ? Math.min(Math.floor(limitRaw), SEARCH_MAX_PAGE_SIZE)
+      : SEARCH_DEFAULT_PAGE_SIZE;
+
   return {
     q: get("q")?.trim() || undefined,
     city: get("city")?.trim() || undefined,
@@ -100,7 +113,9 @@ export function parseSearchParams(input: URLSearchParams | Record<string, string
     ratingMin: ratingRaw != null && ratingRaw > 0 ? ratingRaw : undefined,
     propertyType: parsePropertyType(get("propertyType")),
     sortBy: parseSortBy(get("sortBy")),
-    origin
+    origin,
+    page,
+    limit
   };
 }
 
@@ -123,6 +138,8 @@ export function parsedSearchToServiceInput(
     propertyType: parsed.propertyType,
     checkIn: parsed.checkIn,
     checkOut: parsed.checkOut,
-    sortBy: parsed.sortBy
+    sortBy: parsed.sortBy,
+    page: parsed.page,
+    limit: parsed.limit
   };
 }
