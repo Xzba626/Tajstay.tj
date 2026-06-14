@@ -1,4 +1,4 @@
-import { searchApprovedHotels, type PropertyTypeFilter } from "@/lib/services/search";
+import { searchApprovedHotelsPaginated } from "@/lib/services/search";
 import type { Metadata } from "next";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
@@ -6,6 +6,9 @@ import { buildPageMetadata } from "@/lib/seo/page-metadata";
 import { SearchExperience } from "@/widgets/search-filters/SearchExperience";
 import { headers } from "next/headers";
 import { getCityFromRequestHeaders, sortHotelsByNearbyCity } from "@/lib/geo/ipCity";
+import { parseSearchParams, parsedSearchToServiceInput } from "@/lib/search/parseSearchParams";
+import { searchFiltersFromParams } from "@/lib/search/buildSearchQueryString";
+import type { PropertyTypeFilter } from "@/lib/services/search";
 
 const BOOK_ERR_KEYS: Record<string, string> = {
   invalid: "checkout.errInvalid",
@@ -24,6 +27,8 @@ type Props = {
     guests?: string;
     minPrice?: string;
     maxPrice?: string;
+    priceMin?: string;
+    priceMax?: string;
     propertyType?: PropertyTypeFilter;
     checkIn?: string;
     checkOut?: string;
@@ -32,6 +37,8 @@ type Props = {
     parking?: string;
     ratingMin?: string;
     sortBy?: "POPULAR" | "PRICE_ASC" | "RATING_DESC";
+    page?: string;
+    limit?: string;
   };
 };
 
@@ -50,23 +57,11 @@ export default async function SearchPage({ searchParams }: Props) {
   const nearbyCity = searchParams.city ? null : await getCityFromRequestHeaders(hdrs);
   const bookErr = (searchParams.bookErr ?? "").trim();
   const errPath = BOOK_ERR_KEYS[bookErr];
-  const hotelsRaw = await searchApprovedHotels({
-    q: searchParams.q,
-    city: searchParams.city,
-    nearbyCity: nearbyCity ?? undefined,
-    guests: Number(searchParams.guests || 1),
-    minPrice: searchParams.minPrice ? Number(searchParams.minPrice) : undefined,
-    maxPrice: searchParams.maxPrice ? Number(searchParams.maxPrice) : undefined,
-    propertyType: searchParams.propertyType ?? "ANY",
-    wifi: searchParams.wifi === "on" || searchParams.wifi === "true",
-    breakfast: searchParams.breakfast === "on" || searchParams.breakfast === "true",
-    parking: searchParams.parking === "on" || searchParams.parking === "true",
-    ratingMin: searchParams.ratingMin ? Number(searchParams.ratingMin) : undefined,
-    checkIn: searchParams.checkIn,
-    checkOut: searchParams.checkOut,
-    sortBy: searchParams.sortBy ?? "POPULAR"
-  });
-  const hotels = sortHotelsByNearbyCity(hotelsRaw, nearbyCity);
+  const parsed = parseSearchParams(searchParams);
+  const searchResult = await searchApprovedHotelsPaginated(
+    parsedSearchToServiceInput(parsed, { nearbyCity })
+  );
+  const hotels = sortHotelsByNearbyCity(searchResult.hotels, nearbyCity);
 
   return (
     <div className="mx-auto flex w-[94%] max-w-7xl flex-col justify-center space-y-8 px-0 py-8 sm:w-full sm:px-6 lg:px-8">
@@ -88,17 +83,10 @@ export default async function SearchPage({ searchParams }: Props) {
           initialHotels={hotels}
           locale={locale}
           nearbyCity={nearbyCity}
-          initialFilters={{
-            q: searchParams.q,
-            city: searchParams.city,
-            checkIn: searchParams.checkIn,
-            checkOut: searchParams.checkOut,
-            guests: searchParams.guests,
-            minPrice: searchParams.minPrice,
-            maxPrice: searchParams.maxPrice,
-            ratingMin: searchParams.ratingMin,
-            sortBy: searchParams.sortBy
-          }}
+          initialFilters={searchFiltersFromParams(searchParams)}
+          initialTotal={searchResult.total}
+          initialHasMore={searchResult.hasMore}
+          initialPage={searchResult.page}
         />
       </div>
     </div>

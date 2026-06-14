@@ -13,6 +13,19 @@ import { normalizePropertyTypeFilterCode } from "@/lib/property-types/seed";
 
 export type PropertyTypeFilter = "ANY" | "HOTEL" | "HOSTEL" | "GUEST_HOUSE" | "APARTMENT" | "ECO_HOUSE";
 
+export const SEARCH_DEFAULT_PAGE_SIZE = 60;
+export const SEARCH_MAX_PAGE_SIZE = 100;
+/** Safety cap when loading full result sets (map, home). */
+const SEARCH_INTERNAL_FETCH_CAP = 500;
+
+export type SearchPaginatedResult = {
+  hotels: Awaited<ReturnType<typeof searchApprovedHotels>>;
+  total: number;
+  page: number;
+  limit: number;
+  hasMore: boolean;
+};
+
 type SearchInput = {
   q?: string;
   city?: string;
@@ -31,6 +44,8 @@ type SearchInput = {
   checkOut?: string;
   /** Visitor GPS — sort by distance when set */
   origin?: GeoCoords;
+  page?: number;
+  limit?: number;
 };
 
 function parseSearchDateOnly(value?: string): Date | undefined {
@@ -105,8 +120,39 @@ export async function searchApprovedHotels(input: SearchInput) {
   return safeDbQuery("searchApprovedHotels", () => searchApprovedHotelsQuery(input), []);
 }
 
+export async function searchApprovedHotelsPaginated(input: SearchInput): Promise<SearchPaginatedResult> {
+  return safeDbQuery(
+    "searchApprovedHotelsPaginated",
+    () => searchApprovedHotelsPaginatedQuery(input),
+    { hotels: [], total: 0, page: 1, limit: SEARCH_DEFAULT_PAGE_SIZE, hasMore: false }
+  );
+}
+
 /** Alias used by map page (Part 3 spec). */
 export const searchHotels = searchApprovedHotels;
+
+function normalizePagination(input: SearchInput) {
+  const limit = Math.min(
+    Math.max(input.limit ?? SEARCH_DEFAULT_PAGE_SIZE, 1),
+    SEARCH_MAX_PAGE_SIZE
+  );
+  const page = Math.max(input.page ?? 1, 1);
+  return { page, limit, skip: (page - 1) * limit };
+}
+
+async function searchApprovedHotelsPaginatedQuery(input: SearchInput): Promise<SearchPaginatedResult> {
+  const { page, limit, skip } = normalizePagination(input);
+  const all = await searchApprovedHotelsQuery({ ...input, page: undefined, limit: undefined });
+  const total = all.length;
+  const hotels = all.slice(skip, skip + limit);
+  return {
+    hotels,
+    total,
+    page,
+    limit,
+    hasMore: skip + hotels.length < total
+  };
+}
 
 async function searchApprovedHotelsQuery(input: SearchInput) {
   const amenitiesAnd: Prisma.RoomWhereInput[] = [];
@@ -157,6 +203,7 @@ async function searchApprovedHotelsQuery(input: SearchInput) {
 
   const hotels = await prisma.hotel.findMany({
     where,
+    take: SEARCH_INTERNAL_FETCH_CAP,
     include: {
       propertyTypeRef: true,
       rooms: hasDateRange
