@@ -119,6 +119,8 @@ model OwnerApplication {
   selfieWithDoc String?
   propertyDoc   String?
   comment      String?
+  /// Admin rejection reason (separate from optional user note in comment on submit).
+  rejectionReason String?
   /// Extended onboarding: property details, upload URLs, applicant type (JSON).
   applicationMeta Json?
   status       String    @default("PENDING")

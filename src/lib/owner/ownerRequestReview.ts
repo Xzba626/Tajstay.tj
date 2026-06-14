@@ -27,7 +27,8 @@ export async function approveOwnerRequest(applicationId: number, admin: User) {
         status: OWNER_APPLICATION_STATUS.APPROVED,
         reviewedAt: new Date(),
         reviewedById: admin.id,
-        comment: null
+        comment: null,
+        rejectionReason: null
       }
     });
     await tx.user.update({
@@ -88,7 +89,8 @@ export async function rejectOwnerRequest(applicationId: number, admin: User, adm
       status: OWNER_APPLICATION_STATUS.REJECTED,
       reviewedAt: new Date(),
       reviewedById: admin.id,
-      comment: trimmed
+      rejectionReason: trimmed,
+      comment: null
     }
   });
 

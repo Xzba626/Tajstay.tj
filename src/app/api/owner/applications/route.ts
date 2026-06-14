@@ -15,10 +15,7 @@ import {
   validateOwnerPhotoFile
 } from "@/lib/owner/applicationUpload";
 import { notifyOwnerRequestAdmins } from "@/lib/owner/notifyOwnerRequestAdmins";
-import {
-  decryptOwnerApplicationField,
-  encryptOwnerApplicationInput
-} from "@/lib/owner/ownerApplicationPii";
+import { encryptOwnerApplicationInput, decryptOwnerApplicationField } from "@/lib/owner/ownerApplicationPii";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";

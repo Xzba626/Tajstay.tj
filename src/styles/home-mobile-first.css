@@ -22,12 +22,14 @@
 
   .home-hero-mobile__title {
     font-family: var(--taj-font-display, var(--taj-font-ui));
-    font-size: 1.25rem;
+    font-size: clamp(1.375rem, 5.5vw, 1.75rem);
     font-weight: 700;
-    line-height: 1.2;
+    line-height: 1.15;
     letter-spacing: -0.02em;
-    max-width: 16ch;
+    width: 100%;
+    max-width: min(100%, 22rem);
     margin-inline: auto;
+    text-wrap: balance;
   }
 
   .home-hero-mobile__trust {

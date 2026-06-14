@@ -6,33 +6,32 @@ const PII_STRING_FIELDS = ["fullName", "phone", "email", "businessName", "addres
 
 type PiiStringField = (typeof PII_STRING_FIELDS)[number];
 
-/** PII fields that may appear on owner application create/update payloads. */
-type EncryptablePiiFields = {
-  [K in PiiStringField]?: string | null;
-} & {
-  applicationMeta?: Prisma.JsonValue | null;
-};
-
 export type DecryptedOwnerApplication = OwnerApplication & {
   applicationMeta: OwnerApplicationMeta | null;
 };
 
-/** Encrypt owner PII before persisting to the database. Preserves all other fields on the input object. */
-export function encryptOwnerApplicationInput<T extends EncryptablePiiFields>(input: T): T {
-  const next = { ...input } as T & EncryptablePiiFields;
+function encryptOptional(value: string | null | undefined): string | null | undefined {
+  if (value == null) return value;
+  const trimmed = value.trim();
+  if (!trimmed) return value === "" ? "" : null;
+  return encryptField(trimmed);
+}
 
+/** Encrypt owner PII before persisting to the database. */
+export function encryptOwnerApplicationInput(
+  input: Prisma.OwnerApplicationUncheckedCreateInput
+): Prisma.OwnerApplicationUncheckedCreateInput {
+  const next: Prisma.OwnerApplicationUncheckedCreateInput = { ...input };
   for (const field of PII_STRING_FIELDS) {
     const value = next[field];
     if (typeof value === "string" && value.trim() && !isEncryptedField(value)) {
       next[field] = encryptField(value);
     }
   }
-
   if (input.applicationMeta != null && typeof input.applicationMeta === "object") {
     next.applicationMeta = encryptField(JSON.stringify(input.applicationMeta));
   }
-
-  return next as T;
+  return next;
 }
 
 function decryptMeta(raw: Prisma.JsonValue | null | undefined): OwnerApplicationMeta | null {

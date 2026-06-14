@@ -389,6 +389,7 @@
   font-weight: 600;
   line-height: 1.2;
   letter-spacing: 0.01em;
+  color: var(--taj-color-text-muted, rgba(148, 163, 184, 0.9));
 }
 
 .chat-sender-badge--admin {
