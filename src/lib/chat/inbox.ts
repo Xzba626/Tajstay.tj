@@ -55,12 +55,12 @@ export async function getInboxConversations(params: {
 
   const where =
     role === "OWNER"
-      ? { room: { hotel: { ownerId: userId } } }
+      ? { room: { hotel: { ownerId: userId } }, chatArchivedAt: null }
       : role === "HOTEL_MODERATOR"
-        ? moderatorBookingWhere(userId)
+        ? { ...moderatorBookingWhere(userId), chatArchivedAt: null }
         : role === "ADMIN"
-          ? {}
-          : { userId };
+          ? { chatArchivedAt: null }
+          : { userId, chatArchivedAt: null };
 
   const bookings = await prisma.booking.findMany({
     where,

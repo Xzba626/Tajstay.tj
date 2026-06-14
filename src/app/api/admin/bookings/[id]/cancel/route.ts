@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/requireAuth";
 import { BOOKING_STATUS } from "@/lib/domain/booking";
-import { addBookingSystemMessage } from "@/lib/chat/bookingChat";
+import { addBookingSystemMessage, archiveBookingChatToColdStorage } from "@/lib/chat/bookingChat";
 import { dispatchBookingCancelledEmails } from "@/lib/email/bookingEmailDispatch";
 
 const BLOCKED = new Set([
@@ -47,6 +47,8 @@ export async function POST(_: NextRequest, { params }: { params: { id: string } 
     bookingId: id,
     message: "🛡️ Система: Бронирование отменено администратором."
   }).catch(() => undefined);
+
+  await archiveBookingChatToColdStorage(id).catch(() => undefined);
 
   if (booking.userId != null) {
     await prisma.notification.create({

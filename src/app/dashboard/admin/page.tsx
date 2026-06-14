@@ -40,6 +40,7 @@ import { fetchLastSessionsForUsers, type UserLastSession } from "@/lib/admin/use
 import { userAgentLabel } from "@/lib/auth/userAgentLabel";
 import { formatUserDisplayName } from "@/lib/users/displayName";
 import { PropertyTypesAdmin } from "@/components/admin/PropertyTypesAdmin";
+import { ChatArchiveClient } from "@/app/dashboard/admin/chat-archive/ChatArchiveClient";
 
 export const dynamic = "force-dynamic";
 
@@ -55,6 +56,7 @@ type AdminSection =
   | "finance"
   | "notifications"
   | "complaints"
+  | "archive"
   | "property-types";
 
 const VALID_SECTIONS = new Set<AdminSection>([
@@ -69,6 +71,7 @@ const VALID_SECTIONS = new Set<AdminSection>([
   "finance",
   "notifications",
   "complaints",
+  "archive",
   "property-types"
 ]);
 
@@ -1456,6 +1459,17 @@ export default async function AdminDashboardPage({
             <h2 className="text-lg font-bold text-slate-900">{m(locale, "admin.propertyTypesSection")}</h2>
           </div>
           <AdminPropertyTypesPanel />
+        </section>
+      )}
+
+      {activeSection === "archive" && (
+        <section id="archive" className="scroll-mt-28 space-y-4">
+          <div className="flex items-center gap-2">
+            <span className="h-8 w-1 rounded-full bg-violet-400" aria-hidden />
+            <h2 className="text-lg font-bold text-slate-100">{m(locale, "chatArchive.title")}</h2>
+          </div>
+          <p className="text-sm text-slate-400">{m(locale, "chatArchive.subtitle")}</p>
+          <ChatArchiveClient locale={locale} />
         </section>
       )}
     </div>

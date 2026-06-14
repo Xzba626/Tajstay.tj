@@ -134,6 +134,33 @@ const ru: Tree = {
     supportHint: "Нужна помощь с бронированием?",
     supportLink: "Написать в поддержку"
   },
+  chatArchive: {
+    title: "Архив переписок",
+    subtitle: "Закрытые чаты после отмены, истечения оплаты или завершения брони. Данные сохранены для споров.",
+    searchLabel: "Поиск",
+    searchPlaceholder: "код брони, имя гостя, отель, ID…",
+    fromDate: "Архив с",
+    toDate: "Архив по",
+    search: "Найти",
+    searching: "Поиск…",
+    reset: "Сбросить",
+    results: "Найдено: {count}",
+    empty: "Архивных чатов не найдено",
+    messages: "сообщ.",
+    loadingDetail: "Загрузка переписки…",
+    archivedAt: "В архиве с",
+    download: "Скачать JSON",
+    restore: "Восстановить чат",
+    restoreConfirm: "Восстановить этот чат в активные? Гость и владелец снова увидят переписку.",
+    restored: "Чат восстановлен из архива",
+    restoreError: "Не удалось восстановить",
+    openChat: "Открыть чат",
+    noMessages: "Сообщений в архиве нет",
+    attachment: "Вложение",
+    loadError: "Ошибка загрузки",
+    downloadError: "Ошибка выгрузки",
+    hint: "Чаты автоматически уходят в архив при отмене, истечении времени оплаты или через 15 дней после выезда. В активной истории они больше не отображаются."
+  },
   bottomNav: {
     ariaLabel: "Основная навигация",
     home: "Главная",
@@ -1411,7 +1438,8 @@ const ru: Tree = {
     finance: "Финансы",
     complaints: "Жалобы",
     propertyTypes: "Категории объектов",
-    notifications: "Уведомления"
+    notifications: "Уведомления",
+    archive: "Архив чатов"
   },
   owner: {
     pageTitle: "Панель владельца",
@@ -1938,6 +1966,33 @@ const tg: Tree = {
     ownerRedirect: "Барои соҳибон панели алоҳида аст.",
     supportHint: "Бо брон кумак лозим аст?",
     supportLink: "Ба дастгирӣ навиштан"
+  },
+  chatArchive: {
+    title: "Архиви мукотиба",
+    subtitle: "Чатҳои пӯшида пас аз бекор кардан, анҷоми пардохт ё анҷоми брон. Маълумот барои баҳсҳо нигоҳ дошта мешавад.",
+    searchLabel: "Ҷустуҷӯ",
+    searchPlaceholder: "коди брон, номи меҳмон, отел, ID…",
+    fromDate: "Архив аз",
+    toDate: "Архив то",
+    search: "Ҷустуҷӯ",
+    searching: "Ҷустуҷӯ…",
+    reset: "Тоза кардан",
+    results: "Ёфт шуд: {count}",
+    empty: "Чати архивӣ ёфт нашуд",
+    messages: "паём",
+    loadingDetail: "Боркунии мукотиба…",
+    archivedAt: "Дар архив аз",
+    download: "JSON боргирӣ",
+    restore: "Барқарор кардан",
+    restoreConfirm: "Ин чатро ба фаъол баргардонем? Меҳмон ва соҳиб боз мукотибаро мебинанд.",
+    restored: "Чат аз архив барқарор шуд",
+    restoreError: "Барқарор кардан иҷро нашуд",
+    openChat: "Кушодани чат",
+    noMessages: "Паём дар архив нест",
+    attachment: "Замима",
+    loadError: "Хатои боркунӣ",
+    downloadError: "Хатои боргирӣ",
+    hint: "Чатҳо худкор ба архив мераванд ҳангоми бекор кардан, анҷоми вақти пардохт ё 15 рӯз пас аз баромад. Дар таърихи фаъол дигар намоиш дода намешаванд."
   },
   bottomNav: {
     ariaLabel: "Навигатсияи асосӣ",
@@ -3209,7 +3264,8 @@ const tg: Tree = {
     finance: "Молия",
     complaints: "Шикоятҳо",
     propertyTypes: "Категорияҳои объект",
-    notifications: "Огоҳиҳо"
+    notifications: "Огоҳиҳо",
+    archive: "Архиви чат"
   },
   owner: {
     pageTitle: "Панели соҳиб",
@@ -3708,6 +3764,33 @@ const en: Tree = {
     ownerRedirect: "Hosts use a separate dashboard.",
     supportHint: "Need help with a booking?",
     supportLink: "Contact support"
+  },
+  chatArchive: {
+    title: "Chat archive",
+    subtitle: "Closed chats after cancellation, payment timeout, or completed stays. Data is kept for disputes.",
+    searchLabel: "Search",
+    searchPlaceholder: "booking code, guest name, hotel, ID…",
+    fromDate: "Archived from",
+    toDate: "Archived until",
+    search: "Search",
+    searching: "Searching…",
+    reset: "Reset",
+    results: "Found: {count}",
+    empty: "No archived chats found",
+    messages: "msgs",
+    loadingDetail: "Loading conversation…",
+    archivedAt: "Archived at",
+    download: "Download JSON",
+    restore: "Restore chat",
+    restoreConfirm: "Restore this chat to active? Guest and host will see the conversation again.",
+    restored: "Chat restored from archive",
+    restoreError: "Could not restore",
+    openChat: "Open chat",
+    noMessages: "No messages in archive",
+    attachment: "Attachment",
+    loadError: "Load failed",
+    downloadError: "Download failed",
+    hint: "Chats are archived automatically on cancel, payment timeout, or 15 days after checkout. They no longer appear in active history."
   },
   bottomNav: {
     ariaLabel: "Main navigation",
@@ -4978,7 +5061,8 @@ const en: Tree = {
     finance: "Finance",
     complaints: "Complaints",
     propertyTypes: "Property categories",
-    notifications: "Notifications"
+    notifications: "Notifications",
+    archive: "Chat archive"
   },
   owner: {
     pageTitle: "Owner dashboard",

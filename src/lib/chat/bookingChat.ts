@@ -293,6 +293,19 @@ export async function archiveBookingChatToColdStorage(bookingId: number): Promis
   return { archivedRows: result.count };
 }
 
+/** Восстановление переписки из архива (админ, споры). */
+export async function restoreBookingChatFromArchive(bookingId: number): Promise<{ restoredRows: number }> {
+  const result = await prisma.chatMessage.updateMany({
+    where: { bookingId, isArchived: true, deletedAt: null },
+    data: { isArchived: false }
+  });
+  await prisma.booking.update({
+    where: { id: bookingId },
+    data: { chatArchivedAt: null }
+  });
+  return { restoredRows: result.count };
+}
+
 const TERMINAL_ARCHIVE_STATUSES = new Set([
   "COMPLETED",
   "REJECTED",

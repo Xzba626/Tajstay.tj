@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/requireAuth";
-import { addBookingSystemMessage } from "@/lib/chat/bookingChat";
+import { addBookingSystemMessage, archiveBookingChatToColdStorage } from "@/lib/chat/bookingChat";
 import { bookingHotel } from "@/lib/pms/bookingContext";
 import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
 import { guestBookingCancelAllowed } from "@/lib/booking/guestCancel";
@@ -61,6 +61,8 @@ export async function POST(_: NextRequest, { params }: { params: { id: string } 
     bookingId: id,
     message: "🛡️ Система: Бронирование отменено пользователем. Сессия закрыта."
   }).catch(() => undefined);
+
+  await archiveBookingChatToColdStorage(id).catch(() => undefined);
 
   void dispatchBookingCancelledEmails(id, "guest").catch((e) => {
     console.error("[bookings/cancel-by-guest] cancelled emails failed", id, e);
