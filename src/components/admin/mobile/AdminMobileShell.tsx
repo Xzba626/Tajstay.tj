@@ -26,7 +26,8 @@ const SECTION_TITLE_KEY: Record<string, keyof AdminMobileShellLabels["items"]> =
   bookings: "bookings",
   finance: "finance",
   complaints: "complaints",
-  notifications: "notifications"
+  notifications: "notifications",
+  archive: "archive"
 };
 
 export type AdminMobileBadgeCounts = {
@@ -48,6 +49,7 @@ export type AdminMobileShellLabels = {
     finance: string;
     complaints: string;
     notifications: string;
+    archive: string;
   };
   tabs: {
     home: string;

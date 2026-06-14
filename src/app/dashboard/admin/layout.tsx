@@ -43,7 +43,8 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
       bookings: m(locale, "adminNav.bookings"),
       finance: m(locale, "adminNav.finance"),
       complaints: m(locale, "adminNav.complaints"),
-      notifications: m(locale, "adminNav.notifications")
+      notifications: m(locale, "adminNav.notifications"),
+      archive: m(locale, "adminNav.archive")
     }
   };
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { BOOKING_STATUS } from "@/lib/domain/booking";
-import { addBookingSystemMessage } from "@/lib/chat/bookingChat";
+import { addBookingSystemMessage, archiveBookingChatToColdStorage } from "@/lib/chat/bookingChat";
 import { dispatchBookingCancelledEmails } from "@/lib/email/bookingEmailDispatch";
 
 export const dynamic = "force-dynamic";
@@ -56,12 +56,13 @@ export async function POST(req: NextRequest) {
     });
     // Add system message in chat
     await Promise.all(
-      expired.map((b) =>
-        addBookingSystemMessage({
+      expired.map(async (b) => {
+        await addBookingSystemMessage({
           bookingId: b.id,
           message: "🛡️ Система: Бронь отменена по истечении 15 минут. Чат закрыт."
-        }).catch(() => undefined)
-      )
+        }).catch(() => undefined);
+        await archiveBookingChatToColdStorage(b.id).catch(() => undefined);
+      })
     );
     for (const b of expired) {
       void dispatchBookingCancelledEmails(b.id, "system", "Не оплачена вовремя").catch(() => undefined);
@@ -112,12 +113,13 @@ export async function POST(req: NextRequest) {
       }))
     });
     await Promise.all(
-      reviewIds.map((id) =>
-        addBookingSystemMessage({
+      reviewIds.map(async (id) => {
+        await addBookingSystemMessage({
           bookingId: id,
           message: "🛡️ Система: Время проверки чека истекло. Оплата отклонена."
-        }).catch(() => undefined)
-      )
+        }).catch(() => undefined);
+        await archiveBookingChatToColdStorage(id).catch(() => undefined);
+      })
     );
   }
 
