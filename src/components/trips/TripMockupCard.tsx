@@ -23,6 +23,8 @@ type BookingSlice = {
 function statusClass(status: string): string {
   if (["CONFIRMED", "CHECKED_IN", "COMPLETED"].includes(status)) return "mockup-status--confirmed";
   if (["CANCELLED", "REJECTED", "EXPIRED", "CANCELLED_BY_GUEST"].includes(status)) return "mockup-status--cancelled";
+  if (["WAITING_PAYMENT", "PENDING_PAYMENT", "WAIT_PROOF"].includes(status)) return "mockup-status--payment";
+  if (["ON_REVIEW", "PENDING_OWNER"].includes(status)) return "mockup-status--review";
   return "mockup-status--pending";
 }
 
