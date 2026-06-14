@@ -19,8 +19,8 @@ async function pickAdminId(): Promise<number | null> {
 }
 
 export async function POST(_: NextRequest, { params }: { params: { id: string } }): Promise<NextResponse<CancelResult>> {
-  const guest = await requireUser(["GUEST"]);
-  if (!guest) return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+  const user = await requireUser();
+  if (!user) return NextResponse.json({ ok: false, error: "SESSION_EXPIRED" }, { status: 401 });
 
   const id = Number(params.id || "");
   if (!id) return NextResponse.json({ ok: false, error: "Invalid id" }, { status: 400 });
@@ -29,7 +29,9 @@ export async function POST(_: NextRequest, { params }: { params: { id: string } 
     where: { id },
     include: { ...bookingWithHotelInclude, payment: true }
   });
-  if (!booking || booking.userId !== guest.id) return NextResponse.json({ ok: false, error: "Not found" }, { status: 404 });
+  if (!booking || (booking.userId !== user.id && user.role !== "ADMIN")) {
+    return NextResponse.json({ ok: false, error: "NOT_FOUND" }, { status: 404 });
+  }
 
   if (!guestBookingCancelAllowed({ status: booking.status, paymentStatus: booking.paymentStatus })) {
     return NextResponse.json({ ok: false, error: "Нельзя отменить после подтверждения оплаты" }, { status: 409 });
