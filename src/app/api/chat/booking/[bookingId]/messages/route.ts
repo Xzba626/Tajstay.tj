@@ -11,6 +11,7 @@ import { bookingHotel } from "@/lib/pms/bookingContext";
 import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
 import { triggerBookingChatEvent } from "@/lib/pusher/server";
 import { PUSHER_EVENTS } from "@/lib/pusher/config";
+import { notifyBookingChatMessage } from "@/lib/notifications/bookingChatNotify";
 
 const TERMINAL_NO_NEW_MESSAGES = new Set<string>([
   BOOKING_STATUS.EXPIRED,
@@ -213,22 +214,13 @@ export async function POST(req: NextRequest, { params }: { params: { bookingId: 
     await triggerBookingChatEvent(bookingId, PUSHER_EVENTS.NEW_MESSAGE, { message: msg });
   }
 
-  const adminRow = await prisma.user.findFirst({
-    where: { role: "ADMIN" },
-    orderBy: { id: "asc" },
-    select: { id: true }
-  });
-  const ownerId = bookingHotel(booking).ownerId;
-  const targets = [booking.userId, ownerId, adminRow?.id].filter((v): v is number => typeof v === "number");
-  const receivers = targets.filter((uid) => uid !== user.id);
-  if (receivers.length) {
-    await prisma.notification.createMany({
-      data: receivers.map((userId) => ({
-        userId,
-        bookingId: booking.id,
-        type: "BOOKING_CHAT_NEW",
-        isRead: false
-      }))
+  const lastHumanMsg = pushedMessages.filter((m) => m.senderRole !== "SYSTEM").pop();
+  if (lastHumanMsg && lastHumanMsg.senderId === user.id) {
+    await notifyBookingChatMessage({
+      bookingId,
+      senderUserId: user.id,
+      senderName: user.name,
+      messagePreview: lastHumanMsg.message || (imageUrl ? "📎 Вложение" : "")
     });
   }
 
