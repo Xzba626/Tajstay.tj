@@ -1,6 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { readClientLocale } from "@/lib/i18n/client-locale";
+import { m } from "@/lib/i18n/messages";
+import { SensitiveActionConfirmDialog } from "@/components/ui/SensitiveActionConfirmDialog";
 
 type PropertyTypeRow = {
   id: string;
@@ -39,6 +42,9 @@ export function PropertyTypesAdmin() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft>(emptyDraft());
   const [showCreate, setShowCreate] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const locale = readClientLocale();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -111,17 +117,27 @@ export function PropertyTypesAdmin() {
       window.alert(`Нельзя удалить: ${hotelsCount} объект(ов) используют этот тип`);
       return;
     }
-    if (!window.confirm("Удалить категорию?")) return;
-    const res = await fetch(`/api/admin/property-types/${id}`, {
-      method: "DELETE",
-      credentials: "include"
-    });
-    if (!res.ok) {
-      const json = (await res.json().catch(() => ({}))) as { error?: string };
-      window.alert(json.error ?? "Не удалось удалить");
-      return;
+    setPendingDeleteId(id);
+  }
+
+  async function confirmRemoveRow() {
+    if (!pendingDeleteId) return;
+    setDeleteBusy(true);
+    try {
+      const res = await fetch(`/api/admin/property-types/${pendingDeleteId}`, {
+        method: "DELETE",
+        credentials: "include"
+      });
+      if (!res.ok) {
+        const json = (await res.json().catch(() => ({}))) as { error?: string };
+        window.alert(json.error ?? "Не удалось удалить");
+        return;
+      }
+      setPendingDeleteId(null);
+      await load();
+    } finally {
+      setDeleteBusy(false);
     }
-    await load();
   }
 
   async function moveRow(id: string, direction: -1 | 1) {
@@ -261,6 +277,17 @@ export function PropertyTypesAdmin() {
           </tbody>
         </table>
       </div>
+      <SensitiveActionConfirmDialog
+        open={pendingDeleteId != null}
+        onClose={() => setPendingDeleteId(null)}
+        onConfirm={confirmRemoveRow}
+        locale={locale}
+        title={m(locale, "confirmDialog.deleteCategoryTitle")}
+        description={m(locale, "confirmDialog.deleteCategoryDesc")}
+        confirmLabel={m(locale, "confirmDialog.confirm")}
+        variant="danger"
+        busy={deleteBusy}
+      />
     </div>
   );
 }

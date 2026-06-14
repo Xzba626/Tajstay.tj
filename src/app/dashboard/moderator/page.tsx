@@ -9,23 +9,26 @@ import { DataToolbar } from "@/components/ui/DataToolbar";
 import { Pagination } from "@/components/ui/Pagination";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { OwnerCalendar } from "@/components/owner/OwnerCalendar";
+import { OfflineBookingForm } from "@/components/owner/OfflineBookingForm";
+import { OfflineBookingsList } from "@/components/owner/OfflineBookingsList";
 import { OwnerBookingConfirmButton } from "@/components/owner/OwnerBookingConfirmButton";
 import { OwnerAssignRoomSelect } from "@/components/owner/OwnerAssignRoomSelect";
 import Link from "next/link";
-import { moderatorBookingWhere, moderatorHotelWhere } from "@/lib/pms/moderatorQueries";
+import { moderatorBookingWhere, moderatorHotelWhere, moderatorOfflineBookingWhere } from "@/lib/pms/moderatorQueries";
 import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
 import { bookingHotel, bookingRoomTitle } from "@/lib/pms/bookingContext";
 import { getModeratorCalendarData } from "@/lib/services/ownerCalendar";
 import { getBookingGuestLabel, BOOKING_STATUS } from "@/lib/domain/booking";
+import { toOfflineOwnerView } from "@/lib/pms/offlinePrivacy";
 
 export const dynamic = "force-dynamic";
 
 const API_BASE = "/api/moderator";
 const DASHBOARD_BASE = "/dashboard/moderator";
 
-type ModeratorSection = "bookings" | "calendar";
+type ModeratorSection = "bookings" | "calendar" | "offline-bookings";
 
-const VALID_SECTIONS = new Set<ModeratorSection>(["bookings", "calendar"]);
+const VALID_SECTIONS = new Set<ModeratorSection>(["bookings", "calendar", "offline-bookings"]);
 
 export default async function ModeratorDashboardPage({
   searchParams
@@ -43,6 +46,8 @@ export default async function ModeratorDashboardPage({
   const page = Math.max(1, Number(params?.page ?? "1") || 1);
   const q = (params?.q ?? "").trim();
   const status = (params?.status ?? "").trim();
+  const offlineCreated = (params?.created ?? "").trim() === "1";
+  const offlineError = (params?.error ?? "").trim();
 
   const hotels = await prisma.hotel.findMany({
     where: moderatorHotelWhere(user.id),
@@ -76,7 +81,96 @@ export default async function ModeratorDashboardPage({
           cellMeta={cal.cellMeta}
           hotels={hotels}
           readOnly
+          offlineBookingBasePath={`${DASHBOARD_BASE}?section=offline-bookings`}
         />
+      </section>
+    );
+  }
+
+  if (activeSection === "offline-bookings") {
+    const [roomTypes, rooms, cal, totalRows, offlineBookings] = await Promise.all([
+      prisma.roomType.findMany({
+        where: { hotel: moderatorHotelWhere(user.id) },
+        include: { hotel: true },
+        orderBy: [{ hotelId: "asc" }, { name: "asc" }]
+      }),
+      prisma.room.findMany({
+        where: { hotel: moderatorHotelWhere(user.id) },
+        include: { hotel: true },
+        orderBy: [{ roomNumber: "asc" }, { id: "asc" }]
+      }),
+      getModeratorCalendarData(user.id, 14),
+      prisma.booking.count({ where: moderatorOfflineBookingWhere(user.id) }),
+      prisma.booking.findMany({
+        where: moderatorOfflineBookingWhere(user.id),
+        include: { ...bookingWithHotelInclude, user: true },
+        orderBy: { checkIn: "desc" },
+        skip: (page - 1) * pageSize,
+        take: pageSize
+      })
+    ]);
+    const totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
+
+    return (
+      <section className="space-y-6">
+        <div>
+          <h2 className="text-lg font-semibold text-white">{m(locale, "moderator.navOfflineBookings")}</h2>
+          <p className="mt-1 text-sm text-white/55">{m(locale, "moderator.offlineStaffHint")}</p>
+        </div>
+
+        <div className="rounded-2xl border border-white/10 bg-slate-950/35 p-4">
+          <p className="mb-3 text-sm font-semibold text-white">{m(locale, "moderator.offlineCalendarTitle")}</p>
+          <OwnerCalendar
+            locale={locale}
+            rooms={cal.rooms}
+            typeRows={cal.typeRows ?? []}
+            days={cal.days}
+            cells={cal.cells}
+            cellMeta={cal.cellMeta}
+            hotels={hotels}
+            readOnly
+            offlineBookingBasePath={`${DASHBOARD_BASE}?section=offline-bookings`}
+          />
+        </div>
+
+        <div className="rounded-2xl border border-white/10 bg-white p-4 shadow-sm">
+          <p className="mb-4 text-sm font-semibold text-slate-900">{m(locale, "moderator.offlineFormTitle")}</p>
+          <OfflineBookingForm
+            locale={locale}
+            roomTypes={roomTypes.map((rt) => ({ id: rt.id, name: rt.name, hotel: rt.hotel }))}
+            rooms={rooms.map((r) => ({
+              id: r.id,
+              title: r.title,
+              roomNumber: r.roomNumber,
+              roomTypeId: r.roomTypeId,
+              hotel: r.hotel
+            }))}
+            created={offlineCreated}
+            error={offlineError || undefined}
+            defaultRoomId={Number(params?.roomId ?? "") || undefined}
+            defaultCheckIn={params?.checkIn}
+            defaultCheckOut={params?.checkOut}
+            variant="staff"
+            apiBase={API_BASE}
+          />
+        </div>
+
+        {offlineBookings.length ? (
+          <div className="space-y-3">
+            <p className="text-sm font-semibold text-white">{m(locale, "moderator.offlineRecentTitle")}</p>
+            <OfflineBookingsList
+              locale={locale}
+              bookings={offlineBookings.map((b) => toOfflineOwnerView(b, true, false))}
+              canViewPii
+              canViewFinances={false}
+              canEditStatus
+              apiBase={API_BASE}
+            />
+            <Pagination page={page} totalPages={totalPages} />
+          </div>
+        ) : (
+          <EmptyState title={m(locale, "moderator.offlineEmpty")} description={m(locale, "moderator.offlineStaffHint")} />
+        )}
       </section>
     );
   }

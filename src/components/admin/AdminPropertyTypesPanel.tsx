@@ -1,6 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { readClientLocale } from "@/lib/i18n/client-locale";
+import { m } from "@/lib/i18n/messages";
+import { SensitiveActionConfirmDialog } from "@/components/ui/SensitiveActionConfirmDialog";
 
 type PropertyTypeAdmin = {
   id: string;
@@ -28,6 +31,8 @@ export function AdminPropertyTypesPanel() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const locale = readClientLocale();
   const [form, setForm] = useState(emptyForm);
 
   const load = useCallback(async () => {
@@ -84,13 +89,18 @@ export function AdminPropertyTypesPanel() {
   }
 
   async function remove(id: string) {
-    if (!window.confirm("Удалить тип?")) return;
+    setPendingDeleteId(id);
+  }
+
+  async function confirmRemove() {
+    if (!pendingDeleteId) return;
     setBusy(true);
     setError(null);
     try {
-      const res = await fetch(`/api/admin/property-types/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/admin/property-types/${pendingDeleteId}`, { method: "DELETE" });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error((json as { error?: string }).error ?? "Delete failed");
+      setPendingDeleteId(null);
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error");
@@ -278,6 +288,17 @@ export function AdminPropertyTypesPanel() {
           Добавить тип
         </button>
       </div>
+      <SensitiveActionConfirmDialog
+        open={pendingDeleteId != null}
+        onClose={() => setPendingDeleteId(null)}
+        onConfirm={confirmRemove}
+        locale={locale}
+        title={m(locale, "confirmDialog.deleteTypeTitle")}
+        description={m(locale, "confirmDialog.deleteTypeDesc")}
+        confirmLabel={m(locale, "confirmDialog.confirm")}
+        variant="danger"
+        busy={busy}
+      />
     </div>
   );
 }

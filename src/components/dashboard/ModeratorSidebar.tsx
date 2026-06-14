@@ -13,6 +13,7 @@ export type ModeratorSidebarLabels = {
     bookings: string;
     calendar: string;
     messages: string;
+    offlineBookings: string;
   };
 };
 
@@ -22,7 +23,8 @@ function buildItems(labels: ModeratorSidebarLabels): SidebarItem[] {
   return [
     { section: "bookings", label: labels.items.bookings },
     { section: "calendar", label: labels.items.calendar },
-    { href: "/dashboard/messages", label: labels.items.messages }
+    { href: "/dashboard/messages", label: labels.items.messages },
+    { section: "offline-bookings", label: labels.items.offlineBookings }
   ];
 }
 
