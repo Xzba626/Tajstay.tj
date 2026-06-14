@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { OWNER_APPLICATION_STATUS } from "@/lib/domain/booking";
+import { decryptOwnerApplicationRow } from "@/lib/owner/ownerApplicationPii";
 import { listOwnerRequestFileTypes } from "@/lib/owner/ownerRequestFiles";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { formatBookingStatus } from "@/lib/i18n/bookingStatus";
@@ -79,11 +80,12 @@ export default async function OwnerRequestsPage({ searchParams }: Props) {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {rows.map((row) => {
+                const decrypted = decryptOwnerApplicationRow(row);
                 const fileCount = listOwnerRequestFileTypes(row).length;
                 return (
                   <tr key={row.id} className="hover:bg-slate-50/80">
-                    <td className="px-4 py-3 font-medium text-slate-900">{row.fullName}</td>
-                    <td className="px-4 py-3 text-slate-600">{row.phone}</td>
+                    <td className="px-4 py-3 font-medium text-slate-900">{decrypted.fullName}</td>
+                    <td className="px-4 py-3 text-slate-600">{decrypted.phone}</td>
                     <td className="px-4 py-3">
                       <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusBadge(row.status)}`}>
                         {formatBookingStatus(locale, row.status)}
