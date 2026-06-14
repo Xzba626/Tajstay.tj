@@ -834,6 +834,7 @@ export default async function OwnerDashboardPage({
                     hotelId={h.id}
                     status={h.status}
                     rejectionReason={h.rejectionReason}
+                    locale={locale}
                   />
                 </div>
               ))}

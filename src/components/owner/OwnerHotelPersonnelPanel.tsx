@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
+import { SensitiveActionConfirmDialog } from "@/components/ui/SensitiveActionConfirmDialog";
 
 type HotelOption = { id: number; name: string };
 
@@ -31,6 +32,8 @@ export function OwnerHotelPersonnelPanel({
   const [inviting, setInviting] = useState(false);
   const [email, setEmail] = useState("");
   const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  const [removeTarget, setRemoveTarget] = useState<number | null>(null);
+  const [removing, setRemoving] = useState(false);
 
   const load = useCallback(async () => {
     if (!hotelId) return;
@@ -86,18 +89,24 @@ export function OwnerHotelPersonnelPanel({
   }
 
   async function remove(userId: number) {
-    if (!hotelId || !window.confirm(m(locale, "owner.personnel.removeConfirm"))) return;
+    if (!hotelId) return;
+    setRemoving(true);
     setMsg(null);
-    const res = await fetch(`/api/owner/hotels/${hotelId}/moderators?userId=${userId}`, {
-      method: "DELETE",
-      credentials: "include"
-    });
-    if (!res.ok) {
-      setMsg({ type: "err", text: m(locale, "owner.personnel.errorRemove") });
-      return;
+    try {
+      const res = await fetch(`/api/owner/hotels/${hotelId}/moderators?userId=${userId}`, {
+        method: "DELETE",
+        credentials: "include"
+      });
+      if (!res.ok) {
+        setMsg({ type: "err", text: m(locale, "owner.personnel.errorRemove") });
+        return;
+      }
+      setMsg({ type: "ok", text: m(locale, "owner.personnel.removeOk") });
+      setRemoveTarget(null);
+      await load();
+    } finally {
+      setRemoving(false);
     }
-    setMsg({ type: "ok", text: m(locale, "owner.personnel.removeOk") });
-    await load();
   }
 
   if (!hotels.length) {
@@ -188,7 +197,7 @@ export function OwnerHotelPersonnelPanel({
                   </div>
                   <button
                     type="button"
-                    onClick={() => void remove(u.id)}
+                    onClick={() => setRemoveTarget(u.id)}
                     className="rounded-lg border border-rose-200 px-3 py-1.5 text-sm font-semibold text-rose-700 hover:bg-rose-50"
                   >
                     {m(locale, "owner.personnel.remove")}
@@ -199,6 +208,17 @@ export function OwnerHotelPersonnelPanel({
           </ul>
         )}
       </div>
+      <SensitiveActionConfirmDialog
+        open={removeTarget != null}
+        onClose={() => setRemoveTarget(null)}
+        onConfirm={() => (removeTarget != null ? remove(removeTarget) : undefined)}
+        locale={locale}
+        title={m(locale, "confirmDialog.removeModeratorTitle")}
+        description={m(locale, "confirmDialog.removeModeratorDesc")}
+        confirmLabel={m(locale, "owner.personnel.remove")}
+        variant="danger"
+        busy={removing}
+      />
     </div>
   );
 }
