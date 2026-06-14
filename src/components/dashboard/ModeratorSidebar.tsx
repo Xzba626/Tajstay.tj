@@ -12,22 +12,30 @@ export type ModeratorSidebarLabels = {
   items: {
     bookings: string;
     calendar: string;
+    messages: string;
     offlineBookings: string;
-    rooms: string;
-    guests: string;
   };
 };
 
-type SidebarItem = { label: string; section: string };
+type SidebarItem = { label: string; section?: string; href?: string };
 
 function buildItems(labels: ModeratorSidebarLabels): SidebarItem[] {
   return [
     { section: "bookings", label: labels.items.bookings },
     { section: "calendar", label: labels.items.calendar },
-    { section: "offline-bookings", label: labels.items.offlineBookings },
-    { section: "rooms", label: labels.items.rooms },
-    { section: "guests", label: labels.items.guests }
+    { href: "/dashboard/messages", label: labels.items.messages },
+    { section: "offline-bookings", label: labels.items.offlineBookings }
   ];
+}
+
+function resolveHref(pathname: string, item: SidebarItem): string {
+  if (item.href) return item.href;
+  return `${pathname}?section=${item.section ?? "bookings"}`;
+}
+
+function isActive(pathname: string, section: string, item: SidebarItem): boolean {
+  if (item.href) return pathname === item.href || pathname.startsWith(`${item.href}/`);
+  return section === (item.section ?? "bookings");
 }
 
 export function ModeratorSidebar({ labels }: { labels: ModeratorSidebarLabels }) {
@@ -43,13 +51,13 @@ export function ModeratorSidebar({ labels }: { labels: ModeratorSidebarLabels })
       </div>
       <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto pr-1 text-sm" aria-label={labels.navLabel}>
         {items.map((item) => {
-          const active = section === item.section;
-          const href = `${pathname}?section=${item.section}`;
+          const active = isActive(pathname, section, item);
+          const href = resolveHref(pathname, item);
           return (
             <Link
-              key={item.section}
+              key={href + item.label}
               href={href}
-              scroll={false}
+              scroll={!item.href}
               className={cn(
                 "dashboard-sidebar__link rounded-xl px-3 py-2.5 font-medium transition-colors",
                 active && "is-active"
@@ -85,11 +93,11 @@ export function ModeratorMobileNav({ labels }: { labels: ModeratorSidebarLabels 
       {open ? (
         <nav className="mt-2 flex flex-col gap-1 rounded-xl border border-white/10 bg-slate-950/70 p-2 shadow-lg backdrop-blur-xl">
           {items.map((item) => {
-            const href = `${pathname}?section=${item.section}`;
-            const active = section === item.section;
+            const href = resolveHref(pathname, item);
+            const active = isActive(pathname, section, item);
             return (
               <Link
-                key={item.section}
+                key={href + item.label}
                 href={href}
                 onClick={() => setOpen(false)}
                 className={cn(

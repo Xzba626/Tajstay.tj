@@ -50,12 +50,12 @@ async function ensureAccess(bookingId: number, userId: number) {
   });
   if (!booking) return null;
   const roleRow = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
-  if (!roleRow || !canAccessBookingChat(booking, { id: userId, role: roleRow.role })) return null;
+  if (!roleRow || !(await canAccessBookingChat(booking, { id: userId, role: roleRow.role }))) return null;
   return booking;
 }
 
 export async function GET(_: NextRequest, { params }: { params: { bookingId: string } }) {
-  const user = await requireUser(["GUEST", "OWNER", "ADMIN"]);
+  const user = await requireUser(["GUEST", "OWNER", "ADMIN", "HOTEL_MODERATOR"]);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const bookingId = Number.parseInt(String(params.bookingId ?? "").trim(), 10);
@@ -99,7 +99,7 @@ export async function GET(_: NextRequest, { params }: { params: { bookingId: str
 }
 
 export async function POST(req: NextRequest, { params }: { params: { bookingId: string } }) {
-  const user = await requireUser(["GUEST", "OWNER", "ADMIN"]);
+  const user = await requireUser(["GUEST", "OWNER", "ADMIN", "HOTEL_MODERATOR"]);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const bookingId = Number.parseInt(String(params.bookingId ?? "").trim(), 10);
@@ -113,7 +113,7 @@ export async function POST(req: NextRequest, { params }: { params: { bookingId: 
   });
   if (!booking) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  if (!canAccessBookingChat(booking, user)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!(await canAccessBookingChat(booking, user))) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const isGuest = booking.userId != null && booking.userId === user.id;
   const isOwner = bookingHotel(booking).ownerId === user.id;
   const isAdmin = user.role === "ADMIN";

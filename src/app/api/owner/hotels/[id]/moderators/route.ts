@@ -3,11 +3,15 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { isGuardResponse, requireHotelApiPermission, PERMISSION, requireOwnerApiUser } from "@/lib/auth/apiGuard";
 import { USER_ROLE } from "@/lib/auth/permissions";
+import { createNotification } from "@/lib/notifications/create";
 
-const assignSchema = z.object({
-  userId: z.number().int().positive().optional(),
-  phone: z.string().min(6).optional()
-});
+const assignSchema = z
+  .object({
+    userId: z.number().int().positive().optional(),
+    phone: z.string().min(6).optional(),
+    email: z.string().email().optional()
+  })
+  .refine((data) => Boolean(data.userId || data.phone || data.email), { message: "user_required" });
 
 export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
   const hotelId = Number(params.id);
@@ -47,6 +51,14 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     if (!found) return NextResponse.json({ error: "user_not_found" }, { status: 404 });
     targetUserId = found.id;
   }
+  if (!targetUserId && parsed.data.email) {
+    const email = parsed.data.email.trim().toLowerCase();
+    const found = await prisma.user.findFirst({
+      where: { email: { equals: email, mode: "insensitive" } }
+    });
+    if (!found) return NextResponse.json({ error: "user_not_found" }, { status: 404 });
+    targetUserId = found.id;
+  }
   if (!targetUserId) return NextResponse.json({ error: "user_required" }, { status: 400 });
 
   const target = await prisma.user.findUnique({ where: { id: targetUserId } });
@@ -59,11 +71,23 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     await prisma.user.update({ where: { id: target.id }, data: { role: USER_ROLE.HOTEL_MODERATOR } });
   }
 
+  const hotel = await prisma.hotel.findUnique({ where: { id: hotelId }, select: { name: true } });
+
   const row = await prisma.hotelModerator.upsert({
     where: { hotelId_userId: { hotelId, userId: target.id } },
     create: { hotelId, userId: target.id, assignedByUserId: owner.id },
     update: { assignedByUserId: owner.id },
     include: { user: { select: { id: true, name: true, phone: true, email: true, role: true } } }
+  });
+
+  await createNotification({
+    userId: target.id,
+    type: "MODERATOR_INVITE",
+    title: "Назначение модератором",
+    message: hotel?.name
+      ? `Вас назначили модератором отеля «${hotel.name}». Откройте панель модератора для работы с бронированиями.`
+      : "Вас назначили модератором отеля. Откройте панель модератора для работы с бронированиями.",
+    link: "/dashboard/moderator"
   });
 
   return NextResponse.json({ ok: true, moderator: row });

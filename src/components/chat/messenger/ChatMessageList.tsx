@@ -8,6 +8,7 @@ import { chatSenderBadgeClass, chatSenderLabel } from "@/lib/chat/senderLabel";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
 import { ChatReadTicks } from "@/components/chat/messenger/ChatReadTicks";
+import type { ChatParticipantRole } from "@/components/chat/BookingRoom.types";
 
 function timeLabel(iso: string): string {
   const d = new Date(iso);
@@ -23,7 +24,7 @@ type Props = {
   locale: Locale;
   items: ChatMessageDto[];
   currentUserId: number;
-  currentUserRole: "GUEST" | "OWNER" | "ADMIN";
+  currentUserRole: ChatParticipantRole;
   chatArchived: boolean;
   canSend: boolean;
   typingName: string | null;

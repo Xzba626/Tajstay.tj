@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
+import { SensitiveActionConfirmDialog } from "@/components/ui/SensitiveActionConfirmDialog";
 
 type Props = {
   bookingId: number;
@@ -15,10 +16,10 @@ export function OwnerPaymentApproveButton({ bookingId, locale, className }: Prop
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   async function onApprove() {
     if (busy) return;
-    if (!window.confirm("Подтвердить получение оплаты от гостя?")) return;
     setBusy(true);
     setError(null);
     try {
@@ -29,12 +30,13 @@ export function OwnerPaymentApproveButton({ bookingId, locale, className }: Prop
       });
       const json = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
-        setError(json.error ?? "Не удалось подтвердить оплату");
+        setError(json.error ?? m(locale, "confirmDialog.approvePaymentDesc"));
         return;
       }
+      setConfirmOpen(false);
       router.refresh();
     } catch {
-      setError("Не удалось подтвердить оплату");
+      setError(m(locale, "confirmDialog.approvePaymentDesc"));
     } finally {
       setBusy(false);
     }
@@ -45,7 +47,7 @@ export function OwnerPaymentApproveButton({ bookingId, locale, className }: Prop
       <button
         type="button"
         disabled={busy}
-        onClick={() => void onApprove()}
+        onClick={() => setConfirmOpen(true)}
         className={
           className ??
           "rounded-lg bg-emerald-700 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
@@ -54,6 +56,16 @@ export function OwnerPaymentApproveButton({ bookingId, locale, className }: Prop
         {busy ? "…" : "✅ Подтвердить оплату"}
       </button>
       {error ? <span className="text-xs font-medium text-red-600">{error}</span> : null}
+      <SensitiveActionConfirmDialog
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={onApprove}
+        locale={locale}
+        title={m(locale, "confirmDialog.approvePaymentTitle")}
+        description={m(locale, "confirmDialog.approvePaymentDesc")}
+        confirmLabel={m(locale, "confirmDialog.confirm")}
+        busy={busy}
+      />
     </div>
   );
 }

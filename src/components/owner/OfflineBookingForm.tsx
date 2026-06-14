@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
 import { OFFLINE_STATUS } from "@/lib/domain/booking";
+import { SensitiveActionConfirmDialog } from "@/components/ui/SensitiveActionConfirmDialog";
 
 type RoomTypeOption = { id: number; name: string; hotel: { name: string } };
 type RoomOption = {
@@ -34,11 +35,14 @@ export function OfflineBookingForm({
   defaultRoomId?: number;
   defaultCheckIn?: string;
   defaultCheckOut?: string;
-  /** full = owner archive; staff = reception (no phone/email required) */
+  /** full = owner archive; staff = reception walk-in (name, phone, dates, room — no finances) */
   variant?: "full" | "staff";
   apiBase?: string;
 }) {
   const isStaff = variant === "staff";
+  const formRef = useRef<HTMLFormElement>(null);
+  const skipConfirmRef = useRef(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const defaultTypeId = useMemo(() => {
     if (!defaultRoomId) return roomTypes[0]?.id ?? 0;
     return rooms.find((r) => r.id === defaultRoomId)?.roomTypeId ?? roomTypes[0]?.id ?? 0;
@@ -53,10 +57,28 @@ export function OfflineBookingForm({
 
   if (!roomTypes.length) return null;
 
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    if (!isStaff || skipConfirmRef.current) {
+      skipConfirmRef.current = false;
+      return;
+    }
+    e.preventDefault();
+    setConfirmOpen(true);
+  }
+
+  function submitAfterConfirm() {
+    setConfirmOpen(false);
+    skipConfirmRef.current = true;
+    formRef.current?.requestSubmit();
+  }
+
   return (
+    <>
     <form
+      ref={formRef}
       action={`${apiBase}/offline-bookings`}
       method="post"
+      onSubmit={handleSubmit}
       className="offline-booking-form grid gap-3 md:grid-cols-2"
     >
       {created ? (
@@ -110,14 +132,15 @@ export function OfflineBookingForm({
         <label className="mb-1 block text-sm font-semibold text-slate-800">{m(locale, "owner.offline.guestName")}</label>
         <input name="guestName" required className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm" />
       </div>
-      {!isStaff ? (
-        <div>
-          <label className="mb-1 block text-sm font-semibold">{m(locale, "owner.offline.guestPhone")}</label>
-          <input name="guestPhone" required className="offline-booking-form__input" />
-        </div>
-      ) : (
-        <input type="hidden" name="guestPhone" value="—" />
-      )}
+      <div>
+        <label className="mb-1 block text-sm font-semibold text-slate-800">{m(locale, "owner.offline.guestPhone")}</label>
+        <input
+          name="guestPhone"
+          required
+          className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm"
+          placeholder={isStaff ? "+992…" : undefined}
+        />
+      </div>
       {!isStaff ? (
         <div>
           <label className="mb-1 block text-sm font-semibold">{m(locale, "owner.offline.guestEmail")}</label>
@@ -170,8 +193,12 @@ export function OfflineBookingForm({
           </div>
         </>
       ) : (
-        <input type="hidden" name="totalPrice" value="0" />
+        <>
+          <input type="hidden" name="totalPrice" value="0" />
+          <input type="hidden" name="offlineStatus" value={OFFLINE_STATUS.CONFIRMED} />
+        </>
       )}
+      {!isStaff ? (
       <div>
         <label className="mb-1 block text-sm font-semibold text-slate-800">{m(locale, "owner.offline.statusLabel")}</label>
         <select name="offlineStatus" defaultValue={OFFLINE_STATUS.CONFIRMED} className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm">
@@ -182,11 +209,14 @@ export function OfflineBookingForm({
           ))}
         </select>
       </div>
+      ) : null}
 
+      {!isStaff ? (
       <div className="md:col-span-2">
         <label className="mb-1 block text-sm font-semibold text-slate-800">{m(locale, "owner.offline.note")}</label>
         <textarea name="offlineNote" rows={2} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" />
       </div>
+      ) : null}
 
       <div className="md:col-span-2">
         <button type="submit" className="h-11 rounded-xl bg-emerald-700 px-5 text-sm font-semibold text-white hover:bg-emerald-600">
@@ -194,5 +224,17 @@ export function OfflineBookingForm({
         </button>
       </div>
     </form>
+    {isStaff ? (
+      <SensitiveActionConfirmDialog
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={submitAfterConfirm}
+        locale={locale}
+        title={m(locale, "confirmDialog.offlineBookingTitle")}
+        description={m(locale, "confirmDialog.offlineBookingDesc")}
+        confirmLabel={m(locale, "owner.offline.submit")}
+      />
+    ) : null}
+    </>
   );
 }

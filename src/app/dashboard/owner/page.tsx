@@ -32,6 +32,7 @@ import { CalendarOverrideForm } from "@/components/owner/CalendarOverrideForm";
 import { OwnerBookingConfirmButton } from "@/components/owner/OwnerBookingConfirmButton";
 import { OwnerPaymentApproveButton } from "@/components/owner/OwnerPaymentApproveButton";
 import { OwnerHelpTips } from "@/components/owner/OwnerHelpTips";
+import { OwnerHotelPersonnelPanel } from "@/components/owner/OwnerHotelPersonnelPanel";
 import ReviewReplyForm from "@/components/ReviewReplyForm";
 import { getOwnerDashboardKpis } from "@/lib/services/ownerDashboardKpis";
 import { getOwnerCalendarData } from "@/lib/services/ownerCalendar";
@@ -57,6 +58,7 @@ type OwnerSection =
   | "overview"
   | "properties"
   | "rooms"
+  | "personnel"
   | "bookings"
   | "offline-bookings"
   | "calendar"
@@ -70,6 +72,7 @@ const VALID_OWNER_SECTIONS = new Set<OwnerSection>([
   "overview",
   "properties",
   "rooms",
+  "personnel",
   "bookings",
   "offline-bookings",
   "calendar",
@@ -831,6 +834,7 @@ export default async function OwnerDashboardPage({
                     hotelId={h.id}
                     status={h.status}
                     rejectionReason={h.rejectionReason}
+                    locale={locale}
                   />
                 </div>
               ))}
@@ -1121,6 +1125,17 @@ export default async function OwnerDashboardPage({
               </form>
             </details>
           )}
+        </section>
+      )}
+
+      {activeSection === "personnel" && (
+        <section id="personnel" className="scroll-mt-28 space-y-4">
+          <div className="flex items-center gap-2">
+            <span className="h-8 w-1 rounded-full bg-sky-500" aria-hidden />
+            <h2 className="text-xl font-bold text-slate-900">{m(locale, "owner.personnel.title")}</h2>
+          </div>
+          <p className="text-sm text-slate-600">{m(locale, "owner.personnel.hint")}</p>
+          <OwnerHotelPersonnelPanel locale={locale} hotels={hotels.map((h) => ({ id: h.id, name: h.name }))} />
         </section>
       )}
 
