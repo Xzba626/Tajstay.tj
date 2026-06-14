@@ -8,13 +8,14 @@ export type AdminSection =
   | "bookings"
   | "finance"
   | "notifications"
-  | "complaints";
+  | "complaints"
+  | "archive";
 
 export type AdminMobileTab = "home" | "properties" | "bookings" | "users" | "menu";
 
 export const ADMIN_MOBILE_TABS: AdminMobileTab[] = ["home", "properties", "bookings", "users", "menu"];
 
-const MENU_SECTIONS = new Set<string>(["finance", "complaints", "notifications", "content"]);
+const MENU_SECTIONS = new Set<string>(["finance", "complaints", "notifications", "content", "archive"]);
 
 export function tabForSection(section: string): AdminMobileTab {
   if (section === "dashboard") return "home";
@@ -72,7 +73,8 @@ export function titleKeyForSection(section: AdminSection): string {
     bookings: "adminNav.bookings",
     finance: "adminNav.finance",
     complaints: "adminNav.complaints",
-    notifications: "adminNav.notifications"
+    notifications: "adminNav.notifications",
+    archive: "adminNav.archive"
   };
   return map[section] ?? "admin.pageTitle";
 }
