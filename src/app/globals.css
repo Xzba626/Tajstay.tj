@@ -2802,6 +2802,7 @@ select:focus,
 .owner-form-card {
   min-width: 0;
   max-width: 100%;
+  overflow-x: hidden;
   border-radius: 1.5rem;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: linear-gradient(160deg, rgba(15, 23, 42, 0.92), rgba(6, 20, 14, 0.95));
@@ -3013,6 +3014,7 @@ select:focus,
   backdrop-filter: blur(12px);
   box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.35);
   touch-action: manipulation;
+  box-sizing: border-box;
 }
 
 @media (max-width: 767px) {
@@ -3026,21 +3028,26 @@ select:focus,
 .owner-wizard-actions .owner-btn-secondary {
   width: 100%;
   min-width: 0;
+  max-width: 100%;
+  flex: 1 1 auto;
 }
 
-@media (min-width: 640px) {
+@media (min-width: 1024px) {
   .owner-wizard-actions {
     flex-direction: row;
     justify-content: space-between;
     gap: 1rem;
     padding: 0.75rem;
     padding-bottom: 0.75rem;
+    position: sticky;
+    bottom: 0.75rem;
   }
 
   .owner-wizard-actions .owner-onboarding-submit,
   .owner-wizard-actions .owner-btn-secondary {
     flex: 1 1 0;
     width: auto;
+    max-width: none;
   }
 
   .owner-wizard-actions--solo {

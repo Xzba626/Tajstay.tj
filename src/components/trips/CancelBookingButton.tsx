@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { mapBookingApiError } from "@/lib/booking/apiErrors";
 
 export function CancelBookingButton({ bookingId }: { bookingId: number }) {
   const router = useRouter();
@@ -18,8 +19,10 @@ export function CancelBookingButton({ bookingId }: { bookingId: number }) {
         method: "POST",
         credentials: "include"
       });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error((json as { error?: string }).error ?? "Не удалось отменить");
+      const json = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string };
+      if (!res.ok || json.ok === false) {
+        throw new Error(mapBookingApiError(json.error, res.status));
+      }
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Ошибка");
@@ -29,7 +32,7 @@ export function CancelBookingButton({ bookingId }: { bookingId: number }) {
   }
 
   return (
-    <span className="inline-flex flex-col gap-1">
+    <span className="inline-flex min-w-0 max-w-full flex-col gap-1">
       <button
         type="button"
         disabled={busy}
@@ -38,7 +41,11 @@ export function CancelBookingButton({ bookingId }: { bookingId: number }) {
       >
         {busy ? "Отмена…" : "✕ Отменить"}
       </button>
-      {error ? <span className="text-xs text-red-300">{error}</span> : null}
+      {error ? (
+        <span className="max-w-full break-words text-xs text-red-300" role="alert">
+          {error}
+        </span>
+      ) : null}
     </span>
   );
 }
