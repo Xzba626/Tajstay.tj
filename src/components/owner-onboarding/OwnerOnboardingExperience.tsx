@@ -631,20 +631,18 @@ export function OwnerOnboardingExperience({ L, ownerNav, defaults }: Props) {
             ) : null}
 
             {mobileWizard ? (
-              <div className="owner-wizard-actions mt-6">
+              <div className={`owner-wizard-actions mt-6${wizardStep === 0 ? " owner-wizard-actions--solo" : ""}`}>
                 {wizardStep > 0 ? (
-                  <button type="button" onClick={prevStep} className="owner-btn-secondary min-h-[48px] flex-1">
+                  <button type="button" onClick={prevStep} className="owner-btn-secondary min-h-[48px]">
                     {L.btnBack}
                   </button>
-                ) : (
-                  <span className="flex-1" />
-                )}
+                ) : null}
                 {wizardStep < 3 ? (
-                  <button type="button" onClick={nextStep} className="owner-onboarding-submit min-h-[48px] flex-1">
+                  <button type="button" onClick={nextStep} className="owner-onboarding-submit min-h-[48px]">
                     {L.btnNext}
                   </button>
                 ) : (
-                  <button type="button" disabled={loading} onClick={() => void submit()} className="owner-onboarding-submit min-h-[48px] flex-1">
+                  <button type="button" disabled={loading} onClick={() => void submit()} className="owner-onboarding-submit min-h-[48px]">
                     {loading ? loadingLabel : L.btnSubmit}
                   </button>
                 )}
