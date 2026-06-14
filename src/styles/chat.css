@@ -943,6 +943,9 @@ body.chat-fullscreen-route .flex.min-h-screen {
   border: 1px solid rgba(251, 191, 36, 0.25);
   background: rgba(217, 119, 6, 0.1);
   color: #fde68a;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
   padding: 0.65rem;
 }
 

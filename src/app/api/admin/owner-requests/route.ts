@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getAdminUser } from "@/lib/auth/requireAdmin";
 import { forbiddenJson } from "@/lib/auth/apiResponses";
 import { listOwnerRequestFileTypes } from "@/lib/owner/ownerRequestFiles";
+import { decryptOwnerApplicationField } from "@/lib/owner/ownerApplicationPii";
 
 export const dynamic = "force-dynamic";
 
@@ -52,6 +53,12 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     data: rows.map((row) => ({
       ...row,
+      fullName: decryptOwnerApplicationField(row.fullName) ?? row.fullName,
+      phone: decryptOwnerApplicationField(row.phone) ?? row.phone,
+      email: decryptOwnerApplicationField(row.email) ?? row.email,
+      address: decryptOwnerApplicationField(row.address) ?? row.address,
+      businessName: decryptOwnerApplicationField(row.businessName) ?? row.businessName,
+      inn: decryptOwnerApplicationField(row.inn) ?? row.inn,
       adminComment: row.comment,
       comment: undefined,
       availableFileTypes: fileTypesById.get(row.id) ?? []

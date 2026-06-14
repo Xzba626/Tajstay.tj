@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
-import { parseOwnerApplicationMeta } from "@/lib/owner/applicationMeta";
+import { decryptOwnerApplicationRow } from "@/lib/owner/ownerApplicationPii";
 import { listOwnerRequestFileTypes } from "@/lib/owner/ownerRequestFiles";
 import { OwnerRequestDetailPanel } from "@/components/admin/OwnerRequestDetailPanel";
 import { getLocale } from "@/lib/i18n/get-locale";
@@ -27,7 +27,8 @@ export default async function OwnerRequestDetailPage({ params }: Props) {
   });
   if (!app) notFound();
 
-  const meta = parseOwnerApplicationMeta(app.applicationMeta);
+  const decrypted = decryptOwnerApplicationRow(app);
+  const meta = decrypted.applicationMeta;
   const availableFileTypes = listOwnerRequestFileTypes(app);
   const dateLocale = locale === "en" ? "en-GB" : locale === "tg" ? "tg-TJ" : "ru-RU";
 
@@ -46,27 +47,27 @@ export default async function OwnerRequestDetailPage({ params }: Props) {
         <dl className="grid gap-3 text-sm sm:grid-cols-2">
           <div>
             <dt className="text-slate-500">{m(locale, "admin.ownerRequestsFullName")}</dt>
-            <dd className="font-medium text-slate-900">{app.fullName}</dd>
+            <dd className="font-medium text-slate-900">{decrypted.fullName}</dd>
           </div>
           <div>
             <dt className="text-slate-500">{m(locale, "profile.phone")}</dt>
-            <dd className="font-medium text-slate-900">{app.phone}</dd>
+            <dd className="font-medium text-slate-900">{decrypted.phone}</dd>
           </div>
           <div>
             <dt className="text-slate-500">{m(locale, "profile.email")}</dt>
-            <dd className="font-medium text-slate-900">{app.email}</dd>
+            <dd className="font-medium text-slate-900">{decrypted.email}</dd>
           </div>
           <div>
             <dt className="text-slate-500">{m(locale, "admin.ownerRequestsObject")}</dt>
-            <dd className="font-medium text-slate-900">{app.businessName}</dd>
+            <dd className="font-medium text-slate-900">{decrypted.businessName}</dd>
           </div>
           <div>
             <dt className="text-slate-500">{m(locale, "admin.address")}</dt>
-            <dd className="font-medium text-slate-900">{app.address || meta?.address || "—"}</dd>
+            <dd className="font-medium text-slate-900">{decrypted.address || meta?.address || "—"}</dd>
           </div>
           <div>
             <dt className="text-slate-500">{m(locale, "admin.ownerRequestsInn")}</dt>
-            <dd className="font-medium text-slate-900">{app.inn || "—"}</dd>
+            <dd className="font-medium text-slate-900">{decrypted.inn || "—"}</dd>
           </div>
           <div>
             <dt className="text-slate-500">{m(locale, "admin.ownerRequestsUser")}</dt>
