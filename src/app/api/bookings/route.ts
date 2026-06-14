@@ -12,6 +12,7 @@ import { normalizePhone } from "@/lib/validation/phone";
 import { publicUrl } from "@/lib/http/publicOrigin";
 import { isPlaceholderAccountPhone } from "@/lib/auth/accountPhone";
 import { initializeBookingChatRoom } from "@/lib/chat/initializeBookingChat";
+import { notifyNewBookingRequest } from "@/lib/notifications/bookingChatNotify";
 import { dispatchBookingCreatedEmails } from "@/lib/email/bookingEmailDispatch";
 
 function bookingFormRedirect(
@@ -191,17 +192,14 @@ export async function POST(req: NextRequest) {
         ? await prisma.roomType.findUnique({ where: { id: resolvedRoomTypeId }, include: { hotel: true } })
         : null;
 
-    const ownerId =
-      ownerTarget && "hotel" in ownerTarget ? ownerTarget.hotel.ownerId : null;
-
-    if (ownerId) {
-      await prisma.notification.create({
-        data: {
-          userId: ownerId,
-          bookingId: booking.id,
-          type: "NEW_BOOKING",
-          isRead: false
-        }
+    if (ownerTarget && "hotel" in ownerTarget) {
+      const guestLabel = guestName?.trim() || phone || "Гость";
+      await notifyNewBookingRequest({
+        bookingId: booking.id,
+        ownerId: ownerTarget.hotel.ownerId,
+        hotelId: ownerTarget.hotel.id,
+        hotelName: ownerTarget.hotel.name,
+        guestLabel
       });
     }
 

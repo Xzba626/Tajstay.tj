@@ -25,8 +25,23 @@ export function bookingChatChannelName(bookingId: number): string {
   return `private-booking-chat-${bookingId}`;
 }
 
+/** Per-user alerts (new chat message, booking request) */
+export function userNotifyChannelName(userId: number): string {
+  return `private-user-notify-${userId}`;
+}
+
 export const PUSHER_EVENTS = {
   NEW_MESSAGE: "new-message",
   MESSAGE_READ: "message-read",
-  TYPING: "typing"
+  TYPING: "typing",
+  USER_ALERT: "user-alert"
 } as const;
+
+export type UserAlertPayload = {
+  kind: "chat" | "booking";
+  bookingId: number;
+  title: string;
+  body: string;
+  url: string;
+  senderUserId?: number;
+};
