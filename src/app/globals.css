@@ -2750,7 +2750,14 @@ select:focus,
 .owner-onboarding-page {
   margin-inline: auto;
   width: min(100%, var(--taj-page-max));
+  max-width: 100%;
   padding: 2rem var(--taj-page-px) 5rem;
+}
+
+@media (max-width: 767px) {
+  body.app-shell .owner-onboarding-page {
+    padding-bottom: calc(10rem + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 @media (min-width: 640px) {
@@ -2793,6 +2800,8 @@ select:focus,
 }
 
 .owner-form-card {
+  min-width: 0;
+  max-width: 100%;
   border-radius: 1.5rem;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: linear-gradient(160deg, rgba(15, 23, 42, 0.92), rgba(6, 20, 14, 0.95));
@@ -2810,6 +2819,16 @@ select:focus,
   margin-top: 2rem;
   padding-top: 2rem;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.owner-form-section {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.owner-upload-grid > * {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .owner-section-title {
@@ -2906,6 +2925,9 @@ select:focus,
 }
 
 .owner-upload-card {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
   border-radius: 1rem;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(0, 0, 0, 0.12);
@@ -2938,6 +2960,9 @@ select:focus,
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
   padding: 0.875rem 1rem;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -2974,13 +2999,58 @@ select:focus,
   bottom: 0.75rem;
   z-index: 20;
   display: flex;
+  width: 100%;
+  min-width: 0;
+  flex-shrink: 0;
+  flex-direction: column-reverse;
+  align-items: stretch;
   gap: 0.75rem;
   border-radius: 1.25rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(15, 23, 42, 0.92);
-  padding: 0.75rem;
+  padding: 0.75rem 1rem 1.5rem;
+  padding-bottom: max(1.5rem, calc(0.75rem + env(safe-area-inset-bottom, 0px)));
   backdrop-filter: blur(12px);
   box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.35);
+  touch-action: manipulation;
+}
+
+@media (max-width: 767px) {
+  body.app-shell .owner-wizard-actions {
+    bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+    z-index: 55;
+  }
+}
+
+.owner-wizard-actions .owner-onboarding-submit,
+.owner-wizard-actions .owner-btn-secondary {
+  width: 100%;
+  min-width: 0;
+}
+
+@media (min-width: 640px) {
+  .owner-wizard-actions {
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .owner-wizard-actions .owner-onboarding-submit,
+  .owner-wizard-actions .owner-btn-secondary {
+    flex: 1 1 0;
+    width: auto;
+  }
+
+  .owner-wizard-actions--solo {
+    justify-content: flex-end;
+  }
+
+  .owner-wizard-actions--solo .owner-onboarding-submit {
+    flex: 0 1 auto;
+    min-width: 10rem;
+  }
 }
 
 .owner-status-card {

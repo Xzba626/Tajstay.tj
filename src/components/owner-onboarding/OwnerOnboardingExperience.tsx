@@ -97,6 +97,7 @@ export function OwnerOnboardingExperience({ L, ownerNav, defaults }: Props) {
   const [formError, setFormError] = useState<string | null>(null);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [missingDualSummary, setMissingDualSummary] = useState<string[]>([]);
+  const [stepBlocked, setStepBlocked] = useState(false);
 
   const [fullName, setFullName] = useState(defaults.fullName);
   const [phone, setPhone] = useState(defaults.phone);
@@ -144,6 +145,7 @@ export function OwnerOnboardingExperience({ L, ownerNav, defaults }: Props) {
 
   const setUpload = useCallback((key: "selfie" | "facade" | "room" | "bathroom", file: File | null) => {
     setUploads((prev) => ({ ...prev, [key]: file }));
+    setStepBlocked(false);
     setErrors((prev) => {
       const next = { ...prev };
       delete next[key];
@@ -153,6 +155,7 @@ export function OwnerOnboardingExperience({ L, ownerNav, defaults }: Props) {
 
   const setDualUpload = useCallback((key: "identity" | "identityBack" | "propertyDoc", slot: DualSlotFiles) => {
     setUploads((prev) => ({ ...prev, [key]: slot }));
+    setStepBlocked(false);
     setErrors((prev) => {
       const next = { ...prev };
       delete next[key];
@@ -188,6 +191,29 @@ export function OwnerOnboardingExperience({ L, ownerNav, defaults }: Props) {
       { slot: state.propertyDoc, label: L.uploadPropertyDoc }
     ];
     return slots.filter((item) => !dualSlotFilled(item.slot)).map((item) => `${item.label} ${L.errMissingFieldItem}`);
+  }
+
+  function getStep2MissingUploads(state = uploads): string[] {
+    const items = getMissingDualSlotLabels(state);
+    const singles: { file: File | null; label: string }[] = [
+      { file: state.facade, label: L.uploadFacade },
+      { file: state.room, label: L.uploadRoom },
+      { file: state.bathroom, label: L.uploadBathroom }
+    ];
+    for (const { file, label } of singles) {
+      if (!file) items.push(`${label} ${L.errMissingFieldItem}`);
+    }
+    return items;
+  }
+
+  function scrollToWizardFeedback() {
+    if (typeof window === "undefined") return;
+    requestAnimationFrame(() => {
+      const target =
+        document.getElementById("owner-wizard-feedback") ??
+        document.querySelector(".owner-form-card [role='alert']");
+      target?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
   }
 
   function validateStep(step: number): FieldErrors {
@@ -425,7 +451,7 @@ export function OwnerOnboardingExperience({ L, ownerNav, defaults }: Props) {
       <h3 id="sec-docs" className="owner-section-title">
         {L.sectionDocuments}
       </h3>
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+      <div className="owner-upload-grid mt-4 grid gap-4 sm:grid-cols-2">
         <DualFileUploadCard
           name="identity"
           label={L.uploadIdentity}
@@ -544,10 +570,15 @@ export function OwnerOnboardingExperience({ L, ownerNav, defaults }: Props) {
 
   function nextStep() {
     const stepErrors = validateStep(wizardStep);
-    const missingDual = wizardStep === 2 ? getMissingDualSlotLabels() : [];
+    const missingUploads = wizardStep === 2 ? getStep2MissingUploads() : [];
     setErrors(stepErrors);
-    setMissingDualSummary(missingDual);
-    if (Object.keys(stepErrors).length) return;
+    setMissingDualSummary(missingUploads);
+    if (Object.keys(stepErrors).length) {
+      setStepBlocked(true);
+      scrollToWizardFeedback();
+      return;
+    }
+    setStepBlocked(false);
     setMissingDualSummary([]);
     setWizardStep((s) => Math.min(3, s + 1));
   }
@@ -614,13 +645,25 @@ export function OwnerOnboardingExperience({ L, ownerNav, defaults }: Props) {
             )}
 
             {missingDualSummary.length ? (
-              <div className="mt-4 rounded-xl border border-red-400/30 bg-red-950/40 px-4 py-3 text-sm text-red-200" role="alert">
+              <div
+                id="owner-wizard-feedback"
+                className="mt-4 rounded-xl border border-red-400/30 bg-red-950/40 px-4 py-3 text-sm text-red-200"
+                role="alert"
+              >
                 <p className="font-semibold">❌ {L.errMissingFieldsTitle}</p>
                 <ul className="mt-2 list-disc space-y-1 pl-5 text-xs">
                   {missingDualSummary.map((item) => (
                     <li key={item}>{item}</li>
                   ))}
                 </ul>
+              </div>
+            ) : stepBlocked && Object.keys(errors).length ? (
+              <div
+                id="owner-wizard-feedback"
+                className="mt-4 rounded-xl border border-red-400/30 bg-red-950/40 px-4 py-3 text-sm text-red-200"
+                role="alert"
+              >
+                <p className="font-semibold">❌ {L.errMissingFieldsTitle}</p>
               </div>
             ) : null}
 
@@ -631,20 +674,18 @@ export function OwnerOnboardingExperience({ L, ownerNav, defaults }: Props) {
             ) : null}
 
             {mobileWizard ? (
-              <div className="owner-wizard-actions mt-6">
+              <div className={`owner-wizard-actions mt-6${wizardStep === 0 ? " owner-wizard-actions--solo" : ""}`}>
                 {wizardStep > 0 ? (
-                  <button type="button" onClick={prevStep} className="owner-btn-secondary min-h-[48px] flex-1">
+                  <button type="button" onClick={prevStep} className="owner-btn-secondary min-h-[48px]">
                     {L.btnBack}
                   </button>
-                ) : (
-                  <span className="flex-1" />
-                )}
+                ) : null}
                 {wizardStep < 3 ? (
-                  <button type="button" onClick={nextStep} className="owner-onboarding-submit min-h-[48px] flex-1">
+                  <button type="button" onClick={nextStep} className="owner-onboarding-submit min-h-[48px]">
                     {L.btnNext}
                   </button>
                 ) : (
-                  <button type="button" disabled={loading} onClick={() => void submit()} className="owner-onboarding-submit min-h-[48px] flex-1">
+                  <button type="button" disabled={loading} onClick={() => void submit()} className="owner-onboarding-submit min-h-[48px]">
                     {loading ? loadingLabel : L.btnSubmit}
                   </button>
                 )}
