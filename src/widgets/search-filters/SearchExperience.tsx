@@ -26,6 +26,9 @@ type Props = {
   initialFilters: Partial<SearchFiltersState>;
   locale: Locale;
   nearbyCity?: string | null;
+  initialTotal?: number;
+  initialHasMore?: boolean;
+  initialPage?: number;
 };
 
 function amenityToggleClass(active: boolean) {
@@ -34,10 +37,21 @@ function amenityToggleClass(active: boolean) {
     : "border-white/12 bg-white/5 text-brand-200 hover:bg-white/10";
 }
 
-export function SearchExperience({ initialHotels, initialFilters, locale, nearbyCity = null }: Props) {
+export function SearchExperience({
+  initialHotels,
+  initialFilters,
+  locale,
+  nearbyCity = null,
+  initialTotal = initialHotels.length,
+  initialHasMore = false,
+  initialPage = 1
+}: Props) {
   const router = useRouter();
   const { filters, setFilters } = useSearchFilters(initialFilters);
   const [hotels, setHotels] = useState(initialHotels);
+  const [total, setTotal] = useState(initialTotal);
+  const [hasMore, setHasMore] = useState(initialHasMore);
+  const [page, setPage] = useState(initialPage);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [geoCoords, setGeoCoords] = useState<{ lat: number; lng: number } | null>(null);
@@ -49,14 +63,25 @@ export function SearchExperience({ initialHotels, initialFilters, locale, nearby
   const [previewHotel, setPreviewHotel] = useState<any | null>(null);
   const debouncedFilters = useDebounce(filters, 350);
   const cardNodesRef = useRef<Record<number, HTMLDivElement | null>>({});
-  const initialQueryRef = useRef(
-    buildSearchQueryString({ ...DEFAULT_SEARCH_FILTERS, ...initialFilters })
-  );
-  const skipNextFetchRef = useRef(true);
-
-  const queryString = useMemo(
+  const filtersOnlyQuery = useMemo(
     () => buildSearchQueryString(debouncedFilters, geoCoords),
     [debouncedFilters, geoCoords]
+  );
+  const initialFiltersQueryRef = useRef(filtersOnlyQuery);
+  const skipNextFetchRef = useRef(true);
+  const lastFiltersKeyRef = useRef(filtersOnlyQuery);
+  const effectivePage = lastFiltersKeyRef.current !== filtersOnlyQuery ? 1 : page;
+
+  useEffect(() => {
+    if (lastFiltersKeyRef.current !== filtersOnlyQuery) {
+      lastFiltersKeyRef.current = filtersOnlyQuery;
+      if (page !== 1) setPage(1);
+    }
+  }, [filtersOnlyQuery, page]);
+
+  const queryString = useMemo(
+    () => buildSearchQueryString(debouncedFilters, geoCoords, { page: effectivePage }),
+    [debouncedFilters, geoCoords, effectivePage]
   );
 
   const datesInvalid = Boolean(
@@ -75,7 +100,11 @@ export function SearchExperience({ initialHotels, initialFilters, locale, nearby
   useEffect(() => {
     if (datesInvalid) return;
 
-    if (skipNextFetchRef.current && queryString === initialQueryRef.current) {
+    const isInitialPage =
+      skipNextFetchRef.current &&
+      effectivePage === initialPage &&
+      filtersOnlyQuery === initialFiltersQueryRef.current;
+    if (isInitialPage) {
       skipNextFetchRef.current = false;
       return;
     }
@@ -89,8 +118,16 @@ export function SearchExperience({ initialHotels, initialFilters, locale, nearby
         const qs = queryString ? `?${queryString}` : "";
         const res = await fetch(`/api/search${qs}`, { signal: controller.signal });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        setHotels(data.hotels ?? []);
+        const data = (await res.json()) as {
+          hotels?: HotelItem[];
+          total?: number;
+          hasMore?: boolean;
+          page?: number;
+        };
+        const nextHotels = data.hotels ?? [];
+        setHotels((prev) => (effectivePage > 1 ? [...prev, ...nextHotels] : nextHotels));
+        setTotal(typeof data.total === "number" ? data.total : nextHotels.length);
+        setHasMore(Boolean(data.hasMore));
       } catch (e: unknown) {
         if (e instanceof Error && e.name === "AbortError") return;
         setLoadError(m(locale, "search.loadErrorBody"));
@@ -100,7 +137,7 @@ export function SearchExperience({ initialHotels, initialFilters, locale, nearby
     }
     void run();
     return () => controller.abort();
-  }, [queryString, retryTick, datesInvalid, locale]);
+  }, [queryString, retryTick, datesInvalid, locale, effectivePage, filtersOnlyQuery, initialPage]);
 
   useEffect(() => {
     if (!focusedHotelId) return;
@@ -150,6 +187,9 @@ export function SearchExperience({ initialHotels, initialFilters, locale, nearby
     setGeoError(null);
     setFocusedHotelId(null);
     setPreviewHotel(null);
+    setPage(1);
+    setTotal(0);
+    setHasMore(false);
   }
 
   const showSkeleton = loading && hotels.length === 0;
@@ -284,7 +324,11 @@ export function SearchExperience({ initialHotels, initialFilters, locale, nearby
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="text-sm text-brand-200" aria-live="polite">
-          {loading ? m(locale, "search.loading") : m(locale, "search.foundCount", { count: hotels.length })}
+          {loading
+            ? m(locale, "search.loading")
+            : total > hotels.length
+              ? m(locale, "search.foundCountPartial", { shown: hotels.length, total })
+              : m(locale, "search.foundCount", { count: hotels.length })}
           {nearbyCity && !filters.city && !geoCoords ? (
             <span className="mt-1 block text-xs text-emerald-200/90">
               {m(locale, "searchGeo.nearbyHint", { city: nearbyCity })}
@@ -368,6 +412,13 @@ export function SearchExperience({ initialHotels, initialFilters, locale, nearby
                   <div className="mt-4 flex flex-wrap gap-2">
                     <button
                       type="button"
+                      className="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-500"
+                      onClick={resetFilters}
+                    >
+                      {m(locale, "search.resetFilters")}
+                    </button>
+                    <button
+                      type="button"
                       className="rounded-xl bg-white/10 px-3 py-2 text-xs font-semibold text-white ring-1 ring-white/10 transition hover:bg-white/15"
                       onClick={() => setFilters((prev) => ({ ...prev, q: "", city: "" }))}
                     >
@@ -421,6 +472,18 @@ export function SearchExperience({ initialHotels, initialFilters, locale, nearby
                   />
                 </div>
               ))}
+              {hasMore && hotels.length > 0 ? (
+                <div className="md:col-span-2 flex justify-center pt-2">
+                  <button
+                    type="button"
+                    disabled={loading}
+                    className="rounded-2xl border border-brand-500 bg-brand-800/80 px-6 py-3 text-sm font-semibold text-brand-100 transition hover:bg-brand-700 disabled:opacity-60"
+                    onClick={() => setPage((prev) => prev + 1)}
+                  >
+                    {loading ? m(locale, "search.loading") : m(locale, "search.loadMore")}
+                  </button>
+                </div>
+              ) : null}
             </div>
           )}
         </div>

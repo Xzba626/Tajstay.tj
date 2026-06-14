@@ -1,4 +1,4 @@
-import { searchApprovedHotels } from "@/lib/services/search";
+import { searchApprovedHotelsPaginated } from "@/lib/services/search";
 import type { Metadata } from "next";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
@@ -37,6 +37,8 @@ type Props = {
     parking?: string;
     ratingMin?: string;
     sortBy?: "POPULAR" | "PRICE_ASC" | "RATING_DESC";
+    page?: string;
+    limit?: string;
   };
 };
 
@@ -56,10 +58,10 @@ export default async function SearchPage({ searchParams }: Props) {
   const bookErr = (searchParams.bookErr ?? "").trim();
   const errPath = BOOK_ERR_KEYS[bookErr];
   const parsed = parseSearchParams(searchParams);
-  const hotelsRaw = await searchApprovedHotels(
+  const searchResult = await searchApprovedHotelsPaginated(
     parsedSearchToServiceInput(parsed, { nearbyCity })
   );
-  const hotels = sortHotelsByNearbyCity(hotelsRaw, nearbyCity);
+  const hotels = sortHotelsByNearbyCity(searchResult.hotels, nearbyCity);
 
   return (
     <div className="mx-auto flex w-[94%] max-w-7xl flex-col justify-center space-y-8 px-0 py-8 sm:w-full sm:px-6 lg:px-8">
@@ -82,6 +84,9 @@ export default async function SearchPage({ searchParams }: Props) {
           locale={locale}
           nearbyCity={nearbyCity}
           initialFilters={searchFiltersFromParams(searchParams)}
+          initialTotal={searchResult.total}
+          initialHasMore={searchResult.hasMore}
+          initialPage={searchResult.page}
         />
       </div>
     </div>

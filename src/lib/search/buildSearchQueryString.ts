@@ -1,9 +1,16 @@
 import type { SearchFiltersState } from "@/features/search-hotels/model/useSearchFilters";
+import { SEARCH_DEFAULT_PAGE_SIZE } from "@/lib/services/search";
+
+export type SearchPaginationState = {
+  page?: number;
+  limit?: number;
+};
 
 /** Serialize filter state to a stable query string (omits empty/default values). */
 export function buildSearchQueryString(
   filters: SearchFiltersState,
-  geoCoords?: { lat: number; lng: number } | null
+  geoCoords?: { lat: number; lng: number } | null,
+  pagination?: SearchPaginationState
 ): string {
   const params = new URLSearchParams();
 
@@ -32,6 +39,11 @@ export function buildSearchQueryString(
     params.set("lat", String(geoCoords.lat));
     params.set("lng", String(geoCoords.lng));
   }
+
+  const page = pagination?.page ?? 1;
+  const limit = pagination?.limit ?? SEARCH_DEFAULT_PAGE_SIZE;
+  if (page > 1) params.set("page", String(page));
+  if (limit !== SEARCH_DEFAULT_PAGE_SIZE) params.set("limit", String(limit));
 
   return params.toString();
 }
