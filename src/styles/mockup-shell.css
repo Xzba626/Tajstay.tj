@@ -180,8 +180,18 @@
 }
 
 .mockup-status--pending {
-  background: rgba(251, 191, 36, 0.15);
-  color: var(--yellow);
+  background: rgba(148, 163, 184, 0.15);
+  color: #cbd5e1;
+}
+
+.mockup-status--payment {
+  background: rgba(251, 146, 60, 0.18);
+  color: #fdba74;
+}
+
+.mockup-status--review {
+  background: rgba(96, 165, 250, 0.16);
+  color: #93c5fd;
 }
 
 .mockup-status--cancelled {
@@ -294,12 +304,17 @@
   font-size: 0.9375rem;
   font-weight: 700;
   color: var(--gold);
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .mockup-host-banner__desc {
   margin-top: 0.35rem;
   font-size: 0.8125rem;
   color: var(--text-secondary);
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .mockup-contact-hero {

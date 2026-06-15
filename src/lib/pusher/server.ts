@@ -1,5 +1,12 @@
 import Pusher from "pusher";
-import { bookingChatChannelName, isPusherConfigured, PUSHER_EVENTS, pusherCluster } from "@/lib/pusher/config";
+import {
+  bookingChatChannelName,
+  isPusherConfigured,
+  PUSHER_EVENTS,
+  pusherCluster,
+  userNotifyChannelName,
+  type UserAlertPayload
+} from "@/lib/pusher/config";
 
 let instance: Pusher | null = null;
 
@@ -26,6 +33,16 @@ export async function triggerBookingChatEvent(
   if (!pusher) return;
   try {
     await pusher.trigger(bookingChatChannelName(bookingId), event, data);
+  } catch {
+    /* best-effort */
+  }
+}
+
+export async function triggerUserNotifyEvent(userId: number, payload: UserAlertPayload): Promise<void> {
+  const pusher = getPusherServer();
+  if (!pusher) return;
+  try {
+    await pusher.trigger(userNotifyChannelName(userId), PUSHER_EVENTS.USER_ALERT, payload);
   } catch {
     /* best-effort */
   }

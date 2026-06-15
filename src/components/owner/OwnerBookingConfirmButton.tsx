@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
+import { SensitiveActionConfirmDialog } from "@/components/ui/SensitiveActionConfirmDialog";
 
 type Props = {
   bookingId: number;
@@ -18,6 +19,7 @@ export function OwnerBookingConfirmButton({ bookingId, locale, label, className,
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   async function onConfirm() {
     if (busy) return;
@@ -36,6 +38,7 @@ export function OwnerBookingConfirmButton({ bookingId, locale, label, className,
         return;
       }
       setToast(json.message ?? m(locale, "owner.calendar.confirmSuccess"));
+      setConfirmOpen(false);
       router.refresh();
     } catch {
       setError(m(locale, "owner.calendar.confirmError"));
@@ -49,7 +52,7 @@ export function OwnerBookingConfirmButton({ bookingId, locale, label, className,
       <button
         type="button"
         disabled={busy}
-        onClick={() => void onConfirm()}
+        onClick={() => setConfirmOpen(true)}
         className={
           className ??
           "rounded-lg bg-emerald-700 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
@@ -59,6 +62,16 @@ export function OwnerBookingConfirmButton({ bookingId, locale, label, className,
       </button>
       {toast ? <span className="text-xs font-medium text-emerald-700">{toast}</span> : null}
       {error ? <span className="text-xs font-medium text-red-600">{error}</span> : null}
+      <SensitiveActionConfirmDialog
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={onConfirm}
+        locale={locale}
+        title={m(locale, "confirmDialog.confirmBookingTitle")}
+        description={m(locale, "confirmDialog.confirmBookingDesc")}
+        confirmLabel={m(locale, "owner.confirm")}
+        busy={busy}
+      />
     </div>
   );
 }

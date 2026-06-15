@@ -100,6 +100,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           <LocaleDetectBanner locale={locale} />
           <PwaClientShell
             isAuthed={Boolean(user)}
+            userId={user?.id ?? null}
             initialUnreadCount={unreadCount}
             toastLabel={m(locale, "notifications.bell.newToast")}
             installLabels={{

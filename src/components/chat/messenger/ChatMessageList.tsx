@@ -8,6 +8,7 @@ import { chatSenderBadgeClass, chatSenderLabel } from "@/lib/chat/senderLabel";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
 import { ChatReadTicks } from "@/components/chat/messenger/ChatReadTicks";
+import type { ChatParticipantRole } from "@/components/chat/BookingRoom.types";
 
 function timeLabel(iso: string): string {
   const d = new Date(iso);
@@ -23,7 +24,7 @@ type Props = {
   locale: Locale;
   items: ChatMessageDto[];
   currentUserId: number;
-  currentUserRole: "GUEST" | "OWNER" | "ADMIN";
+  currentUserRole: ChatParticipantRole;
   chatArchived: boolean;
   canSend: boolean;
   typingName: string | null;
@@ -135,20 +136,46 @@ export function ChatMessageList({
                     ) : (
                       <button
                         type="button"
-                        onClick={() => onImageOpen(msg.imageUrl!)}
-                        className="messenger-attachment messenger-attachment--image"
+                        title="Скрыть"
+                        onClick={() => onAdminDelete(msg.id)}
+                        className="messenger-messages__delete"
                       >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={msg.imageUrl} alt="" />
+                        ×
                       </button>
-                    )
-                  ) : null}
-                  {msg.message && msg.message !== "📎" ? (
-                    <div className="messenger-messages__text">{msg.message}</div>
-                  ) : null}
-                  <div className="messenger-messages__meta">
-                    <span className="chat-bubble__time">{timeLabel(msg.createdAt)}</span>
-                    <ChatReadTicks locale={locale} msg={msg} isMine={mine} />
+                    ) : null}
+                    {msg.imageUrl ? (
+                      isPdfUrl(msg.imageUrl) ? (
+                        <a
+                          href={msg.imageUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="messenger-attachment messenger-attachment--pdf"
+                        >
+                          <span className="messenger-attachment__icon" aria-hidden>
+                            PDF
+                          </span>
+                          <span className="messenger-attachment__label">
+                            {msg.message && msg.message !== "📎" ? msg.message : "Документ"}
+                          </span>
+                        </a>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => onImageOpen(msg.imageUrl!)}
+                          className="messenger-attachment messenger-attachment--image"
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={msg.imageUrl} alt="" />
+                        </button>
+                      )
+                    ) : null}
+                    {msg.message && msg.message !== "📎" ? (
+                      <div className="messenger-messages__text">{msg.message}</div>
+                    ) : null}
+                    <div className="messenger-messages__meta">
+                      <span className="chat-bubble__time">{timeLabel(msg.createdAt)}</span>
+                      <ChatReadTicks locale={locale} msg={msg} isMine={mine} />
+                    </div>
                   </div>
                 </div>
                 </div>

@@ -9,6 +9,7 @@ import { ChatMessengerHeader } from "@/components/chat/messenger/ChatMessengerHe
 import { useBookingChat } from "@/hooks/useBookingChat";
 import { guestBookingCancelAllowed } from "@/lib/booking/guestCancel";
 import { m } from "@/lib/i18n/messages";
+import { SensitiveActionConfirmDialog } from "@/components/ui/SensitiveActionConfirmDialog";
 
 export type BookingMessengerProps = BookingRoomProps;
 
@@ -32,6 +33,8 @@ export function BookingMessenger(props: BookingMessengerProps) {
   const [toast, setToast] = useState<string | null>(null);
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
+  const [deleteMessageId, setDeleteMessageId] = useState<number | null>(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
 
   const {
     items,
@@ -128,13 +131,18 @@ export function BookingMessenger(props: BookingMessengerProps) {
   }
 
   async function adminDeleteMessage(messageId: number) {
-    if (!isAdmin || !confirm("Удалить это сообщение?")) return;
+    if (!isAdmin) return;
+    setDeleteBusy(true);
+    setToast(null);
     try {
       const res = await fetch(`/api/admin/chat/messages/${messageId}`, { method: "DELETE", credentials: "include" });
       if (!res.ok) throw new Error("Не удалось удалить");
+      setDeleteMessageId(null);
       await pull();
     } catch (e) {
       setToast(e instanceof Error ? e.message : "Ошибка удаления");
+    } finally {
+      setDeleteBusy(false);
     }
   }
 
@@ -185,7 +193,7 @@ export function BookingMessenger(props: BookingMessengerProps) {
         canSend={canSend}
         typingName={typingName}
         onImageOpen={setLightbox}
-        onAdminDelete={isAdmin ? adminDeleteMessage : undefined}
+        onAdminDelete={isAdmin ? (id) => setDeleteMessageId(id) : undefined}
       />
 
       <ChatActionBar
@@ -261,6 +269,18 @@ export function BookingMessenger(props: BookingMessengerProps) {
           </div>
         </div>
       ) : null}
+
+      <SensitiveActionConfirmDialog
+        open={deleteMessageId != null}
+        onClose={() => setDeleteMessageId(null)}
+        onConfirm={() => (deleteMessageId != null ? adminDeleteMessage(deleteMessageId) : undefined)}
+        locale={locale}
+        title={m(locale, "confirmDialog.deleteMessageTitle")}
+        description={m(locale, "confirmDialog.deleteMessageDesc")}
+        confirmLabel={m(locale, "confirmDialog.confirm")}
+        variant="danger"
+        busy={deleteBusy}
+      />
     </div>
   );
 }

@@ -383,11 +383,17 @@ a.taj-btn--icon {
   font-size: inherit;
   font-weight: 600;
   color: inherit;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
 }
 
 .taj-notification-card__meta {
   margin-top: var(--taj-space-1);
   color: var(--taj-color-text-secondary);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
 }
 
 .taj-notification-card__footer {

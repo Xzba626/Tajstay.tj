@@ -9,6 +9,7 @@ import { chatSenderBadgeClass, chatSenderLabel } from "@/lib/chat/senderLabel";
 import type { Locale } from "@/lib/i18n/locale";
 import { formatBookingStatus } from "@/lib/i18n/bookingStatus";
 import { m } from "@/lib/i18n/messages";
+import { SensitiveActionConfirmDialog } from "@/components/ui/SensitiveActionConfirmDialog";
 import { PaymentCountdown } from "@/app/payment/[code]/PaymentCountdown";
 import { TrustBadges } from "@/components/auth/TrustBadges";
 import type { TrustBadge } from "@/lib/auth/trustBadges";
@@ -163,6 +164,10 @@ export function BookingChatPanel({
   const [toast, setToast] = useState<string | null>(null);
   const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
   const [confirmAdminCancelOpen, setConfirmAdminCancelOpen] = useState(false);
+  const [deleteMessageId, setDeleteMessageId] = useState<number | null>(null);
+  const [purgeChatOpen, setPurgeChatOpen] = useState(false);
+  const [hideChatOpen, setHideChatOpen] = useState(false);
+  const [sensitiveBusy, setSensitiveBusy] = useState(false);
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [chatArchived, setChatArchived] = useState(false);
   const [canSend, setCanSend] = useState(true);
@@ -402,30 +407,39 @@ export function BookingChatPanel({
   }
 
   async function adminDeleteMessage(messageId: number) {
-    if (!isAdmin || !confirm("Удалить это сообщение?")) return;
+    if (!isAdmin) return;
+    setSensitiveBusy(true);
     try {
       const res = await fetch(`/api/admin/chat/messages/${messageId}`, { method: "DELETE", credentials: "include" });
       if (!res.ok) throw new Error("Не удалось удалить");
+      setDeleteMessageId(null);
       await pull();
     } catch (e) {
       setToast(e instanceof Error ? e.message : "Ошибка удаления");
+    } finally {
+      setSensitiveBusy(false);
     }
   }
 
   async function adminPurgeRoom() {
-    if (!isAdmin || !confirm("Удалить всю переписку и вложения по этой брони?")) return;
+    if (!isAdmin) return;
+    setSensitiveBusy(true);
     try {
       const res = await fetch(`/api/admin/chat/booking/${bookingId}`, { method: "DELETE", credentials: "include" });
       if (!res.ok) throw new Error("Не удалось очистить чат");
+      setPurgeChatOpen(false);
       await pull();
       setToast("Чат очищен");
     } catch (e) {
       setToast(e instanceof Error ? e.message : "Ошибка");
+    } finally {
+      setSensitiveBusy(false);
     }
   }
 
   async function ownerHideChat() {
-    if (!isOwner || !confirm("Скрыть переписку у всех? Данные останутся в системе для споров.")) return;
+    if (!isOwner) return;
+    setSensitiveBusy(true);
     try {
       const res = await fetch(`/api/chat/booking/${bookingId}/owner-soft-delete`, {
         method: "POST",
@@ -435,9 +449,12 @@ export function BookingChatPanel({
       const json = (await res.json().catch(() => ({}))) as { messages?: ChatMessage[]; error?: string };
       if (!res.ok) throw new Error(messageFromChatResponse(res, json));
       setItems(Array.isArray(json.messages) ? json.messages : []);
+      setHideChatOpen(false);
       setToast("Переписка скрыта");
     } catch (e) {
       setToast(e instanceof Error ? e.message : "Ошибка");
+    } finally {
+      setSensitiveBusy(false);
     }
   }
 
@@ -546,7 +563,7 @@ export function BookingChatPanel({
             {isAdmin ? (
               <button
                 type="button"
-                onClick={() => adminPurgeRoom()}
+                onClick={() => setPurgeChatOpen(true)}
                 className="text-[10px] font-semibold uppercase tracking-wide text-red-300/90 underline-offset-2 hover:underline"
               >
                 Очистить чат
@@ -555,7 +572,7 @@ export function BookingChatPanel({
             {isOwner ? (
               <button
                 type="button"
-                onClick={() => ownerHideChat()}
+                onClick={() => setHideChatOpen(true)}
                 className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 underline-offset-2 hover:text-slate-200 hover:underline"
               >
                 Удалить чат
@@ -689,7 +706,7 @@ export function BookingChatPanel({
                       <button
                         type="button"
                         title="Скрыть"
-                        onClick={() => adminDeleteMessage(msg.id)}
+                        onClick={() => setDeleteMessageId(msg.id)}
                         className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-red-500/90 text-[11px] font-bold text-white opacity-0 transition group-hover:opacity-100"
                       >
                         ×
@@ -1016,6 +1033,41 @@ export function BookingChatPanel({
           </div>
         </div>
       ) : null}
+
+      <SensitiveActionConfirmDialog
+        open={deleteMessageId != null}
+        onClose={() => setDeleteMessageId(null)}
+        onConfirm={() => (deleteMessageId != null ? adminDeleteMessage(deleteMessageId) : undefined)}
+        locale={locale}
+        title={m(locale, "confirmDialog.deleteMessageTitle")}
+        description={m(locale, "confirmDialog.deleteMessageDesc")}
+        confirmLabel={m(locale, "confirmDialog.confirm")}
+        variant="danger"
+        busy={sensitiveBusy}
+      />
+      <SensitiveActionConfirmDialog
+        open={purgeChatOpen}
+        onClose={() => setPurgeChatOpen(false)}
+        onConfirm={adminPurgeRoom}
+        locale={locale}
+        title={m(locale, "confirmDialog.purgeChatTitle")}
+        description={m(locale, "confirmDialog.purgeChatDesc")}
+        confirmLabel={m(locale, "confirmDialog.confirm")}
+        confirmPhrase={m(locale, "confirmDialog.purgeChatPhrase")}
+        variant="danger"
+        busy={sensitiveBusy}
+      />
+      <SensitiveActionConfirmDialog
+        open={hideChatOpen}
+        onClose={() => setHideChatOpen(false)}
+        onConfirm={ownerHideChat}
+        locale={locale}
+        title={m(locale, "confirmDialog.hideChatTitle")}
+        description={m(locale, "confirmDialog.hideChatDesc")}
+        confirmLabel={m(locale, "confirmDialog.confirm")}
+        variant="danger"
+        busy={sensitiveBusy}
+      />
     </>
   );
 

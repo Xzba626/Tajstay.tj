@@ -34,6 +34,7 @@ function buildDrawerItems(items: Props["items"]): DrawerItem[] {
     { section: "finance", label: items.finance },
     { section: "complaints", label: items.complaints },
     { section: "notifications", label: items.notifications },
+    { section: "archive", label: items.archive },
     { section: "content", label: items.content }
   ];
 }

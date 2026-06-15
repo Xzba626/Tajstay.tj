@@ -34,7 +34,7 @@ export async function createNotification(input: CreateNotificationInput) {
 
 export async function createNotifications(inputs: CreateNotificationInput[]) {
   if (!inputs.length) return { count: 0 };
-  return prisma.notification.createMany({
+  const result = await prisma.notification.createMany({
     data: inputs.map((input) => ({
       userId: input.userId,
       type: input.type,
@@ -45,4 +45,15 @@ export async function createNotifications(inputs: CreateNotificationInput[]) {
       meta: input.meta ? JSON.stringify(input.meta) : undefined
     }))
   });
+  await Promise.allSettled(
+    inputs.map((input, i) =>
+      sendWebPushToUser(input.userId, {
+        title: input.title?.trim() || "Tajstay",
+        body: input.message?.trim() || input.type,
+        url: input.link || "/notifications",
+        tag: `n-batch-${i}-${input.userId}`
+      })
+    )
+  );
+  return result;
 }

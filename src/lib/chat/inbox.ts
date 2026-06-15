@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { BOOKING_STATUS } from "@/lib/domain/booking";
+import { moderatorBookingWhere } from "@/lib/pms/moderatorQueries";
 
 export type InboxFilter =
   | "all"
@@ -54,10 +55,12 @@ export async function getInboxConversations(params: {
 
   const where =
     role === "OWNER"
-      ? { room: { hotel: { ownerId: userId } } }
-      : role === "ADMIN"
-        ? {}
-        : { userId };
+      ? { room: { hotel: { ownerId: userId } }, chatArchivedAt: null }
+      : role === "HOTEL_MODERATOR"
+        ? { ...moderatorBookingWhere(userId), chatArchivedAt: null }
+        : role === "ADMIN"
+          ? { chatArchivedAt: null }
+          : { userId, chatArchivedAt: null };
 
   const bookings = await prisma.booking.findMany({
     where,

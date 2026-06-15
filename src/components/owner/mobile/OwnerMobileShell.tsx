@@ -20,6 +20,7 @@ const SECTION_TITLE_KEY: Record<string, string> = {
   overview: "overview",
   properties: "properties",
   rooms: "rooms",
+  personnel: "personnel",
   bookings: "bookings",
   "offline-bookings": "offlineBookings",
   calendar: "calendar",
@@ -35,6 +36,7 @@ export type OwnerMobileShellLabels = {
     overview: string;
     properties: string;
     rooms: string;
+    personnel: string;
     bookings: string;
     offlineBookings: string;
     calendar: string;

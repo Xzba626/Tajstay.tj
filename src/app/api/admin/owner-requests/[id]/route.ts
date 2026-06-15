@@ -5,7 +5,7 @@ import { getAdminUser } from "@/lib/auth/requireAdmin";
 import { forbiddenJson } from "@/lib/auth/apiResponses";
 import { listOwnerRequestFileTypes } from "@/lib/owner/ownerRequestFiles";
 import { approveOwnerRequest, rejectOwnerRequest } from "@/lib/owner/ownerRequestReview";
-import { parseOwnerApplicationMeta } from "@/lib/owner/applicationMeta";
+import { decryptOwnerApplicationRow } from "@/lib/owner/ownerApplicationPii";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +25,7 @@ const DETAIL_SELECT = {
   businessName: true,
   status: true,
   comment: true,
+  rejectionReason: true,
   createdAt: true,
   reviewedAt: true,
   reviewedById: true,
@@ -53,13 +54,29 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   if (!row) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const full = await prisma.ownerApplication.findUnique({ where: { id } });
-  const meta = parseOwnerApplicationMeta(row.applicationMeta);
+  if (!full) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  const decrypted = decryptOwnerApplicationRow(full);
+  const meta = decrypted.applicationMeta;
 
   return NextResponse.json({
     data: {
-      ...row,
-      adminComment: row.comment,
-      comment: undefined,
+      id: row.id,
+      userId: row.userId,
+      fullName: decrypted.fullName,
+      phone: decrypted.phone,
+      address: decrypted.address,
+      inn: decrypted.inn,
+      email: decrypted.email,
+      businessName: decrypted.businessName,
+      status: row.status,
+      rejectionReason: row.rejectionReason,
+      adminComment: row.rejectionReason ?? row.comment,
+      createdAt: row.createdAt,
+      reviewedAt: row.reviewedAt,
+      reviewedById: row.reviewedById,
+      user: row.user,
+      reviewedBy: row.reviewedBy,
       applicationMeta: meta
         ? {
             city: meta.city,
@@ -69,7 +86,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
             guestCapacity: meta.guestCapacity
           }
         : null,
-      availableFileTypes: full ? listOwnerRequestFileTypes(full) : []
+      availableFileTypes: listOwnerRequestFileTypes(full)
     }
   });
 }

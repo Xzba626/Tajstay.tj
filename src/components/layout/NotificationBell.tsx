@@ -258,12 +258,19 @@ export function NotificationBell({
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="flex items-start justify-between gap-2">
-                          <span className={cn("line-clamp-1 text-sm", !n.isRead ? "font-semibold text-slate-900" : "text-slate-800")}>
+                          <span
+                            className={cn(
+                              "text-sm break-words whitespace-normal",
+                              !n.isRead ? "font-semibold text-slate-900" : "text-slate-800"
+                            )}
+                          >
                             {title}
                           </span>
                           {!n.isRead ? <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-emerald-500" /> : null}
                         </span>
-                        {body ? <span className="mt-0.5 line-clamp-2 text-xs text-slate-500">{body}</span> : null}
+                        {body ? (
+                          <span className="mt-0.5 block text-xs break-words whitespace-normal text-slate-500">{body}</span>
+                        ) : null}
                         <span className="mt-1 block text-[11px] text-slate-400">{relativeTime(n.createdAt, labels)}</span>
                       </span>
                     </button>

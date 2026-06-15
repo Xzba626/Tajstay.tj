@@ -25,6 +25,7 @@ export default async function OwnerDashboardLayout({ children }: { children: Rea
       overview: m(locale, "owner.navOverview"),
       properties: m(locale, "owner.navProperties"),
       rooms: m(locale, "owner.navRooms"),
+      personnel: m(locale, "owner.navPersonnel"),
       bookings: m(locale, "owner.navBookings"),
       offlineBookings: m(locale, "owner.navOfflineBookings"),
       calendar: m(locale, "owner.navCalendar"),

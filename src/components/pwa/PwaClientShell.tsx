@@ -4,17 +4,21 @@ import { NotificationPollerProvider } from "@/components/pwa/NotificationPollerP
 import { PwaInstallPrompt, type PwaInstallLabels } from "@/components/pwa/PwaInstallPrompt";
 import { PwaProvider } from "@/components/pwa/PwaProvider";
 import { PwaPushPrompt, type PwaPushLabels } from "@/components/pwa/PwaPushPrompt";
+import { PushSubscriptionSync } from "@/components/pwa/PushSubscriptionSync";
+import { ChatAlertsProvider } from "@/components/pwa/ChatAlertsProvider";
 import { AuthStateSync } from "@/components/auth/AuthStateSync";
 import { DeviceSessionReporter } from "@/components/analytics/DeviceSessionReporter";
 
 export function PwaClientShell({
   isAuthed,
+  userId,
   initialUnreadCount,
   toastLabel,
   installLabels,
   pushLabels
 }: {
   isAuthed: boolean;
+  userId: number | null;
   initialUnreadCount: number;
   toastLabel: string;
   installLabels: PwaInstallLabels;
@@ -27,6 +31,8 @@ export function PwaClientShell({
         <>
           <AuthStateSync />
           <DeviceSessionReporter />
+          <PushSubscriptionSync />
+          <ChatAlertsProvider userId={userId} />
           <NotificationPollerProvider enabled initialUnreadCount={initialUnreadCount} toastLabel={toastLabel} />
         </>
       ) : null}

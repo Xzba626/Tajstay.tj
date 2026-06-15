@@ -4,9 +4,11 @@ import { cookies } from "next/headers";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { AdminBookingPayCountdown } from "@/components/admin/AdminBookingPayCountdown";
 import { AdminOwnerApplicationActions } from "@/components/admin/AdminOwnerApplicationActions";
+import { AdminUserVerifyDocumentsButton } from "@/components/admin/AdminUserVerifyDocumentsButton";
 import { AdminHotelModerationActions } from "@/components/admin/AdminHotelModerationActions";
 import { AdminPropertyTypesPanel } from "@/components/admin/AdminPropertyTypesPanel";
 import { OWNER_APPLICATION_STATUS } from "@/lib/domain/booking";
+import { decryptOwnerApplicationRow } from "@/lib/owner/ownerApplicationPii";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { formatBookingStatus } from "@/lib/i18n/bookingStatus";
 import { m } from "@/lib/i18n/messages";
@@ -38,6 +40,7 @@ import { fetchLastSessionsForUsers, type UserLastSession } from "@/lib/admin/use
 import { userAgentLabel } from "@/lib/auth/userAgentLabel";
 import { formatUserDisplayName } from "@/lib/users/displayName";
 import { PropertyTypesAdmin } from "@/components/admin/PropertyTypesAdmin";
+import { ChatArchiveClient } from "@/app/dashboard/admin/chat-archive/ChatArchiveClient";
 
 export const dynamic = "force-dynamic";
 
@@ -53,6 +56,7 @@ type AdminSection =
   | "finance"
   | "notifications"
   | "complaints"
+  | "archive"
   | "property-types";
 
 const VALID_SECTIONS = new Set<AdminSection>([
@@ -67,6 +71,7 @@ const VALID_SECTIONS = new Set<AdminSection>([
   "finance",
   "notifications",
   "complaints",
+  "archive",
   "property-types"
 ]);
 
@@ -172,6 +177,7 @@ export default async function AdminDashboardPage({
   let mobileQuickActions: AdminMobileQuickAction[] = [];
   let mobileActivity: AdminMobileActivityItem[] = [];
   let userLastSessions = new Map<number, UserLastSession>();
+  let latestOwnerAppByUserId = new Map<number, { id: number; status: string }>();
 
   if (activeSection === "dashboard") {
     const startOfToday = new Date();
@@ -349,6 +355,16 @@ export default async function AdminDashboardPage({
       take: pageSize
     });
     userLastSessions = await fetchLastSessionsForUsers(users.map((u) => u.id));
+    const ownerApps = await prisma.ownerApplication.findMany({
+      where: { userId: { in: users.map((u) => u.id) } },
+      orderBy: { createdAt: "desc" },
+      select: { id: true, userId: true, status: true }
+    });
+    for (const app of ownerApps) {
+      if (!latestOwnerAppByUserId.has(app.userId)) {
+        latestOwnerAppByUserId.set(app.userId, { id: app.id, status: app.status });
+      }
+    }
   } else if (activeSection === "owner-access") {
     const where = {
       role: "OWNER",
@@ -810,17 +826,19 @@ export default async function AdminDashboardPage({
           </p>
         ) : (
           <div className="grid gap-4 lg:grid-cols-2">
-            {ownerApplications.map((app) => (
+            {ownerApplications.map((app) => {
+              const decrypted = decryptOwnerApplicationRow(app);
+              return (
               <div
                 key={app.id}
                 className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm ring-1 ring-slate-100 transition-shadow hover:shadow-md"
               >
                 <div className="flex flex-wrap items-start justify-between gap-2">
-                  <div className="font-semibold text-slate-900">{app.fullName}</div>
+                  <div className="font-semibold text-slate-900">{decrypted.fullName}</div>
                   <StatusBadge variant="warning">{tStatus("PENDING")}</StatusBadge>
                 </div>
                 <div className="mt-2 text-sm text-slate-600">
-                  {app.businessName} · {app.phone} · {app.email}
+                  {decrypted.businessName} · {decrypted.phone} · {decrypted.email}
                 </div>
                 <div className="mt-1 text-xs text-slate-500">{m(locale, "admin.owner")}: {app.user.name} (id {app.userId})</div>
                 <div className="mt-3">
@@ -845,7 +863,8 @@ export default async function AdminDashboardPage({
                   }}
                 />
               </div>
-            ))}
+            );
+            })}
           </div>
         )}
       </section>}
@@ -1004,6 +1023,7 @@ export default async function AdminDashboardPage({
             {users.map((u) => {
               const displayName = formatUserDisplayName(u);
               const session = userLastSessions.get(u.id);
+              const ownerApp = latestOwnerAppByUserId.get(u.id);
               return (
               <li key={u.id} className="px-4 py-4 transition-colors hover:bg-slate-50/80 md:px-5">
                 <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr_1fr_1.1fr_1.2fr] lg:items-start">
@@ -1016,6 +1036,13 @@ export default async function AdminDashboardPage({
                     </div>
                     <StatusBadge variant={roleVariant(u.role)}>{tRole(u.role)}</StatusBadge>
                     {u.isBanned && <StatusBadge variant="danger">{m(locale, "admin.ban")}</StatusBadge>}
+                    {ownerApp ? (
+                      <AdminUserVerifyDocumentsButton
+                        locale={locale}
+                        applicationId={ownerApp.id}
+                        applicationStatus={ownerApp.status}
+                      />
+                    ) : null}
                   </div>
                   <div className="text-sm text-slate-600">
                     <span className="font-medium text-slate-400 lg:hidden">{m(locale, "profile.email")}: </span>
@@ -1432,6 +1459,17 @@ export default async function AdminDashboardPage({
             <h2 className="text-lg font-bold text-slate-900">{m(locale, "admin.propertyTypesSection")}</h2>
           </div>
           <AdminPropertyTypesPanel />
+        </section>
+      )}
+
+      {activeSection === "archive" && (
+        <section id="archive" className="scroll-mt-28 space-y-4">
+          <div className="flex items-center gap-2">
+            <span className="h-8 w-1 rounded-full bg-violet-400" aria-hidden />
+            <h2 className="text-lg font-bold text-slate-100">{m(locale, "chatArchive.title")}</h2>
+          </div>
+          <p className="text-sm text-slate-400">{m(locale, "chatArchive.subtitle")}</p>
+          <ChatArchiveClient locale={locale} />
         </section>
       )}
     </div>

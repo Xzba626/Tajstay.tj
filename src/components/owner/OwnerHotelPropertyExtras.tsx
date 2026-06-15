@@ -2,14 +2,18 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import type { Locale } from "@/lib/i18n/locale";
+import { m } from "@/lib/i18n/messages";
+import { SensitiveActionConfirmDialog } from "@/components/ui/SensitiveActionConfirmDialog";
 
 type Props = {
   hotelId: number;
   status: string;
   rejectionReason?: string | null;
+  locale: Locale;
 };
 
-export function OwnerHotelPropertyExtras({ hotelId, status, rejectionReason }: Props) {
+export function OwnerHotelPropertyExtras({ hotelId, status, rejectionReason, locale }: Props) {
   const router = useRouter();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -88,34 +92,19 @@ export function OwnerHotelPropertyExtras({ hotelId, status, rejectionReason }: P
         Удалить объект
       </button>
 
-      {showDeleteConfirm ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-slate-900 p-6 text-slate-100 ring-1 ring-white/10">
-            <h3 className="text-lg font-bold">Удалить объект?</h3>
-            <p className="mt-2 text-sm text-slate-300">
-              Объект будет скрыт с сайта. Завершённые брони и отзывы сохранятся в архиве.
-            </p>
-            <p className="mt-2 text-sm font-semibold text-red-200">Это действие нельзя отменить.</p>
-            <div className="mt-5 flex flex-wrap gap-2">
-              <button
-                type="button"
-                disabled={busy}
-                onClick={() => void handleDelete()}
-                className="rounded-xl bg-red-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
-              >
-                Да, удалить
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowDeleteConfirm(false)}
-                className="rounded-xl border border-white/20 px-4 py-2 text-sm"
-              >
-                Отмена
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <SensitiveActionConfirmDialog
+        open={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={handleDelete}
+        locale={locale}
+        title={m(locale, "confirmDialog.deleteHotelTitle")}
+        description={m(locale, "confirmDialog.deleteHotelDesc")}
+        warning={m(locale, "confirmDialog.deleteHotelWarning")}
+        confirmLabel={m(locale, "confirmDialog.confirm")}
+        confirmPhrase={m(locale, "confirmDialog.deleteHotelPhrase")}
+        variant="danger"
+        busy={busy}
+      />
     </div>
   );
 }
