@@ -114,7 +114,7 @@ export function ChatMessageList({
                     {msg.imageUrl && (
                       isPdfUrl(msg.imageUrl) ? (
                         <a href={msg.imageUrl} target="_blank" rel="noopener noreferrer" className="messenger-attachment messenger-attachment--pdf">
-                          <span className="messenger-attachment__icon" aria-hidden>PDF</span>
+                          <span className="messenger-attachment__icon" aria-hidden={true}>PDF</span>
                           <span className="messenger-attachment__label">{msg.message && msg.message !== "📎" ? msg.message : "Документ"}</span>
                         </a>
                       ) : (
@@ -143,8 +143,8 @@ export function ChatMessageList({
       {typingName ? (
         <div className="messenger-typing" aria-live="polite">
           {typingName} {m(locale, "chat.typing")}
-          <span className="messenger-typing__dots" aria-hidden>
-            <span /><span /><span />
+          <span className="messenger-typing__dots" aria-hidden={true}>
+            <span></span><span></span><span></span>
           </span>
         </div>
       ) : null}
