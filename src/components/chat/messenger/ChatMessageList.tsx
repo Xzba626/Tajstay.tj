@@ -101,54 +101,34 @@ export function ChatMessageList({
             }
 
             return (
-              <div
-                key={row.key}
-                className={`chat-bubble-row ${mine ? "chat-bubble-row--mine" : "chat-bubble-row--theirs"}`}
-              >
+              <div key={row.key} className={`chat-bubble-row ${mine ? "chat-bubble-row--mine" : "chat-bubble-row--theirs"}`}>
                 <div className={`chat-bubble-stack ${mine ? "chat-bubble-stack--mine" : "chat-bubble-stack--theirs"}`}>
                   <span className={chatSenderBadgeClass(msg.senderRole, mine)}>
                     {chatSenderLabel(locale, msg, mine)}
                   </span>
                   <div className={`group chat-bubble ${mine ? "chat-bubble--mine" : "chat-bubble--theirs"}`}>
-                    {isAdmin && onAdminDelete && !isSyntheticArchiveChatMessageId(msg.id) ? (
-                      <button
-                        type="button"
-                        title="Скрыть"
-                        onClick={() => onAdminDelete(msg.id)}
-                        className="messenger-messages__delete"
-                      >
-                        ×
-                      </button>
-                    ) : null}
-                    {msg.imageUrl ? (
+                    {isAdmin && onAdminDelete && !isSyntheticArchiveChatMessageId(msg.id) && (
+                      <button type="button" title="Скрыть" onClick={() => onAdminDelete(msg.id)} className="messenger-messages__delete">×</button>
+                    )}
+                    
+                    {msg.imageUrl && (
                       isPdfUrl(msg.imageUrl) ? (
-                        <a
-                          href={msg.imageUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="messenger-attachment messenger-attachment--pdf"
-                        >
-                          <span className="messenger-attachment__icon" aria-hidden>
-                            PDF
-                          </span>
-                          <span className="messenger-attachment__label">
-                            {msg.message && msg.message !== "📎" ? msg.message : "Документ"}
-                          </span>
+                        <a href={msg.imageUrl} target="_blank" rel="noopener noreferrer" className="messenger-attachment messenger-attachment--pdf">
+                          <span className="messenger-attachment__icon" aria-hidden>PDF</span>
+                          <span className="messenger-attachment__label">{msg.message && msg.message !== "📎" ? msg.message : "Документ"}</span>
                         </a>
                       ) : (
-                        <button
-                          type="button"
-                          onClick={() => onImageOpen(msg.imageUrl!)}
-                          className="messenger-attachment messenger-attachment--image"
-                        >
+                        <button type="button" onClick={() => onImageOpen(msg.imageUrl!)} className="messenger-attachment messenger-attachment--image">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={msg.imageUrl} alt="" />
                         </button>
                       )
-                    ) : null}
-                    {msg.message && msg.message !== "📎" ? (
+                    )}
+
+                    {msg.message && msg.message !== "📎" && (
                       <div className="messenger-messages__text">{msg.message}</div>
-                    ) : null}
+                    )}
+                    
                     <div className="messenger-messages__meta">
                       <span className="chat-bubble__time">{timeLabel(msg.createdAt)}</span>
                       <ChatReadTicks locale={locale} msg={msg} isMine={mine} />
@@ -164,9 +144,7 @@ export function ChatMessageList({
         <div className="messenger-typing" aria-live="polite">
           {typingName} {m(locale, "chat.typing")}
           <span className="messenger-typing__dots" aria-hidden>
-            <span />
-            <span />
-            <span />
+            <span /><span /><span />
           </span>
         </div>
       ) : null}
