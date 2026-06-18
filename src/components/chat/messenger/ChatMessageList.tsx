@@ -110,30 +110,7 @@ export function ChatMessageList({
                     {chatSenderLabel(locale, msg, mine)}
                   </span>
                   <div className={`group chat-bubble ${mine ? "chat-bubble--mine" : "chat-bubble--theirs"}`}>
-                  {isAdmin && onAdminDelete && !isSyntheticArchiveChatMessageId(msg.id) ? (
-                    <button
-                      type="button"
-                      title="Скрыть"
-                      onClick={() => onAdminDelete(msg.id)}
-                      className="messenger-messages__delete"
-                    >
-                      ×
-                    </button>
-                  ) : null}
-                  {msg.imageUrl ? (
-                    isPdfUrl(msg.imageUrl) ? (
-                      <a
-                        href={msg.imageUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="messenger-attachment messenger-attachment--pdf"
-                      >
-                        <span className="messenger-attachment__icon" aria-hidden>
-                          PDF
-                        </span>
-                        <span className="messenger-attachment__label">{msg.message && msg.message !== "📎" ? msg.message : "Документ"}</span>
-                      </a>
-                    ) : (
+                    {isAdmin && onAdminDelete && !isSyntheticArchiveChatMessageId(msg.id) ? (
                       <button
                         type="button"
                         title="Скрыть"
@@ -177,7 +154,6 @@ export function ChatMessageList({
                       <ChatReadTicks locale={locale} msg={msg} isMine={mine} />
                     </div>
                   </div>
-                </div>
                 </div>
               </div>
             );
