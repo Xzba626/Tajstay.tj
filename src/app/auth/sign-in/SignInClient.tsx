@@ -10,6 +10,7 @@ import { AuthPromoPanel, type AuthPromoLabels } from "@/components/auth/AuthProm
 import type { AuthPromoFeaturedHotel } from "@/lib/services/authPromoHotel";
 import { AuthSocialButtons } from "@/components/auth/AuthSocialButtons";
 import { TelegramLoginPanel } from "@/components/auth/TelegramLoginPanel";
+import { TajikPattern } from "@/components/ds/TajikPattern";
 
 type ApiUser = { id: number; role: string; name: string; phone: string; email?: string | null };
 
@@ -323,7 +324,7 @@ export function SignInClient({
   };
 
   return (
-    <main className="taj-auth-page">
+    <main className="taj-auth-page" data-heritage-motif="crown">
       <section className={`taj-auth-shell${isRegister ? " taj-auth-shell--register" : ""}`}>
         <AuthPromoPanel labels={promoLabels} featuredHotel={featuredHotel} />
 
@@ -339,6 +340,7 @@ export function SignInClient({
           ) : (
             <div className="taj-auth-inner">
               <div className="taj-auth-welcome">
+                <TajikPattern kind="crown" className="mx-auto mb-2" />
                 <div className="taj-auth-logo">
                   <Image
                     src={brandMarkUrl}

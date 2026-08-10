@@ -10,7 +10,7 @@
 |-------|--------|
 | `npx tsc --noEmit` | **Pass** |
 | `npm run lint` | **Pass** (pre-existing OwnerOnboarding `exhaustive-deps` warnings only) |
-| `next build` | Compile reached **✓ Compiled successfully**; full finish interrupted by hung typecheck after earlier SIGTERM kills of concurrent `next` processes. Prefer re-run `npm run build` alone (no `npm run dev`) to confirm. |
+| `npm run build` (clean, no parallel `dev`) | **Pass** (exit 0) — Verification Gate green for Phase 5F |
 
 ## Changed files
 

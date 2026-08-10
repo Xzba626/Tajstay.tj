@@ -19,7 +19,8 @@ import { HomeSectionHeader } from "@/components/home/HomeSectionHeader";
 import { HomeReviewsSection } from "@/components/home/HomeReviewsSection";
 import { headers } from "next/headers";
 import { getCityFromRequestHeaders, sortHotelsByNearbyCity } from "@/lib/geo/ipCity";
-import { AppImage } from "@/components/ui/AppImage";
+import { HomeHeroMedia } from "@/components/home/HomeHeroMedia";
+import { resolveHeroVideoSources } from "@/lib/heritage/heroVideo";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = getLocale();
@@ -91,27 +92,22 @@ export default async function HomePage() {
   );
 
   const heroImage = featured.find((h) => h.coverImageUrl)?.coverImageUrl ?? null;
+  const heroVideo = resolveHeroVideoSources();
 
   return (
-    <div className="home-page home-page--pamir pb-12 md:pb-20">
+    <div className="home-page home-page--pamir pb-12 md:pb-20" data-heritage-motif="pamir">
       <HomeScrollEnhancer />
 
-      {/* First viewport: brand · headline · line · search · full-bleed visual */}
-      <section className="home-hero-pamir" aria-label={BRAND.name}>
+      {/* First viewport: brand · headline · search · cinematic media */}
+      <section className="home-hero-pamir home-hero-pamir--heritage" aria-label={BRAND.name}>
         <div className="home-hero-pamir__media" aria-hidden>
-          {heroImage ? (
-            <AppImage
-              src={heroImage}
-              alt=""
-              fill
-              priority
-              className="object-cover"
-              sizes="100vw"
-            />
-          ) : (
-            <div className="home-hero-pamir__fallback" />
-          )}
-          <div className="home-hero-pamir__veil" />
+          <HomeHeroMedia sources={heroVideo} coverImageUrl={heroImage} />
+          {!heroVideo.enabled && !heroImage ? (
+            <>
+              <div className="home-hero-pamir__fallback" />
+              <div className="home-hero-pamir__veil" />
+            </>
+          ) : null}
         </div>
 
         <PageContainer publicPage className="home-hero-pamir__content relative z-[1] !py-0">
@@ -145,6 +141,7 @@ export default async function HomePage() {
           <HomeSectionHeader
             title={m(locale, "home.featuredTitle")}
             action={{ href: "/search", label: m(locale, "home.featuredAll") }}
+            motif="divider"
           />
           <div className="home-hotels-scroll">
             {featured.slice(0, 6).map((hotel) => (
@@ -172,6 +169,7 @@ export default async function HomePage() {
             eyebrow={m(locale, "home.destinationsBadge")}
             title={m(locale, "home.destinationsGridTitle")}
             action={{ href: "/search", label: m(locale, "home.ctaSearch") }}
+            motif="pamir"
           />
           <div className="home-dest-rail">
             {destinationCards.map((d) => (
@@ -202,6 +200,7 @@ export default async function HomePage() {
           <HomeSectionHeader
             title={m(locale, "home.trustTitle")}
             align="center"
+            motif="crown"
             className="!text-center [&_.home-section__desc]:mx-auto"
           />
           <ContentGrid cols={3} gap="md">

@@ -8,48 +8,68 @@ import type { HeroVideoSources } from "@/lib/heritage/heroVideo";
 type Props = {
   sources: HeroVideoSources;
   className?: string;
-  /** Intrinsic aspect / min height for layout reservation. */
   contentClassName?: string;
   children?: ReactNode;
-  /** Accessible label for the decorative media region. */
   label?: string;
+  /** Full-bleed under Home hero (no card chrome). */
+  variant?: "framed" | "bleed";
+  /** Mobile / tablet: poster only (save bandwidth). Desktop plays when sources.enabled. */
+  preferPosterOnMobile?: boolean;
 };
 
 /**
- * Cinematic Tajikistan landscape shell: muted seamless loop when sources exist,
- * poster fallback otherwise. Respects prefers-reduced-motion.
- * Phase 5F infrastructure — wire into Home in Phase 5a only.
+ * Cinematic Tajikistan landscape: muted seamless loop when sources exist.
+ * Never autoplays with sound. Mobile defaults to poster when preferPosterOnMobile.
  */
-export function HeroVideo({ sources, className, contentClassName, children, label = "Tajikistan landscape" }: Props) {
+export function HeroVideo({
+  sources,
+  className,
+  contentClassName,
+  children,
+  label = "Tajikistan landscape",
+  variant = "framed",
+  preferPosterOnMobile = true
+}: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [reduceMotion, setReduceMotion] = useState(false);
+  const [isNarrow, setIsNarrow] = useState(false);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const sync = () => setReduceMotion(mq.matches);
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const narrow = window.matchMedia("(max-width: 1023px)");
+    const sync = () => {
+      setReduceMotion(motion.matches);
+      setIsNarrow(narrow.matches);
+    };
     sync();
-    mq.addEventListener("change", sync);
-    return () => mq.removeEventListener("change", sync);
+    motion.addEventListener("change", sync);
+    narrow.addEventListener("change", sync);
+    return () => {
+      motion.removeEventListener("change", sync);
+      narrow.removeEventListener("change", sync);
+    };
   }, []);
+
+  const allowVideo =
+    sources.enabled && !reduceMotion && !failed && !(preferPosterOnMobile && isNarrow);
 
   useEffect(() => {
     const el = videoRef.current;
-    if (!el || reduceMotion || !sources.enabled || failed) return;
-    const play = () => {
-      void el.play().catch(() => setFailed(true));
-    };
-    play();
-  }, [sources.enabled, reduceMotion, failed, sources.mp4, sources.webm]);
-
-  const showVideo = sources.enabled && !reduceMotion && !failed;
+    if (!el || !allowVideo) return;
+    void el.play().catch(() => setFailed(true));
+  }, [allowVideo, sources.mp4, sources.webm]);
 
   return (
     <section
-      className={cn("heritage-hero-video", className)}
+      className={cn(
+        "heritage-hero-video",
+        variant === "bleed" && "heritage-hero-video--bleed",
+        className
+      )}
       aria-label={label}
       data-heritage-motif="pamir"
-      data-hero-video={showVideo ? "playing" : "poster"}
+      data-hero-video={allowVideo ? "playing" : "poster"}
     >
       {/* eslint-disable-next-line @next/next/no-img-element -- poster may be SVG or remote CDN */}
       <img
@@ -59,7 +79,7 @@ export function HeroVideo({ sources, className, contentClassName, children, labe
         aria-hidden
         decoding="async"
       />
-      {showVideo ? (
+      {allowVideo ? (
         <video
           ref={videoRef}
           className="heritage-hero-video__media"

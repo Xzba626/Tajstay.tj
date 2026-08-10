@@ -13,6 +13,7 @@ import { getUnreadNotificationsCount } from "@/lib/notifications/unread";
 import { NotificationBell } from "@/components/layout/NotificationBell";
 import { HeaderNav } from "@/components/layout/HeaderNav";
 import { getUserTrustBadges } from "@/lib/auth/trustBadges";
+import { TajikPattern } from "@/components/ds/TajikPattern";
 
 export async function Header() {
   const user = await getSessionUser();
@@ -137,7 +138,7 @@ export async function Header() {
         </div>
       </div>
       <div className="site-header__pattern hidden min-[1200px]:block" aria-hidden>
-        <span className="site-header__pattern-line" />
+        <TajikPattern kind="divider" className="w-full" />
       </div>
     </SiteHeaderFrame>
   );

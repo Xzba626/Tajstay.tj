@@ -36,11 +36,8 @@
 
   .profile-avatar--gold-ring.profile-avatar--photo,
   .profile-avatar--gold-ring.profile-avatar--initial {
-    box-shadow:
-      0 0 0 3px rgba(212, 175, 55, 0.55),
-      0 0 24px rgba(212, 175, 55, 0.28),
-      0 8px 24px rgba(0, 0, 0, 0.35);
-    border: 2px solid rgba(212, 175, 55, 0.45);
+    box-shadow: 0 0 0 3px rgba(212, 167, 44, 0.4);
+    border: 2px solid rgba(8, 127, 91, 0.35);
   }
 
   .profile-stat-row--compact {
@@ -107,13 +104,13 @@
   }
 
   .mockup-host-banner--owner {
-    background: linear-gradient(135deg, rgba(212, 175, 55, 0.2) 0%, rgba(1, 47, 26, 0.88) 55%);
-    border-color: rgba(212, 175, 55, 0.42);
-    box-shadow: 0 8px 28px rgba(212, 175, 55, 0.12);
+    background: var(--color-surface);
+    border-color: rgba(212, 167, 44, 0.45);
+    box-shadow: var(--taj-shadow-sm, 0 1px 2px rgba(17, 24, 39, 0.06));
   }
 
   .mockup-host-banner--owner .mockup-host-banner__title {
-    color: #f5e6b8;
+    color: var(--color-text);
   }
 
   .profile-edit-screen {

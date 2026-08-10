@@ -8,6 +8,7 @@ import { resolveUserNames } from "@/lib/profile/userName";
 import LogoutButton from "@/components/LogoutButton";
 import type { OwnerAppNavState } from "@/lib/navigation/getNavContext";
 import { ProfileBecomeOwnerCard } from "@/components/profile/ProfileBecomeOwnerCard";
+import { TajikPattern } from "@/components/ds/TajikPattern";
 
 type UserFull = {
   name: string;
@@ -44,14 +45,17 @@ export function ProfileHubView({ locale, user, ownerNav, logoutLabel }: Props) {
   const subtitle = profileContactSubtitle(user);
 
   return (
-    <div className="mockup-screen profile-hub-screen !px-0">
-      <div className="profile-hero-card">
+    <div className="mockup-screen profile-hub-screen !px-0" data-heritage-motif="chakan">
+      <div className="profile-hero-card relative overflow-hidden">
+        <TajikPattern kind="chakan" className="pointer-events-none absolute inset-0 opacity-[0.06]" />
+        <div className="relative z-[1] flex flex-col items-center">
         <ProfileAvatar name={fullName} imageUrl={user.image ?? user.telegramPhotoUrl} size="lg" className="profile-avatar--gold-ring" />
         <div className="profile-hero-card__name">{fullName}</div>
         {subtitle ? <div className="profile-hero-card__sub">{subtitle}</div> : null}
         <Link href="/profile/edit" className="btn-primary profile-hero-card__cta">
           {m(locale, "profile.editProfile")}
         </Link>
+        </div>
       </div>
 
       <div className="mockup-stat-row profile-stat-row--compact">

@@ -23,6 +23,7 @@
 @import "../styles/splash-screen.css";
 @import "../styles/owner-calendar.css";
 @import "../styles/pamir-overrides.css";
+@import "../styles/heritage-rollout.css";
 
 @tailwind base;
 @tailwind components;
@@ -1546,27 +1547,30 @@ footer {
 @layer base {
   html,
   body {
-    @apply bg-brand-900 text-white font-sans;
+    background-color: var(--color-background-soft);
+    color: var(--color-text);
+    font-family: var(--taj-font-ui), system-ui, sans-serif;
   }
 
   h1,
   h2,
   h3 {
-    font-family: "Playfair Display", Georgia, serif;
-    @apply text-white tracking-tight;
+    font-family: var(--taj-font-display), Georgia, serif;
+    color: var(--color-text);
+    letter-spacing: -0.02em;
   }
 
   h4,
   h5,
   h6 {
-    @apply text-white;
+    color: var(--color-text);
   }
 
   p,
   li,
   label,
   small {
-    @apply text-brand-200;
+    color: var(--color-text-secondary);
   }
 
   section {
@@ -1582,7 +1586,8 @@ footer {
   .page-backdrop--booking,
   .page-backdrop--dashboard,
   .page-backdrop--auth {
-    @apply bg-brand-gradient opacity-30;
+    background: transparent;
+    opacity: 1;
     filter: none !important;
   }
 
@@ -1595,23 +1600,37 @@ footer {
   .glass-panel,
   .quiet-card,
   .liquid-glass {
-    @apply bg-brand-800 border border-brand-700 shadow-lg;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--taj-shadow-sm);
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
   }
 
   .brand-gradient,
   .ds-primary-btn {
-    @apply bg-brand-500 text-white border border-brand-400 shadow-md transition duration-300 ease-out;
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    border: 1px solid var(--color-primary);
+    box-shadow: var(--taj-shadow-sm);
+    transition: background 0.2s ease, filter 0.2s ease;
   }
 
   .brand-gradient:hover,
   .ds-primary-btn:hover {
-    @apply bg-brand-400;
+    background: var(--color-primary-dark);
   }
 
   .ds-input {
-    @apply bg-brand-900 border border-brand-700 text-white placeholder:text-brand-200 rounded-xl px-3 py-2;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+    border-radius: var(--taj-radius-md);
+    padding: 0.5rem 0.75rem;
+  }
+
+  .ds-input::placeholder {
+    color: var(--color-text-muted);
   }
 
   .alert-success {

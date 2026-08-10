@@ -1,6 +1,10 @@
+"use client";
+
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/cn";
+import { TajikPattern } from "@/components/ds/TajikPattern";
+import type { TajPatternKind } from "@/components/ds/TajikPattern";
 
 type Props = {
   eyebrow?: string;
@@ -10,9 +14,20 @@ type Props = {
   align?: "left" | "center";
   className?: string;
   children?: ReactNode;
+  /** One dominant motif for this section (Phase 5V). */
+  motif?: TajPatternKind;
 };
 
-export function HomeSectionHeader({ eyebrow, title, description, action, align = "left", className, children }: Props) {
+export function HomeSectionHeader({
+  eyebrow,
+  title,
+  description,
+  action,
+  align = "left",
+  className,
+  children,
+  motif = "divider"
+}: Props) {
   return (
     <header
       className={cn(
@@ -24,13 +39,17 @@ export function HomeSectionHeader({ eyebrow, title, description, action, align =
       <div className={cn("min-w-0", align === "center" && "mx-auto")}>
         {eyebrow ? <p className="home-section__eyebrow">{eyebrow}</p> : null}
         <h2 className="home-section__title">{title}</h2>
+        <TajikPattern
+          kind={motif}
+          className={cn("heritage-section-motif", align === "center" && "heritage-section-motif--center")}
+        />
         {description ? <p className={cn("home-section__desc", align === "center" && "mx-auto")}>{description}</p> : null}
         {children}
       </div>
       {action ? (
         <Link
           href={action.href}
-          className="shrink-0 text-sm font-semibold text-emerald-300 underline-offset-4 transition hover:text-emerald-200 hover:underline"
+          className="shrink-0 text-sm font-semibold text-[var(--color-primary)] underline-offset-4 transition hover:text-[var(--color-primary-dark)] hover:underline"
         >
           {action.label}
         </Link>

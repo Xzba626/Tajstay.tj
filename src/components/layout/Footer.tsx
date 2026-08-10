@@ -3,6 +3,7 @@ import { BrandMark } from "@/components/brand/BrandMark";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
 import { getSiteContent } from "@/lib/site-content";
+import { TajikPattern } from "@/components/ds/TajikPattern";
 
 export async function Footer() {
   const locale = getLocale();
@@ -17,8 +18,9 @@ export async function Footer() {
   ];
 
   return (
-    <footer className="site-footer mt-auto">
+    <footer className="site-footer mt-auto" data-heritage-motif="main">
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <TajikPattern kind="divider" className="heritage-section-motif" />
         <div className="footer-brand-row">
           <BrandMark
             href="/"
@@ -40,7 +42,7 @@ export async function Footer() {
           ))}
         </nav>
 
-        <p className="footer-copyright mt-4 border-t border-white/10 pt-4 text-center text-xs text-[var(--taj-text-muted)] sm:text-left">
+        <p className="footer-copyright mt-4 border-t border-[var(--color-border)] pt-4 text-center text-xs text-[var(--taj-text-muted)] sm:text-left">
           © {year} {content.brand.siteName}. {m(locale, "footer.rights")}
         </p>
       </div>
