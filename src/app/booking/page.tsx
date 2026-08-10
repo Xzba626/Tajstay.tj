@@ -105,7 +105,7 @@ export default async function BookingPage({
           <div className="min-w-0 flex-1 space-y-1">
             <div className="text-lg font-semibold text-[var(--taj-ink)] sm:text-xl">{hotelName}</div>
             <div className="text-sm font-medium text-slate-300/95">{title}</div>
-            <div className="pt-1 text-sm text-[var(--taj-lake)]
+            <div className="pt-1 text-sm text-[var(--taj-lake)]">
               {m(locale, "owner.priceNight")}:{" "}
               <span className="tabular-nums font-semibold text-[var(--taj-ink)]">{pricePerNight} TJS</span>
             </div>
