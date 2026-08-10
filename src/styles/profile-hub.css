@@ -186,3 +186,35 @@
 .admin-mobile-dashboard__pull-hint {
   display: none;
 }
+
+/* Phase 4 — mobile account hub menu aligned to canonical DS (visual only) */
+.profile-hub-menu-row {
+  min-height: 2.85rem;
+  border-color: var(--color-border) !important;
+  background: var(--color-surface) !important;
+  color: var(--color-text) !important;
+}
+
+.profile-hub-menu-row__icon {
+  color: var(--color-text-secondary);
+}
+
+.profile-hub-menu-row:hover,
+.profile-hub-menu-row:active {
+  border-color: var(--color-primary) !important;
+  background: var(--color-primary-soft) !important;
+  color: var(--color-primary-dark) !important;
+}
+
+.profile-hub-menu-row:hover .profile-hub-menu-row__icon,
+.profile-hub-menu-row:active .profile-hub-menu-row__icon {
+  color: var(--color-primary);
+}
+
+.profile-hub-screen .profile-section-title {
+  color: var(--color-text);
+}
+
+.profile-hub-screen .profile-hero-card__name {
+  color: var(--color-text);
+}

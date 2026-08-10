@@ -61,13 +61,13 @@ export async function Header() {
 
   return (
     <SiteHeaderFrame>
-      <div className="site-header__inner mx-auto flex max-w-[var(--taj-page-max)] items-center justify-between gap-2 px-[var(--taj-page-px)] sm:gap-3">
+      <div className="site-header__inner mx-auto flex w-full max-w-[var(--taj-page-max)] items-center justify-between gap-2 px-[var(--taj-page-px)] sm:gap-3">
         <BrandMark
           href="/"
           name={content.brand.siteName}
           markSrc={content.brand.logoMarkUrl}
           size="sm"
-          className="max-w-[74vw] shrink sm:max-w-none"
+          className="site-header__brand max-w-[74vw] shrink sm:max-w-none"
           nameClassName="text-base sm:text-xl"
         />
 
@@ -75,6 +75,16 @@ export async function Header() {
           items={[
             { href: "/", label: m(locale, "header.home") },
             { href: "/search", label: m(locale, "header.search") },
+            {
+              href: "/favorites",
+              label: m(locale, "userMenu.favorites"),
+              desktopOnly: true
+            },
+            {
+              href: user?.role === "OWNER" ? "/dashboard/owner" : "/dashboard/bookings",
+              label: m(locale, "userMenu.bookings"),
+              desktopOnly: true
+            },
             { href: "/about", label: m(locale, "header.about") }
           ]}
         />
@@ -125,6 +135,9 @@ export async function Header() {
             </>
           )}
         </div>
+      </div>
+      <div className="site-header__pattern hidden min-[1200px]:block" aria-hidden>
+        <span className="site-header__pattern-line" />
       </div>
     </SiteHeaderFrame>
   );

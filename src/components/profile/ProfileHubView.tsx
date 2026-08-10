@@ -31,10 +31,10 @@ type Props = {
 
 function MenuRow({ href, icon: Icon, label }: { href: string; icon: typeof Lock; label: string }) {
   return (
-    <Link href={href} className="mockup-menu__item">
-      <Icon size={18} className="shrink-0 text-[var(--text-secondary)]" aria-hidden />
+    <Link href={href} className="mockup-menu__item profile-hub-menu-row">
+      <Icon size={18} className="profile-hub-menu-row__icon shrink-0" aria-hidden />
       <span>{label}</span>
-      <ChevronRight size={16} className="ml-auto text-[var(--text-muted)]" aria-hidden />
+      <ChevronRight size={16} className="ml-auto text-[var(--color-text-muted)]" aria-hidden />
     </Link>
   );
 }

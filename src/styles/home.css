@@ -689,22 +689,87 @@
 }
 
 .site-header .header-nav-link {
-  border-radius: var(--taj-radius-lg);
+  position: relative;
+  border-radius: var(--taj-radius-md);
   padding: 0.5rem 0.75rem;
   font-size: var(--taj-text-sm);
   font-weight: 600;
-  color: var(--taj-ink-soft, #3d4f5c);
-  transition: background 0.2s ease, color 0.2s ease;
+  color: var(--color-text-secondary, var(--taj-ink-soft));
+  transition:
+    background var(--duration-fast, 150ms) ease,
+    color var(--duration-fast, 150ms) ease;
 }
 
 .site-header .header-nav-link:hover {
-  background: var(--taj-lake-soft, #e6f1f3);
-  color: var(--taj-lake-deep, #0d3d45);
+  background: var(--color-primary-soft, var(--taj-lake-soft));
+  color: var(--color-primary, var(--taj-lake));
 }
 
 .site-header .header-nav-link.is-active {
-  background: var(--taj-lake-soft, #e6f1f3);
-  color: var(--taj-lake, #165a63);
+  background: transparent;
+  color: var(--color-primary, var(--taj-lake));
+}
+
+.site-header .header-nav-link.is-active::after {
+  content: "";
+  position: absolute;
+  left: 0.75rem;
+  right: 0.75rem;
+  bottom: 0.2rem;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--color-primary, var(--taj-lake));
+}
+
+.site-header__pattern {
+  height: 10px;
+  overflow: hidden;
+  color: var(--color-primary);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.site-header__pattern-line {
+  display: block;
+  height: 100%;
+  opacity: 0.28;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0 10px,
+    currentColor 10px 11px,
+    transparent 11px 18px,
+    currentColor 18px 22px,
+    transparent 22px 32px
+  );
+}
+
+@media (min-width: 1200px) {
+  .site-header__inner {
+    max-width: var(--taj-page-max);
+    min-height: 4.75rem;
+    padding-inline: 2rem;
+  }
+
+  .site-header .site-header__brand .brand-mark-badge,
+  .site-header .site-header__brand .brand-mark-badge--sm {
+    height: 2.75rem;
+    width: 2.75rem;
+  }
+
+  .site-header .site-header__brand .brand-mark-badge img {
+    height: 2rem !important;
+    width: 2rem !important;
+  }
+
+  .site-header .site-header__brand .brand-mark-name {
+    font-size: 1.35rem;
+  }
+}
+
+@media (min-width: 1600px) {
+  .site-header__inner {
+    max-width: var(--taj-page-max-large, 100rem);
+    padding-inline: 3rem;
+  }
 }
 
 /* ---- Home hotel cards ---- */

@@ -1,13 +1,25 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+import {
+  CalendarDays,
+  ChevronDown,
+  Heart,
+  LayoutDashboard,
+  LogOut,
+  Settings,
+  Shield,
+  User
+} from "lucide-react";
 import type { OwnerAppNavState } from "@/lib/navigation/getNavContext";
 import { cn } from "@/lib/cn";
 import { normalizeLocale, type Locale, LOCALE_COOKIE } from "@/lib/i18n/locale";
 import { notificationText } from "@/lib/notifications/text";
 import { TrustBadges } from "@/components/auth/TrustBadges";
 import type { TrustBadge } from "@/lib/auth/trustBadges";
+import { Separator } from "@/components/ds/Separator";
+import { NOTIFICATION_NEW_EVENT } from "@/lib/pwa/notificationEvents";
 
 export type UserMenuLabels = {
   account: string;
@@ -45,8 +57,6 @@ function initials(name: string) {
   if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
   return name.slice(0, 2).toUpperCase() || "?";
 }
-
-import { NOTIFICATION_NEW_EVENT } from "@/lib/pwa/notificationEvents";
 
 type NotificationItem = {
   id: number;
@@ -95,6 +105,13 @@ function getClientLocale(): Locale {
   }
 }
 
+function roleCaption(role: string, accountLabel: string): string {
+  if (role === "ADMIN") return "Admin";
+  if (role === "OWNER") return "Owner";
+  if (role === "HOTEL_MODERATOR") return "Moderator";
+  return accountLabel;
+}
+
 export function UserMenu({
   userName,
   role,
@@ -111,12 +128,21 @@ export function UserMenu({
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [markingReadAll, setMarkingReadAll] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const menuId = useId();
+
   useEffect(() => {
     function close(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     }
-    document.addEventListener("click", close);
-    return () => document.removeEventListener("click", close);
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("mousedown", close);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", close);
+      document.removeEventListener("keydown", onKey);
+    };
   }, []);
 
   useEffect(() => {
@@ -167,33 +193,30 @@ export function UserMenu({
   }
 
   const hasNotifications = unreadCount > 0 || items.length > 0;
+  const bookingsHref = role === "OWNER" ? "/dashboard/owner" : "/dashboard/bookings";
 
   return (
     <div className="relative" ref={ref}>
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className={cn("user-menu-trigger relative", open && "ring-2 ring-[var(--taj-lake)]/30")}
+        className={cn("user-menu-trigger relative", open && "is-open")}
         aria-expanded={open}
-        aria-haspopup="true"
+        aria-haspopup="menu"
+        aria-controls={menuId}
         aria-label={`${L.account}. ${L.unreadNotifications}: ${unreadCount}`}
       >
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[var(--taj-lake)] to-[var(--taj-lake-deep)] text-xs font-bold text-white shadow-inner">
+        <span className="user-menu-avatar" aria-hidden>
           {initials(userName)}
         </span>
-        <span className="hidden max-w-[7.5rem] truncate sm:inline">{userName}</span>
-        <svg
-          className={cn("h-4 w-4 shrink-0 text-[var(--taj-ink-soft)] transition-transform duration-200", open && "rotate-180")}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
+        <span className="user-menu-trigger__name hidden max-w-[8rem] truncate sm:inline">{userName}</span>
+        <ChevronDown
+          className={cn("h-4 w-4 shrink-0 text-[var(--color-text-secondary)] transition-transform duration-200", open && "rotate-180")}
           aria-hidden
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
+        />
         {unreadCount > 0 ? (
           <span
-            className="absolute -right-0.5 -top-0.5 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold leading-none text-white"
+            className="absolute -right-0.5 -top-0.5 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-[var(--color-danger)] px-1 text-[10px] font-bold leading-none text-white"
             aria-hidden
           >
             {unreadCount > 99 ? "99+" : unreadCount}
@@ -202,31 +225,35 @@ export function UserMenu({
       </button>
 
       <div
-        className={cn(
-          "user-menu-dropdown transition-all duration-200 ease-out",
-          open ? "pointer-events-auto translate-y-0 scale-100 opacity-100" : "pointer-events-none -translate-y-1 scale-[0.97] opacity-0"
-        )}
-        style={{ visibility: open ? "visible" : "hidden" }}
+        id={menuId}
+        className={cn("user-menu-dropdown", open ? "user-menu-dropdown--open" : "user-menu-dropdown--closed")}
         role="menu"
         aria-hidden={!open}
       >
-        <div className="border-b border-[var(--taj-line)] px-4 py-3">
-          <div className="truncate font-semibold text-[var(--taj-ink)]">{userName}</div>
-          <div className="text-xs text-[var(--taj-color-text-muted)]">{L.account}</div>
-          <TrustBadges locale={menuLocale} badges={trustBadges} size="sm" className="mt-2" />
+        <div className="user-menu-header">
+          <span className="user-menu-avatar user-menu-avatar--lg" aria-hidden>
+            {initials(userName)}
+          </span>
+          <div className="min-w-0">
+            <div className="truncate font-semibold text-[var(--color-text)]">{userName}</div>
+            <div className="text-xs text-[var(--color-text-secondary)]">{roleCaption(role, L.account)}</div>
+            <TrustBadges locale={menuLocale} badges={trustBadges} size="sm" className="mt-2" />
+          </div>
         </div>
 
-        <nav className="flex max-h-[min(70vh,28rem)] flex-col overflow-y-auto py-1">
+        <nav className="user-menu-scroll">
           {hasNotifications ? (
-            <div className="mx-2 mb-2 rounded-xl border border-[var(--taj-line)] bg-[var(--taj-mist)] p-2.5">
+            <div className="user-menu-notify-block">
               <div className="mb-1 flex items-center justify-between gap-2">
-                <div className="text-xs font-semibold text-[var(--taj-ink)]">{L.notificationsTitle}</div>
+                <div className="text-xs font-semibold text-[var(--color-text)]">{L.notificationsTitle}</div>
                 {unreadCount > 0 ? (
-                  <span className="rounded-full bg-[var(--taj-lake)] px-2 py-0.5 text-[10px] font-semibold text-white">{unreadCount}</span>
+                  <span className="rounded-full bg-[var(--color-primary)] px-2 py-0.5 text-[10px] font-semibold text-white">
+                    {unreadCount}
+                  </span>
                 ) : null}
               </div>
               {items.length === 0 ? (
-                <div className="text-xs text-[var(--taj-color-text-muted)]">{L.noNotifications}</div>
+                <div className="text-xs text-[var(--color-text-muted)]">{L.noNotifications}</div>
               ) : (
                 <div className="space-y-1.5">
                   {items.slice(0, 4).map((n) => (
@@ -237,8 +264,8 @@ export function UserMenu({
                       className={cn(
                         "block rounded-lg border px-2 py-1.5 text-xs transition",
                         n.isRead
-                          ? "border-[var(--taj-line)] bg-[var(--taj-mist)] text-[var(--taj-ink-soft)]"
-                          : "border-[var(--taj-lake)]/30 bg-[var(--taj-lake-soft)] text-[var(--taj-ink)]"
+                          ? "border-[var(--color-border)] bg-[var(--color-background-soft)] text-[var(--color-text-secondary)]"
+                          : "border-[var(--color-primary)]/25 bg-[var(--color-primary-soft)] text-[var(--color-text)]"
                       )}
                     >
                       <div className="font-semibold">{prettyNotificationText(n)}</div>
@@ -254,11 +281,15 @@ export function UserMenu({
                     readAllNotifications().catch(() => undefined);
                   }}
                   disabled={markingReadAll || unreadCount === 0}
-                  className="text-[11px] font-semibold text-[var(--taj-lake)] disabled:opacity-50"
+                  className="text-[11px] font-semibold text-[var(--color-primary)] disabled:opacity-50"
                 >
                   {L.markReadAll}
                 </button>
-                <Link href={allNotificationsLink(role)} onClick={() => setOpen(false)} className="text-[11px] font-semibold text-[var(--taj-ink-soft)]">
+                <Link
+                  href={allNotificationsLink(role)}
+                  onClick={() => setOpen(false)}
+                  className="text-[11px] font-semibold text-[var(--color-text-secondary)]"
+                >
                   {L.openAllNotifications}
                 </Link>
               </div>
@@ -267,71 +298,81 @@ export function UserMenu({
             <p className="user-menu-notifications-compact">{L.noNotifications}</p>
           )}
 
-          <Link href="/profile" className="user-menu-item mx-1" role="menuitem" onClick={() => setOpen(false)}>
-            {L.profile}
+          <Separator />
+
+          <Link href="/profile" className="user-menu-item" role="menuitem" onClick={() => setOpen(false)}>
+            <User size={18} aria-hidden />
+            <span>{L.profile}</span>
           </Link>
-          <Link
-            href={role === "OWNER" ? "/dashboard/owner" : "/dashboard/bookings"}
-            className="user-menu-item mx-1"
-            role="menuitem"
-            onClick={() => setOpen(false)}
-          >
-            {L.bookings}
+          <Link href={bookingsHref} className="user-menu-item" role="menuitem" onClick={() => setOpen(false)}>
+            <CalendarDays size={18} aria-hidden />
+            <span>{L.bookings}</span>
           </Link>
-          <Link href="/favorites" className="user-menu-item mx-1" role="menuitem" onClick={() => setOpen(false)}>
-            {L.favorites}
+          <Link href="/favorites" className="user-menu-item" role="menuitem" onClick={() => setOpen(false)}>
+            <Heart size={18} aria-hidden />
+            <span>{L.favorites}</span>
           </Link>
 
-          <div className="my-1 border-t border-[var(--taj-line)]" />
+          {(role === "GUEST" || role === "OWNER") && <Separator />}
 
           {role === "GUEST" && ownerApp.kind === "none" && (
-            <Link href="/profile/become-owner" className="user-menu-item user-menu-item--owner mx-1" onClick={() => setOpen(false)}>
-              {L.becomeOwner}
+            <Link href="/profile/become-owner" className="user-menu-item user-menu-item--owner" role="menuitem" onClick={() => setOpen(false)}>
+              <Settings size={18} aria-hidden />
+              <span>{L.becomeOwner}</span>
             </Link>
           )}
           {role === "GUEST" && ownerApp.kind === "pending" && (
-            <Link href="/profile/become-owner" className="user-menu-item mx-1 text-amber-200/90" onClick={() => setOpen(false)}>
-              {L.ownerPending}
+            <Link href="/profile/become-owner" className="user-menu-item user-menu-item--pending" role="menuitem" onClick={() => setOpen(false)}>
+              <Settings size={18} aria-hidden />
+              <span>{L.ownerPending}</span>
             </Link>
           )}
           {role === "GUEST" && ownerApp.kind === "approved" && (
-            <Link href="/dashboard/owner" className="user-menu-item user-menu-item--owner mx-1" onClick={() => setOpen(false)}>
-              {L.ownerApproved}
+            <Link href="/dashboard/owner" className="user-menu-item user-menu-item--owner" role="menuitem" onClick={() => setOpen(false)}>
+              <LayoutDashboard size={18} aria-hidden />
+              <span>{L.ownerApproved}</span>
             </Link>
           )}
           {role === "GUEST" && ownerApp.kind === "rejected" && (
             <>
-              <div className="mx-3 px-1 py-1.5 text-xs leading-snug text-red-300/90">
+              <div className="user-menu-rejected">
                 {L.ownerRejected}
                 {ownerApp.comment ? `: ${ownerApp.comment}` : ""}
               </div>
-              <Link href="/profile/become-owner" className="user-menu-item user-menu-item--owner mx-1" onClick={() => setOpen(false)}>
-                {L.applyAgain}
+              <Link href="/profile/become-owner" className="user-menu-item user-menu-item--owner" role="menuitem" onClick={() => setOpen(false)}>
+                <Settings size={18} aria-hidden />
+                <span>{L.applyAgain}</span>
               </Link>
             </>
           )}
 
           {role === "OWNER" && (
-            <Link href="/dashboard/owner" className="user-menu-item user-menu-item--owner mx-1" onClick={() => setOpen(false)}>
-              {L.ownerPanel}
+            <Link href="/dashboard/owner" className="user-menu-item user-menu-item--owner" role="menuitem" onClick={() => setOpen(false)}>
+              <LayoutDashboard size={18} aria-hidden />
+              <span>{L.ownerPanel}</span>
             </Link>
           )}
 
           {role === "ADMIN" && (
-            <Link href="/dashboard/admin" className="user-menu-item mx-1" onClick={() => setOpen(false)}>
-              {L.adminPanel}
-            </Link>
+            <>
+              <Separator />
+              <Link href="/dashboard/admin" className="user-menu-item user-menu-item--admin" role="menuitem" onClick={() => setOpen(false)}>
+                <Shield size={18} aria-hidden />
+                <span>{L.adminPanel}</span>
+              </Link>
+            </>
           )}
 
-          <div className="my-1 border-t border-[var(--taj-line)]" />
+          <Separator />
           <button
             type="button"
             disabled={loggingOut}
-            className="user-menu-item user-menu-item--danger mx-1 w-[calc(100%-0.5rem)] disabled:opacity-60"
+            className="user-menu-item user-menu-item--danger w-full disabled:opacity-60"
             role="menuitem"
             onClick={() => void logout()}
           >
-            {loggingOut ? L.loggingOut : L.logout}
+            <LogOut size={18} aria-hidden />
+            <span>{loggingOut ? L.loggingOut : L.logout}</span>
           </button>
         </nav>
       </div>
