@@ -27,6 +27,6 @@ export { FilterChip } from "./FilterChip";
 export type { FilterChipTone } from "./FilterChip";
 export { Dropdown } from "./Dropdown";
 export { Separator } from "./Separator";
-export { TajikPattern } from "./TajikPattern";
-export type { TajikPatternVariant } from "./TajikPattern";
+export { TajikPattern, TajPattern } from "./TajikPattern";
+export type { TajikPatternVariant, TajPatternKind } from "./TajikPattern";
 export type { TajButtonVariant, TajButtonSize, TajCardVariant, TajCardPadding } from "./types";

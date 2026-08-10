@@ -1,7 +1,16 @@
-# TajStay Design System — Canonical (Phase 2)
+# TajStay Design System — Canonical (Phase 2) + Heritage Layer
 
-> Modern Tajik Hospitality: white space + near-black type + emerald accent (~10%).  
-> One Design System. Legacy `--taj-*` / TZ / premium names are **aliases**, not parallel palettes.
+> **Modern Tajik Heritage:** white UI architecture + near-black type + emerald CTA (~10%) + thin Tajik geometry.  
+> One Design System. Legacy `--taj-*` / TZ / premium names are **aliases**, not parallel palettes.  
+> **Do not** return dark `#004724` chrome or full-screen ethnic wallpaper.
+
+```text
+Design System (tokens/components)  +  Heritage Layer (patterns + cultural accents)
+→ all Guest / Owner / Admin / Auth surfaces
+```
+
+Full pattern density, forbidden/allowed ornament rules, and screen matrix:  
+[`docs/heritage-visual-layer.md`](docs/heritage-visual-layer.md).
 
 ## Canonical color
 
@@ -15,10 +24,21 @@
 | Near black | `--color-text` | `#111827` |
 | Secondary text | `--color-text-secondary` | `#6B7280` |
 | Border | `--color-border` | `#E5E7EB` |
-| Accent (sparse) | `--color-accent` | `#C45C26` |
+| Accent (sparse / legacy) | `--color-accent` | `#C45C26` |
 | Danger | `--color-danger` | `#B42318` |
 
 Emerald only for: primary buttons, active nav, selected states, important links, CTAs, active icons, focus rings.
+
+### Heritage cultural accents (additive — not a second DS)
+
+| Role | Token | Hex | Use |
+|------|-------|-----|-----|
+| Tajik Red | `--taj-red` | `#C1121F` | Error accent, rare flag cue — never full-screen red |
+| Tajik Gold | `--taj-gold` | `#D4A72C` | Success / destination index / sparse highlight |
+| Tajik Blue | `--taj-blue` | `#2563A6` | Rare cultural accent |
+| Tajik Green | `--taj-green` | `#087F5B` | Alias of primary |
+
+**80–90%** white / soft bg / emerald / gray text. **10–20%** ornament + gold/red/blue + real photography. Red/gold must not compete with emerald CTAs. One screen = one dominant motif.
 
 ## Source of truth
 
@@ -59,6 +79,13 @@ Phase 2 prepares tokens only — no mass layout breakpoint migration.
 
 Raster logos / OG / favicons under `/brand/` are **not** auto-recolored. UI token `#0F6B4C` (legacy Verdant) was migrated to `#087F5B`; PNG assets keep their baked colors until a separate brand task.
 
+## Heritage patterns (summary)
+
+Family (SVG geometry — abstract, not carpet copies): **Main · Chakan · Crown · Pamir · Dushanbe · Frame · Divider · Corner · Micro**.
+
+Ornament = divider / corner / micro / section header / empty / hero wash / footer / thin card accent.  
+Never full-screen wallpaper; max ~1–2 strong pattern moments per viewport. Mobile density ≈ 35–40% of desktop.
+
 ## Agent mandate
 
-See [`.agents/skills/tajstay-design/SKILL.md`](.agents/skills/tajstay-design/SKILL.md).
+See [`.agents/skills/tajstay-design/SKILL.md`](.agents/skills/tajstay-design/SKILL.md) and [`docs/heritage-visual-layer.md`](docs/heritage-visual-layer.md).

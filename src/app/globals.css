@@ -6,6 +6,7 @@
 @import "../styles/variables.css";
 @import "../styles/taj-theme.css";
 @import "../styles/ds-components.css";
+@import "../styles/heritage.css";
 @import "../styles/home.css";
 @import "../styles/home-pamir.css";
 @import "../styles/auth.css";
@@ -2522,36 +2523,43 @@ select:focus,
 
 .header-auth-signin {
   display: none;
-  border-radius: 0.875rem;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--taj-radius-md, 0.75rem);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
   padding: 0.5rem 0.875rem;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #e2e8f0;
-  transition: background 0.2s ease, color 0.2s ease;
+  color: var(--color-text);
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .header-auth-signin:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
+  background: var(--color-primary-soft);
+  border-color: var(--color-primary);
+  color: var(--color-primary-dark);
 }
 
 .header-auth-signup {
   display: none;
   align-items: center;
   justify-content: center;
-  border-radius: 0.875rem;
-  background: linear-gradient(180deg, #34d399, #059669);
+  border-radius: var(--taj-radius-md, 0.75rem);
+  background: var(--color-primary);
   padding: 0.55rem 1.1rem;
   font-size: 0.875rem;
   font-weight: 700;
-  color: #052e1c;
-  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.28);
-  transition: filter 0.2s ease, transform 0.15s ease;
+  color: var(--color-on-primary);
+  box-shadow: var(--taj-shadow-sm, 0 1px 2px rgba(17, 24, 39, 0.06));
+  transition:
+    background 0.2s ease,
+    transform 0.15s ease;
 }
 
 .header-auth-signup:hover {
-  filter: brightness(1.06);
+  background: var(--color-primary-dark);
 }
 
 @media (min-width: 768px) {

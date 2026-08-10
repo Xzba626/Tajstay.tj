@@ -22,8 +22,9 @@ export function EmptyState({ title, description, action, icon, className }: Prop
       actions={action}
       icon={
         icon ?? (
-          <span className="relative inline-flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
-            <TajikPattern variant="subtle" className="absolute inset-0 opacity-40" />
+            <span className="relative inline-flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
+            <TajikPattern kind="chakan" className="absolute inset-0" />
+            <TajikPattern kind="micro" className="relative z-[1]" />
           </span>
         )
       }

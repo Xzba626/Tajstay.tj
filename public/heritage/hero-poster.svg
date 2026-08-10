@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="Tajikistan landscape placeholder">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#E8F4F8"/>
+      <stop offset="55%" stop-color="#F8FAFC"/>
+      <stop offset="100%" stop-color="#E6F5F0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#sky)"/>
+  <path d="M0 620 L220 420 L380 540 L560 280 L780 500 L980 340 L1180 480 L1380 360 L1600 520 L1600 900 L0 900 Z" fill="#087F5B" opacity="0.12"/>
+  <path d="M0 700 L180 560 L360 640 L540 440 L760 620 L1000 500 L1220 600 L1450 480 L1600 580 L1600 900 L0 900 Z" fill="#065F46" opacity="0.1"/>
+  <path d="M0 760 C400 700 800 780 1600 720 L1600 900 L0 900 Z" fill="#087F5B" opacity="0.08"/>
+  <path d="M720 240 L800 180 L880 240 L800 300 Z" fill="none" stroke="#087F5B" stroke-width="3" opacity="0.25"/>
+  <circle cx="800" cy="240" r="6" fill="#D4A72C" opacity="0.45"/>
+</svg>

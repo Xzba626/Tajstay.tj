@@ -25,6 +25,26 @@
   --color-accent-soft: #f8ebe3;
   --color-on-primary: #ffffff;
 
+  /* =========================================================
+   * Heritage Layer cultural accents (Phase 5F)
+   * Additive — not a second DS. Never compete with emerald CTAs.
+   * ========================================================= */
+  --taj-red: #c1121f;
+  --taj-gold: #d4a72c;
+  --taj-blue: #2563a6;
+  --taj-green: var(--color-primary);
+
+  --taj-red-soft: rgba(193, 18, 31, 0.08);
+  --taj-gold-soft: rgba(212, 167, 44, 0.12);
+  --taj-blue-soft: rgba(37, 99, 166, 0.08);
+
+  /* Pattern density (consumers multiply opacity) */
+  --heritage-density: 1;
+  --heritage-opacity-wash: 0.06;
+  --heritage-opacity-divider: 0.35;
+  --heritage-opacity-micro: 0.55;
+  --heritage-opacity-corner: 0.28;
+
   /* Optional deep surfaces (CTAs / rare dark bands — not app chrome) */
   --color-surface-deep: #065f46;
   --color-on-deep: #f8fafc;
@@ -201,6 +221,27 @@
   --brand-star: var(--color-accent);
   --brand-bg: var(--color-background-soft);
   --brand-text: var(--color-text);
+}
+
+/* Heritage density: mobile ≈ 35–40%, tablet ≈ 60%, desktop = 100% */
+@media (max-width: 767px) {
+  :root {
+    --heritage-density: 0.38;
+    --heritage-opacity-wash: 0.035;
+    --heritage-opacity-divider: 0.22;
+    --heritage-opacity-micro: 0.4;
+    --heritage-opacity-corner: 0.18;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1199px) {
+  :root {
+    --heritage-density: 0.6;
+    --heritage-opacity-wash: 0.045;
+    --heritage-opacity-divider: 0.28;
+    --heritage-opacity-micro: 0.48;
+    --heritage-opacity-corner: 0.22;
+  }
 }
 
 /* Existing padding steps — layout breakpoints unchanged (not 1200 mass migrate) */

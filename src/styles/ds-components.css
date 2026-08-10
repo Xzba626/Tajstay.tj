@@ -573,34 +573,7 @@ a.taj-btn--icon {
   margin: 0 var(--taj-space-2);
 }
 
-.tajik-pattern {
-  position: relative;
-  overflow: hidden;
-  color: var(--color-primary);
-  pointer-events: none;
-}
-
-.tajik-pattern__svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-.tajik-pattern--subtle {
-  opacity: 0.07;
-  min-height: 4rem;
-}
-
-.tajik-pattern--divider {
-  opacity: 0.35;
-  height: 12px;
-  color: var(--color-primary);
-}
-
-.tajik-pattern--footer {
-  opacity: 0.14;
-  min-height: 6rem;
-}
+/* TajikPattern styles live in heritage.css (Phase 5F) */
 
 .taj-select {
   appearance: none;
