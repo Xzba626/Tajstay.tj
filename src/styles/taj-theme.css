@@ -1,30 +1,30 @@
 /**
- * TajStay Verdant Peak — surfaces, buttons, inputs
+ * TajStay canonical theme (Phase 2) — surfaces, buttons, inputs
  */
 
 :root,
 [data-theme="light"],
 [data-theme="dark"] {
-  --taj-brand: #0f6b4c;
-  --taj-bg: #f4f7f5;
-  --taj-bg-light: #ffffff;
-  --taj-bg-dark: #0a4d37;
-  --taj-header: #0a4d37;
+  --taj-brand: var(--color-primary);
+  --taj-bg: var(--color-background-soft);
+  --taj-bg-light: var(--color-surface);
+  --taj-bg-dark: var(--color-primary-dark);
+  --taj-header: var(--color-surface);
 
-  --taj-app-bg: #f4f7f5;
+  --taj-app-bg: var(--color-background-soft);
 
   /* Sections */
-  --taj-section-bg: #ffffff;
-  --taj-section-border: #d5dfd9;
+  --taj-section-bg: var(--color-surface);
+  --taj-section-border: var(--color-border);
 
   /* Cards / panels */
-  --taj-card: #ffffff;
-  --taj-card-border: #d5dfd9;
+  --taj-card: var(--color-surface);
+  --taj-card-border: var(--color-border);
   --taj-card-shadow: 0 12px 32px rgba(15, 26, 20, 0.08);
 
   /* Strong cards */
-  --taj-card-strong: #ffffff;
-  --taj-card-strong-border: #b4c4bb;
+  --taj-card-strong: var(--color-surface);
+  --taj-card-strong-border: var(--color-border-strong);
 
   /* Legacy aliases */
   --taj-surface: var(--taj-section-bg);
@@ -35,58 +35,58 @@
   --taj-section: var(--taj-section-bg);
 
   /* Text */
-  --taj-text: #0f1a14;
-  --taj-text-secondary: #3d4f45;
-  --taj-text-muted: #6b7c72;
+  --taj-text: var(--color-text);
+  --taj-text-secondary: var(--color-text-secondary);
+  --taj-text-muted: var(--color-text-muted);
   --taj-muted: var(--taj-text-muted);
 
   /* Brand accents */
-  --taj-primary: #0f6b4c;
-  --taj-primary-hover: #0a4d37;
-  --taj-accent: #c45c26;
+  --taj-primary: var(--color-primary);
+  --taj-primary-hover: var(--color-primary-dark);
+  --taj-accent: var(--color-accent);
   --taj-accent-hover: #a34a1e;
-  --taj-gold: #c45c26;
+  --taj-gold: var(--color-accent);
 
   /* Inputs */
-  --taj-input: #ffffff;
-  --taj-input-border: #d5dfd9;
-  --taj-input-focus-border: #0f6b4c;
-  --taj-input-focus-ring: 0 0 0 3px rgba(15, 107, 76, 0.22);
+  --taj-input: var(--color-surface);
+  --taj-input-border: var(--color-border);
+  --taj-input-focus-border: var(--color-primary);
+  --taj-input-focus-ring: 0 0 0 3px rgba(8, 127, 91, 0.28);
 
   /* Primary button — solid lake, no neon gradient */
-  --taj-btn-primary-bg: #0f6b4c;
-  --taj-btn-primary-bg-hover: #0a4d37;
-  --taj-btn-primary-text: #ffffff;
+  --taj-btn-primary-bg: var(--color-primary);
+  --taj-btn-primary-bg-hover: var(--color-primary-dark);
+  --taj-btn-primary-text: var(--color-on-primary);
   --taj-btn-primary-border: transparent;
   --taj-btn-primary-shadow: 0 8px 20px rgba(10, 77, 55, 0.22);
   --taj-btn-primary-shadow-hover: 0 12px 28px rgba(10, 77, 55, 0.28);
   --taj-btn-primary-shadow-active: 0 4px 12px rgba(10, 77, 55, 0.2);
 
   /* Secondary button */
-  --taj-btn-secondary-bg: #ffffff;
-  --taj-btn-secondary-text: #0f1a14;
-  --taj-btn-secondary-border: #d5dfd9;
-  --taj-btn-secondary-bg-hover: #e6f2ec;
-  --taj-btn-secondary-border-hover: #0f6b4c;
+  --taj-btn-secondary-bg: var(--color-surface);
+  --taj-btn-secondary-text: var(--color-text);
+  --taj-btn-secondary-border: var(--color-border);
+  --taj-btn-secondary-bg-hover: var(--color-primary-soft);
+  --taj-btn-secondary-border-hover: var(--color-primary);
 
   /* Dropdown */
-  --taj-dropdown-bg: #ffffff;
-  --taj-dropdown-border: #d5dfd9;
+  --taj-dropdown-bg: var(--color-surface);
+  --taj-dropdown-border: var(--color-border);
   --taj-dropdown-shadow: 0 16px 40px rgba(15, 26, 20, 0.12);
-  --taj-dropdown-item: #0f1a14;
-  --taj-dropdown-item-hover-bg: #e6f2ec;
-  --taj-dropdown-item-hover-text: #0a4d37;
+  --taj-dropdown-item: var(--color-text);
+  --taj-dropdown-item-hover-bg: var(--color-primary-soft);
+  --taj-dropdown-item-hover-text: var(--color-primary-dark);
 
   /* Icons */
-  --taj-icon: #3d4f45;
-  --taj-icon-active: #0f6b4c;
-  --taj-icon-success: #1b6b4a;
-  --taj-icon-gold: #c45c26;
-  --taj-icon-warning: #c45c26;
-  --taj-icon-error: #b42318;
+  --taj-icon: var(--color-text-secondary);
+  --taj-icon-active: var(--color-primary);
+  --taj-icon-success: var(--color-success);
+  --taj-icon-gold: var(--color-accent);
+  --taj-icon-warning: var(--color-accent);
+  --taj-icon-error: var(--color-danger);
 
   /* Logo badge on dark green */
-  --taj-badge-bg: #f3f8f5;
+  --taj-badge-bg: var(--color-primary-soft);
   --taj-badge-border: rgba(212, 175, 55, 0.35);
 
   /* DS / public aliases */
@@ -95,7 +95,7 @@
   --taj-color-bg-card: var(--taj-card);
   --taj-color-bg-card-solid: var(--taj-card-strong);
   --taj-color-border: var(--taj-card-border);
-  --taj-color-border-strong: rgba(52, 211, 153, 0.28);
+  --taj-color-border-strong: var(--color-border-strong);
   --taj-color-text: var(--taj-text);
   --taj-color-text-secondary: var(--taj-text-secondary);
   --taj-color-text-muted: var(--taj-text-muted);

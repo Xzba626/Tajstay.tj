@@ -1,57 +1,64 @@
-# TajStay Design System — Verdant Peak
+# TajStay Design System — Canonical (Phase 2)
 
-> Visual identity for a travel product you would trust with a real trip.
-> Not Booking. Not Airbnb. Central Asian hospitality with mountain clarity — **green + white**.
+> Modern Tajik Hospitality: white space + near-black type + emerald accent (~10%).  
+> One Design System. Legacy `--taj-*` / TZ / premium names are **aliases**, not parallel palettes.
 
-## Brand feeling
+## Canonical color
 
-**Calm authority.** Mountain forests, clear air, warm tea at dusk — never neon, never casino emerald, never generic purple SaaS.
+| Role | Token | Hex |
+|------|-------|-----|
+| Primary Emerald | `--color-primary` | `#087F5B` |
+| Dark Emerald | `--color-primary-dark` | `#065F46` |
+| Soft emerald wash | `--color-primary-soft` | `#E6F5F0` |
+| White surface | `--color-surface` | `#FFFFFF` |
+| Soft background | `--color-background-soft` | `#F8FAFC` |
+| Near black | `--color-text` | `#111827` |
+| Secondary text | `--color-text-secondary` | `#6B7280` |
+| Border | `--color-border` | `#E5E7EB` |
+| Accent (sparse) | `--color-accent` | `#C45C26` |
+| Danger | `--color-danger` | `#B42318` |
 
-## Why this palette (not the prior lake-teal experiment)
+Emerald only for: primary buttons, active nav, selected states, important links, CTAs, active icons, focus rings.
 
-TajStay’s product brand is green + white. Teal was a useful interim for light surfaces; **Verdant Peak** reunites the UI with brand trust signals travelers already associate with the name, while keeping the composition wins (full-bleed hero, premium cards, light funnel).
+## Source of truth
 
-## Color (WCAG AA)
+[`src/styles/tokens.css`](src/styles/tokens.css)
 
-| Token | Hex | Role |
-|-------|-----|------|
-| `--taj-ink` | `#0F1A14` | Primary text |
-| `--taj-ink-soft` | `#3D4F45` | Secondary text |
-| `--taj-mist` | `#F4F7F5` | App canvas |
-| `--taj-snow` | `#FFFFFF` | Elevated surfaces / cards |
-| `--taj-lake` | `#0F6B4C` | Primary brand / CTAs *(legacy name; value = forest green)* |
-| `--taj-lake-deep` | `#0A4D37` | Hover / header depth |
-| `--taj-lake-soft` | `#E6F2EC` | Soft brand wash |
-| `--taj-saffron` | `#C45C26` | Accent (ratings, scarce) — use sparingly |
-| `--taj-line` | `#D5DFD9` | Borders |
-| `--taj-danger` | `#B42318` | Errors |
+Legacy bridges (not second systems):
 
-Contrast targets: body text on mist ≥ 7:1; primary button **white** text on brand ≥ 4.5:1.
+- [`src/styles/tz-design-tokens.css`](src/styles/tz-design-tokens.css) — old TZ names → canonical  
+- [`src/styles/variables.css`](src/styles/variables.css) — older aliases  
+- [`src/styles/taj-theme.css`](src/styles/taj-theme.css) — component surface tokens  
 
 ## Typography
 
-| Role | Family | Notes |
-|------|--------|-------|
-| UI | **DM Sans** | Body, buttons, forms — never Inter |
-| Display | **Playfair Display** | Brand moments & hero titles only |
+- UI: **DM Sans** (`--taj-font-ui`)  
+- Display: **Playfair Display** (`--taj-font-display`) — brand/hero only  
 
-Scale: 12 / 14 / 16 / 18 / 24 / 32 / 40 (fluid clamp for display).
+Scale tokens: Display · H1 · H2–H4 · Body Large/Body/Small · Caption · Button · Label (`--taj-text-*`).
 
-## Radius & elevation
+## Radius, shadow, z-index, motion
 
-- Controls: 12px
-- Cards: 16px
-- Hero search: 20px
-- Shadows: soft graphite/green-ink, **no green glow**
+- Radius base: 12–16px (`--taj-radius-md` / `--taj-radius-lg`)  
+- Shadows: subtle graphite — **no green glow**  
+- Z: base 0 · header 100 · dropdown 200 · overlay 300 · modal 400 · toast 500  
+- Menu motion: ~180–240ms (`--duration-menu`)
 
-## Motion
+## Breakpoints (layout policy)
 
-Only when it clarifies hierarchy or feedback (hero settle, card lift, focus ring). Prefer `transform`/`opacity`. Respect `prefers-reduced-motion`.
+| Range | Policy |
+|-------|--------|
+| `<768` | Existing mobile (do not redesign layout for desktop DS) |
+| `768–1199` | Existing tablet |
+| `≥1200` | New desktop visual redesign (Phase 4+) |
+| `≥1600` | Large desktop container |
 
-## First viewport (guest home)
+Phase 2 prepares tokens only — no mass layout breakpoint migration.
 
-Brand → one headline → one supporting line → search CTA → one full-bleed visual. No stats strips, no promo stickers on hero media, no card grid in the first fold.
+## Brand assets
+
+Raster logos / OG / favicons under `/brand/` are **not** auto-recolored. UI token `#0F6B4C` (legacy Verdant) was migrated to `#087F5B`; PNG assets keep their baked colors until a separate brand task.
 
 ## Agent mandate
 
-See [`.agents/skills/tajstay-design/SKILL.md`](.agents/skills/tajstay-design/SKILL.md): justify changes; keep what works; rewrite what doesn’t; never clone OTAs.
+See [`.agents/skills/tajstay-design/SKILL.md`](.agents/skills/tajstay-design/SKILL.md).

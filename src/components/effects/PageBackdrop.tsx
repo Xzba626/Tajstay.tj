@@ -48,16 +48,17 @@ export function PageBackdrop() {
       const time = t * 0.001;
 
       ctx.clearRect(0, 0, w, h);
-      ctx.fillStyle = "#004724";
+      /* Soft canvas — UI backdrop (not brand logo). Canonical soft bg. */
+      ctx.fillStyle = "#F8FAFC";
       ctx.fillRect(0, 0, w, h);
 
       if (variant === "subtle" || variant === "default") return;
 
       if (variant === "mountains") {
         const grad = ctx.createLinearGradient(0, 0, 0, h);
-        grad.addColorStop(0, "#006b38");
-        grad.addColorStop(0.45, "#004724");
-        grad.addColorStop(1, "#012f1a");
+        grad.addColorStop(0, "#E6F5F0");
+        grad.addColorStop(0.55, "#F8FAFC");
+        grad.addColorStop(1, "#EEF2F7");
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, w, h);
 
@@ -73,7 +74,7 @@ export function PageBackdrop() {
           }
           ctx.lineTo(w, h);
           ctx.closePath();
-          ctx.fillStyle = `rgba(34,197,94,${0.11 - layer * 0.025})`;
+          ctx.fillStyle = `rgba(8,127,91,${0.08 - layer * 0.02})`;
           ctx.fill();
         }
       } else if (variant === "grid") {
@@ -110,7 +111,7 @@ export function PageBackdrop() {
           ctx.stroke();
         }
       } else if (variant === "particles") {
-        ctx.fillStyle = "#012f1a";
+        ctx.fillStyle = "#F8FAFC";
         ctx.fillRect(0, 0, w, h);
 
         for (const p of particles) {
@@ -123,7 +124,7 @@ export function PageBackdrop() {
           const py = p.y * h;
           ctx.beginPath();
           ctx.arc(px, py, 2.2 * dpr, 0, Math.PI * 2);
-          ctx.fillStyle = "rgba(34,197,94,0.85)";
+          ctx.fillStyle = "rgba(8,127,91,0.35)";
           ctx.fill();
         }
         for (let i = 0; i < particles.length; i++) {

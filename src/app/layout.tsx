@@ -78,7 +78,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const pendingTripsCount =
     user?.role === "GUEST" ? await getPendingTripsCount(user.id) : 0;
   return (
-    <html lang={locale} className="scroll-smooth" data-theme="dark">
+    <html lang={locale} className="scroll-smooth" data-theme="light">
       <head>
         <link rel="manifest" href="/manifest.webmanifest" />
         <link rel="manifest" href="/site.webmanifest" />
@@ -91,7 +91,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-title" content={BRAND.name} />
       </head>
-      <body className="min-h-screen bg-[var(--brand-bg)] text-[var(--brand-text)] antialiased font-sans">
+      <body className="min-h-screen bg-[var(--color-background-soft)] text-[var(--color-text)] antialiased font-sans">
         <AuthProvider>
           <AppShell />
           <SplashScreen />

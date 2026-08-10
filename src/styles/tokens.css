@@ -1,20 +1,58 @@
 /**
- * TajStay Design System — Verdant Peak
- * Green + white brand: forest primary, soft mist canvas, saffron accent.
- * Token names `--taj-lake*` kept for compatibility; values are verdant green.
+ * TajStay Design System — Canonical tokens (Phase 2)
+ * Source of truth for UI colors, type, space, radius, elevation, z-index, motion.
+ * Legacy --taj-* / --ds-* names are aliases only — do not invent parallel values here.
  */
 
 :root {
-  /* ---- Layout widths ---- */
-  --taj-page-max: 80rem;
+  /* =========================================================
+   * Canonical color primitives (TZ 1A)
+   * ========================================================= */
+  --color-primary: #087f5b;
+  --color-primary-dark: #065f46;
+  --color-primary-soft: #e6f5f0;
+  --color-surface: #ffffff;
+  --color-background-soft: #f8fafc;
+  --color-text: #111827;
+  --color-text-secondary: #6b7280;
+  --color-text-muted: #6b7280;
+  --color-border: #e5e7eb;
+  --color-border-strong: #d1d5db;
+  --color-danger: #b42318;
+  --color-warning: #c45c26;
+  --color-success: #087f5b;
+  --color-accent: #c45c26;
+  --color-accent-soft: #f8ebe3;
+  --color-on-primary: #ffffff;
+
+  /* Optional deep surfaces (CTAs / rare dark bands — not app chrome) */
+  --color-surface-deep: #065f46;
+  --color-on-deep: #f8fafc;
+  --color-on-deep-muted: #d1fae5;
+
+  /* =========================================================
+   * Breakpoints (documentation tokens — do not mass-change layouts in Phase 2)
+   * Mobile <768 · Tablet 768–1199 · Desktop ≥1200 · Large ≥1600
+   * ========================================================= */
+  --bp-mobile-max: 767px;
+  --bp-tablet-min: 768px;
+  --bp-tablet-max: 1199px;
+  --bp-desktop-min: 1200px;
+  --bp-desktop-large-min: 1600px;
+
+  /* =========================================================
+   * Layout widths
+   * ========================================================= */
+  --taj-page-max: 90rem; /* 1440px */
+  --taj-page-max-large: 100rem; /* 1600px */
   --taj-page-max-narrow: 42rem;
   --taj-dashboard-max: 90rem;
   --taj-section-max: 72rem;
 
   --taj-page-px: 1rem;
   --taj-page-px-sm: 1.5rem;
-  --taj-page-px-lg: 2rem;
-  --taj-page-px-xl: 2.5rem;
+  --taj-page-px-lg: 2rem; /* 32px */
+  --taj-page-px-xl: 3rem; /* 48px — very wide */
 
   --taj-section-gap: 2.5rem;
   --taj-section-gap-lg: 4rem;
@@ -23,6 +61,7 @@
   --taj-stack-lg: 1.5rem;
   --taj-stack-xl: 2rem;
 
+  /* Spacing scale */
   --taj-space-1: 0.25rem;
   --taj-space-2: 0.5rem;
   --taj-space-3: 0.75rem;
@@ -33,31 +72,40 @@
   --taj-space-10: 2.5rem;
   --taj-space-12: 3rem;
 
+  /* Radius — base 12–16px */
   --taj-radius-sm: 0.5rem;
-  --taj-radius-md: 0.75rem;
-  --taj-radius-lg: 1rem;
+  --taj-radius-md: 0.75rem; /* 12px */
+  --taj-radius-lg: 1rem; /* 16px */
   --taj-radius-xl: 1.25rem;
   --taj-radius-2xl: 1.5rem;
   --taj-radius-card: 1rem;
   --taj-radius-card-lg: 1.25rem;
 
-  --taj-shadow-sm: 0 1px 2px rgba(15, 26, 20, 0.05), 0 4px 12px rgba(15, 26, 20, 0.04);
-  --taj-shadow-md: 0 8px 24px rgba(15, 26, 20, 0.08), 0 2px 8px rgba(15, 26, 20, 0.04);
-  --taj-shadow-lg: 0 20px 48px rgba(15, 26, 20, 0.1);
-  --taj-shadow-card: 0 12px 32px rgba(15, 26, 20, 0.08);
+  /* Shadows — subtle graphite, no green glow */
+  --taj-shadow-sm: 0 1px 2px rgba(17, 24, 39, 0.05), 0 4px 12px rgba(17, 24, 39, 0.04);
+  --taj-shadow-md: 0 8px 24px rgba(17, 24, 39, 0.08), 0 2px 8px rgba(17, 24, 39, 0.04);
+  --taj-shadow-lg: 0 20px 48px rgba(17, 24, 39, 0.1);
+  --taj-shadow-card: 0 12px 32px rgba(17, 24, 39, 0.08);
   --taj-shadow-glow: 0 0 0 transparent;
-  --taj-shadow-focus: 0 0 0 3px rgba(15, 107, 76, 0.28);
+  --taj-shadow-focus: 0 0 0 3px rgba(8, 127, 91, 0.28);
 
+  /* Typography */
   --taj-font-ui: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --taj-font-display: "Playfair Display", Georgia, "Times New Roman", serif;
   --font-body: var(--taj-font-ui);
-  --taj-text-xs: 0.75rem;
-  --taj-text-sm: 0.875rem;
-  --taj-text-base: 1rem;
-  --taj-text-lg: 1.125rem;
-  --taj-text-xl: 1.25rem;
-  --taj-text-2xl: 1.5rem;
-  --taj-text-3xl: clamp(1.75rem, 4.2vw, 2.5rem);
+  --font-display: var(--taj-font-display);
+
+  --taj-text-xs: 0.75rem; /* Caption */
+  --taj-text-sm: 0.875rem; /* Body Small / Label */
+  --taj-text-base: 1rem; /* Body */
+  --taj-text-lg: 1.125rem; /* Body Large */
+  --taj-text-xl: 1.25rem; /* H4 */
+  --taj-text-2xl: 1.5rem; /* H3 */
+  --taj-text-3xl: clamp(1.75rem, 4.2vw, 2.5rem); /* H2 / Display fluid */
+  --taj-text-h1: clamp(2rem, 4.5vw, 2.75rem);
+  --taj-text-display: clamp(2.25rem, 5vw, 3.25rem);
+  --taj-text-button: 0.9375rem;
+
   --taj-leading-tight: 1.2;
   --taj-leading-normal: 1.5;
   --taj-leading-relaxed: 1.65;
@@ -67,68 +115,95 @@
   --taj-control-h-lg: 3.125rem;
   --taj-control-px: 1rem;
 
-  /* ---- Verdant Peak palette ---- */
-  --taj-ink: #0f1a14;
-  --taj-ink-soft: #3d4f45;
-  --taj-mist: #f4f7f5;
-  --taj-snow: #ffffff;
-  --taj-lake: #0f6b4c;
-  --taj-lake-deep: #0a4d37;
-  --taj-lake-soft: #e6f2ec;
-  --taj-saffron: #c45c26;
-  --taj-saffron-soft: #f8ebe3;
-  --taj-line: #d5dfd9;
-  --taj-line-strong: #b4c4bb;
+  /* Z-index (TZ §11) */
+  --z-base: 0;
+  --z-header: 100;
+  --z-dropdown: 200;
+  --z-overlay: 300;
+  --z-modal: 400;
+  --z-toast: 500;
 
-  /* Public / app surfaces — light-first */
-  --taj-color-bg: var(--taj-mist);
-  --taj-color-bg-elevated: var(--taj-snow);
-  --taj-color-bg-card: var(--taj-snow);
-  --taj-color-bg-card-solid: var(--taj-snow);
-  --taj-color-border: var(--taj-line);
-  --taj-color-border-strong: var(--taj-line-strong);
-  --taj-color-text: var(--taj-ink);
-  --taj-color-text-secondary: var(--taj-ink-soft);
-  --taj-color-text-muted: #6b7c72;
-  --taj-color-primary: var(--taj-lake);
-  --taj-color-primary-hover: var(--taj-lake-deep);
-  --taj-color-primary-active: #083928;
-  --taj-color-accent: var(--taj-saffron);
-  --taj-color-danger: #b42318;
-  --taj-color-success: #0f6b4c;
-  --taj-color-warning: var(--taj-saffron);
+  /* Transitions */
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --duration-menu: 220ms;
+  --duration-slow: 400ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
 
-  --taj-color-bg-deep: var(--taj-lake-deep);
-  --taj-color-surface-dark: var(--taj-lake);
-  --taj-color-on-dark: #f5faf7;
-  --taj-color-on-dark-muted: #b7d5c6;
+  /* =========================================================
+   * Legacy --taj-* aliases → canonical (compatibility)
+   * ========================================================= */
+  --taj-lake: var(--color-primary);
+  --taj-lake-deep: var(--color-primary-dark);
+  --taj-lake-soft: var(--color-primary-soft);
+  --taj-snow: var(--color-surface);
+  --taj-mist: var(--color-background-soft);
+  --taj-ink: var(--color-text);
+  --taj-ink-soft: var(--color-text-secondary);
+  --taj-line: var(--color-border);
+  --taj-line-strong: var(--color-border-strong);
+  --taj-saffron: var(--color-accent);
+  --taj-saffron-soft: var(--color-accent-soft);
 
-  --taj-public-surface: var(--taj-snow);
-  --taj-public-surface-strong: var(--taj-snow);
+  --taj-color-bg: var(--color-background-soft);
+  --taj-color-bg-elevated: var(--color-surface);
+  --taj-color-bg-card: var(--color-surface);
+  --taj-color-bg-card-solid: var(--color-surface);
+  --taj-color-border: var(--color-border);
+  --taj-color-border-strong: var(--color-border-strong);
+  --taj-color-text: var(--color-text);
+  --taj-color-text-secondary: var(--color-text-secondary);
+  --taj-color-text-muted: var(--color-text-muted);
+  --taj-color-primary: var(--color-primary);
+  --taj-color-primary-hover: var(--color-primary-dark);
+  --taj-color-primary-active: var(--color-primary-dark);
+  --taj-color-accent: var(--color-accent);
+  --taj-color-danger: var(--color-danger);
+  --taj-color-success: var(--color-success);
+  --taj-color-warning: var(--color-warning);
 
-  /* Chat — readable on light shell */
-  --taj-chat-bg: var(--taj-mist);
-  --taj-chat-bubble-guest: linear-gradient(135deg, #14825c 0%, #0f6b4c 100%);
-  --taj-chat-bubble-host: var(--taj-snow);
-  --taj-chat-bubble-host-text: var(--taj-ink);
-  --taj-chat-input-bg: var(--taj-snow);
+  --taj-color-bg-deep: var(--color-surface-deep);
+  --taj-color-surface-dark: var(--color-primary);
+  --taj-color-on-dark: var(--color-on-deep);
+  --taj-color-on-dark-muted: var(--color-on-deep-muted);
 
-  /* Legacy DS aliases */
-  --ds-primary: var(--taj-lake);
-  --ds-secondary: var(--taj-saffron);
-  --ds-bg-main: var(--taj-color-bg);
-  --ds-bg-section: var(--taj-color-bg-elevated);
-  --ds-text-primary: var(--taj-color-text);
-  --ds-text-secondary: var(--taj-color-text-secondary);
-  --ds-text-muted: var(--taj-color-text-muted);
-  --ds-border: var(--taj-color-border);
+  --taj-public-surface: var(--color-surface);
+  --taj-public-surface-strong: var(--color-surface);
+
+  --taj-app-bg: var(--color-background-soft);
+  --taj-bg: var(--color-background-soft);
+
+  /* Chat — light shell */
+  --taj-chat-bg: var(--color-background-soft);
+  --taj-chat-bubble-guest: linear-gradient(135deg, #0a9a6e 0%, var(--color-primary) 100%);
+  --taj-chat-bubble-host: var(--color-surface);
+  --taj-chat-bubble-host-text: var(--color-text);
+  --taj-chat-input-bg: var(--color-surface);
+
+  /* DS aliases */
+  --ds-primary: var(--color-primary);
+  --ds-secondary: var(--color-accent);
+  --ds-bg-main: var(--color-background-soft);
+  --ds-bg-section: var(--color-surface);
+  --ds-text-primary: var(--color-text);
+  --ds-text-secondary: var(--color-text-secondary);
+  --ds-text-muted: var(--color-text-muted);
+  --ds-border: var(--color-border);
   --ds-shadow-soft: var(--taj-shadow-card);
-  --ds-radius: var(--taj-radius-xl);
+  --ds-radius: var(--taj-radius-lg);
   --ds-glow: transparent;
+  --ds-card: var(--color-surface);
+  --ds-card-2: var(--color-surface);
+  --ds-input-bg: var(--color-surface);
 
-  --brand-star: var(--taj-saffron);
+  --brand-star: var(--color-accent);
+  --brand-bg: var(--color-background-soft);
+  --brand-text: var(--color-text);
 }
 
+/* Existing padding steps — layout breakpoints unchanged (not 1200 mass migrate) */
 @media (min-width: 640px) {
   :root {
     --taj-page-px: var(--taj-page-px-sm);
@@ -144,5 +219,18 @@
 @media (min-width: 1280px) {
   :root {
     --taj-page-px: var(--taj-page-px-xl);
+  }
+}
+
+/* Desktop container hint (tokens only — consumers opt in later) */
+@media (min-width: 1200px) {
+  :root {
+    --taj-container-max: var(--taj-page-max);
+  }
+}
+
+@media (min-width: 1600px) {
+  :root {
+    --taj-container-max: var(--taj-page-max-large);
   }
 }

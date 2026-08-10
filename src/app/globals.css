@@ -1,7 +1,8 @@
+/* Phase 2: canonical tokens first, then legacy bridges */
+@import "../styles/tokens.css";
 @import "../styles/tz-design-tokens.css";
 @import "../styles/tz-typography.css";
 @import "../styles/tz-atoms.css";
-@import "../styles/tokens.css";
 @import "../styles/variables.css";
 @import "../styles/taj-theme.css";
 @import "../styles/ds-components.css";
@@ -29,35 +30,36 @@
 :root,
 [data-theme="light"],
 [data-theme="dark"] {
-  --app-bg: var(--taj-mist);
+  --app-bg: var(--color-background-soft);
   --app-vignette: none;
 }
 
+/* Slate utility remaps — light DS (both data-theme values = one visual theme) */
 [data-theme="light"] .text-slate-100,
 [data-theme="light"] .text-slate-200,
 [data-theme="dark"] .text-slate-100,
 [data-theme="dark"] .text-slate-200 {
-  color: var(--taj-text, #f8fafc) !important;
+  color: var(--color-text) !important;
 }
 
 [data-theme="light"] .text-slate-300,
 [data-theme="light"] .text-slate-400,
 [data-theme="dark"] .text-slate-300,
 [data-theme="dark"] .text-slate-400 {
-  color: var(--taj-text-secondary, #d8f1e2) !important;
+  color: var(--color-text-secondary) !important;
 }
 
 [data-theme="light"] .text-slate-500,
 [data-theme="dark"] .text-slate-500 {
-  color: var(--taj-text-muted, #b7d8c4) !important;
+  color: var(--color-text-muted) !important;
 }
 
 body {
   font-family: var(--font-body);
   margin: 0;
   min-height: 100vh;
-  background: var(--taj-app-bg, var(--app-bg));
-  color: var(--taj-color-text);
+  background: var(--color-background-soft);
+  color: var(--color-text);
 }
 
 button,
@@ -334,13 +336,13 @@ canvas {
   color: rgba(236, 253, 245, 0.96);
 }
 :root {
-  --taj-primary: #0f766e;
-  --taj-accent: #22c55e;
-  --taj-bg-main: #0b0f14;
-  --taj-bg-secondary: #111827;
-  --taj-surface: rgba(255, 255, 255, 0.05);
-  --taj-text-main: #e5e7eb;
-  --taj-text-secondary: #94a3b8;
+  --taj-primary: var(--color-primary);
+  --taj-accent: var(--color-primary);
+  --taj-bg-main: var(--color-background-soft);
+  --taj-bg-secondary: var(--color-surface);
+  --taj-surface: var(--color-surface);
+  --taj-text-main: var(--color-text);
+  --taj-text-secondary: var(--color-text-secondary);
 }
 
 .taj-border {
@@ -729,26 +731,26 @@ html.home-page-snap .home-chapter--snap {
 
 @media (max-width: 767px) {
   body {
-    background: var(--taj-app-bg, var(--app-bg)) !important;
+    background: var(--color-background-soft);
   }
 
   :root {
-    --brand-bg: #004724;
-    --brand-bg-2: #006b38;
-    --brand-text-muted: #b7d8c4;
-    --brand-border: rgba(52, 211, 153, 0.18);
+    --brand-bg: var(--color-background-soft);
+    --brand-bg-2: var(--color-primary-soft);
+    --brand-text-muted: var(--color-text-muted);
+    --brand-border: var(--color-border);
   }
 
   .page-vignette {
-    background: var(--app-vignette) !important;
+    background: var(--app-vignette);
   }
 
   .glass-panel,
   .liquid-glass,
   .surface-1 {
-    backdrop-filter: blur(6px) !important;
-    -webkit-backdrop-filter: blur(6px) !important;
-    box-shadow: 0 8px 20px rgba(2, 6, 23, 0.24) !important;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: var(--taj-shadow-sm);
   }
 
   .home-chapter-divider {
@@ -756,22 +758,22 @@ html.home-page-snap .home-chapter--snap {
   }
 
   .aurora-text {
-    color: #e2e8f0 !important;
-    background: none !important;
+    color: var(--color-text);
+    background: none;
     -webkit-background-clip: border-box;
     background-clip: border-box;
     text-shadow: none;
   }
 
   header {
-    background: rgba(15, 23, 42, 0.52) !important;
-    border-color: rgba(255, 255, 255, 0.18) !important;
+    background: var(--color-surface);
+    border-color: var(--color-border);
   }
 
   .brand-wordmark {
     background: none;
-    color: #f8fafc;
-    text-shadow: 0 8px 24px rgba(2, 6, 23, 0.4);
+    color: var(--color-text);
+    text-shadow: none;
   }
 }
 
@@ -1368,8 +1370,8 @@ nav a:hover::after {
 
 /* ---- Premium footer ---- */
 footer {
-  border-top: 1px solid rgba(52, 211, 153, 0.16);
-  background: linear-gradient(180deg, transparent, rgba(1, 47, 26, 0.75));
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
 }
 
 /* ---- Mobile responsive polish ---- */
@@ -1386,48 +1388,46 @@ footer {
   [data-theme="light"] .surface-1,
   [data-theme="light"] .liquid-glass,
   [data-theme="light"] .quiet-card {
-    background:
-      radial-gradient(circle at 20% 10%, rgba(34, 197, 94, 0.14), transparent 34%),
-      linear-gradient(135deg, rgba(24, 85, 50, 0.82), rgba(11, 47, 32, 0.88)) !important;
-    border-color: var(--taj-border) !important;
+    background: var(--color-surface);
+    border-color: var(--color-border);
   }
 }
 
 /* ========================================================================== */
-/* TAJSTAY UNIFIED DESIGN SYSTEM (ENFORCED)                                   */
+/* TAJSTAY UNIFIED DESIGN SYSTEM — Phase 2: point at canonical tokens          */
 /* ========================================================================== */
 
 :root {
-  --ds-primary: #22c55e;
-  --ds-secondary: #006b38;
-  --ds-bg-main: #004724;
-  --ds-bg-section: #006b38;
-  --ds-glow: rgba(34, 197, 94, 0.18);
-  --ds-text-primary: #f8fafc;
-  --ds-text-secondary: #d8f1e2;
-  --ds-text-muted: #b7d8c4;
-  --ds-border: rgba(52, 211, 153, 0.18);
-  --ds-shadow-soft: 0 10px 28px rgba(0, 0, 0, 0.28);
+  --ds-primary: var(--color-primary);
+  --ds-secondary: var(--color-primary-dark);
+  --ds-bg-main: var(--color-background-soft);
+  --ds-bg-section: var(--color-surface);
+  --ds-glow: transparent;
+  --ds-text-primary: var(--color-text);
+  --ds-text-secondary: var(--color-text-secondary);
+  --ds-text-muted: var(--color-text-muted);
+  --ds-border: var(--color-border);
+  --ds-shadow-soft: var(--taj-shadow-md);
   --ds-radius: 16px;
-  --ds-success-bg: rgba(20, 92, 67, 0.22);
-  --ds-success-border: #2f6d57;
-  --ds-success-text: #d7efe5;
-  --ds-warning-bg: rgba(76, 97, 84, 0.24);
-  --ds-warning-border: #486253;
-  --ds-warning-text: #d4dfd8;
-  --ds-danger-bg: rgba(84, 54, 58, 0.24);
-  --ds-danger-border: #66474b;
-  --ds-danger-text: #e7d5d8;
-  --ds-info-bg: rgba(38, 68, 58, 0.25);
-  --ds-info-border: #3a6859;
-  --ds-info-text: #d4e8e0;
+  --ds-success-bg: var(--color-primary-soft);
+  --ds-success-border: var(--color-primary);
+  --ds-success-text: var(--color-primary-dark);
+  --ds-warning-bg: var(--color-accent-soft);
+  --ds-warning-border: var(--color-warning);
+  --ds-warning-text: var(--color-warning);
+  --ds-danger-bg: #fef2f2;
+  --ds-danger-border: var(--color-danger);
+  --ds-danger-text: var(--color-danger);
+  --ds-info-bg: var(--color-primary-soft);
+  --ds-info-border: var(--color-primary);
+  --ds-info-text: var(--color-primary-dark);
 }
 
 html,
 body {
-  background: var(--ds-bg-main) !important;
-  color: var(--ds-text-primary) !important;
-  font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif !important;
+  background: var(--color-background-soft);
+  color: var(--color-text);
+  font-family: var(--taj-font-ui);
 }
 
 main,
@@ -1438,9 +1438,7 @@ article {
 
 .page-backdrop,
 .page-vignette {
-  background:
-    radial-gradient(960px 520px at 80% -10%, rgba(20, 92, 67, 0.20), transparent 72%),
-    radial-gradient(920px 520px at 10% 0%, rgba(15, 61, 46, 0.20), transparent 72%) !important;
+  background: var(--color-background-soft);
 }
 
 h1,
@@ -1451,7 +1449,7 @@ h5,
 h6,
 .text-slate-100,
 .text-slate-200 {
-  color: var(--ds-text-primary) !important;
+  color: var(--color-text);
 }
 
 p,
@@ -1693,43 +1691,31 @@ footer {
 }
 
 /* ==========================================================================
-   FINAL PREMIUM GREEN PASS (desktop + mobile)
-   - no blue/slate/navy blocks
-   - dark green theme only (day = lighter dark green)
+   FINAL PREMIUM GREEN PASS — Phase 2 neutralized
+   Was: dark emerald #004724 + neon #22c55e (desktop + mobile).
+   Now: canonical Design System tokens (one light visual theme).
+   !important removed from variable assignments; body uses token bg.
    ========================================================================== */
 [data-theme="light"],
+[data-theme="dark"],
 :root {
-  --ds-bg-main: #004724;
-  --ds-bg-section: #006b38;
-  --ds-card: rgba(1, 47, 26, 0.72);
-  --ds-card-2: rgba(1, 47, 26, 0.86);
-  --ds-input-bg: rgba(1, 47, 26, 0.72);
-  --ds-border: rgba(52, 211, 153, 0.18);
-  --ds-primary: #22c55e;
-  --ds-text-primary: #f8fafc;
-  --ds-text-secondary: #d8f1e2;
-  --ds-text-muted: #b7d8c4;
-  --ds-glow: rgba(34, 197, 94, 0.2);
-}
-
-[data-theme="dark"] {
-  --ds-bg-main: #004724;
-  --ds-bg-section: #006b38;
-  --ds-card: rgba(1, 47, 26, 0.72);
-  --ds-card-2: rgba(1, 47, 26, 0.86);
-  --ds-input-bg: rgba(1, 47, 26, 0.72);
-  --ds-border: rgba(52, 211, 153, 0.18);
-  --ds-primary: #22c55e;
-  --ds-text-primary: #f8fafc;
-  --ds-text-secondary: #d8f1e2;
-  --ds-text-muted: #b7d8c4;
-  --ds-glow: rgba(34, 197, 94, 0.18);
+  --ds-bg-main: var(--color-background-soft);
+  --ds-bg-section: var(--color-surface);
+  --ds-card: var(--color-surface);
+  --ds-card-2: var(--color-surface);
+  --ds-input-bg: var(--color-surface);
+  --ds-border: var(--color-border);
+  --ds-primary: var(--color-primary);
+  --ds-text-primary: var(--color-text);
+  --ds-text-secondary: var(--color-text-secondary);
+  --ds-text-muted: var(--color-text-muted);
+  --ds-glow: transparent;
 }
 
 html,
 body {
-  background: var(--taj-app-bg, var(--ds-bg-main)) !important;
-  color: var(--ds-text-primary) !important;
+  background: var(--color-background-soft);
+  color: var(--color-text);
 }
 
 .page-backdrop,
@@ -1745,18 +1731,23 @@ body {
 .page-backdrop--particles,
 .page-backdrop--subtle,
 .page-backdrop--default {
-  background: var(--taj-app-bg) !important;
-  opacity: 1 !important;
+  background: var(--color-background-soft);
+  opacity: 1;
 }
 
 .page-vignette {
-  background: radial-gradient(circle at 50% 35%, transparent 0%, rgba(0, 71, 36, 0.12) 72%, rgba(1, 47, 26, 0.3) 100%) !important;
+  background: radial-gradient(
+    circle at 50% 35%,
+    transparent 0%,
+    rgba(8, 127, 91, 0.04) 72%,
+    rgba(17, 24, 39, 0.06) 100%
+  );
 }
 
 main,
 section,
 article {
-  background-color: transparent !important;
+  background-color: transparent;
 }
 
 .surface-1,
@@ -1774,11 +1765,11 @@ article {
 [class*="bg-sky-"],
 [class*="bg-navy"],
 [class*="bg-indigo-"] {
-  background: linear-gradient(155deg, var(--ds-card), var(--ds-card-2)) !important;
-  border-color: var(--ds-border) !important;
-  box-shadow: 0 8px 22px rgba(7, 26, 20, 0.26) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  box-shadow: var(--taj-shadow-sm);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 input,
@@ -1787,14 +1778,14 @@ textarea,
 .ds-input,
 .search-input-premium,
 [class*="border-slate-"][class*="bg-slate-"] {
-  background: var(--ds-input-bg) !important;
-  color: var(--ds-text-primary) !important;
-  border-color: var(--ds-border) !important;
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-color: var(--color-border);
 }
 
 input::placeholder,
 textarea::placeholder {
-  color: var(--taj-text-muted, var(--ds-text-muted)) !important;
+  color: var(--color-text-muted);
 }
 
 h1,
@@ -2011,8 +2002,8 @@ select:focus,
 }
 
 select option {
-  color: var(--taj-text) !important;
-  background-color: #012f1a !important;
+  color: var(--color-text);
+  background-color: var(--color-surface);
 }
 
 /* Legacy button aliases */
@@ -2083,80 +2074,80 @@ select option {
 }
 
 /* ==========================================================================
-   TajStay brand palette lock — rich emerald #004724 (see src/lib/brand.ts)
+   Brand palette lock — Phase 2 neutralized
+   Was: hardcoded #004724 !important dark chrome (defeated light tokens).
+   Now: re-assert canonical tokens without !important so Design System wins.
+   Affects desktop + mobile app chrome (body, cards, brand aliases).
    ========================================================================== */
 :root,
 [data-theme="light"],
 [data-theme="dark"] {
-  --bg-base: #004724 !important;
-  --bg-deep: #012f1a !important;
-  --bg-soft: #006b38 !important;
-  --bg-surface: rgba(1, 47, 26, 0.72) !important;
-  --bg-elevated: rgba(1, 47, 26, 0.86) !important;
-  --bg-input: rgba(1, 47, 26, 0.72) !important;
+  --bg-base: var(--color-background-soft);
+  --bg-deep: var(--color-surface-deep);
+  --bg-soft: var(--color-primary-soft);
+  --bg-surface: var(--color-surface);
+  --bg-elevated: var(--color-surface);
+  --bg-input: var(--color-surface);
 
-  --green-primary: #22c55e !important;
-  --green-hover: #34d399 !important;
-  --green-dim: #16a34a !important;
-  --green-glow: rgba(34, 197, 94, 0.26) !important;
-  --green-border: rgba(52, 211, 153, 0.18) !important;
+  --green-primary: var(--color-primary);
+  --green-hover: var(--color-primary-dark);
+  --green-dim: var(--color-primary-dark);
+  --green-glow: transparent;
+  --green-border: var(--color-border);
 
-  --text-primary: #f8fafc !important;
-  --text-secondary: #d8f1e2 !important;
-  --text-muted: #b7d8c4 !important;
-  --border: rgba(52, 211, 153, 0.18) !important;
-  --border-focus: rgba(52, 211, 153, 0.55) !important;
+  --text-primary: var(--color-text);
+  --text-secondary: var(--color-text-secondary);
+  --text-muted: var(--color-text-muted);
+  --border: var(--color-border);
+  --border-focus: var(--color-primary);
 
-  --brand-bg: #004724 !important;
-  --brand-surface: rgba(1, 47, 26, 0.72) !important;
-  --brand-surface-2: rgba(1, 47, 26, 0.86) !important;
-  --taj-card: rgba(1, 47, 26, 0.72) !important;
-  --taj-card-border: rgba(52, 211, 153, 0.18) !important;
-  --taj-card-shadow: 0 24px 70px rgba(0, 0, 0, 0.22) !important;
-  --taj-card-strong: rgba(1, 47, 26, 0.86) !important;
-  --taj-card-strong-border: rgba(212, 175, 55, 0.18) !important;
-  --taj-section-bg: rgba(0, 71, 36, 0.38) !important;
-  --taj-section-border: rgba(52, 211, 153, 0.14) !important;
-  --taj-input: rgba(1, 47, 26, 0.72) !important;
-  --taj-input-border: rgba(183, 216, 196, 0.24) !important;
-  --taj-input-focus-border: rgba(52, 211, 153, 0.62) !important;
-  --taj-input-focus-ring: 0 0 0 3px rgba(52, 211, 153, 0.14) !important;
-  --taj-dropdown-bg: rgba(1, 47, 26, 0.94) !important;
-  --brand-green: #22c55e !important;
-  --brand-green-light: #34d399 !important;
-  --brand-green-dark: #16a34a !important;
-  --brand-border: var(--border) !important;
-  --brand-text: #f8fafc !important;
-  --brand-muted: #b7d8c4 !important;
-  --brand-star: #d4af37 !important;
+  --brand-bg: var(--color-background-soft);
+  --brand-surface: var(--color-surface);
+  --brand-surface-2: var(--color-surface);
+  --taj-card: var(--color-surface);
+  --taj-card-border: var(--color-border);
+  --taj-card-shadow: var(--taj-shadow-card);
+  --taj-card-strong: var(--color-surface);
+  --taj-card-strong-border: var(--color-border-strong);
+  --taj-section-bg: var(--color-surface);
+  --taj-section-border: var(--color-border);
+  --taj-input: var(--color-surface);
+  --taj-input-border: var(--color-border);
+  --taj-input-focus-border: var(--color-primary);
+  --taj-input-focus-ring: var(--taj-shadow-focus);
+  --taj-dropdown-bg: var(--color-surface);
+  --brand-green: var(--color-primary);
+  --brand-green-light: var(--color-primary);
+  --brand-green-dark: var(--color-primary-dark);
+  --brand-border: var(--color-border);
+  --brand-text: var(--color-text);
+  --brand-muted: var(--color-text-muted);
+  --brand-star: var(--color-accent);
 
-  --taj-color-text: #f8fafc !important;
-  --taj-color-text-secondary: #d8f1e2 !important;
-  --taj-color-text-muted: #b7d8c4 !important;
-  --taj-color-border: rgba(52, 211, 153, 0.18) !important;
-  --taj-color-border-strong: rgba(52, 211, 153, 0.28) !important;
-  --taj-color-bg-card: rgba(1, 47, 26, 0.72) !important;
-  --taj-color-bg-card-solid: rgba(1, 47, 26, 0.86) !important;
-  --taj-public-surface: rgba(1, 47, 26, 0.72) !important;
-  --taj-public-surface-strong: rgba(1, 47, 26, 0.86) !important;
+  --taj-color-text: var(--color-text);
+  --taj-color-text-secondary: var(--color-text-secondary);
+  --taj-color-text-muted: var(--color-text-muted);
+  --taj-color-border: var(--color-border);
+  --taj-color-border-strong: var(--color-border-strong);
+  --taj-color-bg-card: var(--color-surface);
+  --taj-color-bg-card-solid: var(--color-surface);
+  --taj-public-surface: var(--color-surface);
+  --taj-public-surface-strong: var(--color-surface);
 
-  --taj-app-bg:
-    radial-gradient(circle at 20% 15%, rgba(34, 197, 94, 0.18), transparent 34%),
-    radial-gradient(circle at 85% 20%, rgba(212, 175, 55, 0.07), transparent 32%),
-    linear-gradient(135deg, #006b38 0%, #004724 45%, #012f1a 100%) !important;
+  --taj-app-bg: var(--color-background-soft);
 
-  --ds-bg-main: #004724 !important;
-  --ds-bg-section: rgba(0, 71, 36, 0.38) !important;
-  --ds-card: rgba(1, 47, 26, 0.72) !important;
-  --ds-card-2: rgba(1, 47, 26, 0.86) !important;
-  --ds-input-bg: rgba(1, 47, 26, 0.72) !important;
+  --ds-bg-main: var(--color-background-soft);
+  --ds-bg-section: var(--color-surface);
+  --ds-card: var(--color-surface);
+  --ds-card-2: var(--color-surface);
+  --ds-input-bg: var(--color-surface);
 }
 
 body,
 html,
 #__next {
-  background: var(--taj-app-bg) !important;
-  color: var(--text-primary) !important;
+  background: var(--color-background-soft);
+  color: var(--color-text);
 }
 
 .page-backdrop,
@@ -2172,17 +2163,22 @@ html,
 .page-backdrop--particles,
 .page-backdrop--subtle,
 .page-backdrop--default {
-  background: var(--taj-app-bg) !important;
+  background: var(--color-background-soft);
 }
 
 .page-vignette {
-  background: radial-gradient(circle at 50% 28%, transparent 0%, rgba(0, 71, 36, 0.14) 72%, rgba(1, 47, 26, 0.32) 100%) !important;
+  background: radial-gradient(
+    circle at 50% 28%,
+    transparent 0%,
+    rgba(8, 127, 91, 0.04) 72%,
+    rgba(17, 24, 39, 0.06) 100%
+  );
 }
 
 [data-theme="light"] header,
 [data-theme="dark"] header {
-  background: rgba(0, 53, 29, 0.94) !important;
-  border-bottom-color: rgba(52, 211, 153, 0.16) !important;
+  background: var(--color-surface);
+  border-bottom-color: var(--color-border);
 }
 
 [data-theme="light"] .glass-panel,

@@ -1,48 +1,62 @@
 /**
- * TajStay TZ Part 1.1 — canonical design tokens (docs/TZ-IMPLEMENTATION.md)
- * Legacy --taj-* / premium tokens bridge here for gradual migration.
+ * Legacy TZ token bridge (Phase 2)
+ * Compatibility only — maps old dark-TZ names → canonical Design System.
+ * Not a second design system. Do not add new hex truth here.
+ *
+ * Loaded AFTER tokens.css so --color-* exist.
  */
 
 :root {
-  /* Backgrounds */
-  --bg-app: #0a1f14;
-  --bg-card: #112a1b;
-  --bg-surface: #163521;
-  --bg-elevated: #1c4028;
+  /* Backgrounds → soft / surface */
+  --bg-app: var(--color-background-soft);
+  --bg-card: var(--color-surface);
+  --bg-surface: var(--color-surface);
+  --bg-elevated: var(--color-surface);
+  --bg-base: var(--color-background-soft);
+  --bg-deep: var(--color-surface-deep);
+  --bg-soft: var(--color-primary-soft);
+  --bg-input: var(--color-surface);
 
-  /* Green palette */
-  --green-primary: #2d7a52;
-  --green-bright: #3a9e6a;
-  --green-dim: #1a5c3a;
-  --green-glow: rgba(45, 122, 82, 0.25);
+  /* Greens → emerald */
+  --green-primary: var(--color-primary);
+  --green-bright: var(--color-primary);
+  --green-dim: var(--color-primary-dark);
+  --green-accent: var(--color-primary);
+  --green-hover: var(--color-primary-dark);
+  --green-glow: transparent;
+  --green-border: var(--color-border);
+  --green-muted: var(--color-primary-soft);
 
-  /* Gold (logo / premium only) */
-  --gold: #c9a84c;
-  --gold-dim: #a07c2e;
+  /* Gold (brand accent — retained, sparse use) */
+  --gold: var(--color-accent);
+  --gold-dim: #a34a1e;
+  --gold-muted: var(--color-accent-soft);
 
-  /* Text */
-  --text-primary: #e8f5ee;
-  --text-secondary: #8aab96;
-  --text-muted: #4d7a5e;
-  --text-inverse: #0a1f14;
+  /* Text → near-black / secondary */
+  --text-primary: var(--color-text);
+  --text-secondary: var(--color-text-secondary);
+  --text-muted: var(--color-text-muted);
+  --text-inverse: var(--color-on-primary);
 
-  /* Status */
+  /* Status (functional — not brand) */
   --status-pending: #f59e0b;
-  --status-confirmed: #10b981;
+  --status-confirmed: var(--color-success);
   --status-active: #3b82f6;
-  --status-completed: #6b7280;
+  --status-completed: var(--color-text-secondary);
   --status-cancelled: #ef4444;
   --status-rejected: #dc2626;
 
   /* Borders */
-  --border-default: rgba(45, 122, 82, 0.2);
-  --border-active: rgba(45, 122, 82, 0.6);
-  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: var(--color-border);
+  --border-active: rgba(8, 127, 91, 0.45);
+  --border-subtle: var(--color-border);
+  --border: var(--color-border);
+  --border-focus: var(--color-primary);
 
-  /* Shadows */
-  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.4);
-  --shadow-modal: 0 8px 48px rgba(0, 0, 0, 0.6);
-  --shadow-green: 0 0 20px rgba(45, 122, 82, 0.3);
+  /* Shadows → subtle (no green glow) */
+  --shadow-card: var(--taj-shadow-card);
+  --shadow-modal: var(--taj-shadow-lg);
+  --shadow-green: transparent;
 
   /* Radius */
   --radius-sm: 8px;
@@ -51,36 +65,25 @@
   --radius-xl: 24px;
   --radius-full: 9999px;
 
-  /* Motion */
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  /* Motion / z — canonical values live in tokens.css; do not self-alias */
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --duration-fast: 150ms;
-  --duration-base: 250ms;
-  --duration-slow: 400ms;
   --duration-enter: 350ms;
-
-  /* Z-index */
-  --z-base: 0;
   --z-raised: 10;
-  --z-overlay: 100;
-  --z-modal: 200;
-  --z-toast: 300;
-  --z-nav: 400;
+  --z-nav: var(--z-header);
 
-  /* Typography (set in layout via next/font or fontsource) */
-  --font-display: "Playfair Display", Georgia, serif;
-  --font-body: "Nunito", "Inter", system-ui, sans-serif;
+  /* Typography fonts */
+  --font-display: var(--taj-font-display);
+  --font-body: var(--taj-font-ui);
 
-  /* Legacy bridges */
-  --taj-app-bg: var(--bg-app);
-  --taj-color-text: var(--text-primary);
-  --taj-text: var(--text-primary);
-  --taj-text-secondary: var(--text-secondary);
-  --taj-text-muted: var(--text-muted);
-  --green-accent: var(--green-bright);
-  --taj-primary: var(--green-primary);
-  --taj-radius-lg: var(--radius-lg);
-  --taj-radius-xl: var(--radius-xl);
-  --taj-shadow-card: var(--shadow-card);
+  /* Brand bridges */
+  --brand-bg: var(--color-background-soft);
+  --brand-text: var(--color-text);
+  --brand-surface: var(--color-surface);
+  --brand-surface-2: var(--color-surface);
+  --brand-green: var(--color-primary);
+  --brand-green-light: var(--color-primary);
+  --brand-green-dark: var(--color-primary-dark);
+  --brand-border: var(--color-border);
+  --brand-muted: var(--color-text-muted);
+  --brand-star: var(--color-accent);
 }

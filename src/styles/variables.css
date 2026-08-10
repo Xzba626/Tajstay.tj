@@ -1,27 +1,28 @@
 /**
- * TajStay Verdant Peak — legacy bridges
+ * Legacy bridges → canonical Design System (Phase 2)
+ * Keep class-level font rules; colors resolve via tokens.css.
  */
 
 :root {
-  --bg-base: var(--taj-mist);
-  --bg-card: var(--taj-snow);
-  --bg-elevated: var(--taj-snow);
-  --border: var(--taj-line);
-  --border-active: rgba(15, 107, 76, 0.35);
+  --bg-base: var(--color-background-soft);
+  --bg-card: var(--color-surface);
+  --bg-elevated: var(--color-surface);
+  --border: var(--color-border);
+  --border-active: rgba(8, 127, 91, 0.35);
 
-  --green-primary: var(--taj-lake);
-  --green-accent: #14825c;
-  --green-muted: var(--taj-lake-soft);
+  --green-primary: var(--color-primary);
+  --green-accent: var(--color-primary);
+  --green-muted: var(--color-primary-soft);
 
-  --gold: var(--taj-saffron);
-  --gold-muted: var(--taj-saffron-soft);
+  --gold: var(--color-accent);
+  --gold-muted: var(--color-accent-soft);
 
-  --text-primary: var(--taj-ink);
-  --text-secondary: var(--taj-ink-soft);
-  --text-muted: #6b7c72;
+  --text-primary: var(--color-text);
+  --text-secondary: var(--color-text-secondary);
+  --text-muted: var(--color-text-muted);
 
-  --red: #b42318;
-  --yellow: var(--taj-saffron);
+  --red: var(--color-danger);
+  --yellow: var(--color-warning);
   --blue: #2a6f8f;
 
   --radius-sm: 10px;
@@ -29,24 +30,22 @@
   --radius-lg: 18px;
   --radius-xl: 24px;
 
-  --brand-bg: var(--bg-base);
-  --brand-text: var(--text-primary);
-  --taj-app-bg: var(--taj-mist);
-  --taj-bg: var(--taj-mist);
-  --taj-color-text: var(--text-primary);
-  --taj-color-text-secondary: var(--text-secondary);
-  --taj-color-text-muted: var(--text-muted);
-  --taj-color-border: var(--border);
-  --taj-text: var(--text-primary);
-  --taj-text-secondary: var(--text-secondary);
-  --taj-text-muted: var(--text-muted);
-  --taj-border: var(--border);
-  --taj-card: var(--bg-card);
-  --taj-card-inner: var(--bg-elevated);
-  --taj-font-ui: "DM Sans", system-ui, -apple-system, sans-serif;
-  --taj-font-display: "Playfair Display", Georgia, serif;
-  --taj-radius-card: var(--radius-lg);
-  --taj-radius-card-lg: var(--radius-xl);
+  --brand-bg: var(--color-background-soft);
+  --brand-text: var(--color-text);
+  --taj-app-bg: var(--color-background-soft);
+  --taj-bg: var(--color-background-soft);
+  --taj-color-text: var(--color-text);
+  --taj-color-text-secondary: var(--color-text-secondary);
+  --taj-color-text-muted: var(--color-text-muted);
+  --taj-color-border: var(--color-border);
+  --taj-text: var(--color-text);
+  --taj-text-secondary: var(--color-text-secondary);
+  --taj-text-muted: var(--color-text-muted);
+  --taj-border: var(--color-border);
+  --taj-card: var(--color-surface);
+  --taj-card-inner: var(--color-surface);
+  --taj-radius-card: var(--taj-radius-lg);
+  --taj-radius-card-lg: var(--taj-radius-xl);
 }
 
 h1,
@@ -56,7 +55,7 @@ h3,
   font-family: var(--taj-font-display);
   font-weight: 600;
   letter-spacing: -0.02em;
-  color: var(--taj-ink);
+  color: var(--color-text);
 }
 
 body,

@@ -9,26 +9,26 @@
   font-weight: 700;
   line-height: var(--taj-leading-tight);
   letter-spacing: -0.02em;
-  color: var(--taj-text, #ecfdf5);
+  color: var(--color-text, var(--taj-text));
 }
 
 .taj-title {
   font-size: var(--taj-text-xl);
   font-weight: 700;
   line-height: var(--taj-leading-tight);
-  color: var(--taj-text, #ecfdf5);
+  color: var(--color-text, var(--taj-text));
 }
 
 .taj-body {
   font-size: var(--taj-text-base);
   line-height: var(--taj-leading-normal);
-  color: var(--taj-text-secondary, rgba(236, 253, 245, 0.78));
+  color: var(--color-text-secondary, var(--taj-text-secondary));
 }
 
 .taj-caption {
   font-size: var(--taj-text-xs);
   line-height: 1.4;
-  color: var(--taj-text-muted, rgba(167, 211, 184, 0.65));
+  color: var(--color-text-muted, var(--taj-text-muted));
 }
 
 /* ---- Screen header ---- */

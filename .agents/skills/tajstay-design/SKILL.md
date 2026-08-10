@@ -23,20 +23,24 @@ On first open, TajStay must feel like a **world-class travel product** you would
 6. **Mobile is a premium product**, not a shrunk desktop. Desktop uses space and rhythm.
 7. **Performance** — avoid extra DOM, heavy paint, pointless re-renders.
 
-## Canonical brand (Verdant Peak)
+## Canonical brand (Modern Tajik Hospitality)
 
-Product brand is **green + white** (trust, nature of Tajikistan). Not neon SaaS emerald, not Booking blue, not purple gradients.
+Product brand is **white + near-black + emerald accent (~10%)**. Not neon SaaS green, not Booking blue, not purple gradients. Not a competing “Verdant Peak” palette.
 
-| Role | Token (legacy name) | Value | Why |
-|------|---------------------|-------|-----|
-| Ink | `--taj-ink` | `#0F1A14` | Readable charcoal with green undertone |
-| Canvas | `--taj-mist` | `#F4F7F5` | Soft green-white, not flat gray SaaS |
-| Surface | `--taj-snow` | `#FFFFFF` | Cards / elevated |
-| Brand | `--taj-lake` | `#0F6B4C` | Forest green CTA (name kept for compat) |
-| Brand deep | `--taj-lake-deep` | `#0A4D37` | Hover / depth |
-| Accent | `--taj-saffron` | `#C45C26` | Ratings / scarce — warm contrast only |
+| Role | Token | Value |
+|------|-------|-------|
+| Primary | `--color-primary` | `#087F5B` |
+| Primary dark | `--color-primary-dark` | `#065F46` |
+| Soft bg | `--color-background-soft` | `#F8FAFC` |
+| Surface | `--color-surface` | `#FFFFFF` |
+| Text | `--color-text` | `#111827` |
+| Secondary text | `--color-text-secondary` | `#6B7280` |
+| Border | `--color-border` | `#E5E7EB` |
+| Accent (sparse) | `--color-accent` | `#C45C26` |
 
-Source of truth: root [`DESIGN.md`](../../../DESIGN.md) + `src/styles/tokens.css`.
+Legacy `--taj-lake` / `--taj-mist` / `--taj-ink` are **aliases** to the above. Source of truth: root [`DESIGN.md`](../../../DESIGN.md) + `src/styles/tokens.css`.
+
+Desktop redesign gate: `≥1200px`. Mobile `<768` / tablet `768–1199` keep existing layout unless a phase explicitly scopes them (User Menu visual exception).
 
 Typography: **DM Sans** (UI) + **Playfair Display** (brand/hero only). Never Inter/Roboto/Arial as primary.
 
@@ -67,7 +71,7 @@ If the user can get lost — redesign. Fewer clicks when safe. Merge blocks. Mov
 2. Guest funnel: Home → Search → Hotel → Booking → Payment
 3. Shared chrome: header, mobile nav, buttons, forms
 4. Owner / admin denser shells under the same tokens
-5. Kill orphaned CSS (`premium-overhaul` dark chrome) via overrides or deletion — don’t leave two competing systems
+5. Kill orphaned CSS (`premium-overhaul` dark chrome) via **phased** neutralization — don’t leave competing systems; don’t mass-delete mid-phase.
 
 ## Handoff to other skills
 
