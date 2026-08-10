@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode } from "react";
 
-export type TajButtonVariant = "primary" | "secondary" | "ghost" | "glass" | "danger" | "success";
+export type TajButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "danger" | "glass" | "success";
 export type TajButtonSize = "sm" | "md" | "lg";
 
 export type TajButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {

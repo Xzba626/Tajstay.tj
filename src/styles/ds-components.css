@@ -118,16 +118,17 @@ a.taj-btn--primary:active {
 
 button.taj-btn--secondary,
 a.taj-btn--secondary {
-  background: var(--taj-btn-secondary-bg) !important;
-  color: var(--taj-btn-secondary-text) !important;
-  border-color: var(--taj-btn-secondary-border) !important;
+  background: var(--color-surface) !important;
+  color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
   box-shadow: none !important;
 }
 
 button.taj-btn--secondary:hover:not(:disabled),
 a.taj-btn--secondary:hover {
-  background: var(--taj-btn-secondary-bg-hover) !important;
-  border-color: var(--taj-btn-secondary-border-hover) !important;
+  background: var(--color-primary-soft) !important;
+  border-color: var(--color-primary-dark) !important;
+  color: var(--color-primary-dark) !important;
 }
 
 button.taj-btn--secondary:active:not(:disabled),
@@ -135,18 +136,37 @@ a.taj-btn--secondary:active {
   transform: scale(0.98);
 }
 
+button.taj-btn--outline,
+a.taj-btn--outline {
+  background: transparent !important;
+  color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  box-shadow: none !important;
+}
+
+button.taj-btn--outline:hover:not(:disabled),
+a.taj-btn--outline:hover {
+  background: var(--color-primary-soft) !important;
+  border-color: var(--color-primary-dark) !important;
+}
+
+button.taj-btn--outline:active:not(:disabled),
+a.taj-btn--outline:active {
+  transform: scale(0.98);
+}
+
 button.taj-btn--ghost,
 a.taj-btn--ghost {
   background: transparent !important;
-  color: var(--taj-color-text-secondary) !important;
+  color: var(--color-primary) !important;
   border-color: transparent !important;
   box-shadow: none !important;
 }
 
 button.taj-btn--ghost:hover:not(:disabled),
 a.taj-btn--ghost:hover {
-  background: rgba(34, 197, 94, 0.08) !important;
-  color: var(--taj-color-text) !important;
+  background: var(--color-primary-soft) !important;
+  color: var(--color-primary-dark) !important;
 }
 
 button.taj-btn--ghost:active:not(:disabled),
@@ -156,33 +176,43 @@ a.taj-btn--ghost:active {
 
 button.taj-btn--glass,
 a.taj-btn--glass {
-  background: var(--taj-public-surface) !important;
-  color: var(--taj-color-text) !important;
-  border-color: var(--taj-color-border) !important;
-  backdrop-filter: blur(10px);
+  /* Legacy alias → light surface (no dark glass) */
+  background: var(--color-surface) !important;
+  color: var(--color-text) !important;
+  border-color: var(--color-border) !important;
+  backdrop-filter: none;
   box-shadow: var(--taj-shadow-sm) !important;
 }
 
 button.taj-btn--danger,
 a.taj-btn--danger {
-  background: rgba(239, 68, 68, 0.16) !important;
-  color: #fecaca !important;
-  border-color: rgba(248, 113, 113, 0.35) !important;
+  background: var(--color-danger) !important;
+  color: var(--color-on-primary) !important;
+  border-color: var(--color-danger) !important;
   box-shadow: none !important;
+}
+
+button.taj-btn--danger:hover:not(:disabled),
+a.taj-btn--danger:hover {
+  filter: brightness(0.92);
 }
 
 button.taj-btn--danger:active:not(:disabled),
 a.taj-btn--danger:active {
   transform: scale(0.98);
-  background: rgba(220, 38, 38, 0.28) !important;
 }
 
 button.taj-btn--success,
 a.taj-btn--success {
-  background: rgba(20, 92, 67, 0.45) !important;
-  color: #d1fae5 !important;
-  border-color: rgba(52, 211, 153, 0.35) !important;
-  box-shadow: none !important;
+  background: var(--color-primary) !important;
+  color: var(--color-on-primary) !important;
+  border-color: var(--color-primary) !important;
+  box-shadow: var(--taj-btn-primary-shadow) !important;
+}
+
+button.taj-btn--success:hover:not(:disabled),
+a.taj-btn--success:hover {
+  background: var(--color-primary-dark) !important;
 }
 
 button.taj-btn--icon,
@@ -195,57 +225,74 @@ a.taj-btn--icon {
   display: flex;
   min-height: var(--taj-control-h);
   width: 100%;
-  border-radius: var(--taj-radius-lg);
-  border: 1px solid var(--taj-input-border);
-  background: var(--taj-input);
+  border-radius: var(--taj-radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
   padding: 0 var(--taj-control-px);
   font-family: var(--taj-font-ui);
   font-size: var(--taj-text-sm);
-  color: var(--taj-text);
-  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  color: var(--color-text);
+  transition:
+    border-color var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard),
+    background var(--duration-fast) var(--ease-standard);
 }
 
 .taj-input::placeholder {
-  color: var(--taj-text-muted);
+  color: var(--color-text-muted);
 }
 
-.taj-input:focus {
+.taj-input:focus,
+.taj-input:focus-visible {
   outline: none;
-  border-color: var(--taj-input-focus-border);
-  box-shadow: var(--taj-input-focus-ring);
+  border-color: var(--color-primary);
+  box-shadow: var(--taj-shadow-focus);
+}
+
+.taj-input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  background: var(--color-background-soft);
 }
 
 .taj-input--error {
-  border-color: rgba(248, 113, 113, 0.55);
+  border-color: var(--color-danger);
+}
+
+.taj-input--error:focus,
+.taj-input--error:focus-visible {
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 3px rgba(180, 35, 24, 0.2);
 }
 
 .taj-input--public {
-  background: var(--taj-input);
-  color: var(--taj-text);
-  border-color: var(--taj-input-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-color: var(--color-border);
 }
 
 .ds-input {
   display: flex;
   min-height: var(--taj-control-h);
   width: 100%;
-  border-radius: var(--taj-radius-lg);
-  border: 1px solid var(--taj-input-border);
-  background: var(--taj-input);
+  border-radius: var(--taj-radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
   padding: 0 var(--taj-control-px);
   font-family: var(--taj-font-ui);
   font-size: var(--taj-text-sm);
-  color: var(--taj-text);
+  color: var(--color-text);
 }
 
 .ds-input::placeholder {
-  color: var(--taj-text-muted);
+  color: var(--color-text-muted);
 }
 
-.ds-input:focus {
+.ds-input:focus,
+.ds-input:focus-visible {
   outline: none;
-  border-color: var(--taj-input-focus-border);
-  box-shadow: var(--taj-input-focus-ring);
+  border-color: var(--color-primary);
+  box-shadow: var(--taj-shadow-focus);
 }
 
 .ds-primary-btn {
@@ -254,32 +301,34 @@ a.taj-btn--icon {
   justify-content: center;
   min-height: var(--taj-control-h);
   padding: 0 1.25rem;
-  border-radius: var(--taj-radius-xl);
+  border-radius: var(--taj-radius-md);
   font-weight: 600;
-  font-size: var(--taj-text-sm);
+  font-size: var(--taj-text-button);
 }
 
 .taj-card {
-  border-radius: var(--taj-radius-card-lg);
-  border: 1px solid var(--taj-card-border);
-  background: var(--taj-card);
-  box-shadow: var(--taj-card-shadow);
+  border-radius: var(--taj-radius-lg);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  box-shadow: var(--taj-shadow-sm);
 }
 
 .taj-card--elevated {
-  background: var(--taj-card-strong);
-  border-color: var(--taj-card-strong-border);
-  box-shadow: var(--taj-card-shadow);
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  box-shadow: var(--taj-shadow-card);
 }
 
 .taj-card--public {
-  background: var(--taj-public-surface);
-  backdrop-filter: blur(10px);
+  background: var(--color-surface);
+  backdrop-filter: none;
 }
 
 .taj-card--outline {
-  background: transparent;
-  border-style: dashed;
+  background: var(--color-surface);
+  border-style: solid;
+  border-color: var(--color-border);
+  box-shadow: none;
 }
 
 .taj-card--padding-sm {
@@ -339,20 +388,21 @@ a.taj-btn--icon {
 }
 
 .taj-filter-chip:hover {
-  border-color: rgba(110, 231, 183, 0.35);
-  color: var(--taj-color-text);
+  border-color: var(--color-primary);
+  color: var(--color-primary-dark);
+  background: var(--color-primary-soft);
 }
 
 .taj-filter-chip--active-primary {
   border-color: transparent;
-  background: var(--taj-btn-primary-bg);
-  color: var(--taj-btn-primary-text);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
 }
 
 .taj-filter-chip--active-accent {
   border-color: transparent;
-  background: rgba(30, 41, 59, 0.9);
-  color: #f8fafc;
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
 }
 
 /* Notification list */
@@ -457,3 +507,200 @@ a.taj-btn--icon {
     position: static;
   }
 }
+
+/* ---- Phase 3: Dropdown / Separator / Pattern / Modal / Skeleton ---- */
+
+.taj-dropdown-panel {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  z-index: var(--taj-dropdown-z, var(--z-dropdown));
+  min-width: 14rem;
+  max-width: min(20rem, 92vw);
+  border-radius: var(--taj-radius-lg);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  box-shadow: var(--taj-shadow-md);
+  padding: var(--taj-space-2) 0;
+  transform-origin: top right;
+  transition:
+    opacity var(--duration-menu) var(--ease-out),
+    transform var(--duration-menu) var(--ease-out);
+}
+
+.taj-dropdown-panel--end {
+  right: 0;
+}
+
+.taj-dropdown-panel--start {
+  left: 0;
+}
+
+.taj-dropdown-panel--closed {
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(0.75rem);
+  visibility: hidden;
+}
+
+.taj-dropdown-panel--open {
+  pointer-events: auto;
+  opacity: 1;
+  transform: translateX(0);
+  visibility: visible;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .taj-dropdown-panel {
+    transition: opacity var(--duration-fast) linear;
+  }
+
+  .taj-dropdown-panel--closed {
+    transform: none;
+  }
+}
+
+.taj-separator--horizontal {
+  height: 1px;
+  width: 100%;
+  background: var(--color-border);
+  margin: var(--taj-space-2) 0;
+}
+
+.taj-separator--vertical {
+  width: 1px;
+  align-self: stretch;
+  background: var(--color-border);
+  margin: 0 var(--taj-space-2);
+}
+
+.tajik-pattern {
+  position: relative;
+  overflow: hidden;
+  color: var(--color-primary);
+  pointer-events: none;
+}
+
+.tajik-pattern__svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.tajik-pattern--subtle {
+  opacity: 0.07;
+  min-height: 4rem;
+}
+
+.tajik-pattern--divider {
+  opacity: 0.35;
+  height: 12px;
+  color: var(--color-primary);
+}
+
+.tajik-pattern--footer {
+  opacity: 0.14;
+  min-height: 6rem;
+}
+
+.taj-select {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--color-text-secondary) 50%),
+    linear-gradient(135deg, var(--color-text-secondary) 50%, transparent 50%);
+  background-position:
+    calc(100% - 1.15rem) calc(50% - 0.15rem),
+    calc(100% - 0.85rem) calc(50% - 0.15rem);
+  background-size: 0.35rem 0.35rem, 0.35rem 0.35rem;
+  background-repeat: no-repeat;
+  padding-right: 2.25rem;
+}
+
+.taj-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(17, 24, 39, 0.45);
+}
+
+.taj-modal-panel {
+  z-index: var(--z-modal);
+  width: 100%;
+  max-width: 32rem;
+  border-radius: var(--taj-radius-lg);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  box-shadow: var(--taj-shadow-lg);
+  padding: var(--taj-space-6);
+  color: var(--color-text);
+}
+
+.taj-modal-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--taj-space-3);
+  margin-bottom: var(--taj-space-4);
+}
+
+.taj-modal-panel__title {
+  margin: 0;
+  font-size: var(--taj-text-lg);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.taj-modal-panel__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  border-radius: var(--taj-radius-md);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.taj-modal-panel__close:hover {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+}
+
+.taj-modal-panel__close:focus-visible {
+  outline: none;
+  box-shadow: var(--taj-shadow-focus);
+}
+
+.taj-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-background-soft) 0%,
+    #eef2f7 45%,
+    var(--color-background-soft) 100%
+  );
+  background-size: 200% 100%;
+  animation: taj-skeleton-shimmer 1.2s ease-in-out infinite;
+  border-radius: var(--taj-radius-md);
+}
+
+@keyframes taj-skeleton-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .taj-skeleton {
+    animation: none;
+    background: var(--color-background-soft);
+  }
+}
+
