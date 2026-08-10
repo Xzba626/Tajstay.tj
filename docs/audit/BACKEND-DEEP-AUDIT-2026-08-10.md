@@ -1,455 +1,445 @@
-# TajStay — Backend Deep Audit (PASS 1)
+# TajStay — Backend Deep Audit #2
 
 **Date:** 2026-08-10  
-**Mode:** `MODE: RESEARCH` — **no code changes, no remediation patches**  
-**Scope:** All `src/app/api/**/route.ts` (142), auth helpers, Prisma usage patterns, jobs/webhooks  
-**Roles (only):** `GUEST` · `OWNER` · `HOTEL_MODERATOR` · `ADMIN`  
-**Core resources:** hotel · room · room type · inventory · booking · payment · proof · KYC · hotel staff · payout · dispute · review  
+**Mode:** `MODE: RESEARCH` — **no production code changes, no remediation, no schema edits**  
+**Product only:** TajStay · roles `GUEST` / `OWNER` / `HOTEL_MODERATOR` / `ADMIN`  
+**Baseline inventory:** ~50 pages · **142** API routes · **43** Prisma models  
 
-**Companion files**
-| File | Role |
-|------|------|
-| `docs/audit/BACKEND-API-INVENTORY-2026-08-10.md` | Heuristic METHOD × PATH × AUTH × FLAGS for all 142 routes |
-| `docs/audit/SECURITY-AUDIT.md` / `SECURITY-VALIDATION-v1.md` | Prior OWASP pass (cross-refs below) |
-| `docs/audit/BOOKING-INTEGRITY-AUDIT.md` | BI deep pass (TOCTOU / state) |
+**Does not raise product maturity above ~4.5/10.** Runtime, Payment Integrity PASS, Lighthouse, a11y, load, DR remain open.
 
----
+### Companion / prior audits (baseline — do not duplicate)
 
-## 0. Executive verdict
-
-| Question | Answer |
-|----------|--------|
-| Is Security/Booking audit “enough” for backend maturity? | **No** — deep on AuthZ/booking races; shallow on payments, payouts, validation coverage, jobs, observability |
-| Does API layer generally check DB role (not `tajstay_role` cookie)? | **Yes** for route handlers via `getSessionUser` → Prisma `User.role` |
-| Can middleware be trusted alone? | **No** — edge trusts cookie **shape** + optional `tajstay_role`; fail-open when role cookie missing |
-| Zod / rate-limit / transaction coverage | **~21% / ~14% / ~6%** of route files |
-| Release-blocking overlap | Confirms **SEC-003**, **SEC-010/BI-001**, **SEC-011/BI-002**; adds **expire-job CAS**, **payout duplication**, **admin payment bypass**, **admin identity ops** |
-
-**Backend maturity (this pass only):** ~**4/10**  
-Strong: role helpers on mutating owner/admin/moderator paths; server-side booking price; guest booking scoping often present.  
-Weak: state machines without CAS; public “private” storage; sparse Zod/RL/txn; payment/payout integrity; job races; in-memory rate limits.
-
-This pass **does not** raise overall product maturity above the ~4.5/10 baseline — Payment Integrity + Runtime still open.
+| Doc | Use in #2 |
+|-----|-----------|
+| `SECURITY-AUDIT.md` + `SECURITY-CRITICAL-HIGH-VALIDATION.md` + `SECURITY-VALIDATION-v1.md` | SEC-* confirmed / downgraded |
+| `BOOKING-INTEGRITY-AUDIT.md` + `BI-001-REMEDIATION-PLAN.md` | BI-001…005 |
+| `BASELINE-v1.md` | Inventory / maturity freeze |
+| `BACKEND-API-INVENTORY-2026-08-10.md` | Heuristic METHOD×PATH×AUTH×FLAGS (A) |
+| Pass 1 notes in git history of this file | Folded into §F |
 
 ---
 
-## 1. Method
+## BACKEND AUDIT STATUS: **PARTIAL**
 
-1. Enumerate all 142 `route.ts` files; classify HTTP methods.  
-2. Map auth helpers (`session`, `requireOwner/Admin/Moderator`, `apiGuard`, `rbac`).  
-3. Sample every high-risk domain with full file reads (bookings, payments, owner payment, jobs, KYC uploads, admin users, cron, telegram).  
-4. Grep coverage for `zod`, `rateLimit`, `$transaction`, public blob access.  
-5. **Claim only with file evidence.** Runtime concurrency / E2E **not executed** → marked Coverage gap.
-
-**Not in this pass:** UI, Content copy, Lighthouse, Payment provider deep-pass beyond app state machine, Backup/DR (PASS 7).
-
----
-
-## 2. Auth architecture (truth)
+| Lens | Depth |
+|------|-------|
+| AuthZ at handler (sampled + offline IDOR hunt) | 🟢 Deep |
+| Booking inventory TOCTOU / soft-hold | 🟢 Deep (prior BI) |
+| Validation coverage measurement | 🟢 Deep (static) |
+| KYC / Dispute / Payout / Refund machines | 🟢 Deep (static) |
+| Jobs / Telegram webhook | 🟢 Deep (static) |
+| Error handling / false-success | 🟢 Deep (static) |
+| Sensitive response surfaces | 🟡 Partial |
+| N+1 / indexes / EXPLAIN | 🟡 Partial (static only) |
+| Payment provider / card webhooks | 🔴 Gap (manual proof model) |
+| Runtime concurrency proof | 🔴 Gap |
+| E2E AuthZ suite | 🔴 Gap |
 
 ```text
-Browser cookie (tajstay_session | authjs.session-token)
-        ↓
-middleware.ts  →  shape check + tajstay_role (OPTIONAL, fail-open)
-        ↓
-Route Handler  →  getSessionUser() → Prisma Session → User.role / isBanned
-        ↓
-Role helper / require*Api* / resolveHotelAccess (DB ownership | HotelModerator)
-        ↓
-Business mutation
+DEEP on: AuthZ patterns, booking integrity (prior), new offline BOLA, state-machine completeness
+PARTIAL on: full per-route matrix cells, perf, sensitive data exhaustiveness
+GAP on: runtime, PSP webhooks, load beyond booking, DR/observability
 ```
 
-| Helper | Trusts role cookie? | Source of truth |
-|--------|---------------------|-----------------|
-| `getSessionUser` | No | DB session → user |
-| `getOwnerUser` / `getAdminUser` / `getModeratorUser` | No | DB `user.role` |
-| `requireHotelApiPermission` | No | `resolveHotelAccess` + permission matrix |
-| `middleware` role gates | **Yes** | `tajstay_role` string |
+---
 
-**Evidence — middleware fail-open / role cookie:** `src/middleware.ts` (`hasSessionCookie` shape-only; `enforceRoleForPath` returns `null` when role cookie absent).  
-**Evidence — API uses DB role:** `src/lib/auth/requireOwner.ts`, `requireAdmin.ts`, `requireModerator.ts`.
+## 0. Question this pass answers
 
-### Auth findings
+> What does each server endpoint actually enforce, and where does the backend **not** guarantee stated business invariants?
 
-#### BE-AUTH-001 — Edge RBAC is cookie-shaped and fail-open  
-**Severity:** Medium (defense-in-depth; API still DB-checks on covered routes)  
-**Evidence:** `src/middleware.ts` L33–37, L64–114  
-**Actual:** Any request with 64-hex `tajstay_session` (unverified) and **missing** `tajstay_role` passes `/api/owner` and `/api/moderator` edge gates.  
-**Expected:** Edge either validates session server-side or fails closed without verified role.  
-**Note:** Handlers using `getOwnerUser` still 403 — risk is inconsistent coverage + dashboard HTML routes relying on edge.  
-**Remediation:** Fail closed without role; do not treat role cookie as auth; prefer server layouts already using `requireOwner`.  
-**Regression:** Forged role cookie Guest→Owner blocked at handler; missing role cookie must not widen access.
-
-#### BE-AUTH-002 — `/api/admin/*` not in middleware matcher  
-**Severity:** Low (positive if every admin route calls `getAdminUser` / `requireUser(["ADMIN"])` — sampled 32/32 do)  
-**Evidence:** middleware matcher vs admin routes; prior SEC-005 validation.  
-**Status:** Not an active BFLA given route helpers — keep as regression guard.
-
-#### BE-AUTH-003 — Profile APIs exclude `HOTEL_MODERATOR`  
-**Severity:** Low (product gap)  
-**Evidence:** `src/lib/profile/profileApi.ts` allowlist `GUEST|OWNER|ADMIN` only.
+Answer in one line: **Role gates are generally real at handlers; several money/KYC/dispute machines are incomplete or race-unsafe; three offline-list Prisma `OR` clobber bugs are new cross-tenant BOLA.**
 
 ---
 
-## 3. Inventory summary (142 routes)
+## A. API coverage matrix
 
-| Segment | Count |
-|---------|------:|
-| admin | 32 |
-| owner | 25 |
-| auth | 20 |
-| profile | 11 |
-| bookings | 10 |
-| moderator | 8 |
-| chat | 7 |
-| notifications | 5 |
-| other (payments, cron, jobs, search, …) | 24 |
-| **Total** | **142** |
+Full heuristic table: `docs/audit/BACKEND-API-INVENTORY-2026-08-10.md` (142 rows).
 
-### Heuristic auth classification (static)
+### Coverage controls (static, route-file presence)
 
-| Class | ~Count | Notes |
-|-------|-------:|-------|
-| ADMIN | 32–37 | All admin mutating routes use admin helpers |
-| OWNER | ~24–25 | `getOwnerUser` / owner API guards |
-| MODERATOR | 8 | Hotel-scoped permissions |
-| SESSION / guest-scoped | ~35–40 | Bookings, chat, profile, notifications |
-| PUBLIC | ~20+ | search, health, auth entry, OTP, availability |
-| SECRET (cron/job/seed) | 3–4 | Mixed fail-open/closed |
+| Control | Signal | Count / 142 | Notes |
+|---------|--------|------------:|-------|
+| Zod in route file | `z.object` / `safeParse` | **30** (~21%) | Mutating files w/ zod ≈30; mutating w/o ≈**83** |
+| Rate limit | `rateLimit(` | **20** (~14%) | In-memory `Map` — multi-instance weak |
+| `$transaction` | Prisma txn | **8** (~6%) | |
+| Idempotency-Key | header/key | **0** | BI-005 remains open for create |
+| Secret job/cron | env secret | 3–4 | Mixed fail-open/closed |
 
-Full table: `BACKEND-API-INVENTORY-2026-08-10.md` (FLAGS = ADMIN/OWNER/MOD/SESSION/RATE/ZOD/TX/SECRET heuristics).
+### Session source (handlers)
 
-### Cross-cutting coverage
+| Pattern | Truth |
+|---------|--------|
+| API auth | Cookie → `getSessionUser()` → Prisma `Session` → `User.role` / `isBanned` |
+| Middleware | Cookie **shape** + optional `tajstay_role` — **not** sufficient AuthZ |
+| Cron/jobs | `CRON_SECRET` / `JOB_SECRET` / `SEED_SECRET` |
 
-| Control | Route files with signal | % of 142 |
-|---------|------------------------:|---------:|
-| Zod (`z.object` / `safeParse`) | 30 | ~21% |
-| `rateLimit(` | 20 | ~14% |
-| `$transaction` | 8 | ~6% |
-| Idempotency-Key | **0** | 0% |
-
-**Rate limiter implementation:** in-memory `Map` (`src/lib/security/rateLimit.ts`) — **not multi-instance safe** on Vercel.
+Per-route METHOD/PATH/FILE/AUTH/FLAGS: inventory companion. Cells for TRANSACTION/IDEMPOTENCY/PAGINATION/SENSITIVE are evidenced in §§3–10 and findings — not every of 142 rows was hand-filled (see §G).
 
 ---
 
-## 4. Authorization matrix (by resource)
+## B. Authorization matrix
 
-| Resource | Guest | Owner | Moderator | Admin | Typical scoping |
-|----------|-------|-------|-----------|-------|-----------------|
-| Hotel create/update | — | ✅ own | — | moderate/approve | `hotel.ownerId` |
-| Room / roomType | — | ✅ own hotel | read/assign | — | hotel ownership / `HotelModerator` |
-| Inventory overrides | — | ✅ | offline ops | — | hotel scope |
-| Booking create | ✅ (+ anon auto-guest) | ✅ | — | ✅ | server price |
-| Booking cancel (guest) | ✅ own | — | — | via admin paths | `userId` / `publicCode` |
-| Payment proof | ✅ own booking | — | — | — | `userId` + status gate |
-| Payment approve | — | ✅ **wide statuses** | — | ✅ proof-gated | hotel owner / admin |
-| KYC owner-request | guest submit | — | — | review + file | admin file proxy |
-| Payout create | — | — | — | ✅ complete | **no unique bookingId** |
-| Dispute | party | party | — | party | booking parties |
-| Review | guest/owner booking | reply | — | — | booking link |
-| Chat | party | party | party | party | `canAccessBookingChat` |
-| Expire job | secret | — | — | — | global batch |
+| Resource | Guest | Owner | Moderator | Admin | Object-level | #2 status |
+|----------|-------|-------|-----------|-------|--------------|-----------|
+| Hotel mutate | — | own `ownerId` | — | approve/reject | DB | OK sampled; status not mass-assigned |
+| Room / roomType | — | own hotel | read/ops | — | hotel scope | OK sampled |
+| Online booking create | ✅ (+ anon guest) | ✅ | — | ✅ | server price | BI-001 race remains |
+| Guest booking mutate | own `userId` | — | — | some bypasses | `userId` | Guest→guest IDOR **NR** |
+| Payment proof | own | — | — | — | `userId` + status | IDOR **NR**; reuse BE-008 |
+| Payment approve | — | hotel owner | — | proof-gated helper | hotel | **BE-001** covered |
+| Offline list/search | — | **BOLA if `roomId`** | **BOLA search/`roomId`** | — | **broken `OR`** | **BE2-200…202 NEW** |
+| Chat / Pusher | party | hotel | assigned | all | `canAccessBookingChat` | IDOR **NR** |
+| Notifications | own | own | own | own | `userId` | IDOR **NR** |
+| Favorites | self | self | — | self | `userId` | OK |
+| KYC application | submit | — | — | review | guest/admin | CAS gaps **NEW** |
+| Dispute | party | party | — | party | party only | no resolve **NEW** |
+| Payout | — | view UI | — | create on complete | — | never settles **NEW** |
+| Admin users | — | — | — | role/ban/creds | global | BE-010/011 covered |
 
-**BFLA (guest → owner/admin):** Not confirmed on sampled mutating routes — role helpers hold.  
-**BOLA (cross-owner):** Owner hotel/room paths generally re-check `ownerId`. Gaps: incomplete `assignedRoom` / `roomType`-only includes on some helpers (false-deny / footgun more than classic IDOR).
+**SEC-005:** remain **defense-in-depth / hardening only** — 32/32 admin routes call server admin auth. Not active BFLA.
+
+**Middleware role cookie:** ALREADY COVERED as BE-AUTH-001 / SEC-004 family — fail-open when role cookie missing; handlers still DB-check on covered routes.
 
 ---
 
-## 5. Findings (ranked)
+## C. Validation coverage
 
-Cross-refs to prior audits are **aliases**, not duplicates of closed work — all remain **OPEN** unless a later IMPLEMENTATION pass proves otherwise.
+| Metric | Value |
+|--------|------:|
+| Route files | 142 |
+| Mutating handlers in files **with** Zod | ~30 |
+| Mutating handlers in files **without** Zod | ~83 (~73% of mutating) |
+| Domains worst without Zod | admin (23), owner (16), profile (11), bookings (9) |
+
+**State-mutating without Zod (examples, evidence):**  
+`POST /api/bookings`, `POST /api/payments/proof`, owner/moderator offline create, owner rooms, admin `bookings/payment`, admin `users/update`, profile password, chat messages body.
+
+**FormData patterns:** client-trusted `totalPrice` on offline create; unbounded chat/complaint message strings; room title unbounded — see **BE2-100…106**.
+
+---
+
+## D. State-machine map
+
+### D.1 Booking × Payment (manual proof — no PSP webhook)
+
+```text
+WAITING_PAYMENT / WAIT_PROOF
+  ├─ proof ──► ON_REVIEW
+  ├─ owner approve* ──► CONFIRMED + booking PAID     [* BE-001 / SEC-011]
+  ├─ expire job* ──► EXPIRED                         [* BE-002]
+  └─ admin payment enum* ──► PAID/FAILED/REFUNDED    [* BE-006]
+
+ON_REVIEW
+  ├─ admin confirm ──► CONFIRMED + PAID + CAPTURED
+  ├─ admin reject ──► REJECTED
+  └─ review timeout job* ──► REJECTED                [* BE-002]
+
+CONFIRMED | CHECKED_IN
+  ├─ guest checkout ──► COMPLETED (NO Payout)        [* BE2-005]
+  └─ admin complete ──► COMPLETED + Payout PENDING   [* BE-007 / BE2-006]
+```
+
+`Payment.AUTHORIZED` — schema only, never written (**BE2-014**).
+
+### D.2 Refund
+
+```text
+Admin bookings/payment → REFUNDED
+  └─ always refund.create({ status: "SENT" })   [* BE2-010]
+No PENDING→provider→SENT machine. Duplicates allowed (no unique).
+```
+
+### D.3 Payout
+
+```text
+admin complete → Payout PENDING
+  └─ (no update to SENT/FAILED anywhere in src/)  [* BE2-006]
+guest checkout → COMPLETED with zero Payout       [* BE2-005]
+```
+
+### D.4 KYC (`OwnerApplication`; no `OwnerRequest` model)
+
+```text
+GUEST submit → PENDING
+  ├─ multipart: docs required
+  └─ JSON path: docs optional                     [* BE2-003]
+Admin approve → APPROVED + User.role=OWNER        [* BE2-001 no CAS]
+Admin reject → REJECTED
+HostProfile.kycStatus: never written              [* BE2-004]
+```
+
+### D.5 Dispute / Complaint
+
+```text
+Dispute: create → OPEN → ✗ no resolve/reject API  [* BE2-007]
+Complaint: create → PENDING → admin RESOLVED (ungarded FROM) [* BE2-009]
+```
+
+### D.6 Inventory / Room
+
+Hold set & TOCTOU: **BI-001** (ALREADY COVERED). Offline money/status: client price on create (**BE2-101**).
+
+---
+
+## E. New findings (#2 only)
+
+> Rule: every item below is **not** a re-label of SEC-001/003/010/011, BI-001/002, or Pass1 BE-001…011 themes unless explicitly marked “extends”.
 
 ### Critical
 
-#### BE-001 — Owner confirms payment without proof  
-**Aliases:** SEC-011, BI-002  
-**Severity:** Critical  
-**Evidence:** `src/lib/bookings/ownerPaymentApprove.ts` L12–16, L60–75; route `src/app/api/owner/bookings/[id]/payment-approve/route.ts`  
-**Attack:** Owner (or stolen owner session) `POST …/payment-approve` on `WAITING_PAYMENT` / `WAIT_PROOF` with **no** `paymentProofUrl` → `paymentStatus=PAID`, `Payment=CAPTURED`, `status=CONFIRMED`.  
-**Actual vs Expected:** Actual allows pre-proof statuses. Expected: only `ON_REVIEW` + proof present (as admin confirm).  
-**Root cause:** Owner state machine wider than admin; no proof gate; no CAS/`$transaction`.  
-**Remediation:** Align with admin confirm; `updateMany` WHERE status=`ON_REVIEW`; require proof fields; transactional payment+booking.  
-**Regression:** Approve without proof → 400; with ON_REVIEW+proof → 200 once.
+#### BE2-005 — Guest checkout completes stay without payout / escrow ledger  
+| | |
+|--|--|
+| **AREA** | Payout / Booking |
+| **SEVERITY** | Critical |
+| **FILE / ROUTE** | `src/app/api/bookings/[id]/confirm-checkout/route.ts` L41–62 |
+| **SCENARIO** | Paid guest completes checkout via chat UX → `COMPLETED`. Admin complete path creates `Payout`; guest path does not. |
+| **ACTUAL** | Status flip only + review notify |
+| **EXPECTED** | Shared complete helper: CAS status + idempotent payout (or explicit “no payout” product rule) |
+| **ROOT CAUSE** | Two complete paths; only admin wires ledger |
+| **IMPACT** | Owners unpaid; `deriveEscrowState` can show RELEASED without payout row |
+| **RECOMMENDATION** | Unify complete + payout create; guest must not bypass ledger |
+| **REGRESSION** | Guest checkout after PAID → exactly one `Payout` PENDING (or documented skip) |
+| **VERIFICATION** | CONFIRMED (static) |
+| **CLASS** | CONFIRMED |
 
-#### BE-002 — Expire/review job blind `updateMany` can wipe newer states  
-**Severity:** Critical  
-**Evidence:** `src/app/api/jobs/expire-bookings/route.ts` L16–29, L42–47, L72–77  
-**Attack / race:** Job `findMany` selects ids in `WAITING_PAYMENT|WAIT_PROOF` (or `ON_REVIEW`); guest/admin transitions booking; job `updateMany({ id: { in: ids }})` **without** re-asserting status → `CONFIRMED`/`ON_REVIEW` overwritten to `EXPIRED`/`REJECTED`.  
-**Expected:** Conditional update `WHERE id AND status IN (…) AND expiresAt < now`.  
-**Root cause:** TOCTOU select-then-update.  
-**Remediation:** Single conditional `updateMany`; per-row CAS; optionally `SKIP LOCKED`.  
-**Regression:** Concurrent proof/confirm vs expire — confirmed booking must not expire.
+#### BE2-010 — Paper refunds: `Refund` forced `SENT`, unbounded duplicates  
+| | |
+|--|--|
+| **AREA** | Payment / Refund |
+| **SEVERITY** | Critical |
+| **FILE / ROUTE** | `src/app/api/admin/bookings/payment/route.ts` L54–64; `Refund` model no `@@unique(paymentId)` |
+| **SCENARIO** | Admin sets `REFUNDED` repeatedly → multiple `SENT` refund rows; no PSP; can flip back toward PAID via same free enum (interaction with BE-006). |
+| **ACTUAL** | Ledger fiction |
+| **EXPECTED** | Refund state machine + idempotency + booking couple |
+| **ROOT CAUSE** | Free paymentStatus writes + create-always refund |
+| **IMPACT** | Finance integrity / audit failure |
+| **RECOMMENDATION** | Remove free enum; refund PENDING→SENT; unique open refund |
+| **REGRESSION** | Second REFUNDED → 409; one refund row |
+| **CLASS** | CONFIRMED |
 
-#### BE-003 — “Private” KYC docs stored with public Blob access  
-**Alias:** SEC-003  
-**Severity:** Critical  
-**Evidence:** `src/lib/uploads/savePrivateFile.ts` L39–48 (`access: "public"`) despite comment “never a public URL”  
-**Attack:** Anyone with URL reads passport/KYC; storage bypasses admin `/file` proxy.  
-**Remediation:** Private blob / signed URLs only; revoke leaked URLs; keep authz proxy.  
-**Regression:** Unauth GET of stored KYC URL → 401/403.
+#### BE2-200 — Moderator offline search drops hotel ACL (`OR` clobber)  
+| | |
+|--|--|
+| **AREA** | AuthZ / BOLA |
+| **SEVERITY** | Critical |
+| **FILE / ROUTE** | `src/app/api/moderator/offline-bookings/search/route.ts` L17–24 |
+| **CODE EVIDENCE** | Spreads `moderatorOfflineBookingWhere` (contains hotel `OR`), then overwrites with text-match `OR` → filter becomes `source=OWNER_MANUAL` + text match **platform-wide** |
+| **SCENARIO** | Moderator searches `q=ab` → sees other hotels’ offline bookings |
+| **ACTUAL** | Cross-hotel read |
+| **EXPECTED** | `AND: [ hotelScope, OR: text… ]` |
+| **ROOT CAUSE** | Prisma where object key overwrite |
+| **IMPACT** | Cross-tenant PII / ops data |
+| **RECOMMENDATION** | Nest text predicates under `AND`; add regression test |
+| **REGRESSION** | Mod A cannot see Mod B hotel offline rows via search |
+| **CLASS** | CONFIRMED |
+
+#### BE2-201 — Moderator offline list `?roomId=` drops hotel ACL  
+| | |
+|--|--|
+| **AREA** | AuthZ / BOLA |
+| **SEVERITY** | Critical |
+| **FILE / ROUTE** | `src/app/api/moderator/offline-bookings/route.ts` L24–27 |
+| **SCENARIO** | `GET …?roomId=<foreign>` → raw Prisma rows for that room globally |
+| **ACTUAL / EXPECTED / ROOT** | Same `OR` clobber as BE2-200 |
+| **IMPACT** | Full guest PII (list returns raw include, not public view) |
+| **RECOMMENDATION** | `AND` compose; verify room ∈ assigned hotels |
+| **REGRESSION** | Foreign roomId → empty / 403 |
+| **CLASS** | CONFIRMED |
+
+#### BE2-202 — Owner offline list `?roomId=` drops owner ACL  
+| | |
+|--|--|
+| **AREA** | AuthZ / BOLA |
+| **SEVERITY** | Critical |
+| **FILE / ROUTE** | `src/app/api/owner/offline-bookings/route.ts` L26–28; `ownerOfflineBookingWhere` in `ownerQueries.ts` L13–17 |
+| **SCENARIO** | Owner A passes Owner B’s `roomId` → B’s offline bookings |
+| **CLASS** | CONFIRMED |
+| **RECOMMENDATION** | Same `AND` fix + ownership check on roomId |
 
 ---
 
 ### High
 
-#### BE-004 — Booking create inventory TOCTOU (double soft-hold)  
-**Aliases:** SEC-010, BI-001  
-**Severity:** High (release-blocking with BI plan)  
-**Evidence:** availability assert in pricing helpers; `src/app/api/bookings/route.ts` create outside transaction  
-**Actual:** Two concurrent creates → two `WAITING_PAYMENT` holds.  
-**Expected:** One winner; DB exclusion or txn+lock+re-assert (see `BI-001-REMEDIATION-PLAN.md`).  
-**Regression:** 10×50 concurrent create — exactly one active hold (plan proof).
+#### BE2-001 — OwnerApplication approve/reject not CAS-safe  
+**AREA** KYC · **FILE** `src/lib/owner/ownerRequestReview.ts` L16–33, L79–94 · **CLASS** CONFIRMED  
+Read status then `update({ where: { id } })` without `status: PENDING` → double approve side effects.  
+**REGRESSION:** parallel approve → one success.
 
-#### BE-005 — Payment confirm (admin/owner) not transactional / double-approve  
-**Severity:** High  
-**Evidence:** `src/lib/bookings/adminBookingActions.ts` (check-then-update); `ownerPaymentApprove.ts` L60–75  
-**Attack:** Parallel confirm/approve both pass status checks.  
-**Remediation:** `$transaction` + `updateMany` count=1 CAS on booking+payment.  
-**Regression:** Parallel double confirm → one 200, one 409.
+#### BE2-003 — JSON KYC submit skips identity documents  
+**AREA** KYC · **FILE** `src/app/api/owner/applications/route.ts` JSON create ~L247–283 vs multipart doc gates ~L168–178 · **CLASS** CONFIRMED  
+Guest reaches PENDING without passport/property docs.
 
-#### BE-006 — Admin `POST /api/admin/bookings/payment` bypasses booking lifecycle  
-**Severity:** High  
-**Evidence:** `src/app/api/admin/bookings/payment/route.ts` L13–52  
-**Actual:** Mutates `Booking.paymentStatus` (+ mirrors `Payment`) independently; PAID allowed if `CAPTURED` **or** reviewed proof — `CAPTURED` can come from BE-001 without proof; does not force `CONFIRMED`.  
-**Expected:** Only via confirm/reject/refund workflows with booking.status transitions.  
-**Remediation:** Remove or route through confirm helpers; forbid free enum writes.  
-**Regression:** PAID without proof+CAPTURED from legitimate confirm → rejected.
+#### BE2-006 — Payout never leaves `PENDING` (no settle path)  
+**AREA** Payout · **EVIDENCE** only `payout.create` in admin complete; **zero** `payout.update` in `src/` · **CLASS** CONFIRMED  
+Email implies queue; status stuck forever.
 
-#### BE-007 — Admin complete creates duplicate payouts  
-**Severity:** High  
-**Evidence:** `src/app/api/admin/bookings/complete/route.ts` L34–56; `prisma/schema.prisma` `Payout.bookingId` **not** `@unique` (L500–515)  
-**Actual:** No booking-status guard before complete; always `payout.create`.  
-**Expected:** Idempotent complete; ≤1 payout per booking.  
-**Remediation:** `updateMany` status guard; `@@unique([bookingId])` or find-first.  
-**Regression:** Double POST → one payout.
+#### BE2-007 — Dispute has no resolve/reject API  
+**AREA** Dispute · **FILE** `src/app/api/disputes/route.ts` create/list only; schema `OPEN|RESOLVED|REJECTED` · **CLASS** CONFIRMED  
+OPEN is effectively terminal.
 
-#### BE-008 — Payment proof URL reuse / unbound evidence  
-**Severity:** High  
-**Evidence:** `src/app/api/payments/proof/route.ts` (client `proofUrl` + public uploads via `saveUploadFile`)  
-**Attack:** Reuse another booking’s public proof URL; `proofAmount` not tied to `totalPrice`.  
-**Remediation:** Upload-only tokens scoped to booking; content-hash uniqueness; optional amount check.  
-**Regression:** Foreign proof URL → 400.
+#### BE2-011 — Owner approve can set booking PAID without Payment CAPTURED  
+**AREA** Payment · **FILE** `ownerPaymentApprove.ts` L60–70 · **CLASS** CONFIRMED (extends BE-001)  
+CAPTURED only if payment was PENDING; booking always PAID → admin complete blocked / ledger desync.
 
-#### BE-009 — Guest ID / payment proof files world-readable  
-**Severity:** High  
-**Evidence:** `src/lib/uploads/saveUpload.ts` `access: "public"`; `src/app/api/bookings/document/route.ts` guest-docs path  
-**Remediation:** Private storage + authz download (participant roles).  
-**Regression:** Unauth GET → deny.
+#### BE2-012 — Admin cancel can leave PAID/CAPTURED without refund  
+**AREA** Payment / Cancel · **FILE** `admin/bookings/[id]/cancel/route.ts` L34–44 · **CLASS** CONFIRMED  
+If PAID, keeps PAID; Payment FAILED only when still PENDING.
 
-#### BE-010 — Admin user role/ban without safeguards  
-**Severity:** High (privileged abuse / stolen admin)  
-**Evidence:** `src/app/api/admin/users/update/route.ts` L7–28 — any role incl. `ADMIN`, ban anyone; no Zod/rate limit/last-admin/self guards.  
-**Remediation:** Break-glass policy; prevent last-admin demotion; audit log; step-up auth.  
-**Regression:** Cannot ban/demote last admin; promote requires second factor/policy.
+#### BE2-101 — Offline booking create trusts client `totalPrice`  
+**AREA** Validation / money · **FILE** `owner/offline-bookings/route.ts` L58–71 · **CLASS** CONFIRMED  
+No server price recompute (unlike online booking).
 
-#### BE-011 — Admin OWNER credentials change = account takeover primitive  
-**Severity:** High  
-**Evidence:** `src/app/api/admin/users/credentials/route.ts` — phone/email change + session invalidate; no rate limit.  
-**Remediation:** Audit + rate limit + notify old contact; dual control for production.  
-**Regression:** Credentials change emits audit row; rate limited.
+#### BE2-140 — Duplicate Refund rows on repeated admin REFUNDED  
+**AREA** Idempotency · overlaps BE2-010 · **CLASS** CONFIRMED  
+
+#### BE2-131 — Stable PII blast: admin owner-requests list decrypts all rows unbounded  
+**AREA** Sensitive data · **FILE** `admin/owner-requests/route.ts` L41–65 · **CLASS** CONFIRMED  
 
 ---
 
 ### Medium
 
-#### BE-012 — Proof API returns `{ ok: true }` when status transition count=0  
-**Evidence:** `payments/proof/route.ts` — after `updateMany`, JSON success regardless of `transitioned.count`  
-**Remediation:** 409 when count=0.  
+| ID | Summary | Class | Evidence |
+|----|---------|-------|----------|
+| BE2-002 | Concurrent OwnerApplication → duplicate PENDING | CONFIRMED | ensureNoPending then create |
+| BE2-004 | `HostProfile.kycStatus` never written; role≠KYC | CONFIRMED | schema vs zero writes |
+| BE2-008 | Concurrent dispute OPEN duplicates | CONFIRMED | findFirst then create |
+| BE2-009 | Complaint resolve ungarded FROM status | CONFIRMED | admin/complaints/resolve |
+| BE2-013 | Proof soft-expire incomplete vs job | CONFIRMED | proof route sets EXPIRED only |
+| BE2-014 | `Payment.AUTHORIZED` dead; no PSP webhook | CONFIRMED | schema / no handler |
+| BE2-100 | ~83 mutating routes without Zod | CONFIRMED | inventory |
+| BE2-110 | Prisma code leaked (`prismaCode` in JSON) | CONFIRMED | owner/hotels create 500 |
+| BE2-111 | Raw `Error.message` to clients | CONFIRMED | offline-bookings, uploads |
+| BE2-112 | Expire job reports findMany length not update count | CONFIRMED | expire-bookings L126 |
+| BE2-113 | Check-in/checkout `{ok:true}` without status CAS | CONFIRMED | check-in / confirm-checkout |
+| BE2-115 | Telegram webhook returns ok after handler errors | CONFIRMED | telegram/webhook |
+| BE2-120…126 | Unbounded lists / N+1 photo create / serial job side effects | CONFIRMED | static |
+| BE2-130 | Offline list raw PII vs search DTO | CONFIRMED | extends BE-021 |
+| BE2-132 | `user: true` loads password hash in memory | CONFIRMED | notifications/disputes |
+| BE2-141 | Favorites toggle race / non-idempotent | CONFIRMED | findFirst→create/delete |
+| BE2-142 | Payment timer extend not idempotent (+5m each) | CONFIRMED | adminBookingActions |
+| BE2-144 | Chat image→proof bypasses proof rate limit | CONFIRMED | messages route |
+| BE2-145 | Guest document overwrite + notify every POST | CONFIRMED | bookings/document |
+| BE2-203 | cancel-by-guest: any role + ADMIN bypass, weak audit | CONFIRMED | cancel-by-guest L22–33 |
 
-#### BE-013 — `JOB_SECRET` accepted via query string  
-**Evidence:** `jobs/expire-bookings/route.ts` L12  
-**Remediation:** Header-only.  
+### Low / Latent
 
-#### BE-014 — Cron fail-open when `CRON_SECRET` unset outside production  
-**Evidence:** `src/app/api/cron/booking-reminders/route.ts` (and archive twin)  
-**Remediation:** Fail closed always, or separate local-only flag.  
-
-#### BE-015 — Telegram webhook secret optional if unset  
-**Evidence:** `src/app/api/telegram/webhook/route.ts` L26–33  
-**Remediation:** Fail closed when bot configured but secret missing.  
-
-#### BE-016 — Receipt HTML interpolates owner-controlled names without escape  
-**Evidence:** `src/app/api/bookings/[id]/receipt/route.ts`  
-**Remediation:** `escapeHtml` all dynamic fields.  
-
-#### BE-017 — Booking create non-atomic (booking without payment)  
-**Evidence:** `bookings/route.ts` sequential create  
-**Remediation:** `$transaction` for booking+payment+log.  
-
-#### BE-018 — Profile password change without current password  
-**Evidence:** `src/app/api/profile/password/route.ts` L8–23  
-**Remediation:** Require current password (and/or recent auth).  
-
-#### BE-019 — Reviews allowed on `CONFIRMED` (not only `COMPLETED`)  
-**Evidence:** `src/app/api/reviews/create/route.ts`  
-**Remediation:** COMPLETED (+ checkout) only if product policy requires stay finished.  
-
-#### BE-020 — Disputes lack booking-status gate  
-**Evidence:** `src/app/api/disputes/route.ts`  
-**Remediation:** Allow only post-paid / post-stay statuses.  
-
-#### BE-021 — Offline booking list returns raw Prisma (PII) vs search DTO  
-**Evidence:** moderator/owner `offline-bookings` GET vs `toOfflinePublicView` on search  
-**Remediation:** Same DTO / field allowlist.  
-
-#### BE-022 — Owner application mass-assigns `adminComment` → `comment`  
-**Evidence:** `src/app/api/owner/applications/route.ts`  
-**Remediation:** Drop guest-writable admin fields.  
-
-#### BE-023 — Unbounded `findMany` (no pagination) on admin/moderator lists  
-**Evidence:** e.g. `moderator/rooms`, `admin/owner-requests`, hotel moderators list  
-**Remediation:** `take`/`cursor` pagination.  
-
-#### BE-024 — In-memory rate limit ineffective across instances  
-**Evidence:** `src/lib/security/rateLimit.ts` L14–15 comment + `Map` store  
-**Remediation:** Redis/Upstash (or platform) limiter for auth/OTP/proof.  
-
-#### BE-025 — Zod coverage ~21%; most booking/payment/owner FormData routes unvalidated  
-**Evidence:** inventory FLAGS  
-**Remediation:** Shared zod schemas per domain; reject unknown keys (mass assignment).  
+| ID | Summary | Class |
+|----|---------|-------|
+| BE2-204 | Admin cancel lacks transactionLog / byAdminId | LATENT |
+| BE2-102…106 | Unbounded strings / weak FormData bounds | CONFIRMED |
+| BE2-114 | Silent `.catch(() => undefined)` side effects | CONFIRMED |
+| BE2-134 | Push subscribe can reassign endpoint→userId | CONDITIONAL |
 
 ---
 
-### Low / Info
+## F. Existing findings confirmed (do not re-count as new)
 
-| ID | Summary | Evidence |
-|----|---------|----------|
-| BE-026 | Unauth availability probe, no RL | `bookings/check-availability` |
-| BE-027 | Admin confirm-payment path maps `DATES_UNAVAILABLE` inconsistently (500 vs 409) | admin vs `/api/bookings/confirm-payment` |
-| BE-028 | `getBookingForOwner` omits `assignedRoom` hotel OR | `ownerBooking.ts` |
-| BE-029 | Chat/inbox/review reply roomType-only gaps (false deny / 500) | chat includes, `reviews/reply` |
-| BE-030 | Notifications list `include: { user: true }` loads password hash in memory | `notifications/list` |
-| BE-031 | Moderator assign user enumeration via phone/email | owner moderators POST |
-| BE-032 | Soft-auth notifications return 200 empty for anon | `notifications/unread` |
-| BE-033 | Seed blocked in prod + secret — OK shape | `api/seed` |
-| BE-034 | Cancel→REFUNDED without refund pipeline latent if gates weaken | guest cancel helpers |
+| Prior ID | Topic | #2 stance |
+|----------|--------|-----------|
+| **SEC-001** | Secrets in `.env.example` / git history | CONFIRMED prior — out of API matrix; still P0 |
+| **SEC-003 / BE-003** | KYC public Blob | CONFIRMED still present |
+| **SEC-005** | Admin BFLA | **NOT active** — hardening / defense-in-depth only |
+| **SEC-010 / BI-001 / BE-004** | Inventory TOCTOU | CONFIRMED; Hybrid plan pending IMPLEMENTATION |
+| **SEC-011 / BI-002 / BE-001** | Owner approve without proof | CONFIRMED |
+| **BI-005** | Booking create idempotency | CONFIRMED gap (0 Idempotency-Key) — not re-filed |
+| **BE-002** | Expire job blind updateMany | CONFIRMED; BE2-112 adds false metrics |
+| **BE-005** | Confirm/approve non-transactional | CONFIRMED |
+| **BE-006** | Admin payment free enum | CONFIRMED; interacts with BE2-010/012 |
+| **BE-007** | Duplicate payouts | CONFIRMED; pairs with BE2-005/006 |
+| **BE-008 / BE-009** | Proof reuse / public guest docs | CONFIRMED |
+| **BE-010 / BE-011** | Admin role/credentials | CONFIRMED |
+| **BE-012** | Proof false `{ok:true}` | CONFIRMED |
+| **BE-020 / BE-021 / BE-023 / BE-025** | Dispute gate / offline PII / pagination / zod % | CONFIRMED; extended by BE2-* |
+| **BE-AUTH-001** | Middleware role fail-open | ALREADY COVERED |
+| **TS-CNT-001 / TS-UI-001 / TS-SEO-01 / TS-UX-005** | Product audit P0s | Out of backend; remain open product P0s |
 
----
+### AuthZ hunt results (guest paths)
 
-## 6. Positive controls (do not regress)
-
-- Server-side pricing on `POST /api/bookings` (no client `totalPrice` trust).  
-- Admin payment confirm requires `ON_REVIEW` + proof URL + `proofSubmittedAt` + payment `PENDING` (when using confirm helper).  
-- Proof upload uses `updateMany` status ∈ `{WAITING_PAYMENT, WAIT_PROOF}` (transition CAS partial).  
-- Guest cancel blocked when `paymentStatus===PAID`.  
-- Owner confirm/reject without online pay restricted to `payOnArrival` + `PENDING_OWNER`.  
-- Owner payment-reject stub hard-403 (admin path for reject).  
-- `JOB_SECRET` fail-closed if unset (stronger than cron).  
-- Hotel create forces `PENDING`; owners cannot self-approve.  
-- Sampled owner mutate paths re-check `hotel.ownerId`.  
-- Admin content routes go through `runAdminContentPost` / `getAdminUser`.
-
----
-
-## 7. Domain matrices (high-risk)
-
-### 7.1 Booking → Payment → Confirm
-
-| METHOD | PATH | AUTH | AUTHZ | ZOD | TX | RL | RISK |
-|--------|------|------|-------|-----|----|----|------|
-| POST | `/api/bookings` | optional session | auto-guest | ❌ | ❌ | ✅ IP | BE-004, BE-017 |
-| POST | `/api/payments/proof` | session | own booking | ❌ | partial | ✅ | BE-008, BE-012 |
-| POST | `/api/owner/bookings/[id]/payment-approve` | OWNER | hotel owner | ❌ | ❌ | ❌ | **BE-001** |
-| POST | `/api/bookings/confirm-payment` | ADMIN | admin | ❌ | ❌ | ❌ | BE-005 |
-| POST | `/api/admin/bookings/[id]/confirm-payment` | ADMIN | admin | ❌ | ❌ | ❌ | BE-005 |
-| POST | `/api/admin/bookings/payment` | ADMIN | admin | ❌ | ❌ | ❌ | **BE-006** |
-| POST | `/api/admin/bookings/complete` | ADMIN | admin | ❌ | ❌ | ❌ | **BE-007** |
-| POST | `/api/jobs/expire-bookings` | JOB_SECRET | secret | ❌ | ❌ | ❌ | **BE-002**, BE-013 |
-
-### 7.2 Identity / KYC / Admin users
-
-| METHOD | PATH | AUTH | RISK |
-|--------|------|------|------|
-| POST | owner-requests / applications uploads | SESSION guest | BE-003 |
-| GET | `/api/admin/owner-requests/[id]/file` | ADMIN | OK proxy (storage still public) |
-| POST | `/api/admin/users/update` | ADMIN | BE-010 |
-| POST | `/api/admin/users/credentials` | ADMIN | BE-011 |
-| POST | `/api/profile/password` | SESSION | BE-018 |
-| POST | `/api/bookings/document` | SESSION | BE-009 |
-
-### 7.3 Jobs / webhooks
-
-| PATH | Secret behavior | Risk |
-|------|-----------------|------|
-| `/api/jobs/expire-bookings` | Fail-closed if unset; header **or query** | BE-002, BE-013 |
-| `/api/cron/*` | Fail-open if unset + non-prod | BE-014 |
-| `/api/telegram/webhook` | Secret skipped if unset | BE-015 |
+| Hypothesis | Result |
+|------------|--------|
+| Guest→other booking cancel/doc/proof/receipt/chat/dispute | **NOT REPRODUCED** |
+| Chat stream/typing/Pusher IDOR | **NOT REPRODUCED** |
+| Notification read-by-id IDOR | **NOT REPRODUCED** |
+| Owner self-APPROVE hotel | **NOT REPRODUCED** |
+| Moderator/Owner offline `OR` clobber | **CONFIRMED** BE2-200…202 |
 
 ---
 
-## 8. State machine (as implemented)
+## G. Coverage gaps
+
+| Gap | Status |
+|-----|--------|
+| Hand-filled 142×15 cell spreadsheet | PARTIAL — inventory + domain deep dives |
+| Runtime concurrent races (expire vs confirm, offline IDOR live) | NOT TESTABLE STATICALLY → need runtime |
+| PSP / card webhooks | NOT APPLICABLE today / GAP for future |
+| What if expire job never runs | Documented: soft holds forever (BI) — still GAP for ops runbooks |
+| Backup/restore/DR | PASS 7 — not this pass |
+| Observability / alerting on stuck PENDING payouts & OPEN disputes | GAP |
+| Index EXPLAIN / lock analysis | GAP |
+| CSRF / SameSite full proof | GAP |
+| Product tests in `src` | **0** — GAP |
+
+---
+
+## H. Recommended next audit pass
 
 ```text
-WAITING_PAYMENT / WAIT_PROOF
-   ├─(proof)──► ON_REVIEW
-   ├─(owner approve*)──► CONFIRMED + PAID     (* no proof — BE-001)
-   └─(expire job)──► EXPIRED                  (race — BE-002)
+1) MODE: RESEARCH — PAYMENT INTEGRITY PASS
+   Focus: BE-001/006 + BE2-005/006/010/011/012 end-to-end money ledger
+   Refunds · payouts · proof · expire/cancel races · orphan payment
 
-ON_REVIEW
-   ├─(admin confirm)──► CONFIRMED + PAID
-   ├─(admin reject)──► REJECTED
-   └─(review timeout job)──► REJECTED         (race — BE-002)
+2) Then: Full UI/UX Runtime (Desktop/Mobile matrix)
 
-PENDING_OWNER + payOnArrival
-   └─(owner confirm/reject)──► CONFIRMED / REJECTED
+3) Then: Google / Page Experience (Lighthouse measurements)
 
-CONFIRMED
-   └─(admin complete)──► COMPLETED + Payout   (duplicate payout — BE-007)
+4) Design System Stage C / Restyle — ONLY after P0/P1 remediation track
 ```
 
-Schema defaults / comments mentioning `PENDING_OWNER` diverge from online create (`WAITING_PAYMENT`) — dual vocabulary increases bypass risk.
-
-**Card payment webhooks / provider callbacks:** not present as first-class routes in this inventory (manual proof model). Payment Integrity PASS 2 should still map refund/dispute/payout edges.
+**Do not** start restyle while BE2-200…202 (cross-tenant offline read) and money-machine holes remain open alongside SEC/BI P0s.
 
 ---
 
-## 9. Coverage gaps (explicit)
+## Confirmed P0 board (product + backend) — freeze
 
-| Gap | Why it matters |
-|-----|----------------|
-| Runtime concurrent races | BE-002/004/005 need multi-worker proof |
-| Full Payment Integrity PASS | Refunds, disputes, payout settlement, orphan payments |
-| CSRF posture | Cookie sessions + form POSTs; SameSite not fully proven here |
-| Magic-byte upload validation | MIME allowlists only |
-| Multi-instance RL efficacy | In-memory Map |
-| Prod cron wiring | Who calls expire/reminders; secret rotation |
-| E2E AuthZ suite | 0 product tests in `src` for these paths |
-| DB EXPLAIN / indexes deep-pass | Partial via BI audit only |
-| Observability of failed transitions | Silent `.catch(() => undefined)` on side effects |
+| # | ID | Area | Note |
+|---|-----|------|------|
+| 1 | SEC-001 | Secrets | REVOKE→ROTATE→SCRUB→VERIFY |
+| 2 | SEC-003 | KYC storage | private + authz proxy |
+| 3 | BI-001 | Inventory | Hybrid plan — wait for `implement BI-001` |
+| 4 | BI-002 / SEC-011 | Payment approve | proof required |
+| 5 | **BE2-200…202** | Offline BOLA | **new** — Prisma `OR` clobber |
+| 6 | **BE2-005 / BE2-010** | Payout / Refund ledger | **new** money integrity |
+| 7 | TS-CNT-001 | Legal placeholder | product |
+| 8 | TS-UI-001 | Token stacks | product |
+| 9 | TS-SEO-01 | Sitemap hotels | product |
+| 10 | TS-UX-005 | Sticky book unwired | product |
 
----
-
-## 10. Prioritization (research → later IMPLEMENTATION)
-
-| Priority | IDs | Track |
-|----------|-----|-------|
-| P0 release gate | BE-003, BE-004, BE-001 | Existing SEC/BI — **do not implement until explicit MODE: IMPLEMENTATION** |
-| P0 adjacent | BE-002, BE-007 | Jobs + payouts |
-| P1 | BE-005, BE-006, BE-008, BE-009, BE-010, BE-011 | Payment integrity + admin identity |
-| P2 | BE-012…BE-025 | Hardening / hygiene |
-| P3 | BE-026…BE-034 | Low / product gaps |
+SEC-005: **not** on P0 board as active BFLA.
 
 ---
 
-## 11. Recommended next passes (still RESEARCH)
+## Positive controls (do not regress)
 
-1. **PASS 2 — Payment Integrity** (state machine + refunds + payouts + proof + races with expire/cancel).  
-2. **PASS 3 — Full UI/UX Runtime** (browser matrix).  
-3. **PASS 4 — Google/Page Experience** (Lighthouse measurements).  
-5. Content / 6 Accessibility / 7 Reliability — as previously scoped.  
-
-**Restyle / Design System:** deferred until findings prioritized and P0/P1 addressed — Verdant Peak / Central Asian Hospitality remains a **candidate**, not a decision.
+- Handler AuthZ uses DB session role (not role cookie) on owner/admin/moderator helpers.  
+- Online booking price computed server-side.  
+- Guest booking IDOR on cancel/proof/document/receipt/chat — not reproduced.  
+- Admin hotel approve separate from owner update (status locked).  
+- `JOB_SECRET` fail-closed if unset.  
+- Proof `updateMany` status gate (partial CAS) still present.
 
 ---
 
-## 12. Status
+## Status footer
 
 ```text
 MODE: RESEARCH ONLY
-CODE CHANGES: none
-FINDINGS: evidenced, open
-CLAIMED FIXED: none
+APPLICATION CODE: unmodified
+PRISMA SCHEMA: unmodified
+NEW FINDINGS: BE2-001…BE2-204 family (see §E)
+DUPLICATES OF SEC/BI: listed in §F only
+BACKEND AUDIT STATUS: PARTIAL
+PRODUCT MATURITY: remain ≤ 4.5/10 (no uplift)
+NEXT: Payment Integrity RESEARCH pass
 ```
-
-**Inventory artifact:** `docs/audit/BACKEND-API-INVENTORY-2026-08-10.md`  
-**This report:** `docs/audit/BACKEND-DEEP-AUDIT-2026-08-10.md`

@@ -1,6 +1,6 @@
 # TajStay — Backend API Inventory (heuristic)
 
-**Date:** 2026-08-10 · **Mode:** RESEARCH · Companion to `BACKEND-DEEP-AUDIT-2026-08-10.md`
+**Date:** 2026-08-10 · **Mode:** RESEARCH · Companion to Backend Deep Audit **#2** (`BACKEND-DEEP-AUDIT-2026-08-10.md`)
 
 FLAGS are static heuristics (string presence in `route.ts`), not a substitute for handler review.
 `REEXPORT` = file re-exports another route’s handlers.
