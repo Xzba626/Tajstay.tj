@@ -44,16 +44,18 @@ export function RoomTypeCards({
         return (
           <div
             key={rt.id}
-            className="glass-panel flex flex-col gap-4 rounded-xl p-4 transition sm:flex-row sm:items-stretch"
+            className="flex flex-col gap-4 rounded-xl border border-[var(--taj-line)] bg-[var(--taj-snow)] p-4 shadow-[var(--taj-shadow-sm)] transition sm:flex-row sm:items-stretch"
           >
             <div className="w-full shrink-0 sm:max-w-xs sm:min-w-[280px]">
-              <RoomPhotoCarousel urls={photos} title={rt.name} variant="dark" />
+              <RoomPhotoCarousel urls={photos} title={rt.name} variant="light" />
             </div>
             <div className="flex min-w-0 flex-1 flex-col justify-between gap-3">
               <div>
-                <div className="font-semibold text-white">{rt.name}</div>
-                {rt.description ? <p className="mt-1 text-sm text-brand-200">{rt.description}</p> : null}
-                <div className="mt-2 text-sm text-brand-200">
+                <div className="font-semibold text-[var(--taj-ink)]">{rt.name}</div>
+                {rt.description ? (
+                  <p className="mt-1 text-sm text-[var(--taj-ink-soft)]">{rt.description}</p>
+                ) : null}
+                <div className="mt-2 text-sm text-[var(--taj-ink-soft)]">
                   {m(locale, "owner.capacity")}: {rt.maxGuests} · {m(locale, "pms.beds")}: {rt.bedsCount}
                 </div>
                 {amenities.length ? (
@@ -61,7 +63,7 @@ export function RoomTypeCards({
                     {amenities.map((a) => (
                       <span
                         key={a}
-                        className="rounded-full border border-brand-600/80 bg-brand-900/40 px-3 py-1.5 text-sm text-brand-100"
+                        className="rounded-full border border-[var(--taj-line)] bg-[var(--taj-mist)] px-3 py-1.5 text-sm text-[var(--taj-ink-soft)]"
                       >
                         {getAmenityLabel(locale, a)}
                       </span>
@@ -69,18 +71,18 @@ export function RoomTypeCards({
                   </div>
                 ) : null}
                 {roomsLeft > 0 ? (
-                  <p className="mt-2 text-xs text-emerald-300">
+                  <p className="mt-2 text-xs text-[var(--taj-lake)]">
                     {m(locale, "pms.roomsLeft", { count: String(roomsLeft) })}
                   </p>
                 ) : null}
               </div>
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="font-semibold text-white">
+                <div className="font-semibold text-[var(--taj-ink)]">
                   {m(locale, "search.fromPrice")} {Number(rt.basePrice)} TJS
                 </div>
                 <Link
                   href={`/booking?roomTypeId=${rt.id}${qs}`}
-                  className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white"
+                  className="taj-btn taj-btn--primary taj-btn--sm"
                 >
                   {m(locale, "search.bookNow")}
                 </Link>

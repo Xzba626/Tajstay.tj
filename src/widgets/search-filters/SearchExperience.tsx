@@ -33,8 +33,8 @@ type Props = {
 
 function amenityToggleClass(active: boolean) {
   return active
-    ? "border-emerald-400/50 bg-emerald-500/20 text-emerald-50"
-    : "border-white/12 bg-white/5 text-brand-200 hover:bg-white/10";
+    ? "border-[var(--taj-lake)]/40 bg-[var(--taj-lake-soft)] text-[var(--taj-lake-deep)]"
+    : "border-[var(--taj-line)] bg-[var(--taj-snow)] text-[var(--taj-ink-soft)] hover:bg-[var(--taj-mist)]";
 }
 
 export function SearchExperience({
@@ -159,7 +159,7 @@ export function SearchExperience({
   );
 
   const mobileAffordanceInput =
-    "h-12 w-full min-w-0 rounded-2xl border border-brand-500 bg-brand-700 px-4 text-sm text-white outline-none transition placeholder:text-brand-200 focus:border-brand-400 focus:ring-2 focus:ring-brand-500/25";
+    "h-12 w-full min-w-0 rounded-2xl border border-[var(--taj-line)] bg-[var(--taj-snow)] px-4 text-sm text-[var(--taj-ink)] outline-none transition placeholder:text-[var(--taj-color-text-muted)] focus:border-[var(--taj-lake)] focus:ring-2 focus:ring-[var(--taj-lake)]/20";
 
   const mapHref = useMemo(() => {
     const qs = queryString ? `?${queryString}` : "";
@@ -196,7 +196,7 @@ export function SearchExperience({
 
   return (
     <>
-      <div className="grid min-w-0 gap-3 overflow-hidden rounded-[2rem] border border-white/10 bg-[rgba(18,31,20,0.9)] p-4 shadow-[0_20px_60px_rgba(0,0,0,0.35)] md:grid-cols-6">
+      <div className="grid min-w-0 gap-3 overflow-hidden rounded-[2rem] border border-[var(--taj-line)] bg-[var(--taj-snow)] p-4 shadow-[var(--taj-shadow-md)] md:grid-cols-6">
         <input
           name="q"
           value={filters.q}
@@ -205,7 +205,7 @@ export function SearchExperience({
           placeholder={m(locale, "search.smartQueryPh")}
         />
         <label className="relative block min-w-0">
-          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-base text-brand-100">📍</span>
+          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-base text-[var(--taj-lake)]">📍</span>
           <input
             name="city"
             value={filters.city}
@@ -215,7 +215,7 @@ export function SearchExperience({
           />
         </label>
         <label className="relative block min-w-0">
-          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-base text-brand-100">📅</span>
+          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-base text-[var(--taj-lake)]">📅</span>
           <input
             name="checkIn"
             value={filters.checkIn}
@@ -226,7 +226,7 @@ export function SearchExperience({
           />
         </label>
         <label className="relative block min-w-0">
-          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-base text-brand-100">📅</span>
+          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-base text-[var(--taj-lake)]">📅</span>
           <input
             name="checkOut"
             value={filters.checkOut}
@@ -323,14 +323,14 @@ export function SearchExperience({
       </div>
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="text-sm text-brand-200" aria-live="polite">
+        <div className="text-sm text-[var(--taj-ink-soft)]" aria-live="polite">
           {loading
             ? m(locale, "search.loading")
             : total > hotels.length
               ? m(locale, "search.foundCountPartial", { shown: hotels.length, total })
               : m(locale, "search.foundCount", { count: hotels.length })}
           {nearbyCity && !filters.city && !geoCoords ? (
-            <span className="mt-1 block text-xs text-emerald-200/90">
+            <span className="mt-1 block text-xs text-[var(--taj-lake)]">
               {m(locale, "searchGeo.nearbyHint", { city: nearbyCity })}
             </span>
           ) : null}
@@ -344,7 +344,7 @@ export function SearchExperience({
           {!filters.city ? (
             <button
               type="button"
-              className="rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-5 py-2.5 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-500/20"
+              className="rounded-2xl border border-[var(--taj-lake)]/40 bg-[var(--taj-lake-soft)] px-5 py-2.5 text-sm font-semibold text-[var(--taj-ink)] transition hover:bg-[var(--taj-lake-soft)]"
               onClick={() => {
                 setGeoError(null);
                 if (!navigator.geolocation) {
@@ -363,13 +363,13 @@ export function SearchExperience({
           ) : null}
           <button
             type="button"
-            className="rounded-2xl border border-brand-500 px-5 py-2.5 text-sm font-semibold text-brand-100 transition hover:bg-brand-700"
+            className="rounded-2xl border border-[var(--taj-line)] px-5 py-2.5 text-sm font-semibold text-[var(--taj-ink)] transition hover:bg-[var(--taj-mist)]"
             onClick={resetFilters}
           >
             {m(locale, "search.resetFilters")}
           </button>
           <Link
-            className="rounded-2xl border border-brand-500 px-5 py-2.5 text-sm font-semibold text-brand-100 transition hover:bg-brand-700"
+            className="rounded-2xl border border-[var(--taj-line)] px-5 py-2.5 text-sm font-semibold text-[var(--taj-ink)] transition hover:bg-[var(--taj-mist)]"
             href={mapHref}
           >
             {m(locale, "search.mapMode")}
@@ -406,27 +406,27 @@ export function SearchExperience({
           ) : (
             <div className={`grid gap-4 md:grid-cols-2 ${loading ? "opacity-80" : ""}`}>
               {!hotels.length ? (
-                <div className="md:col-span-2 rounded-[2rem] border border-dashed border-slate-700/80 bg-slate-950/25 p-7 text-sm text-brand-200">
-                  <div className="text-base font-semibold text-white">{m(locale, "search.emptyTitle")}</div>
+                <div className="md:col-span-2 rounded-[2rem] border border-dashed border-[var(--taj-line)] bg-[var(--taj-mist)] p-7 text-sm text-[var(--taj-ink-soft)]">
+                  <div className="text-base font-semibold text-[var(--taj-ink)]">{m(locale, "search.emptyTitle")}</div>
                   <div className="mt-2 leading-relaxed">{m(locale, "search.emptyHint")}</div>
                   <div className="mt-4 flex flex-wrap gap-2">
                     <button
                       type="button"
-                      className="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-500"
+                      className="rounded-xl bg-[var(--taj-lake)] px-4 py-2 text-xs font-semibold text-[var(--taj-ink)] transition hover:bg-[var(--taj-lake)]"
                       onClick={resetFilters}
                     >
                       {m(locale, "search.resetFilters")}
                     </button>
                     <button
                       type="button"
-                      className="rounded-xl bg-white/10 px-3 py-2 text-xs font-semibold text-white ring-1 ring-white/10 transition hover:bg-white/15"
+                      className="rounded-xl bg-[var(--taj-mist)] px-3 py-2 text-xs font-semibold text-[var(--taj-ink)] ring-1 ring-[var(--taj-line)] transition hover:bg-[var(--taj-lake-soft)]"
                       onClick={() => setFilters((prev) => ({ ...prev, q: "", city: "" }))}
                     >
                       {m(locale, "search.clearTextCity")}
                     </button>
                     <button
                       type="button"
-                      className="rounded-xl bg-white/10 px-3 py-2 text-xs font-semibold text-white ring-1 ring-white/10 transition hover:bg-white/15"
+                      className="rounded-xl bg-[var(--taj-mist)] px-3 py-2 text-xs font-semibold text-[var(--taj-ink)] ring-1 ring-[var(--taj-line)] transition hover:bg-[var(--taj-lake-soft)]"
                       onClick={() =>
                         setFilters((prev) => ({ ...prev, minPrice: "", maxPrice: "", ratingMin: "" }))
                       }
@@ -458,7 +458,7 @@ export function SearchExperience({
                     setFocusedHotelId(hotel.id);
                     setPreviewHotel(hotel);
                   }}
-                  className={`min-w-0 ${focusedHotelId === hotel.id ? "rounded-[2rem] ring-2 ring-[var(--brand-green)]/80" : ""}`}
+                  className={`min-w-0 ${focusedHotelId === hotel.id ? "rounded-[2rem] ring-2 ring-[var(--taj-lake)]/70" : ""}`}
                 >
                   <HotelCard
                     hotel={hotel}
@@ -477,7 +477,7 @@ export function SearchExperience({
                   <button
                     type="button"
                     disabled={loading}
-                    className="rounded-2xl border border-brand-500 bg-brand-800/80 px-6 py-3 text-sm font-semibold text-brand-100 transition hover:bg-brand-700 disabled:opacity-60"
+                    className="rounded-2xl border border-[var(--taj-line)] bg-[var(--taj-snow)] px-6 py-3 text-sm font-semibold text-[var(--taj-ink)] transition hover:bg-[var(--taj-lake-soft)] disabled:opacity-60"
                     onClick={() => setPage((prev) => prev + 1)}
                   >
                     {loading ? m(locale, "search.loading") : m(locale, "search.loadMore")}
@@ -507,7 +507,7 @@ export function SearchExperience({
         {previewHotel ? (
           <div className="space-y-4">
             {previewHotel.coverImageUrl ? (
-              <div className="relative h-44 w-full overflow-hidden rounded-2xl border border-brand-500/70">
+              <div className="relative h-44 w-full overflow-hidden rounded-2xl border border-[var(--taj-line)]">
                 <AppImage
                   src={previewHotel.coverImageUrl}
                   alt={previewHotel.name}
@@ -518,8 +518,8 @@ export function SearchExperience({
               </div>
             ) : null}
             <div className="flex items-center justify-between gap-3">
-              <div className="text-sm text-brand-200">{previewHotel.city}</div>
-              <div className="text-sm font-semibold text-brand-100">★ {Number(previewHotel.rating).toFixed(1)}</div>
+              <div className="text-sm text-[var(--taj-ink-soft)]">{previewHotel.city}</div>
+              <div className="text-sm font-semibold text-[var(--taj-lake)]">★ {Number(previewHotel.rating).toFixed(1)}</div>
             </div>
             <a
               className="ds-primary-btn inline-flex w-full items-center justify-center text-sm"
@@ -531,7 +531,7 @@ export function SearchExperience({
             </a>
           </div>
         ) : (
-          <div className="text-sm text-brand-200">—</div>
+          <div className="text-sm text-[var(--taj-ink-soft)]">—</div>
         )}
       </Modal>
     </>

@@ -14,7 +14,7 @@ export function FormSection({ title, description, children, className, aside }: 
     <section className={cn("taj-form-section", className)}>
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3 border-b border-[var(--taj-color-border)] pb-4">
         <div className="min-w-0">
-          <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-emerald-300/90">{title}</h3>
+          <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--taj-lake)]">{title}</h3>
           {description ? (
             <p className="mt-1.5 text-sm leading-relaxed text-[var(--taj-color-text-secondary)]">{description}</p>
           ) : null}
@@ -59,7 +59,7 @@ export function FormField({
           </span>
         ) : null}
         {required && !optionalLabel ? (
-          <span className="text-[10px] font-bold uppercase tracking-wide text-emerald-400/80">*</span>
+          <span className="text-[10px] font-bold uppercase tracking-wide text-[var(--taj-lake)]/80">*</span>
         ) : null}
       </div>
       {description ? <p className="mb-2 text-xs text-[var(--taj-color-text-muted)]">{description}</p> : null}

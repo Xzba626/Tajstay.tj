@@ -71,7 +71,7 @@ export function GuestPaymentDealClient(props: GuestPaymentDealClientProps) {
       transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
     >
       <motion.div
-        className="surface-1 rounded-3xl p-4 ring-1 ring-white/10 sm:p-5"
+        className="rounded-3xl border border-[var(--taj-line)] bg-[var(--taj-snow)] p-4 shadow-[var(--taj-shadow-sm)] sm:p-5"
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.05, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
@@ -80,24 +80,26 @@ export function GuestPaymentDealClient(props: GuestPaymentDealClientProps) {
 
         <div className="mt-5 flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="truncate text-xs font-medium uppercase tracking-widest text-emerald-200/70">{hotelName}</p>
-            <p className="truncate text-sm text-white/80">{roomTitle}</p>
-            <h1 className="mt-2 text-2xl font-bold tracking-tight text-white sm:text-[1.65rem]">{headline}</h1>
+            <p className="truncate text-xs font-medium uppercase tracking-widest text-[var(--taj-lake)]">
+              {hotelName}
+            </p>
+            <p className="truncate text-sm text-[var(--taj-ink-soft)]">{roomTitle}</p>
+            <h1 className="mt-2 text-2xl font-bold tracking-tight text-[var(--taj-ink)] sm:text-[1.65rem]">{headline}</h1>
           </div>
-          <div className="shrink-0 rounded-2xl bg-black/25 px-3 py-2 text-right ring-1 ring-white/10">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Сумма</p>
-            <p className="text-lg font-bold tabular-nums text-emerald-100 sm:text-xl">
+          <div className="shrink-0 rounded-2xl bg-[var(--taj-mist)] px-3 py-2 text-right ring-1 ring-[var(--taj-line)]">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--taj-color-text-muted)]">Сумма</p>
+            <p className="text-lg font-bold tabular-nums text-[var(--taj-lake)] sm:text-xl">
               {Number(totalPrice).toLocaleString("ru-RU", { maximumFractionDigits: 0 })} <span className="text-sm font-semibold">TJS</span>
             </p>
           </div>
         </div>
 
         {!isConfirmed && !isExpired ? (
-          <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-black/20 px-3 py-2.5">
-            <span className="text-xs font-medium text-slate-400">
+          <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl border border-[var(--taj-line)] bg-[var(--taj-mist)] px-3 py-2.5">
+            <span className="text-xs font-medium text-[var(--taj-color-text-muted)]">
               {isOnReview ? m(locale, "status.ON_REVIEW") : m(locale, "checkout.timerTitle")}
             </span>
-            <span className="text-sm font-semibold tabular-nums text-white">
+            <span className="text-sm font-semibold tabular-nums text-[var(--taj-ink)]">
               {isOnReview && proofReviewDeadlineAtIso ? (
                 <PaymentCountdown expiresAtIso={proofReviewDeadlineAtIso} />
               ) : (
@@ -112,22 +114,28 @@ export function GuestPaymentDealClient(props: GuestPaymentDealClientProps) {
         ) : null}
 
         {isExpired ? (
-          <div className="mt-4 rounded-2xl border border-red-500/30 bg-red-950/25 px-3 py-3 text-sm text-red-100" role="alert">
+          <div
+            className="mt-4 rounded-2xl border border-red-300 bg-red-50 px-3 py-3 text-sm text-red-800"
+            role="alert"
+          >
             {m(locale, "checkout.expired")}
           </div>
         ) : null}
 
         {isConfirmed ? (
-          <div className="mt-4 rounded-2xl border border-emerald-400/25 bg-emerald-500/10 px-3 py-3 text-sm text-emerald-50" role="status">
+          <div
+            className="mt-4 rounded-2xl border border-[var(--taj-lake)]/30 bg-[var(--taj-lake-soft)] px-3 py-3 text-sm text-[var(--taj-lake-deep)]"
+            role="status"
+          >
             <p className="font-semibold">Готово</p>
-            <p className="mt-1 text-emerald-100/85">Код: {code}</p>
+            <p className="mt-1">{code}</p>
           </div>
         ) : null}
 
         {!isConfirmed && !isExpired ? (
           <motion.div className="mt-5 space-y-4" layout transition={{ duration: 0.3 }}>
             {bookingStatus === "ON_REVIEW" ? (
-              <p className="text-center text-sm text-indigo-100/90">Админ проверяет чек</p>
+              <p className="text-center text-sm text-[var(--taj-ink-soft)]">Админ проверяет чек</p>
             ) : (
               <DcNextPaymentCard
                 variant="embedded"

@@ -143,10 +143,11 @@
   z-index: 50;
   padding: 0 calc(0.5rem + env(safe-area-inset-left, 0)) calc(0.5rem + env(safe-area-inset-bottom, 0));
   pointer-events: none;
-  background: rgba(7, 26, 16, 0.9);
+  background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--taj-line, #d8dee4);
+  box-shadow: 0 -8px 28px rgba(18, 32, 42, 0.06);
 }
 
 .app-tab-bar__dock {
@@ -191,12 +192,12 @@
 }
 
 .app-tab-bar__item.is-active {
-  color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.05);
+  color: var(--taj-lake, #165a63);
+  background: var(--taj-lake-soft, #e6f1f3);
 }
 
 .app-tab-bar__item.is-active .app-tab-bar__icon {
-  color: var(--green-accent);
+  color: var(--taj-lake, #165a63);
 }
 
 .app-tab-bar__icon-wrap {
@@ -212,7 +213,7 @@
 }
 
 .app-tab-bar__icon-wrap.is-active {
-  background: var(--green-muted);
+  background: var(--taj-lake-soft, #e6f1f3);
 }
 
 .app-tab-bar__dot {

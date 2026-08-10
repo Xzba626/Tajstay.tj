@@ -67,7 +67,7 @@ export default async function SearchPage({ searchParams }: Props) {
     <div className="mx-auto flex w-[94%] max-w-7xl flex-col justify-center space-y-8 px-0 py-8 sm:w-full sm:px-6 lg:px-8">
       {errPath && (
         <div
-          className="rounded-xl border border-brand-700 bg-brand-800 px-4 py-3 text-sm text-brand-200"
+          className="rounded-xl border border-[var(--taj-line)] bg-[var(--taj-saffron-soft)] px-4 py-3 text-sm text-[var(--taj-ink)]"
           role="alert"
         >
           <span className="font-semibold">{m(locale, "checkout.errBanner")}: </span>
@@ -75,10 +75,10 @@ export default async function SearchPage({ searchParams }: Props) {
         </div>
       )}
       <div data-reveal data-stagger="30">
-        <h1 className="text-[clamp(1.7rem,6vw,2.2rem)] font-bold tracking-tight text-white">{m(locale, "header.search")}</h1>
-        <p className="mt-2 text-brand-200">{m(locale, "search.filters")}</p>
+        <h1 className="text-[clamp(1.7rem,6vw,2.2rem)] font-bold tracking-tight text-[var(--taj-ink)]">{m(locale, "header.search")}</h1>
+        <p className="mt-2 text-[var(--taj-ink-soft)]">{m(locale, "search.filters")}</p>
       </div>
-      <div className="surface-1 rounded-3xl p-4 sm:p-5" data-reveal data-stagger="70">
+      <div className="rounded-3xl border border-[var(--taj-line)] bg-[var(--taj-snow)] p-4 shadow-[var(--taj-shadow-sm)] sm:p-5" data-reveal data-stagger="70">
         <SearchExperience
           initialHotels={hotels}
           locale={locale}

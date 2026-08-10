@@ -74,7 +74,7 @@ export function HotelCardShell({ children, className }: Props) {
   }, []);
 
   return (
-    <article ref={ref} className={cn("hotel-card-premium hotel-card-premium--motion group", className)}>
+    <article ref={ref} className={cn("hotel-card-shell group", className)}>
       {children}
     </article>
   );

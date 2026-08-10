@@ -102,7 +102,7 @@ export function ModeratorMobileNav({ labels }: { labels: ModeratorSidebarLabels 
                 onClick={() => setOpen(false)}
                 className={cn(
                   "rounded-lg px-3 py-2.5 text-sm font-medium",
-                  active ? "bg-emerald-600/25 text-emerald-100" : "text-slate-200 hover:bg-white/5"
+                  active ? "bg-[var(--taj-lake)]/25 text-[var(--taj-ink)]" : "text-slate-200 hover:bg-white/5"
                 )}
               >
                 {item.label}

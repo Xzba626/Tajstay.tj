@@ -6,6 +6,7 @@
 @import "../styles/taj-theme.css";
 @import "../styles/ds-components.css";
 @import "../styles/home.css";
+@import "../styles/home-pamir.css";
 @import "../styles/auth.css";
 @import "../styles/auth-premium.css";
 @import "../styles/mobile-drawer.css";
@@ -19,6 +20,7 @@
 @import "../styles/chat.css";
 @import "../styles/splash-screen.css";
 @import "../styles/owner-calendar.css";
+@import "../styles/pamir-overrides.css";
 
 @tailwind base;
 @tailwind components;
@@ -27,8 +29,8 @@
 :root,
 [data-theme="light"],
 [data-theme="dark"] {
-  --app-bg: var(--taj-app-bg);
-  --app-vignette: radial-gradient(circle at 50% 28%, transparent 0%, rgba(0, 71, 36, 0.14) 72%, rgba(1, 47, 26, 0.32) 100%);
+  --app-bg: var(--taj-mist);
+  --app-vignette: none;
 }
 
 [data-theme="light"] .text-slate-100,
@@ -62,14 +64,14 @@ button,
 a[role="button"],
 .brand-gradient,
 .ds-primary-btn {
-  border-color: rgba(255, 255, 255, 0.28);
-  box-shadow: 0 10px 24px rgba(2, 6, 23, 0.24), 0 2px 8px rgba(2, 6, 23, 0.16);
+  border-color: rgba(15, 26, 20, 0.12);
+  box-shadow: var(--taj-shadow-sm);
 }
 
 [data-theme="light"] button,
 [data-theme="light"] a[role="button"] {
-  color: #ffffff;
-  border-color: rgba(15, 23, 42, 0.22);
+  color: inherit;
+  border-color: rgba(15, 26, 20, 0.14);
 }
 
 html,

@@ -285,9 +285,9 @@ export function BookingWizard({ labels, defaults, pricePerNight, finance, dcRetu
   const canProceedFromStep1 = Boolean(nights) && !datesConflict && !availabilityChecking;
   const totalByDates = nights ? Number((pricePerNight * nights).toFixed(2)) : null;
   const mobileField =
-    "h-14 w-full rounded-2xl border border-white/20 bg-white/12 px-4 text-sm text-slate-100 shadow-[0_10px_30px_rgba(2,6,23,0.30)] outline-none transition placeholder:text-slate-200/70 focus:border-emerald-300 focus:ring-2 focus:ring-emerald-300/30";
-  const labelRow = "flex items-center gap-2 text-xs font-semibold text-slate-200/90";
-  const labelIcon = "text-sm text-emerald-200/90";
+    "h-14 w-full rounded-2xl border border-[var(--taj-line)] bg-[var(--taj-snow)] px-4 text-sm text-[var(--taj-ink)] shadow-[var(--taj-shadow-sm)] outline-none transition placeholder:text-[var(--taj-color-text-muted)] focus:border-[var(--taj-lake)] focus:ring-2 focus:ring-[var(--taj-lake)]/25";
+  const labelRow = "flex items-center gap-2 text-xs font-semibold text-[var(--taj-ink-soft)]";
+  const labelIcon = "text-sm text-[var(--taj-lake)]";
 
   const persistFields = step >= 2;
 
@@ -320,8 +320,8 @@ export function BookingWizard({ labels, defaults, pricePerNight, finance, dcRetu
       ) : null}
 
       <div className="flex items-baseline justify-between gap-3 border-b border-white/[0.07] pb-2.5">
-        <div className="text-[13px] font-medium tracking-wide text-slate-200/95">{stepTitle}</div>
-        <div className="tabular-nums text-[11px] font-medium uppercase tracking-[0.14em] text-emerald-200/70">
+        <div className="text-[13px] font-medium tracking-wide text-[var(--taj-ink-soft)]/95">{stepTitle}</div>
+        <div className="tabular-nums text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--taj-ink-soft)]">
           {step}/3
         </div>
       </div>
@@ -336,18 +336,18 @@ export function BookingWizard({ labels, defaults, pricePerNight, finance, dcRetu
             {step === 1 && (
               <div className="wizard-step wizard-in">
                 {defaults.isAuthed && (defaults.signedInAsName || defaults.signedInAsEmail) ? (
-                  <div className="mb-4 rounded-2xl border border-emerald-400/25 bg-emerald-500/[0.08] p-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-200/85">
+                  <div className="mb-4 rounded-2xl border border-[var(--taj-lake)]/25 bg-[var(--taj-lake-soft)] p-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--taj-lake)]">
                       {labels.signedInAccountTitle}
                     </div>
                     {defaults.signedInAsName ? (
                       <div className="mt-2 text-base font-semibold leading-snug text-white">{defaults.signedInAsName}</div>
                     ) : null}
                     {defaults.signedInAsEmail ? (
-                      <div className="mt-1 text-sm text-slate-200/90">{defaults.signedInAsEmail}</div>
+                      <div className="mt-1 text-sm text-[var(--taj-ink-soft)]">{defaults.signedInAsEmail}</div>
                     ) : null}
                     {defaults.needsSavedPhone && labels.addPhoneBookingHint ? (
-                      <p className="mt-3 text-xs leading-relaxed text-slate-200/85">{labels.addPhoneBookingHint}</p>
+                      <p className="mt-3 text-xs leading-relaxed text-[var(--taj-ink-soft)]/85">{labels.addPhoneBookingHint}</p>
                     ) : null}
                   </div>
                 ) : null}
@@ -444,7 +444,7 @@ export function BookingWizard({ labels, defaults, pricePerNight, finance, dcRetu
 
                 {availabilityChecking ? (
                   <div className="flex items-center gap-2 text-xs text-slate-300" role="status" aria-live="polite">
-                    <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-emerald-300/30 border-t-emerald-300" />
+                    <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-[var(--taj-lake)]/30 border-t-[var(--taj-lake)]" />
                     Проверяем доступность дат…
                   </div>
                 ) : null}
@@ -492,9 +492,9 @@ export function BookingWizard({ labels, defaults, pricePerNight, finance, dcRetu
 
             {step === 2 && (
               <div className="wizard-step wizard-in">
-                <div className="rounded-2xl border border-emerald-300/20 bg-emerald-500/10 p-4 text-sm text-slate-100">
+                <div className="rounded-2xl border border-[var(--taj-lake)]/25 bg-[var(--taj-lake-soft)] p-4 text-sm text-[var(--taj-ink)]">
                   <div className="font-semibold">Способ оплаты</div>
-                  <div className="mt-1 text-slate-200">Душанбе City (DC Next)</div>
+                  <div className="mt-1 text-[var(--taj-ink-soft)]">Душанбе City (DC Next)</div>
                 </div>
 
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm">
@@ -506,7 +506,7 @@ export function BookingWizard({ labels, defaults, pricePerNight, finance, dcRetu
                     <span>Цена за ночь</span>
                     <span>{pricePerNight} TJS</span>
                   </div>
-                  <div className="mt-3 flex justify-between font-semibold text-slate-100">
+                  <div className="mt-3 flex justify-between font-semibold text-[var(--taj-ink)]">
                     <span>К оплате</span>
                     <span>{totalByDates ?? finance.totalToCharge} TJS</span>
                   </div>
@@ -527,25 +527,25 @@ export function BookingWizard({ labels, defaults, pricePerNight, finance, dcRetu
             {step === 3 && (
               <div className="wizard-step wizard-in space-y-4">
                 <div
-                  className="relative overflow-hidden rounded-2xl border border-emerald-400/25 px-4 py-4 text-sm text-slate-100 shadow-[0_0_0_1px_rgba(16,185,129,0.12),0_0_32px_-4px_rgba(16,185,129,0.35),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-md"
+                  className="relative overflow-hidden rounded-2xl border border-[var(--taj-lake)]/25 px-4 py-4 text-sm text-[var(--taj-ink)] shadow-[0_0_0_1px_rgba(22,90,99,0.12),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-md"
                   style={{
                     background:
                       "linear-gradient(135deg, rgba(255,255,255,0.07) 0%, rgba(16,185,129,0.06) 45%, rgba(6,78,59,0.12) 100%)"
                   }}
                 >
-                  <div className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-emerald-400/20 blur-2xl" />
-                  <div className="pointer-events-none absolute -bottom-6 -left-6 h-24 w-24 rounded-full bg-emerald-500/15 blur-2xl" />
+                  <div className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-[var(--taj-lake)]/15 blur-2xl" />
+                  <div className="pointer-events-none absolute -bottom-6 -left-6 h-24 w-24 rounded-full bg-[var(--taj-lake-soft)] blur-2xl" />
                   <div className="relative flex gap-3">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-emerald-300/30 bg-emerald-500/15 text-emerald-200">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[var(--taj-lake)]/30 bg-[var(--taj-lake-soft)] text-[var(--taj-ink-soft)]">
                       <ShieldCheckIcon className="h-6 w-6" />
                     </div>
                     <div className="min-w-0 pt-0.5">
-                      <div className="font-semibold tracking-tight text-emerald-50/95">{labels.escrowTitle}</div>
-                      <p className="mt-1.5 text-[13px] leading-relaxed text-slate-200/90">{labels.escrowBody}</p>
+                      <div className="font-semibold tracking-tight text-[var(--taj-ink)]">{labels.escrowTitle}</div>
+                      <p className="mt-1.5 text-[13px] leading-relaxed text-[var(--taj-ink-soft)]">{labels.escrowBody}</p>
                     </div>
                   </div>
                 </div>
-                <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-sm text-slate-200 backdrop-blur-sm">
+                <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-sm text-[var(--taj-ink-soft)] backdrop-blur-sm">
                   {labels.paymentMethodLabel}: <span className="font-semibold text-white">{payMethodLabel}</span>
                 </div>
               </div>
@@ -554,7 +554,7 @@ export function BookingWizard({ labels, defaults, pricePerNight, finance, dcRetu
             {step === 3 ? (
               <p className="text-xs leading-relaxed text-slate-400">
                 {labels.bookingTermsNotice}{" "}
-                <Link href="/terms" className="text-emerald-300/90 underline underline-offset-2 hover:text-emerald-200">
+                <Link href="/terms" className="text-[var(--taj-lake)] underline underline-offset-2 hover:text-[var(--taj-ink-soft)]">
                   {labels.termsLinkLabel}
                 </Link>
                 .
@@ -565,7 +565,7 @@ export function BookingWizard({ labels, defaults, pricePerNight, finance, dcRetu
               <Button
                 type="button"
                 variant="secondary"
-                className="border-white/20 bg-transparent text-slate-200 shadow-none hover:border-white/30 hover:bg-white/[0.04]"
+                className="border-white/20 bg-transparent text-[var(--taj-ink-soft)] shadow-none hover:border-white/30 hover:bg-white/[0.04]"
                 disabled={step === 1}
                 onClick={() => setStep((s) => (s > 1 ? ((s - 1) as Step) : s))}
               >
@@ -599,7 +599,7 @@ export function BookingWizard({ labels, defaults, pricePerNight, finance, dcRetu
                   loading={submitting}
                   disabled={submitting}
                   onClick={() => void runBookingSubmit()}
-                  className="border-emerald-400/40 bg-gradient-to-b from-emerald-500 to-emerald-700 text-white shadow-[0_8px_28px_rgba(0,0,0,0.35),0_0_24px_rgba(16,185,129,0.35)] hover:shadow-[0_8px_28px_rgba(0,0,0,0.35),0_0_32px_rgba(52,211,153,0.45)]"
+                  className="border-[var(--taj-lake)]/40 bg-gradient-to-b from-[var(--taj-lake)] to-[var(--taj-lake-deep)] text-white shadow-[var(--taj-btn-primary-shadow)] hover:shadow-[var(--taj-btn-primary-shadow-hover)]"
                 >
                   {labels.confirm}
                 </Button>

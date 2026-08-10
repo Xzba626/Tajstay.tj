@@ -173,17 +173,17 @@ export function UserMenu({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className={cn("user-menu-trigger relative", open && "ring-2 ring-emerald-400/25")}
+        className={cn("user-menu-trigger relative", open && "ring-2 ring-[var(--taj-lake)]/30")}
         aria-expanded={open}
         aria-haspopup="true"
         aria-label={`${L.account}. ${L.unreadNotifications}: ${unreadCount}`}
       >
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-800 to-green-900 text-xs font-bold text-white shadow-inner">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[var(--taj-lake)] to-[var(--taj-lake-deep)] text-xs font-bold text-white shadow-inner">
           {initials(userName)}
         </span>
         <span className="hidden max-w-[7.5rem] truncate sm:inline">{userName}</span>
         <svg
-          className={cn("h-4 w-4 shrink-0 text-emerald-200/70 transition-transform duration-200", open && "rotate-180")}
+          className={cn("h-4 w-4 shrink-0 text-[var(--taj-ink-soft)] transition-transform duration-200", open && "rotate-180")}
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -210,23 +210,23 @@ export function UserMenu({
         role="menu"
         aria-hidden={!open}
       >
-        <div className="border-b border-emerald-400/15 px-4 py-3">
-          <div className="truncate font-semibold text-white">{userName}</div>
-          <div className="text-xs text-emerald-200/60">{L.account}</div>
+        <div className="border-b border-[var(--taj-line)] px-4 py-3">
+          <div className="truncate font-semibold text-[var(--taj-ink)]">{userName}</div>
+          <div className="text-xs text-[var(--taj-color-text-muted)]">{L.account}</div>
           <TrustBadges locale={menuLocale} badges={trustBadges} size="sm" className="mt-2" />
         </div>
 
         <nav className="flex max-h-[min(70vh,28rem)] flex-col overflow-y-auto py-1">
           {hasNotifications ? (
-            <div className="mx-2 mb-2 rounded-xl border border-emerald-400/15 bg-emerald-950/40 p-2.5">
+            <div className="mx-2 mb-2 rounded-xl border border-[var(--taj-line)] bg-[var(--taj-mist)] p-2.5">
               <div className="mb-1 flex items-center justify-between gap-2">
-                <div className="text-xs font-semibold text-emerald-100">{L.notificationsTitle}</div>
+                <div className="text-xs font-semibold text-[var(--taj-ink)]">{L.notificationsTitle}</div>
                 {unreadCount > 0 ? (
-                  <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-semibold text-white">{unreadCount}</span>
+                  <span className="rounded-full bg-[var(--taj-lake)] px-2 py-0.5 text-[10px] font-semibold text-white">{unreadCount}</span>
                 ) : null}
               </div>
               {items.length === 0 ? (
-                <div className="text-xs text-emerald-200/50">{L.noNotifications}</div>
+                <div className="text-xs text-[var(--taj-color-text-muted)]">{L.noNotifications}</div>
               ) : (
                 <div className="space-y-1.5">
                   {items.slice(0, 4).map((n) => (
@@ -237,8 +237,8 @@ export function UserMenu({
                       className={cn(
                         "block rounded-lg border px-2 py-1.5 text-xs transition",
                         n.isRead
-                          ? "border-emerald-400/10 bg-black/20 text-emerald-200/70"
-                          : "border-emerald-400/30 bg-emerald-500/15 text-emerald-50"
+                          ? "border-[var(--taj-line)] bg-[var(--taj-mist)] text-[var(--taj-ink-soft)]"
+                          : "border-[var(--taj-lake)]/30 bg-[var(--taj-lake-soft)] text-[var(--taj-ink)]"
                       )}
                     >
                       <div className="font-semibold">{prettyNotificationText(n)}</div>
@@ -254,11 +254,11 @@ export function UserMenu({
                     readAllNotifications().catch(() => undefined);
                   }}
                   disabled={markingReadAll || unreadCount === 0}
-                  className="text-[11px] font-semibold text-emerald-300 disabled:opacity-50"
+                  className="text-[11px] font-semibold text-[var(--taj-lake)] disabled:opacity-50"
                 >
                   {L.markReadAll}
                 </button>
-                <Link href={allNotificationsLink(role)} onClick={() => setOpen(false)} className="text-[11px] font-semibold text-emerald-200/80">
+                <Link href={allNotificationsLink(role)} onClick={() => setOpen(false)} className="text-[11px] font-semibold text-[var(--taj-ink-soft)]">
                   {L.openAllNotifications}
                 </Link>
               </div>
@@ -282,7 +282,7 @@ export function UserMenu({
             {L.favorites}
           </Link>
 
-          <div className="my-1 border-t border-emerald-400/10" />
+          <div className="my-1 border-t border-[var(--taj-line)]" />
 
           {role === "GUEST" && ownerApp.kind === "none" && (
             <Link href="/profile/become-owner" className="user-menu-item user-menu-item--owner mx-1" onClick={() => setOpen(false)}>
@@ -323,7 +323,7 @@ export function UserMenu({
             </Link>
           )}
 
-          <div className="my-1 border-t border-emerald-400/10" />
+          <div className="my-1 border-t border-[var(--taj-line)]" />
           <button
             type="button"
             disabled={loggingOut}

@@ -1,31 +1,31 @@
+/** @type {import('tailwindcss').Config} */
 const path = require("path");
 
-/** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [path.join(__dirname, "src/**/*.{js,ts,jsx,tsx,mdx}")],
   theme: {
     extend: {
       fontFamily: {
-        sans: ["Inter", "system-ui", "-apple-system", "Segoe UI", "sans-serif"],
+        sans: ["DM Sans", "system-ui", "-apple-system", "Segoe UI", "sans-serif"],
         serif: ["Playfair Display", "Georgia", "serif"]
       },
       colors: {
         brand: {
-          50: "#d8f1e2",
-          100: "#b7d8c4",
-          200: "#86c9a0",
-          300: "#4ade80",
-          400: "#22c55e",
-          500: "#006b38",
-          600: "#004724",
-          700: "#00351d",
-          800: "#012f1a",
-          900: "#012f1a"
+          50: "#e6f2ec",
+          100: "#c5e4d4",
+          200: "#9bcfb3",
+          300: "#6bb58c",
+          400: "#3d9470",
+          500: "#0f6b4c",
+          600: "#0a4d37",
+          700: "#083928",
+          800: "#062b1e",
+          900: "#041c14"
         }
       },
       boxShadow: {
-        glow: "0 12px 36px rgba(0, 255, 150, 0.15)",
-        glass: "0 12px 36px rgba(0, 0, 0, 0.35)"
+        glow: "none",
+        glass: "0 12px 32px rgba(15, 26, 20, 0.1)"
       },
       borderRadius: {
         xl2: "1.25rem",
@@ -42,8 +42,9 @@ module.exports = {
         "taj-page": "var(--taj-page-px)"
       },
       backgroundImage: {
-        "brand-gradient": "linear-gradient(135deg, #006B38 0%, #004724 45%, #012F1A 100%)",
-        "brand-gradient-soft": "linear-gradient(135deg, rgba(0,107,56,0.26) 0%, rgba(0,71,36,0.18) 100%)"
+        "brand-gradient": "linear-gradient(135deg, #0f6b4c 0%, #0a4d37 100%)",
+        "brand-gradient-soft":
+          "linear-gradient(135deg, rgba(15,107,76,0.12) 0%, rgba(10,77,55,0.06) 100%)"
       }
     }
   },

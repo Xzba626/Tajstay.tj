@@ -1,6 +1,7 @@
 /**
- * TajStay Design System — PR-2.2 fresh emerald identity
- * Light-first travel-tech: white + emerald tint + soft dark depth
+ * TajStay Design System — Verdant Peak
+ * Green + white brand: forest primary, soft mist canvas, saffron accent.
+ * Token names `--taj-lake*` kept for compatibility; values are verdant green.
  */
 
 :root {
@@ -15,8 +16,8 @@
   --taj-page-px-lg: 2rem;
   --taj-page-px-xl: 2.5rem;
 
-  --taj-section-gap: 2rem;
-  --taj-section-gap-lg: 3rem;
+  --taj-section-gap: 2.5rem;
+  --taj-section-gap-lg: 4rem;
   --taj-stack-sm: 0.75rem;
   --taj-stack-md: 1rem;
   --taj-stack-lg: 1.5rem;
@@ -40,81 +41,81 @@
   --taj-radius-card: 1rem;
   --taj-radius-card-lg: 1.25rem;
 
-  --taj-shadow-sm: 0 1px 2px rgba(15, 41, 28, 0.06), 0 4px 12px rgba(16, 120, 88, 0.06);
-  --taj-shadow-md: 0 8px 24px rgba(15, 41, 28, 0.08), 0 2px 8px rgba(16, 120, 88, 0.06);
-  --taj-shadow-lg: 0 16px 40px rgba(15, 41, 28, 0.1), 0 4px 16px rgba(16, 120, 88, 0.08);
-  --taj-shadow-card: 0 10px 28px rgba(15, 41, 28, 0.07);
-  --taj-shadow-glow: 0 0 24px rgba(34, 197, 94, 0.14);
-  --taj-shadow-focus: 0 0 0 3px rgba(52, 211, 153, 0.14);
-  --taj-shadow-card: 0 24px 70px rgba(0, 0, 0, 0.22);
+  --taj-shadow-sm: 0 1px 2px rgba(15, 26, 20, 0.05), 0 4px 12px rgba(15, 26, 20, 0.04);
+  --taj-shadow-md: 0 8px 24px rgba(15, 26, 20, 0.08), 0 2px 8px rgba(15, 26, 20, 0.04);
+  --taj-shadow-lg: 0 20px 48px rgba(15, 26, 20, 0.1);
+  --taj-shadow-card: 0 12px 32px rgba(15, 26, 20, 0.08);
+  --taj-shadow-glow: 0 0 0 transparent;
+  --taj-shadow-focus: 0 0 0 3px rgba(15, 107, 76, 0.28);
 
-  --taj-font-ui: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --taj-font-display: "Playfair Display", Georgia, serif;
+  --taj-font-ui: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --taj-font-display: "Playfair Display", Georgia, "Times New Roman", serif;
+  --font-body: var(--taj-font-ui);
   --taj-text-xs: 0.75rem;
   --taj-text-sm: 0.875rem;
   --taj-text-base: 1rem;
   --taj-text-lg: 1.125rem;
   --taj-text-xl: 1.25rem;
   --taj-text-2xl: 1.5rem;
-  --taj-text-3xl: clamp(1.65rem, 4vw, 2.25rem);
-  --taj-leading-tight: 1.22;
-  --taj-leading-normal: 1.55;
-  --taj-leading-relaxed: 1.7;
+  --taj-text-3xl: clamp(1.75rem, 4.2vw, 2.5rem);
+  --taj-leading-tight: 1.2;
+  --taj-leading-normal: 1.5;
+  --taj-leading-relaxed: 1.65;
 
   --taj-control-h: 2.75rem;
   --taj-control-h-sm: 2.5rem;
-  --taj-control-h-lg: 3rem;
-  --taj-control-px: 0.875rem;
+  --taj-control-h-lg: 3.125rem;
+  --taj-control-px: 1rem;
 
-  /* ---- Brand palette ---- */
-  --taj-emerald-50: #ecfdf5;
-  --taj-emerald-100: #d1fae5;
-  --taj-emerald-400: #34d399;
-  --taj-emerald-500: #22c55e;
-  --taj-emerald-600: #16a34a;
-  --taj-emerald-700: #15803d;
-  --taj-emerald-800: #166534;
-  --taj-jade-900: #0f3d2e;
-  --taj-sand-400: #d4b87a;
-  --taj-sand-500: #c9a227;
+  /* ---- Verdant Peak palette ---- */
+  --taj-ink: #0f1a14;
+  --taj-ink-soft: #3d4f45;
+  --taj-mist: #f4f7f5;
+  --taj-snow: #ffffff;
+  --taj-lake: #0f6b4c;
+  --taj-lake-deep: #0a4d37;
+  --taj-lake-soft: #e6f2ec;
+  --taj-saffron: #c45c26;
+  --taj-saffron-soft: #f8ebe3;
+  --taj-line: #d5dfd9;
+  --taj-line-strong: #b4c4bb;
 
-  /* Public surfaces — rich emerald #004724 */
-  --taj-color-bg: #004724;
-  --taj-color-bg-elevated: rgba(1, 47, 26, 0.86);
-  --taj-color-bg-card: rgba(1, 47, 26, 0.72);
-  --taj-color-bg-card-solid: rgba(1, 47, 26, 0.86);
-  --taj-color-border: rgba(52, 211, 153, 0.18);
-  --taj-color-border-strong: rgba(52, 211, 153, 0.28);
-  --taj-color-text: #f8fafc;
-  --taj-color-text-secondary: #d8f1e2;
-  --taj-color-text-muted: #b7d8c4;
-  --taj-color-primary: #16a34a;
-  --taj-color-primary-hover: #22c55e;
-  --taj-color-primary-active: #15803d;
-  --taj-color-accent: var(--taj-sand-500);
-  --taj-color-danger: #dc2626;
-  --taj-color-success: #16a34a;
-  --taj-color-warning: #d97706;
+  /* Public / app surfaces — light-first */
+  --taj-color-bg: var(--taj-mist);
+  --taj-color-bg-elevated: var(--taj-snow);
+  --taj-color-bg-card: var(--taj-snow);
+  --taj-color-bg-card-solid: var(--taj-snow);
+  --taj-color-border: var(--taj-line);
+  --taj-color-border-strong: var(--taj-line-strong);
+  --taj-color-text: var(--taj-ink);
+  --taj-color-text-secondary: var(--taj-ink-soft);
+  --taj-color-text-muted: #6b7c72;
+  --taj-color-primary: var(--taj-lake);
+  --taj-color-primary-hover: var(--taj-lake-deep);
+  --taj-color-primary-active: #083928;
+  --taj-color-accent: var(--taj-saffron);
+  --taj-color-danger: #b42318;
+  --taj-color-success: #0f6b4c;
+  --taj-color-warning: var(--taj-saffron);
 
-  /* Dark depth — accents only (headers, hero depth, chat host bubbles) */
-  --taj-color-bg-deep: #0f2920;
-  --taj-color-surface-dark: #132d22;
-  --taj-color-on-dark: #f0fdf4;
-  --taj-color-on-dark-muted: #a7d4bc;
+  --taj-color-bg-deep: var(--taj-lake-deep);
+  --taj-color-surface-dark: var(--taj-lake);
+  --taj-color-on-dark: #f5faf7;
+  --taj-color-on-dark-muted: #b7d5c6;
 
-  --taj-public-surface: rgba(1, 47, 26, 0.72);
-  --taj-public-surface-strong: rgba(1, 47, 26, 0.86);
+  --taj-public-surface: var(--taj-snow);
+  --taj-public-surface-strong: var(--taj-snow);
 
-  /* Chat — messenger on emerald shell */
-  --taj-chat-bg: rgba(1, 47, 26, 0.28);
-  --taj-chat-bubble-guest: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-  --taj-chat-bubble-host: rgba(1, 47, 26, 0.92);
-  --taj-chat-bubble-host-text: #e2f4ea;
-  --taj-chat-input-bg: rgba(1, 47, 26, 0.72);
+  /* Chat — readable on light shell */
+  --taj-chat-bg: var(--taj-mist);
+  --taj-chat-bubble-guest: linear-gradient(135deg, #14825c 0%, #0f6b4c 100%);
+  --taj-chat-bubble-host: var(--taj-snow);
+  --taj-chat-bubble-host-text: var(--taj-ink);
+  --taj-chat-input-bg: var(--taj-snow);
 
   /* Legacy DS aliases */
-  --ds-primary: var(--taj-emerald-700);
-  --ds-secondary: var(--taj-emerald-500);
+  --ds-primary: var(--taj-lake);
+  --ds-secondary: var(--taj-saffron);
   --ds-bg-main: var(--taj-color-bg);
   --ds-bg-section: var(--taj-color-bg-elevated);
   --ds-text-primary: var(--taj-color-text);
@@ -123,7 +124,9 @@
   --ds-border: var(--taj-color-border);
   --ds-shadow-soft: var(--taj-shadow-card);
   --ds-radius: var(--taj-radius-xl);
-  --ds-glow: var(--taj-shadow-glow);
+  --ds-glow: transparent;
+
+  --brand-star: var(--taj-saffron);
 }
 
 @media (min-width: 640px) {

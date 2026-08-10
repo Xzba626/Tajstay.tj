@@ -121,7 +121,7 @@ export function OwnerMobileNav({ labels }: { labels: OwnerSidebarLabels }) {
                 onClick={() => setOpen(false)}
                 className={cn(
                   "rounded-lg px-3 py-2.5 text-sm font-medium",
-                  active ? "bg-emerald-500/15 text-emerald-100" : "text-slate-300 hover:bg-emerald-500/10 hover:text-emerald-100"
+                  active ? "bg-[var(--taj-lake-soft)] text-[var(--taj-ink)]" : "text-slate-300 hover:bg-[var(--taj-lake-soft)] hover:text-[var(--taj-ink)]"
                 )}
               >
                 {item.label}

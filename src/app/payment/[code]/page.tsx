@@ -85,38 +85,38 @@ export default async function PaymentPage({
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
-      <h1 className="text-2xl font-semibold text-white">{m(locale, "checkout.transferTitle")}</h1>
+      <h1 className="text-2xl font-semibold text-[var(--taj-ink)]">{m(locale, "checkout.transferTitle")}</h1>
 
-      <div className="surface-1 rounded-2xl p-5">
-        <div className="text-sm text-brand-200">{hotel.name}</div>
-        <div className="mt-1 text-sm text-brand-200">{roomTitle}</div>
-        <div className="mt-3 text-sm text-brand-200">
+      <div className="rounded-2xl border border-[var(--taj-line)] bg-[var(--taj-snow)] p-5 shadow-[var(--taj-shadow-sm)]">
+        <div className="text-sm text-[var(--taj-ink-soft)]">{hotel.name}</div>
+        <div className="mt-1 text-sm text-[var(--taj-ink-soft)]">{roomTitle}</div>
+        <div className="mt-3 text-sm text-[var(--taj-ink-soft)]">
           {m(locale, "checkout.totalCharge")}: <span className="font-semibold">{Number(booking.totalPrice)} TJS</span>
         </div>
       </div>
 
-      <div className="glass-panel rounded-2xl p-5">
-        <p className="text-sm text-brand-200">DC Next — оплата, затем чек на этой странице.</p>
+      <div className="taj-surface-card rounded-2xl p-5">
+        <p className="text-sm text-[var(--taj-ink-soft)]">DC Next — оплата, затем чек на этой странице.</p>
         <div className="mt-5">
           <DcNextPaymentCard returnUrl={dcReturnUrl} amountTjs={Number(booking.totalPrice)} account="901317727" />
         </div>
 
-        <div className="mt-4 rounded-xl border border-brand-700 bg-brand-800 p-4 text-sm">
-          <div className="text-brand-200">
-            {m(locale, "checkout.bookingCode")}: <span className="font-semibold text-white">{booking.publicCode}</span>
+        <div className="mt-4 rounded-xl border border-[var(--taj-line)] bg-[var(--taj-snow)] p-4 text-sm">
+          <div className="text-[var(--taj-ink-soft)]">
+            {m(locale, "checkout.bookingCode")}: <span className="font-semibold text-[var(--taj-ink)]">{booking.publicCode}</span>
           </div>
-          <div className="mt-2 text-xs text-brand-200">
+          <div className="mt-2 text-xs text-[var(--taj-ink-soft)]">
             {isOnReview && booking.proofReviewDeadlineAt ? (
               <>
                 {m(locale, "checkout.timerTitle")} ({m(locale, "status.ON_REVIEW")}):{" "}
-                <span className="font-semibold text-white">
+                <span className="font-semibold text-[var(--taj-ink)]">
                   <PaymentCountdown expiresAtIso={booking.proofReviewDeadlineAt.toISOString()} />
                 </span>
               </>
             ) : (
               <>
                 {m(locale, "checkout.timerTitle")}:{" "}
-                <span className="font-semibold text-white">
+                <span className="font-semibold text-[var(--taj-ink)]">
                   <PaymentCountdown
                     expiresAtIso={expiresAt}
                     paused={
@@ -132,24 +132,30 @@ export default async function PaymentPage({
         </div>
 
         {isExpired ? (
-          <div className="mt-4 rounded-xl border border-brand-700 bg-brand-800 px-4 py-3 text-sm text-brand-200" role="alert">
+          <div className="mt-4 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
             {m(locale, "checkout.expired")}
           </div>
         ) : isConfirmed ? (
-          <div className="mt-4 rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100" role="status">
+          <div
+            className="mt-4 rounded-xl border border-[var(--taj-lake)]/30 bg-[var(--taj-lake-soft)] px-4 py-3 text-sm text-[var(--taj-lake-deep)]"
+            role="status"
+          >
             <div className="font-semibold">Бронь подтверждена.</div>
             <div className="mt-1">
-              Код: <span className="font-bold text-emerald-50">{booking.publicCode}</span>
+              Код: <span className="font-bold">{booking.publicCode}</span>
             </div>
           </div>
         ) : isOnReview ? (
-          <div className="mt-4 rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100" role="status">
+          <div
+            className="mt-4 rounded-xl border border-[var(--taj-lake)]/30 bg-[var(--taj-lake-soft)] px-4 py-3 text-sm text-[var(--taj-lake-deep)]"
+            role="status"
+          >
             <div className="font-semibold">{m(locale, "checkout.proofSent")}</div>
           </div>
         ) : (
-          <div className="mt-4 rounded-xl border border-brand-700 bg-brand-800 px-4 py-3 text-sm text-brand-200">
+          <div className="mt-4 rounded-xl border border-[var(--taj-line)] bg-[var(--taj-snow)] px-4 py-3 text-sm text-[var(--taj-ink-soft)]">
             Статус:{" "}
-            <span className="font-semibold text-white">{formatBookingStatus(locale, booking.status)}</span>
+            <span className="font-semibold text-[var(--taj-ink)]">{formatBookingStatus(locale, booking.status)}</span>
           </div>
         )}
 

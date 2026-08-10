@@ -572,13 +572,13 @@
   }
 }
 
-/* ---- Site header ---- */
+/* ---- Site header (Pamir Light) ---- */
 .site-header {
-  border-bottom: 1px solid rgba(52, 211, 153, 0.16);
-  background: rgba(0, 53, 29, 0.94);
+  border-bottom: 1px solid var(--taj-line, #d8dee4);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 4px 20px rgba(18, 32, 42, 0.06);
 }
 
 .site-header__logo-badge {
@@ -672,20 +672,20 @@
   min-width: 2.5rem;
   padding: 0;
   border-radius: var(--taj-radius-lg);
-  border-color: rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.06);
-  color: #ecfdf5;
+  border-color: var(--taj-line, #d8dee4);
+  background: var(--taj-snow, #fff);
+  color: var(--taj-ink, #12202a);
   box-shadow: none;
 }
 
 .locale-switcher--icon-only .locale-switcher-trigger--icon:hover,
 .locale-switcher--icon-only .locale-switcher-trigger--icon[aria-expanded="true"] {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(110, 231, 183, 0.28);
+  background: var(--taj-lake-soft, #e6f1f3);
+  border-color: var(--taj-lake, #165a63);
 }
 
 .locale-switcher--icon-only .locale-switcher-trigger--icon svg {
-  color: #6ee7b7;
+  color: var(--taj-lake, #165a63);
 }
 
 .site-header .header-nav-link {
@@ -693,18 +693,18 @@
   padding: 0.5rem 0.75rem;
   font-size: var(--taj-text-sm);
   font-weight: 600;
-  color: #9fcdb8;
+  color: var(--taj-ink-soft, #3d4f5c);
   transition: background 0.2s ease, color 0.2s ease;
 }
 
 .site-header .header-nav-link:hover {
-  background: rgba(52, 211, 153, 0.12);
-  color: #f8fafc;
+  background: var(--taj-lake-soft, #e6f1f3);
+  color: var(--taj-lake-deep, #0d3d45);
 }
 
 .site-header .header-nav-link.is-active {
-  background: rgba(34, 197, 94, 0.18);
-  color: #cde7da;
+  background: var(--taj-lake-soft, #e6f1f3);
+  color: var(--taj-lake, #165a63);
 }
 
 /* ---- Home hotel cards ---- */

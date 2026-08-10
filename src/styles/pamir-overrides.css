@@ -1,0 +1,375 @@
+/**
+ * Verdant Peak — cascade overrides for leftover emerald/dark chrome
+ * Loaded last so tokens win without deleting legacy sheets yet.
+ */
+
+:root,
+[data-theme="light"],
+[data-theme="dark"] {
+  --app-bg: var(--taj-mist);
+  --app-vignette: none;
+}
+
+body {
+  background: var(--taj-mist) !important;
+  color: var(--taj-ink) !important;
+}
+
+/* Kill forced white-on-everything from old emerald shell */
+button:not(.taj-btn--primary):not([class*="bg-"]),
+a[role="button"]:not(.taj-btn--primary) {
+  color: inherit;
+}
+
+/* Hotel cards */
+.hotel-card-pamir {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--taj-snow);
+  border: 1px solid var(--taj-line);
+  border-radius: var(--taj-radius-card-lg);
+  box-shadow: var(--taj-shadow-sm);
+  color: var(--taj-ink);
+}
+
+.hotel-card-pamir__media {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  width: 100%;
+  background: var(--taj-lake-soft);
+  overflow: hidden;
+}
+
+.hotel-card-pamir__placeholder {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(145deg, #0f6b4c, #0a4d37);
+}
+
+.hotel-card-pamir__badges {
+  position: absolute;
+  inset: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+
+.hotel-card-pamir__city,
+.hotel-card-pamir__rating {
+  padding: 0.28rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--taj-ink);
+  backdrop-filter: blur(6px);
+}
+
+.hotel-card-pamir__rating {
+  color: var(--taj-saffron);
+}
+
+.hotel-card-pamir__rating--new {
+  color: var(--taj-lake);
+}
+
+.hotel-card-pamir__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.95rem 1rem 1.05rem;
+}
+
+.hotel-card-pamir__name {
+  font-family: var(--taj-font-ui);
+  font-size: 1rem;
+  font-weight: 650;
+  line-height: 1.3;
+  color: var(--taj-ink);
+  text-decoration: none;
+}
+
+.hotel-card-pamir__name:hover {
+  color: var(--taj-lake);
+}
+
+.hotel-card-pamir__desc {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--taj-ink-soft);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@media (max-width: 639px) {
+  .hotel-card-pamir__desc {
+    display: none;
+  }
+}
+
+.hotel-card-pamir__scarce {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--taj-saffron);
+}
+
+.hotel-card-pamir__avail {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--taj-lake);
+}
+
+.hotel-card-pamir__footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.35rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--taj-line);
+}
+
+.hotel-card-pamir__from {
+  display: block;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--taj-color-text-muted);
+}
+
+.hotel-card-pamir__price {
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
+}
+
+.hotel-card-pamir__amount {
+  font-size: 1.35rem;
+  font-weight: 750;
+  letter-spacing: -0.03em;
+  color: var(--taj-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.hotel-card-pamir__currency {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--taj-ink-soft);
+}
+
+/* Header / footer readability on light */
+.site-header,
+.site-footer,
+header.taj-header {
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--taj-ink);
+  border-bottom-color: var(--taj-line);
+  backdrop-filter: blur(12px);
+}
+
+/* Hero search: light elevated panel (not nested dark glass) */
+.home-hero-pamir__search .home-search-card--premium {
+  border: 1px solid rgba(255, 255, 255, 0.55) !important;
+  background: rgba(255, 255, 255, 0.96) !important;
+  box-shadow:
+    0 22px 56px rgba(8, 28, 20, 0.32),
+    0 1px 0 rgba(255, 255, 255, 0.9) inset !important;
+  color: var(--taj-ink) !important;
+}
+
+.home-hero-pamir__search .home-search-label {
+  color: var(--taj-ink-soft) !important;
+}
+
+.home-hero-pamir__search .home-search-control,
+.home-hero-pamir__search .home-search-field {
+  background: var(--taj-mist) !important;
+  border: 1px solid var(--taj-line) !important;
+  color: var(--taj-ink) !important;
+}
+
+.home-hero-pamir__search .home-search-input {
+  color: var(--taj-ink) !important;
+}
+
+.home-hero-pamir__search .home-search-submit,
+.home-hero-pamir__search .home-search-submit--mobile {
+  background: var(--taj-lake) !important;
+  color: #fff !important;
+  border: none !important;
+  box-shadow: 0 10px 24px rgba(10, 77, 55, 0.28) !important;
+}
+
+.home-hero-pamir__search .home-search-submit:hover,
+.home-hero-pamir__search .home-search-submit--mobile:hover {
+  background: var(--taj-lake-deep) !important;
+}
+
+.home-hero-pamir__search .home-search-popular a {
+  border-color: var(--taj-line) !important;
+  background: var(--taj-lake-soft) !important;
+  color: var(--taj-lake-deep) !important;
+}
+
+.home-hero-pamir__search .home-search-popular a:hover {
+  border-color: var(--taj-lake) !important;
+  background: var(--taj-lake-soft) !important;
+}
+
+/* ---- Wave 2: shared surfaces ---- */
+.taj-surface-card,
+.glass-panel {
+  background: var(--taj-snow) !important;
+  border: 1px solid var(--taj-line) !important;
+  color: var(--taj-ink) !important;
+  box-shadow: var(--taj-shadow-sm) !important;
+  backdrop-filter: none !important;
+}
+
+.dashboard-skin {
+  color: var(--taj-ink) !important;
+  background: var(--taj-mist);
+}
+
+.dashboard-skin .text-slate-100,
+.dashboard-skin .text-white {
+  color: var(--taj-ink) !important;
+}
+
+.dashboard-skin .text-slate-300,
+.dashboard-skin .text-brand-200 {
+  color: var(--taj-ink-soft) !important;
+}
+
+.user-menu-dropdown {
+  background: var(--taj-snow) !important;
+  border: 1px solid var(--taj-line) !important;
+  color: var(--taj-ink) !important;
+  box-shadow: var(--taj-shadow-lg) !important;
+}
+
+.user-menu-trigger {
+  color: var(--taj-ink);
+  border: 1px solid var(--taj-line);
+  background: var(--taj-snow);
+  border-radius: 999px;
+  padding: 0.25rem 0.65rem 0.25rem 0.25rem;
+}
+
+.ds-input {
+  background: var(--taj-snow) !important;
+  border-color: var(--taj-line) !important;
+  color: var(--taj-ink) !important;
+}
+
+.hotel-card-shell {
+  background: transparent;
+}
+
+/* Booking wizard light fields */
+.booking-page,
+.checkout-wizard {
+  color: var(--taj-ink);
+}
+
+/* ---- Wave 2b: search / hotel / booking / dashboard denser shell ---- */
+.taj-card,
+.taj-card--public,
+.taj-card--elevated {
+  background: var(--taj-snow) !important;
+  border: 1px solid var(--taj-line) !important;
+  color: var(--taj-ink) !important;
+  box-shadow: var(--taj-shadow-sm) !important;
+}
+
+.premium-badge {
+  background: var(--taj-lake-soft) !important;
+  color: var(--taj-lake-deep) !important;
+  border: 1px solid var(--taj-lake) !important;
+}
+
+.ds-primary-btn {
+  background: var(--taj-lake) !important;
+  color: #fff !important;
+  border-color: transparent !important;
+  box-shadow: var(--taj-btn-primary-shadow) !important;
+}
+
+.ds-primary-btn:hover {
+  background: var(--taj-lake-deep) !important;
+}
+
+.taj-dashboard-shell {
+  background: var(--taj-mist) !important;
+  color: var(--taj-ink) !important;
+}
+
+.taj-dashboard-content {
+  max-width: 72rem;
+}
+
+.dashboard-skin,
+.owner-page-root,
+.admin-page-root {
+  background: transparent !important;
+  color: var(--taj-ink) !important;
+}
+
+.dashboard-skin .glass-panel,
+.owner-page-root .glass-panel,
+.admin-page-root .glass-panel,
+.dashboard-skin .liquid-glass {
+  background: var(--taj-snow) !important;
+  border: 1px solid var(--taj-line) !important;
+  color: var(--taj-ink) !important;
+  box-shadow: var(--taj-shadow-sm) !important;
+  backdrop-filter: none !important;
+}
+
+.dashboard-skin h1,
+.dashboard-skin h2,
+.dashboard-skin h3,
+.owner-page-root h1,
+.owner-page-root h2,
+.owner-page-root h3 {
+  color: var(--taj-ink) !important;
+}
+
+.dashboard-skin .text-slate-100,
+.dashboard-skin .text-slate-200,
+.owner-page-root .text-slate-100,
+.admin-page-root .text-slate-100 {
+  color: var(--taj-ink) !important;
+}
+
+.dashboard-skin .text-slate-400,
+.dashboard-skin .text-slate-500,
+.owner-page-root .text-slate-500 {
+  color: var(--taj-color-text-muted) !important;
+}
+
+.dashboard-skin input,
+.dashboard-skin select,
+.dashboard-skin textarea,
+.owner-page-root input,
+.owner-page-root select,
+.owner-page-root textarea {
+  background: var(--taj-snow) !important;
+  border-color: var(--taj-line) !important;
+  color: var(--taj-ink) !important;
+}
+
+.booking-shell,
+.checkout-page,
+[data-page="booking"] {
+  color: var(--taj-ink);
+}

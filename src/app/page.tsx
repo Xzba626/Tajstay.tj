@@ -10,18 +10,16 @@ import { HotelCard } from "@/components/HotelCard";
 import { getSiteContent } from "@/lib/site-content";
 import { prisma } from "@/lib/prisma";
 import { safeDbQuery } from "@/lib/db/safeDb";
-import { AIRecommendationLab } from "@/components/ai/AIRecommendationLab";
 import { ViewTransitionLink } from "@/components/effects/ViewTransitionLink";
 import { HomeScrollEnhancer } from "./HomeScrollEnhancer";
 import { GuestHomeExtras } from "@/components/guest/GuestHomeExtras";
 import { SearchBar } from "@/components/SearchBar";
-import { TajstayHero3D } from "@/components/landing/TajstayHero3D";
 import { PageContainer, SectionContainer, ContentGrid, EmptyStateCard } from "@/components/ds";
 import { HomeSectionHeader } from "@/components/home/HomeSectionHeader";
 import { HomeReviewsSection } from "@/components/home/HomeReviewsSection";
-import { HomeHeroMobile } from "@/components/home/HomeHeroMobile";
 import { headers } from "next/headers";
 import { getCityFromRequestHeaders, sortHotelsByNearbyCity } from "@/lib/geo/ipCity";
+import { AppImage } from "@/components/ui/AppImage";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = getLocale();
@@ -41,22 +39,36 @@ export default async function HomePage() {
   const content = await getSiteContent();
 
   const destinationCards = [
-    { title: m(locale, "home.cityDushanbe"), text: m(locale, "home.dest1"), cityQuery: "Dushanbe" },
-    { title: m(locale, "home.cityKhujand"), text: m(locale, "home.dest2"), cityQuery: "Khujand" },
-    { title: m(locale, "home.cityPenjikent"), text: m(locale, "home.dest3"), cityQuery: "Penjikent" },
-    { title: m(locale, "home.cityBadakhshan"), text: m(locale, "home.dest4"), cityQuery: "Badakhshan" }
-  ];
-
-  const heroTrustPoints = [
-    m(locale, "home.trust1Title"),
-    m(locale, "home.trust2Title"),
-    m(locale, "home.trust3Title")
+    {
+      title: m(locale, "home.cityDushanbe"),
+      text: m(locale, "home.dest1"),
+      cityQuery: "Dushanbe",
+      tone: "lake" as const
+    },
+    {
+      title: m(locale, "home.cityKhujand"),
+      text: m(locale, "home.dest2"),
+      cityQuery: "Khujand",
+      tone: "mist" as const
+    },
+    {
+      title: m(locale, "home.cityPenjikent"),
+      text: m(locale, "home.dest3"),
+      cityQuery: "Penjikent",
+      tone: "lake" as const
+    },
+    {
+      title: m(locale, "home.cityBadakhshan"),
+      text: m(locale, "home.dest4"),
+      cityQuery: "Badakhshan",
+      tone: "saffron" as const
+    }
   ];
 
   const trustPoints = [
-    { title: m(locale, "home.trust1Title"), text: m(locale, "home.trust1Text"), icon: "✓" as const },
-    { title: m(locale, "home.trust2Title"), text: m(locale, "home.trust2Text"), icon: "🔒" as const },
-    { title: m(locale, "home.trust3Title"), text: m(locale, "home.trust3Text"), icon: "💬" as const }
+    { title: m(locale, "home.trust1Title"), text: m(locale, "home.trust1Text") },
+    { title: m(locale, "home.trust2Title"), text: m(locale, "home.trust2Text") },
+    { title: m(locale, "home.trust3Title"), text: m(locale, "home.trust3Text") }
   ];
 
   const latestReviews = await safeDbQuery(
@@ -78,33 +90,35 @@ export default async function HomePage() {
     []
   );
 
-  const aiHotels = featured.map((hotel) => ({
-    id: hotel.id,
-    name: hotel.name,
-    city: hotel.city,
-    rating: hotel.rating,
-    minPrice: hotel.rooms.length ? Math.min(...hotel.rooms.map((room) => Number(room.price))) : 0
-  }));
+  const heroImage = featured.find((h) => h.coverImageUrl)?.coverImageUrl ?? null;
 
   return (
-    <div className="home-page home-chapters pb-10 md:pb-16">
+    <div className="home-page home-page--pamir pb-12 md:pb-20">
       <HomeScrollEnhancer />
 
-      {/* 1. Hero + search (first screen) */}
-      <section className="home-section home-section--hero home-chapter home-chapter--band-hero relative overflow-hidden">
-        <div className="home-hero-bg home-hero-bg-fallback absolute inset-0" aria-hidden />
-        <PageContainer publicPage className="relative z-[1] flex min-h-[inherit] flex-col justify-center !py-0">
-          <HomeHeroMobile locale={locale} />
-          <div className="hidden md:block">
-            <TajstayHero3D
-              heroBadge={m(locale, "home.heroBadge")}
-              heroTitle={t(locale, "heroTitle")}
-              heroSubtitle={t(locale, "heroSubtitle")}
-              ctaSearch={m(locale, "home.ctaSearch")}
-              trustPoints={heroTrustPoints}
+      {/* First viewport: brand · headline · line · search · full-bleed visual */}
+      <section className="home-hero-pamir" aria-label={BRAND.name}>
+        <div className="home-hero-pamir__media" aria-hidden>
+          {heroImage ? (
+            <AppImage
+              src={heroImage}
+              alt=""
+              fill
+              priority
+              className="object-cover"
+              sizes="100vw"
             />
-          </div>
-          <div id="home-search" className="home-hero-search-overlap scroll-mt-24" data-reveal>
+          ) : (
+            <div className="home-hero-pamir__fallback" />
+          )}
+          <div className="home-hero-pamir__veil" />
+        </div>
+
+        <PageContainer publicPage className="home-hero-pamir__content relative z-[1] !py-0">
+          <p className="home-hero-pamir__brand">{BRAND.name}</p>
+          <h1 className="home-hero-pamir__title">{t(locale, "heroTitle")}</h1>
+          <p className="home-hero-pamir__subtitle">{t(locale, "heroSubtitle")}</p>
+          <div id="home-search" className="home-hero-pamir__search scroll-mt-24">
             <SearchBar locale={locale} />
           </div>
         </PageContainer>
@@ -113,23 +127,20 @@ export default async function HomePage() {
       {content.homeBanner.enabled ? (
         <section className="home-section home-section--compact" data-reveal>
           <PageContainer publicPage className="!py-0">
-            <div className="rounded-2xl border border-emerald-400/20 bg-gradient-to-r from-emerald-950/90 to-teal-900/80 p-5 sm:p-6">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h2 className="text-lg font-bold text-white sm:text-xl">{content.homeBanner.title}</h2>
-                  <p className="mt-2 max-w-2xl text-sm text-emerald-100/90">{content.homeBanner.subtitle}</p>
-                </div>
-                <Link href={content.homeBanner.ctaHref} className="taj-btn taj-btn--primary shrink-0">
-                  {content.homeBanner.ctaText}
-                </Link>
+            <div className="home-promo-strip">
+              <div>
+                <h2 className="home-promo-strip__title">{content.homeBanner.title}</h2>
+                <p className="home-promo-strip__text">{content.homeBanner.subtitle}</p>
               </div>
+              <Link href={content.homeBanner.ctaHref} className="taj-btn taj-btn--primary shrink-0">
+                {content.homeBanner.ctaText}
+              </Link>
             </div>
           </PageContainer>
         </section>
       ) : null}
 
-      {/* 2. Popular hotels */}
-      <section className="home-section home-section--compact home-chapter" data-reveal>
+      <section className="home-section home-section--compact" data-reveal>
         <PageContainer publicPage className="!py-0">
           <HomeSectionHeader
             title={m(locale, "home.featuredTitle")}
@@ -155,21 +166,23 @@ export default async function HomePage() {
         </PageContainer>
       </section>
 
-      {/* Popular destinations — discovery aid below listings */}
-      <section id="popular-destinations" className="home-section home-section--compact home-chapter scroll-mt-24" data-reveal>
+      <section id="popular-destinations" className="home-section home-section--compact scroll-mt-24" data-reveal>
         <PageContainer publicPage className="!py-0">
           <HomeSectionHeader
             eyebrow={m(locale, "home.destinationsBadge")}
             title={m(locale, "home.destinationsGridTitle")}
             action={{ href: "/search", label: m(locale, "home.ctaSearch") }}
           />
-          <div className="mt-2 flex gap-3 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="home-dest-rail">
             {destinationCards.map((d) => (
-              <ViewTransitionLink key={d.title} href={`/search?city=${encodeURIComponent(d.cityQuery)}`} className="shrink-0">
-                <div className="home-dest-chip">
-                  <span className="text-sm font-semibold text-[var(--taj-color-text)]">{d.title}</span>
-                  <span className="mt-1 line-clamp-2 text-[10px] leading-snug text-[var(--taj-color-text-muted)]">{d.text}</span>
-                </div>
+              <ViewTransitionLink
+                key={d.title}
+                href={`/search?city=${encodeURIComponent(d.cityQuery)}`}
+                className="home-dest-tile"
+                data-tone={d.tone}
+              >
+                <span className="home-dest-tile__title">{d.title}</span>
+                <span className="home-dest-tile__text">{d.text}</span>
               </ViewTransitionLink>
             ))}
           </div>
@@ -178,51 +191,24 @@ export default async function HomePage() {
 
       <GuestHomeExtras locale={locale} />
 
-      {/* 3. Reviews — social proof */}
-      <section className="home-section home-section--compact home-chapter" data-reveal>
+      <section className="home-section home-section--compact" data-reveal>
         <PageContainer publicPage className="!py-0">
           <HomeReviewsSection locale={locale} reviews={latestReviews} />
         </PageContainer>
       </section>
 
-      {/* 4. AI generator */}
-      <section className="home-section home-section--compact home-chapter" data-reveal>
+      <SectionContainer tight className="home-section home-section--compact" data-reveal>
         <PageContainer publicPage className="!py-0">
-          <AIRecommendationLab
-            hotels={aiHotels}
-            locale={locale}
-            labels={{
-              badge: m(locale, "aiLab.badge"),
-              title: m(locale, "aiLab.title"),
-              subtitle: m(locale, "aiLab.subtitle"),
-              surprise: m(locale, "aiLab.surprise"),
-              budget: m(locale, "aiLab.budget"),
-              tripStyle: m(locale, "aiLab.tripStyle"),
-              modeFocus: m(locale, "aiLab.modeFocus"),
-              modeNature: m(locale, "aiLab.modeNature"),
-              modeRomance: m(locale, "aiLab.modeRomance"),
-              modeAdventure: m(locale, "aiLab.modeAdventure"),
-              match: m(locale, "aiLab.match"),
-              pickedForYou: m(locale, "aiLab.pickedForYou"),
-              tagInBudget: m(locale, "aiLab.tagInBudget"),
-              tagNatureStyle: m(locale, "aiLab.tagNatureStyle"),
-              tagHighRated: m(locale, "aiLab.tagHighRated"),
-              open: m(locale, "aiLab.open")
-            }}
+          <HomeSectionHeader
+            title={m(locale, "home.trustTitle")}
+            align="center"
+            className="!text-center [&_.home-section__desc]:mx-auto"
           />
-        </PageContainer>
-      </section>
-
-      {/* 5. Info block — Why TajStay (kept last per UX flow) */}
-      <SectionContainer tight className="home-section home-section--compact home-chapter" data-reveal>
-        <PageContainer publicPage className="!py-0">
-          <HomeSectionHeader title={m(locale, "home.trustTitle")} align="center" className="!text-center [&_.home-section__desc]:mx-auto" />
           <ContentGrid cols={3} gap="md">
             {trustPoints.map((item) => (
-              <div key={item.title} className="home-trust-card">
-                <div className="home-trust-card__icon">{item.icon}</div>
-                <h3 className="mt-3 text-sm font-semibold text-[var(--taj-color-text)]">{item.title}</h3>
-                <p className="mt-1.5 text-xs leading-relaxed text-[var(--taj-color-text-muted)]">{item.text}</p>
+              <div key={item.title} className="home-trust-panel">
+                <h3 className="home-trust-panel__title">{item.title}</h3>
+                <p className="home-trust-panel__text">{item.text}</p>
               </div>
             ))}
           </ContentGrid>
