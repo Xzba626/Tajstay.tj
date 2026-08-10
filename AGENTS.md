@@ -6,13 +6,12 @@ TajStay is a single Next.js 14 monolith (`npm` package `tajstay`) with PostgreSQ
 
 ### Node.js version
 
-The app requires **Node 18–20** (see `package.json` `engines` and `.nvmrc`). Cloud VMs may ship Node 22 at `/exec-daemon/node`, which takes precedence over `nvm` on `PATH`. **Prepend Node 20 before all npm/node commands:**
+The app targets **Node 24.x** on Vercel (`package.json` `engines`, `.nvmrc`). Locally Node **20–24** is accepted by `scripts/ensure-node.mjs`. Cloud VMs may ship a different Node on `PATH` — prefer `nvm use` / `.nvmrc`:
 
 ```bash
-export PATH="/home/ubuntu/.nvm/versions/node/v20.20.2/bin:$PATH"
+nvm use   # reads .nvmrc → 24
+node -v   # expect v24.x on Vercel builds
 ```
-
-Or run `nvm use 20` after sourcing `~/.nvm/nvm.sh`, but always verify with `node -v` (must be ≤20).
 
 ### PostgreSQL
 
