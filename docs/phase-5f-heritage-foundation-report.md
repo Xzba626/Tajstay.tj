@@ -27,7 +27,7 @@
 - `src/components/ds/index.ts` — exports `TajPattern` / `TajPatternKind`
 - `src/lib/heritage/motifs.ts` — **one screen = one dominant motif** map
 - `src/components/ui/EmptyState.tsx` — Chakan wash + Micro
-- `src/components/layout/UserMenu.tsx` — Corner accent (no logic change)
+- `src/components/layout/UserMenu.tsx` — left clean (no decorative motif; chrome stays DS-only until a screen motif is explicitly required)
 
 ### Hero video contract (not wired to Home)
 - `src/lib/heritage/heroVideo.ts` — env-based `resolveHeroVideoSources()`

@@ -112,7 +112,7 @@ Code: `src/components/ds/TajikPattern.tsx` · styles: `src/styles/heritage.css` 
 | Default poster | `/public/heritage/hero-poster.svg` |
 | Env | `NEXT_PUBLIC_HERO_VIDEO_MP4` / `_WEBM` / `_POSTER` (see `.env.example`) |
 
-Behavior: muted · loop · playsInline · autoplay · object-fit cover · scrim for text · poster if no src / error / `prefers-reduced-motion`.
+Behavior: **muted · loop · playsInline · autoplay · never with sound** · object-fit cover · scrim for text · poster if no src / error / `prefers-reduced-motion`. Mobile: prefer lighter asset or poster when bandwidth matters.
 
 **Not wired into Home yet** — Phase 5a.
 

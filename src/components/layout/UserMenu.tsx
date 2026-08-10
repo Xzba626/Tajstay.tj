@@ -19,7 +19,6 @@ import { notificationText } from "@/lib/notifications/text";
 import { TrustBadges } from "@/components/auth/TrustBadges";
 import type { TrustBadge } from "@/lib/auth/trustBadges";
 import { Separator } from "@/components/ds/Separator";
-import { TajikPattern } from "@/components/ds/TajikPattern";
 import { NOTIFICATION_NEW_EVENT } from "@/lib/pwa/notificationEvents";
 
 export type UserMenuLabels = {
@@ -231,8 +230,7 @@ export function UserMenu({
         role="menu"
         aria-hidden={!open}
       >
-        <div className="user-menu-header relative">
-          <TajikPattern kind="corner" className="pointer-events-none absolute right-2 top-2" />
+        <div className="user-menu-header">
           <span className="user-menu-avatar user-menu-avatar--lg" aria-hidden>
             {initials(userName)}
           </span>
