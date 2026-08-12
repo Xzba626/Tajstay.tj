@@ -36,7 +36,7 @@ export function BrandMark({
         />
       </span>
       {showName ? (
-        <span className={cn("brand-mark-name truncate font-bold text-[var(--taj-text)]", nameClassName)}>{name}</span>
+        <span className={cn("brand-mark-name truncate font-bold", nameClassName)}>{name}</span>
       ) : null}
     </>
   );
@@ -45,7 +45,7 @@ export function BrandMark({
 
   if (href) {
     return (
-      <Link href={href} className={cn(classes, "rounded-xl outline-none transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-emerald-400/50")}>
+      <Link href={href} className={cn(classes, "rounded-xl outline-none transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-white/40")}>
         {inner}
       </Link>
     );

@@ -3,7 +3,7 @@
  */
 
 :root {
-  --bg-base: var(--taj-mist);
+  --bg-base: var(--taj-snow);
   --bg-card: var(--taj-snow);
   --bg-elevated: var(--taj-snow);
   --border: var(--taj-line);
@@ -25,14 +25,14 @@
   --blue: #2a6f8f;
 
   --radius-sm: 10px;
-  --radius-md: 14px;
-  --radius-lg: 18px;
-  --radius-xl: 24px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
 
   --brand-bg: var(--bg-base);
   --brand-text: var(--text-primary);
-  --taj-app-bg: var(--taj-mist);
-  --taj-bg: var(--taj-mist);
+  --taj-app-bg: var(--taj-snow);
+  --taj-bg: var(--taj-snow);
   --taj-color-text: var(--text-primary);
   --taj-color-text-secondary: var(--text-secondary);
   --taj-color-text-muted: var(--text-muted);

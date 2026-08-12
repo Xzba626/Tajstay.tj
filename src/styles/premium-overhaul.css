@@ -147,44 +147,31 @@
 
 /* ---- Home search card (direct fields, all breakpoints) ---- */
 .home-search-card--premium {
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--taj-line, var(--border));
   border-radius: var(--radius-xl);
-  background: linear-gradient(
-    165deg,
-    rgba(36, 58, 46, 0.98) 0%,
-    rgba(14, 28, 22, 0.99) 100%
-  );
-  box-shadow:
-    0 24px 56px rgba(0, 0, 0, 0.42),
-    0 1px 0 rgba(255, 255, 255, 0.07) inset;
+  background: var(--taj-snow, #fff);
+  box-shadow: var(--taj-shadow-md);
+  color: var(--taj-ink);
 }
 
 @media (min-width: 768px) {
   .home-search-card--premium .home-search-control {
-    background: rgba(0, 0, 0, 0.22);
-    border-color: rgba(255, 255, 255, 0.08);
+    background: var(--taj-snow, #fff);
+    border-color: var(--taj-line);
   }
 
   .home-search-card--premium .home-search-submit {
-    box-shadow:
-      0 8px 24px rgba(22, 163, 74, 0.38),
-      0 1px 0 rgba(255, 255, 255, 0.12) inset;
+    box-shadow: var(--taj-btn-primary-shadow);
   }
 }
 
 /* Legacy compact row card (unused) */
 .home-search-compact {
-  background: linear-gradient(
-    165deg,
-    rgba(36, 58, 46, 0.98) 0%,
-    rgba(14, 28, 22, 0.99) 100%
-  );
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--taj-snow, #fff);
+  border: 1px solid var(--taj-line);
   border-radius: var(--radius-xl);
   overflow: hidden;
-  box-shadow:
-    0 24px 56px rgba(0, 0, 0, 0.42),
-    0 1px 0 rgba(255, 255, 255, 0.07) inset;
+  box-shadow: var(--taj-shadow-md);
 }
 
 .home-search-compact__row {
@@ -197,7 +184,7 @@
   text-align: left;
   background: transparent;
   border: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  border-bottom: 1px solid var(--taj-line);
   color: var(--text-primary);
   cursor: pointer;
   transition: background 0.15s ease, transform 0.12s ease;
@@ -209,7 +196,7 @@
 }
 
 .home-search-compact__row:active {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--taj-lake-soft);
   transform: scale(0.995);
 }
 
@@ -230,7 +217,7 @@
   margin-top: 0.15rem;
   font-size: 0.9375rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--text-muted);
   line-height: 1.35;
   letter-spacing: -0.01em;
 }

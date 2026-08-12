@@ -166,14 +166,12 @@ a[role="button"]:not(.taj-btn--primary) {
   color: var(--taj-ink-soft);
 }
 
-/* Header / footer readability on light */
-.site-header,
+/* Footer stays white; header chrome lives in home.css (green) */
 .site-footer,
-header.taj-header {
-  background: rgba(255, 255, 255, 0.92);
+footer.site-footer {
+  background: var(--taj-snow);
   color: var(--taj-ink);
-  border-bottom-color: var(--taj-line);
-  backdrop-filter: blur(12px);
+  border-top-color: var(--taj-line);
 }
 
 /* Hero search: light elevated panel (not nested dark glass) */
