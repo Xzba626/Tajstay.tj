@@ -41,16 +41,16 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 80% 60% at 70% 20%, rgba(196, 92, 38, 0.22), transparent 55%),
-    linear-gradient(145deg, #0a4d37 0%, #0f6b4c 42%, #1a3a42 100%);
+    radial-gradient(ellipse 90% 70% at 78% 18%, rgba(230, 242, 236, 0.35), transparent 55%),
+    linear-gradient(145deg, #0f6b4c 0%, #14825c 48%, #0a4d37 100%);
 }
 
 .home-hero-pamir__veil {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(8, 28, 20, 0.35) 0%, rgba(8, 28, 20, 0.55) 45%, rgba(8, 28, 20, 0.82) 100%),
-    linear-gradient(90deg, rgba(8, 28, 20, 0.55) 0%, transparent 55%);
+    linear-gradient(180deg, rgba(10, 77, 55, 0.22) 0%, rgba(10, 77, 55, 0.38) 48%, rgba(10, 77, 55, 0.62) 100%),
+    linear-gradient(90deg, rgba(10, 77, 55, 0.35) 0%, transparent 58%);
 }
 
 .home-hero-pamir__content {
