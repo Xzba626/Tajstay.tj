@@ -22,6 +22,7 @@ On first open, TajStay must feel like a **world-class travel product** you would
 5. **Motion with meaning** — explain the interface; never decorate for its own sake.
 6. **Mobile is a premium product**, not a shrunk desktop. Desktop uses space and rhythm.
 7. **Performance** — avoid extra DOM, heavy paint, pointless re-renders.
+8. **DELETE → CLEAN → REBUILD** for visuals. Never stack CSS overrides on dead dark themes.
 
 ## Canonical brand (Verdant Peak)
 
@@ -30,9 +31,9 @@ Product brand is **green + white** (trust, nature of Tajikistan). Not neon SaaS 
 | Role | Token (legacy name) | Value | Why |
 |------|---------------------|-------|-----|
 | Ink | `--taj-ink` | `#0F1A14` | Readable charcoal with green undertone |
-| Canvas | `--taj-mist` | `#F4F7F5` | Soft green-white, not flat gray SaaS |
-| Surface | `--taj-snow` | `#FFFFFF` | Cards / elevated |
-| Brand | `--taj-lake` | `#0F6B4C` | Forest green CTA (name kept for compat) |
+| Canvas | `--taj-snow` | `#FFFFFF` | App background / elevated surfaces |
+| Soft fill | `--taj-mist` | `#F4F7F5` | Muted bands only |
+| Brand | `--taj-lake` | `#0F6B4C` | Forest green CTA / header / mobile nav |
 | Brand deep | `--taj-lake-deep` | `#0A4D37` | Hover / depth |
 | Accent | `--taj-saffron` | `#C45C26` | Ratings / scarce — warm contrast only |
 
@@ -60,6 +61,7 @@ If the user can get lost — redesign. Fewer clicks when safe. Merge blocks. Mov
 - Cards in hero; floating promo stickers on hero media
 - Dashboard clutter on first guest viewport
 - Animations that don’t explain state
+- CSS override stacks on top of obsolete dark chrome
 
 ## Working order (when redesigning broadly)
 
@@ -67,7 +69,7 @@ If the user can get lost — redesign. Fewer clicks when safe. Merge blocks. Mov
 2. Guest funnel: Home → Search → Hotel → Booking → Payment
 3. Shared chrome: header, mobile nav, buttons, forms
 4. Owner / admin denser shells under the same tokens
-5. Kill orphaned CSS (`premium-overhaul` dark chrome) via overrides or deletion — don’t leave two competing systems
+5. Kill orphaned CSS — delete, don’t override forever
 
 ## Handoff to other skills
 

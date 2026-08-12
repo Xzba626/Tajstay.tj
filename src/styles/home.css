@@ -572,13 +572,14 @@
   }
 }
 
-/* ---- Site header (Pamir Light) ---- */
+/* ---- Site header (green accent chrome) ---- */
 .site-header {
-  border-bottom: 1px solid var(--taj-line, #d8dee4);
-  background: rgba(255, 255, 255, 0.92);
+  border-bottom: 1px solid rgba(8, 40, 28, 0.18);
+  background: var(--taj-header, #0f6b4c);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
-  box-shadow: 0 4px 20px rgba(18, 32, 42, 0.06);
+  box-shadow: 0 4px 20px rgba(10, 77, 55, 0.18);
+  color: var(--taj-color-on-dark, #f5faf7);
 }
 
 .site-header__logo-badge {
@@ -589,8 +590,8 @@
   align-items: center;
   justify-content: center;
   border-radius: 0.75rem;
-  background: #f3f8f5;
-  border: 1px solid rgba(212, 175, 55, 0.35);
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.35);
 }
 
 .site-header__inner {
@@ -664,6 +665,10 @@
   }
 }
 
+.site-header .brand-mark-name {
+  color: #fff;
+}
+
 .locale-switcher--icon-only .locale-switcher-trigger--icon {
   display: inline-flex;
   align-items: center;
@@ -672,20 +677,28 @@
   min-width: 2.5rem;
   padding: 0;
   border-radius: var(--taj-radius-lg);
-  border-color: var(--taj-line, #d8dee4);
-  background: var(--taj-snow, #fff);
-  color: var(--taj-ink, #12202a);
+  border-color: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.12);
+  color: #f5faf7;
   box-shadow: none;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.12s ease;
 }
 
 .locale-switcher--icon-only .locale-switcher-trigger--icon:hover,
 .locale-switcher--icon-only .locale-switcher-trigger--icon[aria-expanded="true"] {
-  background: var(--taj-lake-soft, #e6f1f3);
-  border-color: var(--taj-lake, #165a63);
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.55);
+}
+
+.locale-switcher--icon-only .locale-switcher-trigger--icon:active {
+  transform: scale(0.96);
 }
 
 .locale-switcher--icon-only .locale-switcher-trigger--icon svg {
-  color: var(--taj-lake, #165a63);
+  color: #f5faf7;
 }
 
 .site-header .header-nav-link {
@@ -693,18 +706,31 @@
   padding: 0.5rem 0.75rem;
   font-size: var(--taj-text-sm);
   font-weight: 600;
-  color: var(--taj-ink-soft, #3d4f5c);
-  transition: background 0.2s ease, color 0.2s ease;
+  color: rgba(245, 250, 247, 0.82);
+  transition:
+    background 0.18s ease,
+    color 0.18s ease,
+    transform 0.12s ease;
 }
 
 .site-header .header-nav-link:hover {
-  background: var(--taj-lake-soft, #e6f1f3);
-  color: var(--taj-lake-deep, #0d3d45);
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+
+.site-header .header-nav-link:active {
+  transform: scale(0.97);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .site-header .header-nav-link.is-active {
-  background: var(--taj-lake-soft, #e6f1f3);
-  color: var(--taj-lake, #165a63);
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.site-header .header-nav-link:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.35);
 }
 
 /* ---- Home hotel cards ---- */

@@ -1,7 +1,6 @@
 /**
  * TajStay Design System — Verdant Peak
- * Green + white brand: forest primary, soft mist canvas, saffron accent.
- * Token names `--taj-lake*` kept for compatibility; values are verdant green.
+ * White canvas + forest green accent. Clean, single layer.
  */
 
 :root {
@@ -80,8 +79,8 @@
   --taj-line: #d5dfd9;
   --taj-line-strong: #b4c4bb;
 
-  /* Public / app surfaces — light-first */
-  --taj-color-bg: var(--taj-mist);
+  /* App canvas = pure white; soft mist for subtle bands only */
+  --taj-color-bg: var(--taj-snow);
   --taj-color-bg-elevated: var(--taj-snow);
   --taj-color-bg-card: var(--taj-snow);
   --taj-color-bg-card-solid: var(--taj-snow);
@@ -106,14 +105,13 @@
   --taj-public-surface: var(--taj-snow);
   --taj-public-surface-strong: var(--taj-snow);
 
-  /* Chat — readable on light shell */
-  --taj-chat-bg: var(--taj-mist);
+  --taj-chat-bg: var(--taj-snow);
   --taj-chat-bubble-guest: linear-gradient(135deg, #14825c 0%, #0f6b4c 100%);
-  --taj-chat-bubble-host: var(--taj-snow);
+  --taj-chat-bubble-host: var(--taj-mist);
   --taj-chat-bubble-host-text: var(--taj-ink);
   --taj-chat-input-bg: var(--taj-snow);
 
-  /* Legacy DS aliases */
+  /* DS aliases */
   --ds-primary: var(--taj-lake);
   --ds-secondary: var(--taj-saffron);
   --ds-bg-main: var(--taj-color-bg);

@@ -6,12 +6,12 @@
 [data-theme="light"],
 [data-theme="dark"] {
   --taj-brand: #0f6b4c;
-  --taj-bg: #f4f7f5;
+  --taj-bg: #ffffff;
   --taj-bg-light: #ffffff;
   --taj-bg-dark: #0a4d37;
-  --taj-header: #0a4d37;
+  --taj-header: #0f6b4c;
 
-  --taj-app-bg: #f4f7f5;
+  --taj-app-bg: #ffffff;
 
   /* Sections */
   --taj-section-bg: #ffffff;
@@ -154,15 +154,12 @@
 .taj-surface-card-inner {
   background: var(--taj-input);
   border: 1px solid var(--taj-input-border);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  box-shadow: var(--taj-shadow-sm);
 }
 
 .taj-surface-ai {
-  background:
-    radial-gradient(circle at 12% 8%, rgba(34, 197, 94, 0.14), transparent 32%),
-    radial-gradient(circle at 88% 12%, rgba(212, 175, 55, 0.08), transparent 30%),
-    var(--taj-card-strong);
-  border: 1px solid var(--taj-card-strong-border);
+  background: var(--taj-lake-soft);
+  border: 1px solid var(--taj-line);
   box-shadow: var(--taj-card-shadow);
 }
 
@@ -229,8 +226,8 @@
 }
 
 .taj-dropdown__item.is-active {
-  background: rgba(34, 197, 94, 0.14);
-  color: var(--taj-text);
+  background: var(--taj-lake-soft);
+  color: var(--taj-lake-deep);
 }
 
 /* ---- Icons (utility) ---- */
@@ -282,7 +279,12 @@
 .brand-mark-name {
   font-size: 1.125rem;
   line-height: 1.2;
-  color: var(--taj-text);
+  color: inherit;
+}
+
+.site-header .brand-mark,
+.site-header .brand-mark-name {
+  color: #fff;
 }
 
 /* ---- Mobile menu ---- */
@@ -290,7 +292,7 @@
   border-left: 1px solid var(--taj-dropdown-border);
   background: var(--taj-dropdown-bg);
   color: var(--taj-text);
-  box-shadow: -12px 0 40px rgba(0, 0, 0, 0.35);
+  box-shadow: -12px 0 40px rgba(15, 26, 20, 0.12);
 }
 
 .mobile-menu-panel__header {

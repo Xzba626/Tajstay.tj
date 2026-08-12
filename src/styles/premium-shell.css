@@ -134,7 +134,7 @@
   flex-shrink: 0;
 }
 
-/* ---- Premium bottom tab bar ---- */
+/* ---- Bottom tab bar: green dock on white app ---- */
 .app-tab-bar {
   position: fixed;
   left: 0;
@@ -143,11 +143,9 @@
   z-index: 50;
   padding: 0 calc(0.5rem + env(safe-area-inset-left, 0)) calc(0.5rem + env(safe-area-inset-bottom, 0));
   pointer-events: none;
-  background: rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid var(--taj-line, #d8dee4);
-  box-shadow: 0 -8px 28px rgba(18, 32, 42, 0.06);
+  background: transparent;
+  border-top: 0;
+  box-shadow: none;
 }
 
 .app-tab-bar__dock {
@@ -156,11 +154,12 @@
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 0;
-  padding: 0.35rem 0.25rem;
-  background: transparent;
-  border: 0;
-  box-shadow: none;
-  border-radius: 0;
+  margin: 0 0.15rem 0.15rem;
+  padding: 0.4rem 0.3rem;
+  background: var(--taj-lake, #0f6b4c);
+  border: 1px solid rgba(8, 40, 28, 0.2);
+  box-shadow: 0 -6px 24px rgba(10, 77, 55, 0.22);
+  border-radius: 1.25rem;
 }
 
 .app-tab-bar__indicator {
@@ -175,29 +174,40 @@
   align-items: center;
   justify-content: center;
   gap: 0.25rem;
-  min-height: 3.625rem;
+  min-height: 3.5rem;
   padding: 0.35rem 0.15rem;
-  border-radius: 0.75rem;
-  color: var(--text-muted);
+  border-radius: 0.85rem;
+  color: rgba(245, 250, 247, 0.72);
   font-size: 0.625rem;
   font-weight: 600;
   letter-spacing: 0.01em;
-  transition: color 180ms ease, transform 120ms ease, background 180ms ease;
+  transition:
+    color 160ms ease,
+    transform 120ms ease,
+    background 160ms ease,
+    opacity 160ms ease;
   background: transparent;
   -webkit-tap-highlight-color: transparent;
 }
 
+.app-tab-bar__item:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
 .app-tab-bar__item:active {
-  transform: scale(0.92);
+  transform: scale(0.94);
+  opacity: 0.9;
+  background: rgba(255, 255, 255, 0.16);
 }
 
 .app-tab-bar__item.is-active {
-  color: var(--taj-lake, #165a63);
-  background: var(--taj-lake-soft, #e6f1f3);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.18);
 }
 
 .app-tab-bar__item.is-active .app-tab-bar__icon {
-  color: var(--taj-lake, #165a63);
+  color: #fff;
 }
 
 .app-tab-bar__icon-wrap {
@@ -209,11 +219,11 @@
   width: 2.25rem;
   height: 2.25rem;
   border-radius: 0.625rem;
-  transition: background 180ms ease;
+  transition: background 160ms ease, transform 120ms ease;
 }
 
 .app-tab-bar__icon-wrap.is-active {
-  background: var(--taj-lake-soft, #e6f1f3);
+  background: rgba(255, 255, 255, 0.16);
 }
 
 .app-tab-bar__dot {
@@ -256,7 +266,7 @@
 
   body.app-shell .site-footer {
     padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0));
-    border-top-color: rgba(255, 255, 255, 0.06);
+    border-top-color: var(--taj-line);
   }
 
   body.app-shell .site-footer .footer-brand-row {

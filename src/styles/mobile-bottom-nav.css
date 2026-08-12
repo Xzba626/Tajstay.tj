@@ -1,86 +1,12 @@
 /**
- * TajStay — fixed bottom tab bar (mobile only)
+ * TajStay — fixed bottom tab bar (legacy class; app-tab-bar is canonical)
  */
 .mobile-bottom-nav {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 45;
-  padding-bottom: env(safe-area-inset-bottom, 0);
-  pointer-events: none;
+  display: none;
 }
 
-.mobile-bottom-nav__inner {
-  pointer-events: auto;
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 0;
-  margin: 0 0.5rem 0.5rem;
-  padding: 0.35rem 0.25rem;
-  border-radius: 1.25rem;
-  border: 1px solid rgba(74, 222, 128, 0.18);
-  background: rgba(6, 36, 24, 0.94);
-  backdrop-filter: blur(16px);
-  box-shadow:
-    0 -4px 24px rgba(0, 0, 0, 0.35),
-    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
-}
-
-.mobile-bottom-nav__item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.2rem;
-  min-height: 3rem;
-  padding: 0.25rem 0.15rem;
-  border-radius: 0.85rem;
-  color: rgba(167, 211, 184, 0.72);
-  font-size: 0.625rem;
-  font-weight: 600;
-  line-height: 1.1;
-  text-align: center;
-  transition:
-    color 150ms ease,
-    background 150ms ease,
-    transform 120ms ease;
-}
-
-.mobile-bottom-nav__item:active {
-  transform: scale(0.96);
-}
-
-.mobile-bottom-nav__item.is-active {
-  color: #6ee7b7;
-  background: rgba(16, 185, 129, 0.14);
-}
-
-.mobile-bottom-nav__item.is-active .mobile-bottom-nav__icon {
-  color: #34d399;
-}
-
-.mobile-bottom-nav__label {
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-@media (max-width: 380px) {
-  .mobile-bottom-nav__label {
-    font-size: 0.5625rem;
-  }
-
-  .mobile-bottom-nav__icon {
-    width: 1.125rem;
-    height: 1.125rem;
-  }
-}
-
-/* Room for tab bar above footer / cookie on public pages */
 @media (max-width: 767px) {
-  body:has(.mobile-bottom-nav) main {
+  body:has(.app-tab-bar) main {
     padding-bottom: calc(4.75rem + env(safe-area-inset-bottom, 0));
   }
 }

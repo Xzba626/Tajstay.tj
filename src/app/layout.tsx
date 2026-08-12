@@ -67,7 +67,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#165A63"
+  themeColor: "#0F6B4C"
 };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
@@ -78,7 +78,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const pendingTripsCount =
     user?.role === "GUEST" ? await getPendingTripsCount(user.id) : 0;
   return (
-    <html lang={locale} className="scroll-smooth" data-theme="dark">
+    <html lang={locale} className="scroll-smooth" data-theme="light">
       <head>
         <link rel="manifest" href="/manifest.webmanifest" />
         <link rel="manifest" href="/site.webmanifest" />

@@ -1,54 +1,54 @@
 /**
- * TajStay TZ Part 1.1 — canonical design tokens (docs/TZ-IMPLEMENTATION.md)
- * Legacy --taj-* / premium tokens bridge here for gradual migration.
+ * TajStay design tokens — Verdant Peak (white + green)
+ * Single source aligned with tokens.css / DESIGN.md
  */
 
 :root {
   /* Backgrounds */
-  --bg-app: #0a1f14;
-  --bg-card: #112a1b;
-  --bg-surface: #163521;
-  --bg-elevated: #1c4028;
+  --bg-app: #ffffff;
+  --bg-card: #ffffff;
+  --bg-surface: #ffffff;
+  --bg-elevated: #ffffff;
 
   /* Green palette */
-  --green-primary: #2d7a52;
-  --green-bright: #3a9e6a;
-  --green-dim: #1a5c3a;
-  --green-glow: rgba(45, 122, 82, 0.25);
+  --green-primary: #0f6b4c;
+  --green-bright: #14825c;
+  --green-dim: #0a4d37;
+  --green-glow: rgba(15, 107, 76, 0.18);
 
-  /* Gold (logo / premium only) */
-  --gold: #c9a84c;
-  --gold-dim: #a07c2e;
+  /* Warm accent (ratings / scarce only) */
+  --gold: #c45c26;
+  --gold-dim: #a34a1e;
 
   /* Text */
-  --text-primary: #e8f5ee;
-  --text-secondary: #8aab96;
-  --text-muted: #4d7a5e;
-  --text-inverse: #0a1f14;
+  --text-primary: #0f1a14;
+  --text-secondary: #3d4f45;
+  --text-muted: #6b7c72;
+  --text-inverse: #ffffff;
 
   /* Status */
-  --status-pending: #f59e0b;
-  --status-confirmed: #10b981;
-  --status-active: #3b82f6;
-  --status-completed: #6b7280;
-  --status-cancelled: #ef4444;
-  --status-rejected: #dc2626;
+  --status-pending: #c45c26;
+  --status-confirmed: #0f6b4c;
+  --status-active: #0f6b4c;
+  --status-completed: #6b7c72;
+  --status-cancelled: #b42318;
+  --status-rejected: #b42318;
 
   /* Borders */
-  --border-default: rgba(45, 122, 82, 0.2);
-  --border-active: rgba(45, 122, 82, 0.6);
-  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: #d5dfd9;
+  --border-active: rgba(15, 107, 76, 0.45);
+  --border-subtle: #e8eeea;
 
-  /* Shadows */
-  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.4);
-  --shadow-modal: 0 8px 48px rgba(0, 0, 0, 0.6);
-  --shadow-green: 0 0 20px rgba(45, 122, 82, 0.3);
+  /* Shadows — soft graphite/ink, no green glow */
+  --shadow-card: 0 12px 32px rgba(15, 26, 20, 0.08);
+  --shadow-modal: 0 20px 48px rgba(15, 26, 20, 0.12);
+  --shadow-green: 0 8px 20px rgba(10, 77, 55, 0.18);
 
   /* Radius */
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
-  --radius-xl: 24px;
+  --radius-xl: 20px;
   --radius-full: 9999px;
 
   /* Motion */
@@ -56,9 +56,9 @@
   --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --duration-fast: 150ms;
-  --duration-base: 250ms;
-  --duration-slow: 400ms;
-  --duration-enter: 350ms;
+  --duration-base: 220ms;
+  --duration-slow: 360ms;
+  --duration-enter: 320ms;
 
   /* Z-index */
   --z-base: 0;
@@ -68,9 +68,9 @@
   --z-toast: 300;
   --z-nav: 400;
 
-  /* Typography (set in layout via next/font or fontsource) */
+  /* Typography */
   --font-display: "Playfair Display", Georgia, serif;
-  --font-body: "Nunito", "Inter", system-ui, sans-serif;
+  --font-body: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
 
   /* Legacy bridges */
   --taj-app-bg: var(--bg-app);

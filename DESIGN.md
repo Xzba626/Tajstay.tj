@@ -5,11 +5,7 @@
 
 ## Brand feeling
 
-**Calm authority.** Mountain forests, clear air, warm tea at dusk — never neon, never casino emerald, never generic purple SaaS.
-
-## Why this palette (not the prior lake-teal experiment)
-
-TajStay’s product brand is green + white. Teal was a useful interim for light surfaces; **Verdant Peak** reunites the UI with brand trust signals travelers already associate with the name, while keeping the composition wins (full-bleed hero, premium cards, light funnel).
+**Calm authority.** Mountain forests, clear air — never neon, never casino emerald, never generic purple SaaS.
 
 ## Color (WCAG AA)
 
@@ -17,16 +13,20 @@ TajStay’s product brand is green + white. Teal was a useful interim for light 
 |-------|-----|------|
 | `--taj-ink` | `#0F1A14` | Primary text |
 | `--taj-ink-soft` | `#3D4F45` | Secondary text |
-| `--taj-mist` | `#F4F7F5` | App canvas |
-| `--taj-snow` | `#FFFFFF` | Elevated surfaces / cards |
-| `--taj-lake` | `#0F6B4C` | Primary brand / CTAs *(legacy name; value = forest green)* |
-| `--taj-lake-deep` | `#0A4D37` | Hover / header depth |
+| `--taj-snow` | `#FFFFFF` | App canvas / elevated surfaces |
+| `--taj-mist` | `#F4F7F5` | Soft bands / muted fills only |
+| `--taj-lake` | `#0F6B4C` | Primary brand / CTAs / header / mobile nav |
+| `--taj-lake-deep` | `#0A4D37` | Hover / depth |
 | `--taj-lake-soft` | `#E6F2EC` | Soft brand wash |
 | `--taj-saffron` | `#C45C26` | Accent (ratings, scarce) — use sparingly |
 | `--taj-line` | `#D5DFD9` | Borders |
 | `--taj-danger` | `#B42318` | Errors |
 
-Contrast targets: body text on mist ≥ 7:1; primary button **white** text on brand ≥ 4.5:1.
+Contrast targets: body text on white ≥ 7:1; primary button **white** text on brand ≥ 4.5:1.
+
+## System rule
+
+**White canvas + green accent.** Do not stack CSS overrides on top of old dark themes. Delete unused visual layers; rebuild from tokens.
 
 ## Typography
 
@@ -46,11 +46,15 @@ Scale: 12 / 14 / 16 / 18 / 24 / 32 / 40 (fluid clamp for display).
 
 ## Motion
 
-Only when it clarifies hierarchy or feedback (hero settle, card lift, focus ring). Prefer `transform`/`opacity`. Respect `prefers-reduced-motion`.
+Only when it clarifies hierarchy or feedback. Prefer `transform`/`opacity`. Respect `prefers-reduced-motion`.
 
-## First viewport (guest home)
+Required interactive states: `default` → `hover` → `active` → `focus-visible` → `disabled`.
 
-Brand → one headline → one supporting line → search CTA → one full-bleed visual. No stats strips, no promo stickers on hero media, no card grid in the first fold.
+## Chrome
+
+- **Header:** green brand bar; structure unchanged (logo, nav, locale, profile).
+- **Desktop:** no bottom nav.
+- **Mobile:** green bottom navigation; white app background.
 
 ## Agent mandate
 
