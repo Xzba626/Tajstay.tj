@@ -1,29 +1,18 @@
-/* Phase 2: canonical tokens first, then legacy bridges */
 @import "../styles/tokens.css";
-@import "../styles/tz-design-tokens.css";
-@import "../styles/tz-typography.css";
-@import "../styles/tz-atoms.css";
 @import "../styles/variables.css";
 @import "../styles/taj-theme.css";
 @import "../styles/ds-components.css";
-@import "../styles/heritage.css";
 @import "../styles/home.css";
-@import "../styles/home-pamir.css";
 @import "../styles/auth.css";
 @import "../styles/auth-premium.css";
 @import "../styles/mobile-drawer.css";
 @import "../styles/premium-shell.css";
 @import "../styles/premium-overhaul.css";
 @import "../styles/mockup-shell.css";
+@import "../styles/profile-center.css";
 @import "../styles/home-mobile-first.css";
-@import "../styles/profile-hub.css";
-@import "../styles/admin-mobile-app.css";
-@import "../styles/btn-glass.css";
+@import "../styles/tst-assistant.css";
 @import "../styles/chat.css";
-@import "../styles/splash-screen.css";
-@import "../styles/owner-calendar.css";
-@import "../styles/pamir-overrides.css";
-@import "../styles/heritage-rollout.css";
 
 @tailwind base;
 @tailwind components;
@@ -32,50 +21,49 @@
 :root,
 [data-theme="light"],
 [data-theme="dark"] {
-  --app-bg: var(--color-background-soft);
-  --app-vignette: none;
+  --app-bg: var(--taj-app-bg);
+  --app-vignette: radial-gradient(circle at 50% 28%, transparent 0%, rgba(0, 71, 36, 0.14) 72%, rgba(1, 47, 26, 0.32) 100%);
 }
 
-/* Slate utility remaps — light DS (both data-theme values = one visual theme) */
 [data-theme="light"] .text-slate-100,
 [data-theme="light"] .text-slate-200,
 [data-theme="dark"] .text-slate-100,
 [data-theme="dark"] .text-slate-200 {
-  color: var(--color-text) !important;
+  color: var(--taj-text, #f8fafc) !important;
 }
 
 [data-theme="light"] .text-slate-300,
 [data-theme="light"] .text-slate-400,
 [data-theme="dark"] .text-slate-300,
 [data-theme="dark"] .text-slate-400 {
-  color: var(--color-text-secondary) !important;
+  color: var(--taj-text-secondary, #d8f1e2) !important;
 }
 
 [data-theme="light"] .text-slate-500,
 [data-theme="dark"] .text-slate-500 {
-  color: var(--color-text-muted) !important;
+  color: var(--taj-text-muted, #b7d8c4) !important;
 }
 
 body {
-  font-family: var(--font-body);
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   margin: 0;
   min-height: 100vh;
-  background: var(--color-background-soft);
-  color: var(--color-text);
+  background: var(--taj-app-bg, var(--app-bg));
+  color: var(--taj-color-text);
 }
 
 button,
 a[role="button"],
 .brand-gradient,
 .ds-primary-btn {
-  border-color: rgba(15, 26, 20, 0.12);
-  box-shadow: var(--taj-shadow-sm);
+  border-color: rgba(255, 255, 255, 0.28);
+  box-shadow: 0 10px 24px rgba(2, 6, 23, 0.24), 0 2px 8px rgba(2, 6, 23, 0.16);
 }
 
 [data-theme="light"] button,
 [data-theme="light"] a[role="button"] {
-  color: inherit;
-  border-color: rgba(15, 26, 20, 0.14);
+  color: #ffffff;
+  border-color: rgba(15, 23, 42, 0.22);
 }
 
 html,
@@ -338,13 +326,13 @@ canvas {
   color: rgba(236, 253, 245, 0.96);
 }
 :root {
-  --taj-primary: var(--color-primary);
-  --taj-accent: var(--color-primary);
-  --taj-bg-main: var(--color-background-soft);
-  --taj-bg-secondary: var(--color-surface);
-  --taj-surface: var(--color-surface);
-  --taj-text-main: var(--color-text);
-  --taj-text-secondary: var(--color-text-secondary);
+  --taj-primary: #0f766e;
+  --taj-accent: #22c55e;
+  --taj-bg-main: #0b0f14;
+  --taj-bg-secondary: #111827;
+  --taj-surface: rgba(255, 255, 255, 0.05);
+  --taj-text-main: #e5e7eb;
+  --taj-text-secondary: #94a3b8;
 }
 
 .taj-border {
@@ -733,26 +721,26 @@ html.home-page-snap .home-chapter--snap {
 
 @media (max-width: 767px) {
   body {
-    background: var(--color-background-soft);
+    background: var(--taj-app-bg, var(--app-bg)) !important;
   }
 
   :root {
-    --brand-bg: var(--color-background-soft);
-    --brand-bg-2: var(--color-primary-soft);
-    --brand-text-muted: var(--color-text-muted);
-    --brand-border: var(--color-border);
+    --brand-bg: #004724;
+    --brand-bg-2: #006b38;
+    --brand-text-muted: #b7d8c4;
+    --brand-border: rgba(52, 211, 153, 0.18);
   }
 
   .page-vignette {
-    background: var(--app-vignette);
+    background: var(--app-vignette) !important;
   }
 
   .glass-panel,
   .liquid-glass,
   .surface-1 {
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    box-shadow: var(--taj-shadow-sm);
+    backdrop-filter: blur(6px) !important;
+    -webkit-backdrop-filter: blur(6px) !important;
+    box-shadow: 0 8px 20px rgba(2, 6, 23, 0.24) !important;
   }
 
   .home-chapter-divider {
@@ -760,22 +748,22 @@ html.home-page-snap .home-chapter--snap {
   }
 
   .aurora-text {
-    color: var(--color-text);
-    background: none;
+    color: #e2e8f0 !important;
+    background: none !important;
     -webkit-background-clip: border-box;
     background-clip: border-box;
     text-shadow: none;
   }
 
   header {
-    background: var(--color-surface);
-    border-color: var(--color-border);
+    background: rgba(15, 23, 42, 0.52) !important;
+    border-color: rgba(255, 255, 255, 0.18) !important;
   }
 
   .brand-wordmark {
     background: none;
-    color: var(--color-text);
-    text-shadow: none;
+    color: #f8fafc;
+    text-shadow: 0 8px 24px rgba(2, 6, 23, 0.4);
   }
 }
 
@@ -889,37 +877,6 @@ h1, h2 {
 }
 
 /* ---- Premium card upgrade ---- */
-.hotel-card-premium--motion {
-  opacity: 0;
-  transform: translateY(18px);
-  transition:
-    opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
-  transform-style: preserve-3d;
-  will-change: transform, opacity;
-}
-
-.hotel-card-premium--motion.is-revealed {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.hotel-card-premium--motion .hotel-img-wrap img {
-  transition: transform 0.35s ease;
-}
-
-.hotel-card-premium--motion:hover .hotel-img-wrap img {
-  transform: scale(1.04) translateZ(12px);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hotel-card-premium--motion {
-    opacity: 1;
-    transform: none;
-    transition: none;
-  }
-}
-
 .hotel-card-premium {
   position: relative;
   overflow: hidden;
@@ -1372,8 +1329,8 @@ nav a:hover::after {
 
 /* ---- Premium footer ---- */
 footer {
-  border-top: 1px solid var(--color-border);
-  background: var(--color-surface);
+  border-top: 1px solid rgba(52, 211, 153, 0.16);
+  background: linear-gradient(180deg, transparent, rgba(1, 47, 26, 0.75));
 }
 
 /* ---- Mobile responsive polish ---- */
@@ -1390,46 +1347,48 @@ footer {
   [data-theme="light"] .surface-1,
   [data-theme="light"] .liquid-glass,
   [data-theme="light"] .quiet-card {
-    background: var(--color-surface);
-    border-color: var(--color-border);
+    background:
+      radial-gradient(circle at 20% 10%, rgba(34, 197, 94, 0.14), transparent 34%),
+      linear-gradient(135deg, rgba(24, 85, 50, 0.82), rgba(11, 47, 32, 0.88)) !important;
+    border-color: var(--taj-border) !important;
   }
 }
 
 /* ========================================================================== */
-/* TAJSTAY UNIFIED DESIGN SYSTEM — Phase 2: point at canonical tokens          */
+/* TAJSTAY UNIFIED DESIGN SYSTEM (ENFORCED)                                   */
 /* ========================================================================== */
 
 :root {
-  --ds-primary: var(--color-primary);
-  --ds-secondary: var(--color-primary-dark);
-  --ds-bg-main: var(--color-background-soft);
-  --ds-bg-section: var(--color-surface);
-  --ds-glow: transparent;
-  --ds-text-primary: var(--color-text);
-  --ds-text-secondary: var(--color-text-secondary);
-  --ds-text-muted: var(--color-text-muted);
-  --ds-border: var(--color-border);
-  --ds-shadow-soft: var(--taj-shadow-md);
+  --ds-primary: #22c55e;
+  --ds-secondary: #006b38;
+  --ds-bg-main: #004724;
+  --ds-bg-section: #006b38;
+  --ds-glow: rgba(34, 197, 94, 0.18);
+  --ds-text-primary: #f8fafc;
+  --ds-text-secondary: #d8f1e2;
+  --ds-text-muted: #b7d8c4;
+  --ds-border: rgba(52, 211, 153, 0.18);
+  --ds-shadow-soft: 0 10px 28px rgba(0, 0, 0, 0.28);
   --ds-radius: 16px;
-  --ds-success-bg: var(--color-primary-soft);
-  --ds-success-border: var(--color-primary);
-  --ds-success-text: var(--color-primary-dark);
-  --ds-warning-bg: var(--color-accent-soft);
-  --ds-warning-border: var(--color-warning);
-  --ds-warning-text: var(--color-warning);
-  --ds-danger-bg: #fef2f2;
-  --ds-danger-border: var(--color-danger);
-  --ds-danger-text: var(--color-danger);
-  --ds-info-bg: var(--color-primary-soft);
-  --ds-info-border: var(--color-primary);
-  --ds-info-text: var(--color-primary-dark);
+  --ds-success-bg: rgba(20, 92, 67, 0.22);
+  --ds-success-border: #2f6d57;
+  --ds-success-text: #d7efe5;
+  --ds-warning-bg: rgba(76, 97, 84, 0.24);
+  --ds-warning-border: #486253;
+  --ds-warning-text: #d4dfd8;
+  --ds-danger-bg: rgba(84, 54, 58, 0.24);
+  --ds-danger-border: #66474b;
+  --ds-danger-text: #e7d5d8;
+  --ds-info-bg: rgba(38, 68, 58, 0.25);
+  --ds-info-border: #3a6859;
+  --ds-info-text: #d4e8e0;
 }
 
 html,
 body {
-  background: var(--color-background-soft);
-  color: var(--color-text);
-  font-family: var(--taj-font-ui);
+  background: var(--ds-bg-main) !important;
+  color: var(--ds-text-primary) !important;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif !important;
 }
 
 main,
@@ -1440,7 +1399,9 @@ article {
 
 .page-backdrop,
 .page-vignette {
-  background: var(--color-background-soft);
+  background:
+    radial-gradient(960px 520px at 80% -10%, rgba(20, 92, 67, 0.20), transparent 72%),
+    radial-gradient(920px 520px at 10% 0%, rgba(15, 61, 46, 0.20), transparent 72%) !important;
 }
 
 h1,
@@ -1451,7 +1412,7 @@ h5,
 h6,
 .text-slate-100,
 .text-slate-200 {
-  color: var(--color-text);
+  color: var(--ds-text-primary) !important;
 }
 
 p,
@@ -1547,30 +1508,27 @@ footer {
 @layer base {
   html,
   body {
-    background-color: var(--color-background-soft);
-    color: var(--color-text);
-    font-family: var(--taj-font-ui), system-ui, sans-serif;
+    @apply bg-brand-900 text-white font-sans;
   }
 
   h1,
   h2,
   h3 {
-    font-family: var(--taj-font-display), Georgia, serif;
-    color: var(--color-text);
-    letter-spacing: -0.02em;
+    font-family: "Playfair Display", Georgia, serif;
+    @apply text-white tracking-tight;
   }
 
   h4,
   h5,
   h6 {
-    color: var(--color-text);
+    @apply text-white;
   }
 
   p,
   li,
   label,
   small {
-    color: var(--color-text-secondary);
+    @apply text-brand-200;
   }
 
   section {
@@ -1586,8 +1544,7 @@ footer {
   .page-backdrop--booking,
   .page-backdrop--dashboard,
   .page-backdrop--auth {
-    background: transparent;
-    opacity: 1;
+    @apply bg-brand-gradient opacity-30;
     filter: none !important;
   }
 
@@ -1600,37 +1557,23 @@ footer {
   .glass-panel,
   .quiet-card,
   .liquid-glass {
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    box-shadow: var(--taj-shadow-sm);
+    @apply bg-brand-800 border border-brand-700 shadow-lg;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
   }
 
   .brand-gradient,
   .ds-primary-btn {
-    background: var(--color-primary);
-    color: var(--color-on-primary);
-    border: 1px solid var(--color-primary);
-    box-shadow: var(--taj-shadow-sm);
-    transition: background 0.2s ease, filter 0.2s ease;
+    @apply bg-brand-500 text-white border border-brand-400 shadow-md transition duration-300 ease-out;
   }
 
   .brand-gradient:hover,
   .ds-primary-btn:hover {
-    background: var(--color-primary-dark);
+    @apply bg-brand-400;
   }
 
   .ds-input {
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    color: var(--color-text);
-    border-radius: var(--taj-radius-md);
-    padding: 0.5rem 0.75rem;
-  }
-
-  .ds-input::placeholder {
-    color: var(--color-text-muted);
+    @apply bg-brand-900 border border-brand-700 text-white placeholder:text-brand-200 rounded-xl px-3 py-2;
   }
 
   .alert-success {
@@ -1711,31 +1654,43 @@ footer {
 }
 
 /* ==========================================================================
-   FINAL PREMIUM GREEN PASS — Phase 2 neutralized
-   Was: dark emerald #004724 + neon #22c55e (desktop + mobile).
-   Now: canonical Design System tokens (one light visual theme).
-   !important removed from variable assignments; body uses token bg.
+   FINAL PREMIUM GREEN PASS (desktop + mobile)
+   - no blue/slate/navy blocks
+   - dark green theme only (day = lighter dark green)
    ========================================================================== */
 [data-theme="light"],
-[data-theme="dark"],
 :root {
-  --ds-bg-main: var(--color-background-soft);
-  --ds-bg-section: var(--color-surface);
-  --ds-card: var(--color-surface);
-  --ds-card-2: var(--color-surface);
-  --ds-input-bg: var(--color-surface);
-  --ds-border: var(--color-border);
-  --ds-primary: var(--color-primary);
-  --ds-text-primary: var(--color-text);
-  --ds-text-secondary: var(--color-text-secondary);
-  --ds-text-muted: var(--color-text-muted);
-  --ds-glow: transparent;
+  --ds-bg-main: #004724;
+  --ds-bg-section: #006b38;
+  --ds-card: rgba(1, 47, 26, 0.72);
+  --ds-card-2: rgba(1, 47, 26, 0.86);
+  --ds-input-bg: rgba(1, 47, 26, 0.72);
+  --ds-border: rgba(52, 211, 153, 0.18);
+  --ds-primary: #22c55e;
+  --ds-text-primary: #f8fafc;
+  --ds-text-secondary: #d8f1e2;
+  --ds-text-muted: #b7d8c4;
+  --ds-glow: rgba(34, 197, 94, 0.2);
+}
+
+[data-theme="dark"] {
+  --ds-bg-main: #004724;
+  --ds-bg-section: #006b38;
+  --ds-card: rgba(1, 47, 26, 0.72);
+  --ds-card-2: rgba(1, 47, 26, 0.86);
+  --ds-input-bg: rgba(1, 47, 26, 0.72);
+  --ds-border: rgba(52, 211, 153, 0.18);
+  --ds-primary: #22c55e;
+  --ds-text-primary: #f8fafc;
+  --ds-text-secondary: #d8f1e2;
+  --ds-text-muted: #b7d8c4;
+  --ds-glow: rgba(34, 197, 94, 0.18);
 }
 
 html,
 body {
-  background: var(--color-background-soft);
-  color: var(--color-text);
+  background: var(--taj-app-bg, var(--ds-bg-main)) !important;
+  color: var(--ds-text-primary) !important;
 }
 
 .page-backdrop,
@@ -1751,23 +1706,18 @@ body {
 .page-backdrop--particles,
 .page-backdrop--subtle,
 .page-backdrop--default {
-  background: var(--color-background-soft);
-  opacity: 1;
+  background: var(--taj-app-bg) !important;
+  opacity: 1 !important;
 }
 
 .page-vignette {
-  background: radial-gradient(
-    circle at 50% 35%,
-    transparent 0%,
-    rgba(8, 127, 91, 0.04) 72%,
-    rgba(17, 24, 39, 0.06) 100%
-  );
+  background: radial-gradient(circle at 50% 35%, transparent 0%, rgba(0, 71, 36, 0.12) 72%, rgba(1, 47, 26, 0.3) 100%) !important;
 }
 
 main,
 section,
 article {
-  background-color: transparent;
+  background-color: transparent !important;
 }
 
 .surface-1,
@@ -1785,11 +1735,11 @@ article {
 [class*="bg-sky-"],
 [class*="bg-navy"],
 [class*="bg-indigo-"] {
-  background: var(--color-surface);
-  border-color: var(--color-border);
-  box-shadow: var(--taj-shadow-sm);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+  background: linear-gradient(155deg, var(--ds-card), var(--ds-card-2)) !important;
+  border-color: var(--ds-border) !important;
+  box-shadow: 0 8px 22px rgba(7, 26, 20, 0.26) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 input,
@@ -1798,14 +1748,14 @@ textarea,
 .ds-input,
 .search-input-premium,
 [class*="border-slate-"][class*="bg-slate-"] {
-  background: var(--color-surface);
-  color: var(--color-text);
-  border-color: var(--color-border);
+  background: var(--ds-input-bg) !important;
+  color: var(--ds-text-primary) !important;
+  border-color: var(--ds-border) !important;
 }
 
 input::placeholder,
 textarea::placeholder {
-  color: var(--color-text-muted);
+  color: var(--taj-text-muted, var(--ds-text-muted)) !important;
 }
 
 h1,
@@ -2022,8 +1972,8 @@ select:focus,
 }
 
 select option {
-  color: var(--color-text);
-  background-color: var(--color-surface);
+  color: var(--taj-text) !important;
+  background-color: #012f1a !important;
 }
 
 /* Legacy button aliases */
@@ -2094,80 +2044,80 @@ select option {
 }
 
 /* ==========================================================================
-   Brand palette lock — Phase 2 neutralized
-   Was: hardcoded #004724 !important dark chrome (defeated light tokens).
-   Now: re-assert canonical tokens without !important so Design System wins.
-   Affects desktop + mobile app chrome (body, cards, brand aliases).
+   TajStay brand palette lock — rich emerald #004724 (see src/lib/brand.ts)
    ========================================================================== */
 :root,
 [data-theme="light"],
 [data-theme="dark"] {
-  --bg-base: var(--color-background-soft);
-  --bg-deep: var(--color-surface-deep);
-  --bg-soft: var(--color-primary-soft);
-  --bg-surface: var(--color-surface);
-  --bg-elevated: var(--color-surface);
-  --bg-input: var(--color-surface);
+  --bg-base: #004724 !important;
+  --bg-deep: #012f1a !important;
+  --bg-soft: #006b38 !important;
+  --bg-surface: rgba(1, 47, 26, 0.72) !important;
+  --bg-elevated: rgba(1, 47, 26, 0.86) !important;
+  --bg-input: rgba(1, 47, 26, 0.72) !important;
 
-  --green-primary: var(--color-primary);
-  --green-hover: var(--color-primary-dark);
-  --green-dim: var(--color-primary-dark);
-  --green-glow: transparent;
-  --green-border: var(--color-border);
+  --green-primary: #22c55e !important;
+  --green-hover: #34d399 !important;
+  --green-dim: #16a34a !important;
+  --green-glow: rgba(34, 197, 94, 0.26) !important;
+  --green-border: rgba(52, 211, 153, 0.18) !important;
 
-  --text-primary: var(--color-text);
-  --text-secondary: var(--color-text-secondary);
-  --text-muted: var(--color-text-muted);
-  --border: var(--color-border);
-  --border-focus: var(--color-primary);
+  --text-primary: #f8fafc !important;
+  --text-secondary: #d8f1e2 !important;
+  --text-muted: #b7d8c4 !important;
+  --border: rgba(52, 211, 153, 0.18) !important;
+  --border-focus: rgba(52, 211, 153, 0.55) !important;
 
-  --brand-bg: var(--color-background-soft);
-  --brand-surface: var(--color-surface);
-  --brand-surface-2: var(--color-surface);
-  --taj-card: var(--color-surface);
-  --taj-card-border: var(--color-border);
-  --taj-card-shadow: var(--taj-shadow-card);
-  --taj-card-strong: var(--color-surface);
-  --taj-card-strong-border: var(--color-border-strong);
-  --taj-section-bg: var(--color-surface);
-  --taj-section-border: var(--color-border);
-  --taj-input: var(--color-surface);
-  --taj-input-border: var(--color-border);
-  --taj-input-focus-border: var(--color-primary);
-  --taj-input-focus-ring: var(--taj-shadow-focus);
-  --taj-dropdown-bg: var(--color-surface);
-  --brand-green: var(--color-primary);
-  --brand-green-light: var(--color-primary);
-  --brand-green-dark: var(--color-primary-dark);
-  --brand-border: var(--color-border);
-  --brand-text: var(--color-text);
-  --brand-muted: var(--color-text-muted);
-  --brand-star: var(--color-accent);
+  --brand-bg: #004724 !important;
+  --brand-surface: rgba(1, 47, 26, 0.72) !important;
+  --brand-surface-2: rgba(1, 47, 26, 0.86) !important;
+  --taj-card: rgba(1, 47, 26, 0.72) !important;
+  --taj-card-border: rgba(52, 211, 153, 0.18) !important;
+  --taj-card-shadow: 0 24px 70px rgba(0, 0, 0, 0.22) !important;
+  --taj-card-strong: rgba(1, 47, 26, 0.86) !important;
+  --taj-card-strong-border: rgba(212, 175, 55, 0.18) !important;
+  --taj-section-bg: rgba(0, 71, 36, 0.38) !important;
+  --taj-section-border: rgba(52, 211, 153, 0.14) !important;
+  --taj-input: rgba(1, 47, 26, 0.72) !important;
+  --taj-input-border: rgba(183, 216, 196, 0.24) !important;
+  --taj-input-focus-border: rgba(52, 211, 153, 0.62) !important;
+  --taj-input-focus-ring: 0 0 0 3px rgba(52, 211, 153, 0.14) !important;
+  --taj-dropdown-bg: rgba(1, 47, 26, 0.94) !important;
+  --brand-green: #22c55e !important;
+  --brand-green-light: #34d399 !important;
+  --brand-green-dark: #16a34a !important;
+  --brand-border: var(--border) !important;
+  --brand-text: #f8fafc !important;
+  --brand-muted: #b7d8c4 !important;
+  --brand-star: #d4af37 !important;
 
-  --taj-color-text: var(--color-text);
-  --taj-color-text-secondary: var(--color-text-secondary);
-  --taj-color-text-muted: var(--color-text-muted);
-  --taj-color-border: var(--color-border);
-  --taj-color-border-strong: var(--color-border-strong);
-  --taj-color-bg-card: var(--color-surface);
-  --taj-color-bg-card-solid: var(--color-surface);
-  --taj-public-surface: var(--color-surface);
-  --taj-public-surface-strong: var(--color-surface);
+  --taj-color-text: #f8fafc !important;
+  --taj-color-text-secondary: #d8f1e2 !important;
+  --taj-color-text-muted: #b7d8c4 !important;
+  --taj-color-border: rgba(52, 211, 153, 0.18) !important;
+  --taj-color-border-strong: rgba(52, 211, 153, 0.28) !important;
+  --taj-color-bg-card: rgba(1, 47, 26, 0.72) !important;
+  --taj-color-bg-card-solid: rgba(1, 47, 26, 0.86) !important;
+  --taj-public-surface: rgba(1, 47, 26, 0.72) !important;
+  --taj-public-surface-strong: rgba(1, 47, 26, 0.86) !important;
 
-  --taj-app-bg: var(--color-background-soft);
+  --taj-app-bg:
+    radial-gradient(circle at 20% 15%, rgba(34, 197, 94, 0.18), transparent 34%),
+    radial-gradient(circle at 85% 20%, rgba(212, 175, 55, 0.07), transparent 32%),
+    linear-gradient(135deg, #006b38 0%, #004724 45%, #012f1a 100%) !important;
 
-  --ds-bg-main: var(--color-background-soft);
-  --ds-bg-section: var(--color-surface);
-  --ds-card: var(--color-surface);
-  --ds-card-2: var(--color-surface);
-  --ds-input-bg: var(--color-surface);
+  --ds-bg-main: #004724 !important;
+  --ds-bg-section: rgba(0, 71, 36, 0.38) !important;
+  --ds-card: rgba(1, 47, 26, 0.72) !important;
+  --ds-card-2: rgba(1, 47, 26, 0.86) !important;
+  --ds-input-bg: rgba(1, 47, 26, 0.72) !important;
 }
 
 body,
 html,
 #__next {
-  background: var(--color-background-soft);
-  color: var(--color-text);
+  background: var(--taj-app-bg) !important;
+  color: var(--text-primary) !important;
 }
 
 .page-backdrop,
@@ -2183,22 +2133,17 @@ html,
 .page-backdrop--particles,
 .page-backdrop--subtle,
 .page-backdrop--default {
-  background: var(--color-background-soft);
+  background: var(--taj-app-bg) !important;
 }
 
 .page-vignette {
-  background: radial-gradient(
-    circle at 50% 28%,
-    transparent 0%,
-    rgba(8, 127, 91, 0.04) 72%,
-    rgba(17, 24, 39, 0.06) 100%
-  );
+  background: radial-gradient(circle at 50% 28%, transparent 0%, rgba(0, 71, 36, 0.14) 72%, rgba(1, 47, 26, 0.32) 100%) !important;
 }
 
 [data-theme="light"] header,
 [data-theme="dark"] header {
-  background: var(--color-surface);
-  border-bottom-color: var(--color-border);
+  background: rgba(0, 53, 29, 0.94) !important;
+  border-bottom-color: rgba(52, 211, 153, 0.16) !important;
 }
 
 [data-theme="light"] .glass-panel,
@@ -2542,43 +2487,36 @@ select:focus,
 
 .header-auth-signin {
   display: none;
-  border-radius: var(--taj-radius-md, 0.75rem);
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
+  border-radius: 0.875rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   padding: 0.5rem 0.875rem;
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--color-text);
-  transition:
-    background 0.2s ease,
-    color 0.2s ease,
-    border-color 0.2s ease;
+  color: #e2e8f0;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .header-auth-signin:hover {
-  background: var(--color-primary-soft);
-  border-color: var(--color-primary);
-  color: var(--color-primary-dark);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
 }
 
 .header-auth-signup {
   display: none;
   align-items: center;
   justify-content: center;
-  border-radius: var(--taj-radius-md, 0.75rem);
-  background: var(--color-primary);
+  border-radius: 0.875rem;
+  background: linear-gradient(180deg, #34d399, #059669);
   padding: 0.55rem 1.1rem;
   font-size: 0.875rem;
   font-weight: 700;
-  color: var(--color-on-primary);
-  box-shadow: var(--taj-shadow-sm, 0 1px 2px rgba(17, 24, 39, 0.06));
-  transition:
-    background 0.2s ease,
-    transform 0.15s ease;
+  color: #052e1c;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.28);
+  transition: filter 0.2s ease, transform 0.15s ease;
 }
 
 .header-auth-signup:hover {
-  background: var(--color-primary-dark);
+  filter: brightness(1.06);
 }
 
 @media (min-width: 768px) {
@@ -2743,20 +2681,6 @@ select:focus,
   }
 }
 
-.footer-trust-links {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-@media (min-width: 640px) {
-  .footer-trust-links {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 0.5rem 1.5rem;
-  }
-}
-
 .footer-trust-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2775,14 +2699,7 @@ select:focus,
 .owner-onboarding-page {
   margin-inline: auto;
   width: min(100%, var(--taj-page-max));
-  max-width: 100%;
   padding: 2rem var(--taj-page-px) 5rem;
-}
-
-@media (max-width: 767px) {
-  body.app-shell .owner-onboarding-page {
-    padding-bottom: calc(10rem + env(safe-area-inset-bottom, 0px));
-  }
 }
 
 @media (min-width: 640px) {
@@ -2825,9 +2742,6 @@ select:focus,
 }
 
 .owner-form-card {
-  min-width: 0;
-  max-width: 100%;
-  overflow-x: hidden;
   border-radius: 1.5rem;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: linear-gradient(160deg, rgba(15, 23, 42, 0.92), rgba(6, 20, 14, 0.95));
@@ -2845,16 +2759,6 @@ select:focus,
   margin-top: 2rem;
   padding-top: 2rem;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.owner-form-section {
-  min-width: 0;
-  max-width: 100%;
-}
-
-.owner-upload-grid > * {
-  min-width: 0;
-  max-width: 100%;
 }
 
 .owner-section-title {
@@ -2951,48 +2855,10 @@ select:focus,
 }
 
 .owner-upload-card {
-  min-width: 0;
-  max-width: 100%;
-  overflow: hidden;
   border-radius: 1rem;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(0, 0, 0, 0.12);
   padding: 0.85rem;
-}
-
-.owner-dual-upload-card {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.owner-upload-divider {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  color: rgba(148, 163, 184, 0.85);
-  font-size: 0.8125rem;
-}
-
-.owner-upload-divider::before,
-.owner-upload-divider::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.owner-document-file {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  min-width: 0;
-  max-width: 100%;
-  overflow: hidden;
-  padding: 0.875rem 1rem;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(0, 0, 0, 0.2);
 }
 
 .owner-wizard-steps {
@@ -3025,64 +2891,13 @@ select:focus,
   bottom: 0.75rem;
   z-index: 20;
   display: flex;
-  width: 100%;
-  min-width: 0;
-  flex-shrink: 0;
-  flex-direction: column-reverse;
-  align-items: stretch;
   gap: 0.75rem;
   border-radius: 1.25rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(15, 23, 42, 0.92);
-  padding: 0.75rem 1rem 1.5rem;
-  padding-bottom: max(1.5rem, calc(0.75rem + env(safe-area-inset-bottom, 0px)));
+  padding: 0.75rem;
   backdrop-filter: blur(12px);
   box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.35);
-  touch-action: manipulation;
-  box-sizing: border-box;
-}
-
-@media (max-width: 767px) {
-  body.app-shell .owner-wizard-actions {
-    bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px));
-    z-index: 55;
-  }
-}
-
-.owner-wizard-actions .owner-onboarding-submit,
-.owner-wizard-actions .owner-btn-secondary {
-  width: 100%;
-  min-width: 0;
-  max-width: 100%;
-  flex: 1 1 auto;
-}
-
-@media (min-width: 1024px) {
-  .owner-wizard-actions {
-    flex-direction: row;
-    justify-content: space-between;
-    gap: 1rem;
-    padding: 0.75rem;
-    padding-bottom: 0.75rem;
-    position: sticky;
-    bottom: 0.75rem;
-  }
-
-  .owner-wizard-actions .owner-onboarding-submit,
-  .owner-wizard-actions .owner-btn-secondary {
-    flex: 1 1 0;
-    width: auto;
-    max-width: none;
-  }
-
-  .owner-wizard-actions--solo {
-    justify-content: flex-end;
-  }
-
-  .owner-wizard-actions--solo .owner-onboarding-submit {
-    flex: 0 1 auto;
-    min-width: 10rem;
-  }
 }
 
 .owner-status-card {

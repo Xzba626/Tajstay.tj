@@ -8,12 +8,6 @@ const nextConfig = {
       { protocol: "https", hostname: "public.blob.vercel-storage.com", pathname: "/**" }
     ]
   },
-  async redirects() {
-    return [
-      { source: "/privacy-policy", destination: "/policy", permanent: true },
-      { source: "/contact", destination: "/contacts", permanent: true }
-    ];
-  },
   /** Долгий кэш хэшированных чанков (повторные визиты); HTML/RSC по-прежнему без жёсткого вечного кэша. */
   async headers() {
     return [

@@ -49,13 +49,6 @@ export async function POST(req: Request) {
   const ok = await verifyPassword(password, user.password);
   if (!ok) return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
 
-  if (normalizedEmail && user.email && !user.emailVerified) {
-    return NextResponse.json(
-      { error: "email_not_verified", email: user.email },
-      { status: 403 }
-    );
-  }
-
   const res = NextResponse.json({ ok: true });
   await createSessionCookie(user.id, res);
   return res;

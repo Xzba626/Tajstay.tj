@@ -1,10 +1,10 @@
 import type { TripsTab } from "@/lib/trips/classify";
 
-const BASE = "/dashboard/bookings";
+const BASE = "/history";
 
-export function tripsHubPath(tab: TripsTab = "active", query?: Record<string, string | undefined>): string {
+export function tripsHubPath(tab: TripsTab = "confirmed", query?: Record<string, string | undefined>): string {
   const params = new URLSearchParams();
-  if (tab !== "active") params.set("tab", tab);
+  if (tab !== "confirmed") params.set("tab", tab);
   for (const [k, v] of Object.entries(query ?? {})) {
     if (v) params.set(k, v);
   }
@@ -12,7 +12,7 @@ export function tripsHubPath(tab: TripsTab = "active", query?: Record<string, st
   return q ? `${BASE}?${q}` : BASE;
 }
 
-/** Map legacy /dashboard/guest query params to trips hub. */
+/** Map legacy /dashboard/guest query params to History hub. */
 export function tripsHubFromLegacyGuest(searchParams?: {
   notice?: string;
   error?: string;
@@ -20,8 +20,8 @@ export function tripsHubFromLegacyGuest(searchParams?: {
 }): string {
   const notice = searchParams?.notice?.trim();
   const error = searchParams?.error?.trim();
-  let tab: TripsTab = "active";
-  if (error === "document") tab = "active";
+  let tab: TripsTab = "confirmed";
+  if (error === "document") tab = "confirmed";
   return tripsHubPath(tab, {
     notice: notice || undefined,
     error: error || undefined

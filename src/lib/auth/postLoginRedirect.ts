@@ -16,8 +16,7 @@ export function safeReturnPath(raw: string | null | undefined): string | null {
 export function defaultDashboardForRole(role: string): string {
   if (role === "ADMIN") return "/dashboard/admin";
   if (role === "OWNER") return "/dashboard/owner";
-  if (role === "HOTEL_MODERATOR") return "/dashboard/moderator";
-  return "/dashboard/bookings";
+  return "/history";
 }
 
 /** After email/password login: honor ?next= when role allows. */
@@ -26,17 +25,11 @@ export function postLoginRedirect(role: string, next: string | null | undefined)
   if (!n) return defaultDashboardForRole(role);
   if (n.startsWith("/dashboard/admin")) {
     if (role === "ADMIN") return n;
-    return "/dashboard/bookings?notice=adminOnly";
+    return "/history?notice=adminOnly";
   }
   if (n.startsWith("/dashboard/owner")) {
     if (role === "OWNER") return n;
-    if (role === "HOTEL_MODERATOR") return "/dashboard/moderator?notice=ownerOnly";
-    return "/dashboard/bookings?notice=ownerOnly";
-  }
-  if (n.startsWith("/dashboard/moderator")) {
-    if (role === "HOTEL_MODERATOR") return n;
-    if (role === "OWNER") return "/dashboard/owner?notice=moderatorOnly";
-    return "/dashboard/bookings?notice=moderatorOnly";
+    return "/history?notice=ownerOnly";
   }
   return n;
 }

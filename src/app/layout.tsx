@@ -3,8 +3,6 @@ import "@fontsource/dm-sans/latin.css";
 import "@fontsource/dm-sans/latin-ext.css";
 import "@fontsource/playfair-display/latin.css";
 import "@fontsource/playfair-display/cyrillic.css";
-import "@fontsource/nunito/latin.css";
-import "@fontsource/nunito/cyrillic.css";
 import type { Metadata } from "next";
 import type { Viewport } from "next";
 import type { ReactNode } from "react";
@@ -14,7 +12,6 @@ import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { AppShell } from "@/components/navigation/AppShell";
 import { CookieConsent } from "@/components/layout/CookieConsent";
 import { SplashScreen } from "@/components/layout/SplashScreen";
-import { LocaleDetectBanner } from "@/components/layout/LocaleDetectBanner";
 import { PageBackdrop } from "@/components/effects/PageBackdrop";
 import { GlobalToast } from "@/components/layout/GlobalToast";
 import { PwaClientShell } from "@/components/pwa/PwaClientShell";
@@ -30,17 +27,16 @@ import { resolveMetadataBase } from "@/lib/site-url";
 import { getPendingTripsCount } from "@/lib/trips/pendingCount";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const locale = getLocale();
   const content = await getSiteContent();
   return {
     metadataBase: resolveMetadataBase(),
     title: BRAND.title,
-    description: m(locale, "meta.siteDescription"),
+    description: "Национальная платформа бронирования жилья в Таджикистане",
     icons: {
       icon: [
-        { url: "/favicon.ico", sizes: "48x48", type: "image/x-icon" },
+        { url: "/favicon.ico", sizes: "48x48" },
         { url: "/favicon.png", sizes: "32x32", type: "image/png" },
-        { url: "/favicon-16.png", sizes: "16x16", type: "image/png" },
+        { url: BRAND.favicon, sizes: "512x512", type: "image/png" },
         { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }
       ],
       apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }]
@@ -48,7 +44,7 @@ export async function generateMetadata(): Promise<Metadata> {
     manifest: "/manifest.webmanifest",
     openGraph: {
       title: BRAND.title,
-      description: m(locale, "meta.siteDescription"),
+      description: "Национальная платформа бронирования жилья в Таджикистане",
       images: [{ url: BRAND.ogImage, width: 1200, height: 630, alt: content.brand.siteName }]
     },
     twitter: {
@@ -67,7 +63,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#F8FAFC"
+  themeColor: "#004724"
 };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
@@ -78,29 +74,23 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const pendingTripsCount =
     user?.role === "GUEST" ? await getPendingTripsCount(user.id) : 0;
   return (
-    <html lang={locale} className="scroll-smooth" data-theme="light">
+    <html lang={locale} className="scroll-smooth" data-theme="dark" suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.webmanifest" />
-        <link rel="manifest" href="/site.webmanifest" />
-        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" href="/favicon.ico" sizes="48x48" />
         <link rel="icon" href="/favicon.png" type="image/png" sizes="32x32" />
-        <link rel="icon" href="/favicon-16.png" type="image/png" sizes="16x16" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
-        <link rel="icon" href="/android-chrome-192x192.png" type="image/png" sizes="192x192" />
-        <link rel="icon" href="/android-chrome-512x512.png" type="image/png" sizes="512x512" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-title" content={BRAND.name} />
       </head>
-      <body className="min-h-screen bg-[var(--color-background-soft)] text-[var(--color-text)] antialiased font-sans">
+      <body className="min-h-screen bg-[var(--brand-bg)] text-[var(--brand-text)] antialiased font-sans" suppressHydrationWarning>
         <AuthProvider>
-          <AppShell />
+          <AppShell locale={locale} />
           <SplashScreen />
           <PageBackdrop />
           <GlobalToast />
-          <LocaleDetectBanner locale={locale} />
           <PwaClientShell
             isAuthed={Boolean(user)}
-            userId={user?.id ?? null}
             initialUnreadCount={unreadCount}
             toastLabel={m(locale, "notifications.bell.newToast")}
             installLabels={{
@@ -129,8 +119,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
               ariaLabel: m(locale, "bottomNav.ariaLabel"),
               home: m(locale, "bottomNav.home"),
               search: m(locale, "bottomNav.search"),
-              favorites: m(locale, "bottomNav.favorites"),
-              bookings: m(locale, "bottomNav.bookings"),
+              tours: m(locale, "bottomNav.tours"),
+              history: m(locale, "bottomNav.history"),
               profile: m(locale, "bottomNav.profile")
             }}
           />

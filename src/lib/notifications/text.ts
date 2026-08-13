@@ -1,5 +1,5 @@
 import type { Locale } from "@/lib/i18n/locale";
-import { m, resolveMessage } from "@/lib/i18n/messages";
+import { m } from "@/lib/i18n/messages";
 
 export function notificationText(
   locale: Locale,
@@ -13,8 +13,7 @@ export function notificationText(
     if (bookingCode) return `${base} · ${bookingCode}`;
     return base;
   }
-  const path = `notifications.${type}`;
-  const base = resolveMessage(locale, path) ?? resolveMessage(locale, "notifications.unknown") ?? m(locale, "notifications.unknown");
+  const base = m(locale, `notifications.${type}`) || m(locale, "notifications.unknown");
   if (bookingCode) return `${base} · ${bookingCode}`;
   return base;
 }

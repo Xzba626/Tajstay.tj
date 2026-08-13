@@ -1,11 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import {
-  ACTIVE_OFFLINE_BOOKING_STATUSES,
-  ACTIVE_ONLINE_BOOKING_STATUSES,
   bookingOccupiesDay,
   getRoomBookingsInRange,
   isOccupyingOfflineStatus,
-  isOccupyingOnlineStatus
+  isOccupyingOnlineStatus,
+  OCCUPYING_OFFLINE_STATUSES
 } from "@/lib/booking/availability";
 import { BOOKING_SOURCE } from "@/lib/domain/booking";
 import { NON_SELLABLE_ROOM_STATUSES, PHYSICAL_ROOM_STATUS } from "@/lib/pms/types";
@@ -60,10 +59,8 @@ export async function getRoomTypeAvailability(params: {
     const bookings = await getRoomBookingsInRange(room.id, checkIn, checkOut);
     const hit = bookings.find((b) => {
       if (excludeBookingId && b.id === excludeBookingId) return false;
-      if (b.source === BOOKING_SOURCE.PLATFORM) {
-        return (ACTIVE_ONLINE_BOOKING_STATUSES as readonly string[]).includes(b.status);
-      }
-      return (ACTIVE_OFFLINE_BOOKING_STATUSES as readonly string[]).includes(b.offlineStatus ?? "");
+      if (b.source === BOOKING_SOURCE.PLATFORM) return isOccupyingOnlineStatus(b.status);
+      return isOccupyingOfflineStatus(b.offlineStatus);
     });
     if (hit) occupiedCount += 1;
   }
@@ -77,10 +74,10 @@ export async function getRoomTypeAvailability(params: {
       checkIn: { lt: checkOut },
       checkOut: { gt: checkIn },
       OR: [
-        { source: BOOKING_SOURCE.PLATFORM, status: { in: [...ACTIVE_ONLINE_BOOKING_STATUSES] } },
+        { source: BOOKING_SOURCE.PLATFORM, status: { in: ["CONFIRMED", "CHECKED_IN", "COMPLETED"] } },
         {
           source: BOOKING_SOURCE.OWNER_MANUAL,
-          offlineStatus: { in: [...ACTIVE_OFFLINE_BOOKING_STATUSES] }
+          offlineStatus: { in: [...OCCUPYING_OFFLINE_STATUSES] }
         }
       ],
       ...(excludeBookingId ? { id: { not: excludeBookingId } } : {})
@@ -123,10 +120,8 @@ export async function findAvailablePhysicalRoom(params: {
     const bookings = await getRoomBookingsInRange(room.id, params.checkIn, params.checkOut);
     const conflict = bookings.find((b) => {
       if (params.excludeBookingId && b.id === params.excludeBookingId) return false;
-      if (b.source === BOOKING_SOURCE.PLATFORM) {
-        return (ACTIVE_ONLINE_BOOKING_STATUSES as readonly string[]).includes(b.status);
-      }
-      return (ACTIVE_OFFLINE_BOOKING_STATUSES as readonly string[]).includes(b.offlineStatus ?? "");
+      if (b.source === BOOKING_SOURCE.PLATFORM) return isOccupyingOnlineStatus(b.status);
+      return isOccupyingOfflineStatus(b.offlineStatus);
     });
     if (!conflict) return room.id;
   }

@@ -5,22 +5,20 @@ import { canAccessBookingChat } from "@/lib/chat/bookingAccess";
 import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
 
 export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
 
-export async function GET(req: NextRequest, { params }: { params: { bookingId: string } }) {
-  const user = await requireUser(["GUEST", "OWNER", "ADMIN", "HOTEL_MODERATOR"]);
+export async function GET(req: NextRequest, ctx: { params: Promise<{ bookingId: string }> }) {
+  const user = await requireUser(["GUEST", "OWNER", "ADMIN"]);
   if (!user) return new Response("Unauthorized", { status: 401 });
 
-  const bookingId = Number.parseInt(String(params.bookingId ?? "").trim(), 10);
-  if (!Number.isFinite(bookingId) || bookingId < 1) {
-    return new Response("Bad request", { status: 400 });
-  }
+  const { bookingId: raw } = await ctx.params;
+  const bookingId = Number(raw);
+  if (!Number.isFinite(bookingId)) return new Response("Bad request", { status: 400 });
 
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
     include: bookingWithHotelInclude
   });
-  if (!booking || !(await canAccessBookingChat(booking, user))) {
+  if (!booking || !canAccessBookingChat(booking, user)) {
     return new Response("Forbidden", { status: 403 });
   }
 
@@ -29,21 +27,12 @@ export async function GET(req: NextRequest, { params }: { params: { bookingId: s
   let closed = false;
 
   const stream = new ReadableStream({
-    start(controller) {
+    async start(controller) {
       const send = (payload: unknown) => {
-        if (closed) return;
-        try {
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify(payload)}\n\n`));
-        } catch {
-          closed = true;
-        }
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify(payload)}\n\n`));
       };
 
       send({ type: "connected", bookingId });
-
-      const heartbeat = setInterval(() => {
-        send({ type: "ping", t: Date.now() });
-      }, 15_000);
 
       const tick = async () => {
         if (closed) return;
@@ -62,23 +51,18 @@ export async function GET(req: NextRequest, { params }: { params: { bookingId: s
           });
           if (rows.length) send({ type: "messages", count: rows.length });
         } catch {
-          send({ type: "error", retry: true });
+          // ignore transient errors
         }
       };
 
       const interval = setInterval(() => {
         void tick();
-      }, 2_500);
+      }, 2500);
 
       req.signal.addEventListener("abort", () => {
         closed = true;
         clearInterval(interval);
-        clearInterval(heartbeat);
-        try {
-          controller.close();
-        } catch {
-          /* already closed */
-        }
+        controller.close();
       });
     }
   });
@@ -87,8 +71,7 @@ export async function GET(req: NextRequest, { params }: { params: { bookingId: s
     headers: {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache, no-transform",
-      Connection: "keep-alive",
-      "X-Accel-Buffering": "no"
+      Connection: "keep-alive"
     }
   });
 }

@@ -55,7 +55,7 @@ export function LocaleSwitcher({ current, className, iconOnly = false }: Props) 
       const res = await fetch("/api/locale", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ locale, manual: true, promptDone: true })
+        body: JSON.stringify({ locale })
       });
       if (!res.ok) throw new Error("failed");
       setOpen(false);

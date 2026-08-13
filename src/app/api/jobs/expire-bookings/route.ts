@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { BOOKING_STATUS } from "@/lib/domain/booking";
-import { addBookingSystemMessage, archiveBookingChatToColdStorage } from "@/lib/chat/bookingChat";
-import { dispatchBookingCancelledEmails } from "@/lib/email/bookingEmailDispatch";
+import { addBookingSystemMessage } from "@/lib/chat/bookingChat";
 
 export const dynamic = "force-dynamic";
 
@@ -56,17 +55,13 @@ export async function POST(req: NextRequest) {
     });
     // Add system message in chat
     await Promise.all(
-      expired.map(async (b) => {
-        await addBookingSystemMessage({
+      expired.map((b) =>
+        addBookingSystemMessage({
           bookingId: b.id,
           message: "🛡️ Система: Бронь отменена по истечении 15 минут. Чат закрыт."
-        }).catch(() => undefined);
-        await archiveBookingChatToColdStorage(b.id).catch(() => undefined);
-      })
+        }).catch(() => undefined)
+      )
     );
-    for (const b of expired) {
-      void dispatchBookingCancelledEmails(b.id, "system", "Не оплачена вовремя").catch(() => undefined);
-    }
   }
 
   const reviewIds = reviewTimedOut.map((b) => b.id);
@@ -113,13 +108,12 @@ export async function POST(req: NextRequest) {
       }))
     });
     await Promise.all(
-      reviewIds.map(async (id) => {
-        await addBookingSystemMessage({
+      reviewIds.map((id) =>
+        addBookingSystemMessage({
           bookingId: id,
           message: "🛡️ Система: Время проверки чека истекло. Оплата отклонена."
-        }).catch(() => undefined);
-        await archiveBookingChatToColdStorage(id).catch(() => undefined);
-      })
+        }).catch(() => undefined)
+      )
     );
   }
 

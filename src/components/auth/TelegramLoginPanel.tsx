@@ -19,7 +19,6 @@ export type TelegramLoginLabels = {
   codeInvalid: string;
   tooManyAttempts: string;
   errorGeneric: string;
-  confirmCta: string;
 };
 
 type Props = {
@@ -28,8 +27,6 @@ type Props = {
   onExpandedChange: (active: boolean) => void;
   onSuccess: () => void | Promise<void>;
   onError?: (message: string) => void;
-  challengeUrl?: string;
-  verifyUrl?: string;
 };
 
 type ChallengeState = {
@@ -60,15 +57,7 @@ function formatTimerLabel(template: string, formatted: string) {
   return template.replace("{time}", formatted).replace("{n}", formatted);
 }
 
-export function TelegramLoginPanel({
-  labels: L,
-  expanded,
-  onExpandedChange,
-  onSuccess,
-  onError,
-  challengeUrl = "/api/auth/telegram/challenge",
-  verifyUrl = "/api/auth/telegram/verify"
-}: Props) {
+export function TelegramLoginPanel({ labels: L, expanded, onExpandedChange, onSuccess, onError }: Props) {
   const [loading, setLoading] = useState(false);
   const [challenge, setChallenge] = useState<ChallengeState | null>(null);
   const [webLink, setWebLink] = useState("");
@@ -112,7 +101,7 @@ export function TelegramLoginPanel({
       setCodeUi("loading");
       setCodeMessage(L.verifying);
       try {
-        const res = await fetch(verifyUrl, {
+        const res = await fetch("/api/auth/telegram/verify", {
           method: "POST",
           headers: { "Content-Type": "application/json", accept: "application/json" },
           credentials: "include",
@@ -149,7 +138,7 @@ export function TelegramLoginPanel({
         setLoading(false);
       }
     },
-    [challenge, isExpired, L, onError, onSuccess, verifyUrl]
+    [challenge, isExpired, L, onError, onSuccess]
   );
 
   useEffect(() => {
@@ -205,25 +194,16 @@ export function TelegramLoginPanel({
     setCodeMessage(null);
     openedOnce.current = false;
     try {
-      const res = await fetch(challengeUrl, {
+      const res = await fetch("/api/auth/telegram/challenge", {
         method: "POST",
         headers: { accept: "application/json" },
         credentials: "include"
       });
-      const json = (await res.json().catch(() => ({}))) as ChallengeState & { error?: string; ok?: boolean };
+      const json = (await res.json().catch(() => ({}))) as ChallengeState & { error?: string };
       if (!res.ok) throw new Error(json.error || L.errorGeneric);
 
-      const payload: ChallengeState = {
-        token: json.token,
-        deepLink: json.deepLink,
-        appDeepLink: json.appDeepLink,
-        expiresAt: json.expiresAt,
-        expiresInSec: json.expiresInSec
-      };
-      if (!payload.token || !payload.deepLink) throw new Error(L.errorGeneric);
-
-      const links = linksFromTelegramDeepLink(payload.deepLink);
-      setChallenge(payload);
+      const links = linksFromTelegramDeepLink(json.deepLink);
+      setChallenge(json);
       setWebLink(json.deepLink || links.webLink);
       setAppLink(json.appDeepLink || links.appLink);
       setStatus("pending");
@@ -288,7 +268,8 @@ export function TelegramLoginPanel({
               setCodeMessage(null);
             }
           }}
-          disabled={loading || isExpired || codeUi === "success"}
+          onComplete={(code) => void verifyCode(code)}
+          disabled={loading || isExpired}
           loading={codeUi === "loading"}
           error={codeUi === "error" && !isExpired}
           success={codeUi === "success"}
@@ -296,17 +277,6 @@ export function TelegramLoginPanel({
           autoFocus
         />
       </div>
-
-      {!isExpired && codeUi !== "success" ? (
-        <button
-          type="button"
-          className="taj-primary-button"
-          disabled={loading || otp.join("").length !== 6}
-          onClick={() => void verifyCode(otp.join(""))}
-        >
-          <span>{loading && codeUi === "loading" ? L.verifying : L.confirmCta}</span>
-        </button>
-      ) : null}
 
       {codeMessage && !isExpired ? (
         <p

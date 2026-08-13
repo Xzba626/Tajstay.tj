@@ -1,0 +1,58 @@
+---
+description: TajStay — изучить код перед работой; не дублировать History/Tours/Nav
+alwaysApply: true
+---
+
+# TajStay: explore before build
+
+**Read this before any History / Tours / Navigation / booking-status task.**
+
+## Iron rule
+
+Do **not** assume the current implementation is correct.
+
+1. **Study existing code first** — find what is already implemented.
+2. **Do not create duplicates** — no parallel components, routes, models, APIs, or status systems (e.g. no `HistoryCard2`, `BookingHistory`, `BookingStatus2`, second “assistant bookings” store).
+3. **Extend minimally** — if the feature exists, add the smallest change that fits.
+4. **Task spec wins** — if code conflicts with the **current task TZ**, follow the TZ **only within that task’s scope**. Do not refactor unrelated areas.
+5. **Audit first** — study the existing Booking model and legacy `/dashboard/bookings` before changing History. Build on real booking/payment data; do not invent a parallel booking system.
+6. **Naming** — product is **TajStay**. **TST Assistant** is the in-app helper. Never rename the product to “Testay”.
+
+## Product map
+
+```
+TAJSTAY
+├── Search      → hotels, rooms
+├── Tours       → tour offers (future catalog)
+├── History     → all user booking actions (hotels now; tours later)
+└── Profile     → Favorites (not in bottom nav)
+```
+
+Mobile bottom nav (5 items): **Home · Search · Tours · History · Profile**.
+
+## History hub (canonical)
+
+- **Route:** `/history` (legacy `/dashboard/bookings` → redirect)
+- **Tabs:** confirmed · unconfirmed · past · cancelled · all
+- **Logic:** `src/lib/trips/classify.ts` — do not add a second classifier
+- **Past vs COMPLETED:** Past = check-out date passed (temporal). `COMPLETED` = business status badge only — do not auto-map COMPLETED → Past.
+- **URLs:** `src/lib/trips/urls.ts` (`tripsHubPath`)
+- **List card:** `src/components/trips/HistoryRecordCard.tsx` — not `HotelCard`
+- **Record helpers:** `src/lib/trips/historyRecord.ts`
+- **Detail:** `/chat/booking/[id]` — booking context, not hotel page alone
+- **Payment:** `/payment/[code]` — existing secure flow; never store card data in TST Assistant
+- **TST Assistant → History:** `src/lib/ai/tstHistoryIntent.ts` → same `/history` tabs (assistant must not own a separate history)
+- **TST session API:** `GET /api/tst/my-bookings` — always `requireUser` + `userId: session.id`; never trust chat userIds
+- **Passwords:** TST opens `/auth/forgot-password` or `/profile/security` — never accept/store plaintext passwords in chat
+
+Each record shows **separately:** booking status · payment status · dates (locale-aware) · object/tour · available actions.
+
+## Before adding anything, check
+
+| Need | Use existing |
+|------|----------------|
+| History filters | `classify.ts`, `TripsTabNav` |
+| History UI copy | `tripsHub.*` in `messages.ts` (ru/tg/en) |
+| Dates / money | `src/lib/i18n/format.ts`, `plural.ts` |
+| Booking statuses | `BOOKING_STATUS` in `src/lib/domain/booking.ts` + `status.*` i18n |
+| Payment badge | `normalizePaymentBadge()` — not a separate “Paid” tab |

@@ -4,7 +4,6 @@ import { addBookingSystemMessage } from "@/lib/chat/bookingChat";
 import { assertDatesAvailable, DatesUnavailableError } from "@/lib/booking/availability";
 import { assertRoomTypeAvailable, RoomTypeUnavailableError } from "@/lib/pms/inventory";
 import { bookingHotel } from "@/lib/pms/bookingContext";
-import { dispatchBookingConfirmedEmails } from "@/lib/email/bookingEmailDispatch";
 
 const EXTEND_MS = 5 * 60 * 1000;
 
@@ -96,10 +95,6 @@ export async function confirmBookingPaymentAdmin(bookingId: number, adminId: num
   }
   await prisma.notification.create({
     data: { userId: hotel.ownerId, bookingId, type: "PAYMENT_APPROVED", isRead: false }
-  });
-
-  void dispatchBookingConfirmedEmails(bookingId).catch((e) => {
-    console.error("[bookings] confirmed emails failed", bookingId, e);
   });
 }
 

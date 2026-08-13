@@ -4,7 +4,6 @@ import { requireOwner } from "@/lib/auth/requireOwner";
 import { OwnerEmptyState } from "@/components/dashboard/OwnerEmptyState";
 import { getLocale } from "@/lib/i18n/get-locale";
 import type { Locale } from "@/lib/i18n/locale";
-import { formatBookingStatus, formatPaymentStatus } from "@/lib/i18n/bookingStatus";
 import { m } from "@/lib/i18n/messages";
 import { formatDateTimeShort } from "@/lib/i18n/format";
 import {
@@ -23,16 +22,11 @@ import { buildOwnerPricingInsights } from "@/lib/services/ownerInsights";
 import { BookingChatLauncher } from "@/components/chat/BookingChatPanel";
 import { RoomPhotoCarousel } from "@/components/RoomPhotoCarousel";
 import { OwnerDashboardKpis } from "@/components/owner/OwnerDashboardKpis";
-import { OwnerHotelPropertyExtras } from "@/components/owner/OwnerHotelPropertyExtras";
-import { PropertyTypeSelect } from "@/components/owner/PropertyTypeSelect";
 import { OfflineBookingForm } from "@/components/owner/OfflineBookingForm";
 import { OfflineBookingsList } from "@/components/owner/OfflineBookingsList";
 import { OwnerCalendar } from "@/components/owner/OwnerCalendar";
-import { CalendarOverrideForm } from "@/components/owner/CalendarOverrideForm";
 import { OwnerBookingConfirmButton } from "@/components/owner/OwnerBookingConfirmButton";
-import { OwnerPaymentApproveButton } from "@/components/owner/OwnerPaymentApproveButton";
 import { OwnerHelpTips } from "@/components/owner/OwnerHelpTips";
-import { OwnerHotelPersonnelPanel } from "@/components/owner/OwnerHotelPersonnelPanel";
 import ReviewReplyForm from "@/components/ReviewReplyForm";
 import { getOwnerDashboardKpis } from "@/lib/services/ownerDashboardKpis";
 import { getOwnerCalendarData } from "@/lib/services/ownerCalendar";
@@ -41,24 +35,19 @@ import { OwnerOnboardingPanel } from "@/components/owner/OwnerOnboardingPanel";
 import { BOOKING_SOURCE, getBookingGuestLabel } from "@/lib/domain/booking";
 import { AppImage } from "@/components/ui/AppImage";
 import { OwnerRoomTypesPanel } from "@/components/owner/OwnerRoomTypesPanel";
-import { OwnerRoomAmenitiesField } from "@/components/owner/OwnerRoomAmenitiesField";
 import { OwnerAssignRoomSelect } from "@/components/owner/OwnerAssignRoomSelect";
 import { ownerBookingWhere, ownerOfflineBookingWhere } from "@/lib/pms/ownerQueries";
 import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
 import { bookingHotel, bookingRoomTitle } from "@/lib/pms/bookingContext";
-import { OwnerMobileDashboard } from "@/components/owner/mobile/OwnerMobileDashboard";
-import { OfflineBookingSyncSettings } from "@/components/owner/OfflineBookingSyncSettings";
-import { OfflineBookingStaffSearch } from "@/components/owner/OfflineBookingStaffSearch";
-import { getOwnerPmsSettings } from "@/lib/pms/ownerPmsSettings";
-import { toOfflineOwnerView } from "@/lib/pms/offlinePrivacy";
 
 export const dynamic = "force-dynamic";
+
+const PROPERTY_TYPES = ["HOTEL", "HOSTEL", "GUESTHOUSE", "APARTMENT", "ECO"] as const;
 
 type OwnerSection =
   | "overview"
   | "properties"
   | "rooms"
-  | "personnel"
   | "bookings"
   | "offline-bookings"
   | "calendar"
@@ -72,7 +61,6 @@ const VALID_OWNER_SECTIONS = new Set<OwnerSection>([
   "overview",
   "properties",
   "rooms",
-  "personnel",
   "bookings",
   "offline-bookings",
   "calendar",
@@ -97,12 +85,12 @@ function safeText(v: unknown, fallback: string) {
   return looksLikeTestValue(v) ? fallback : String(v ?? "").trim();
 }
 
-function tStatus(locale: Locale, status: string) {
-  return formatBookingStatus(locale, status);
+function propTypeLabel(locale: Locale, t: string) {
+  return m(locale, `owner.propType.${t}`);
 }
 
-function tPaymentStatus(locale: Locale, status: string) {
-  return formatPaymentStatus(locale, status);
+function tStatus(locale: Locale, status: string) {
+  return m(locale, `status.${status}`);
 }
 
 function toUtcDayStart(input: Date): Date {
@@ -132,7 +120,6 @@ export default async function OwnerDashboardPage({
         checkIn?: string;
         checkOut?: string;
         onboarding?: string;
-        sync?: string;
       }>
     | {
         section?: string;
@@ -149,7 +136,6 @@ export default async function OwnerDashboardPage({
         checkIn?: string;
         checkOut?: string;
         onboarding?: string;
-        sync?: string;
       };
 }) {
   const user = await requireOwner();
@@ -171,7 +157,6 @@ export default async function OwnerDashboardPage({
   const ownerError = (params?.error ?? "").trim();
   const offlineCreated = (params?.created ?? "").trim() === "1";
   const offlineUpdated = (params?.updated ?? "").trim() === "1";
-  const offlineSyncSaved = (params?.sync ?? "").trim() === "1";
 
   const since30 = subDays(new Date(), 30);
   const content = await getSiteContent();
@@ -203,7 +188,7 @@ export default async function OwnerDashboardPage({
 
   if (activeSection === "overview") {
     [hotels, pendingCount, revenueAgg, recentBookings, dashboardKpis] = await Promise.all([
-      prisma.hotel.findMany({ where: { ownerId: user.id, status: { not: "DELETED" } }, include: { rooms: true } }),
+      prisma.hotel.findMany({ where: { ownerId: user.id }, include: { rooms: true } }),
       prisma.booking.count({ where: { room: { hotel: { ownerId: user.id } }, status: "PENDING_OWNER" } }),
       prisma.booking.aggregate({
         where: {
@@ -223,9 +208,9 @@ export default async function OwnerDashboardPage({
       getOwnerDashboardKpis(user.id)
     ]);
   } else if (activeSection === "properties") {
-    hotels = await prisma.hotel.findMany({ where: { ownerId: user.id, status: { not: "DELETED" } }, include: { rooms: true }, orderBy: { createdAt: "desc" } });
+    hotels = await prisma.hotel.findMany({ where: { ownerId: user.id }, include: { rooms: true }, orderBy: { createdAt: "desc" } });
   } else if (activeSection === "rooms") {
-    hotels = await prisma.hotel.findMany({ where: { ownerId: user.id, status: { not: "DELETED" } }, orderBy: { createdAt: "desc" } });
+    hotels = await prisma.hotel.findMany({ where: { ownerId: user.id }, orderBy: { createdAt: "desc" } });
     roomTypes = await prisma.roomType.findMany({
       where: { hotel: { ownerId: user.id } },
       include: { _count: { select: { rooms: true } } },
@@ -289,7 +274,7 @@ export default async function OwnerDashboardPage({
       orderBy: [{ roomNumber: "asc" }, { id: "asc" }]
     });
   } else if (activeSection === "offline-bookings") {
-    hotels = await prisma.hotel.findMany({ where: { ownerId: user.id, status: { not: "DELETED" } }, include: { rooms: true }, orderBy: { createdAt: "desc" } });
+    hotels = await prisma.hotel.findMany({ where: { ownerId: user.id }, include: { rooms: true }, orderBy: { createdAt: "desc" } });
     roomTypes = await prisma.roomType.findMany({
       where: { hotel: { ownerId: user.id } },
       include: { hotel: true },
@@ -345,7 +330,7 @@ export default async function OwnerDashboardPage({
   } else if (activeSection === "finances") {
     [ownerPayouts, revenueAgg, dashboardKpis] = await Promise.all([
       prisma.payout.findMany({
-        where: { ownerId: user.id, status: { not: "DELETED" } },
+        where: { ownerId: user.id },
         include: { booking: { include: bookingWithHotelInclude } },
         orderBy: { createdAt: "desc" },
         take: 50
@@ -363,7 +348,7 @@ export default async function OwnerDashboardPage({
     ]);
   } else if (activeSection === "statistics" || activeSection === "help") {
     [hotels, dashboardKpis, pendingCount, recentBookings] = await Promise.all([
-      prisma.hotel.findMany({ where: { ownerId: user.id, status: { not: "DELETED" } }, include: { rooms: true } }),
+      prisma.hotel.findMany({ where: { ownerId: user.id }, include: { rooms: true } }),
       getOwnerDashboardKpis(user.id),
       prisma.booking.count({
         where: { AND: [ownerBookingWhere(user.id), { status: "PENDING_OWNER" }] }
@@ -377,7 +362,7 @@ export default async function OwnerDashboardPage({
     ]);
   } else if (activeSection === "calendar") {
     const cal = await getOwnerCalendarData(user.id, 30);
-    hotels = await prisma.hotel.findMany({ where: { ownerId: user.id, status: { not: "DELETED" } }, orderBy: { createdAt: "desc" } });
+    hotels = await prisma.hotel.findMany({ where: { ownerId: user.id }, orderBy: { createdAt: "desc" } });
     rooms = cal.rooms;
     calendarCells = cal.cells;
     calendarCellMeta = cal.cellMeta;
@@ -448,12 +433,17 @@ export default async function OwnerDashboardPage({
           </div>
           <div className="md:col-span-2">
             <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.fieldType")}</label>
-            <PropertyTypeSelect
-              locale={locale}
-              defaultCode="HOTEL"
-              required
+            <select
+              name="propertyType"
+              defaultValue="HOTEL"
               className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20"
-            />
+            >
+              {PROPERTY_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {propTypeLabel(locale, t)}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="md:col-span-2">
             <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.fieldDescription")}</label>
@@ -528,22 +518,14 @@ export default async function OwnerDashboardPage({
     </Card>
   );
 
-  const ownerPmsSettings =
-    activeSection === "offline-bookings" ? await getOwnerPmsSettings(user.id) : null;
-
-  const offlineBookingViews =
-    activeSection === "offline-bookings"
-      ? offlineBookings.map((b) => toOfflineOwnerView(b, true, true))
-      : [];
-
   return (
-    <div className="owner-page-root admin-page-root dashboard-skin space-y-12 pb-16 text-slate-100">
-      <header className="hidden border-b border-white/10 pb-8 lg:block">
+    <div className="dashboard-skin space-y-12 pb-16 text-slate-100">
+      <header className="border-b border-white/10 pb-8">
         <h1 className="text-3xl font-bold tracking-tight text-slate-100">{m(locale, "owner.pageTitle")}</h1>
         <p className="mt-2 max-w-2xl text-sm text-slate-300">{m(locale, "owner.pageSubtitle")}</p>
       </header>
 
-      <section className="hidden liquid-glass rounded-2xl p-6 lg:block">
+      <section className="liquid-glass rounded-2xl p-6">
         <h2 className="text-lg font-bold text-slate-100">{m(locale, "dashboard.paymentMethods.title")}</h2>
         <p className="mt-1 text-sm text-slate-300">{m(locale, "dashboard.paymentMethods.desc")}</p>
         <form action="/api/owner/payment-methods" method="post" className="mt-4 space-y-3">
@@ -566,14 +548,6 @@ export default async function OwnerDashboardPage({
         </div>
       </section>
 
-      {activeSection === "overview" && dashboardKpis ? (
-        <OwnerMobileDashboard
-          locale={locale}
-          kpis={dashboardKpis}
-          pendingOnlineBookings={dashboardKpis.pendingOnlineBookings}
-        />
-      ) : null}
-
       {activeSection === "overview" && (
         <>
           <OwnerOnboardingPanel locale={locale} initialSteps={onboardingSteps} showWelcome={showOnboardingWelcome} />
@@ -583,7 +557,7 @@ export default async function OwnerDashboardPage({
             </div>
           )}
 
-          <section id="overview" className="scroll-mt-28 space-y-4 hidden lg:block" data-reveal data-stagger="40">
+          <section id="overview" className="scroll-mt-28 space-y-4" data-reveal data-stagger="40">
             <div className="flex items-center gap-2">
               <span className="h-8 w-1 rounded-full bg-amber-400" aria-hidden />
               <h2 className="text-lg font-bold text-slate-100">{m(locale, "owner.overview")}</h2>
@@ -739,13 +713,17 @@ export default async function OwnerDashboardPage({
 
                         <div className="md:col-span-2">
                           <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.fieldType")}</label>
-                          <PropertyTypeSelect
-                            locale={locale}
-                            defaultTypeId={h.propertyTypeId}
-                            defaultCode={h.propertyType}
-                            required
+                          <select
+                            name="propertyType"
+                            defaultValue={h.propertyType}
                             className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20"
-                          />
+                          >
+                            {PROPERTY_TYPES.map((t) => (
+                              <option key={t} value={t}>
+                                {propTypeLabel(locale, t)}
+                              </option>
+                            ))}
+                          </select>
                           <div className="mt-1.5 text-xs text-slate-500">{m(locale, "owner.fieldTypeHelp")}</div>
                         </div>
 
@@ -829,13 +807,6 @@ export default async function OwnerDashboardPage({
                       {m(locale, "owner.saveHotel")}
                     </button>
                   </form>
-
-                  <OwnerHotelPropertyExtras
-                    hotelId={h.id}
-                    status={h.status}
-                    rejectionReason={h.rejectionReason}
-                    locale={locale}
-                  />
                 </div>
               ))}
             </div>
@@ -1014,7 +985,22 @@ export default async function OwnerDashboardPage({
                             {m(locale, "owner.available")}
                           </label>
                         </div>
-                        <OwnerRoomAmenitiesField locale={locale} name="amenities" defaultValue={r.amenities} />
+                        <div className="md:col-span-2">
+                          <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.amenities")}</label>
+                          <input
+                            name="amenities"
+                            defaultValue={(() => {
+                              try {
+                                const arr = JSON.parse(r.amenities);
+                                return Array.isArray(arr) ? arr.join(", ") : String(r.amenities);
+                              } catch {
+                                return String(r.amenities ?? "");
+                              }
+                            })()}
+                            placeholder={m(locale, "owner.roomAmenitiesPh")}
+                            className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20"
+                          />
+                        </div>
                         <div className="md:col-span-2">
                           <label className="mb-1.5 block text-sm font-semibold text-slate-800">Добавить фото номера</label>
                           <input
@@ -1104,7 +1090,10 @@ export default async function OwnerDashboardPage({
                   <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.extraGuestPrice")}</label>
                   <input name="extraGuestPrice" type="number" min={0} step={1} className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm" />
                 </div>
-                <OwnerRoomAmenitiesField locale={locale} name="amenities" />
+                <div className="md:col-span-2">
+                  <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.amenities")}</label>
+                  <input name="amenities" placeholder={m(locale, "owner.roomAmenitiesPh")} className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20" />
+                </div>
                 <div className="md:col-span-2">
                   <label className="mb-1.5 block text-sm font-semibold text-slate-800">Фото номера</label>
                   <input
@@ -1125,17 +1114,6 @@ export default async function OwnerDashboardPage({
               </form>
             </details>
           )}
-        </section>
-      )}
-
-      {activeSection === "personnel" && (
-        <section id="personnel" className="scroll-mt-28 space-y-4">
-          <div className="flex items-center gap-2">
-            <span className="h-8 w-1 rounded-full bg-sky-500" aria-hidden />
-            <h2 className="text-xl font-bold text-slate-900">{m(locale, "owner.personnel.title")}</h2>
-          </div>
-          <p className="text-sm text-slate-600">{m(locale, "owner.personnel.hint")}</p>
-          <OwnerHotelPersonnelPanel locale={locale} hotels={hotels.map((h) => ({ id: h.id, name: h.name }))} />
         </section>
       )}
 
@@ -1192,7 +1170,7 @@ export default async function OwnerDashboardPage({
                       : m(locale, "owner.bookingBadge.online")}
                   </StatusBadge>
                   <StatusBadge variant={bookingStatusVariant(b.status)}>{tStatus(locale, b.status)}</StatusBadge>
-                  <StatusBadge variant={paymentStatusVariant(b.paymentStatus)}>{tPaymentStatus(locale, b.paymentStatus)}</StatusBadge>
+                  <StatusBadge variant={paymentStatusVariant(b.paymentStatus)}>{tStatus(locale, b.paymentStatus)}</StatusBadge>
                 </div>
                 <div className="mt-2 text-slate-600">
                   {bookingHotel(b).name} · {bookingRoomTitle(b)} · {b.checkIn.toISOString().slice(0, 10)} — {b.checkOut.toISOString().slice(0, 10)} · {b.phone}
@@ -1239,14 +1217,9 @@ export default async function OwnerDashboardPage({
                         <div className="mt-1 text-sm text-slate-600">Документ не загружен</div>
                       )}
                     </div>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <OwnerPaymentApproveButton bookingId={b.id} locale={locale} />
+                    <div className="mt-3 rounded-lg border border-slate-200/80 bg-white/70 p-3 text-xs text-slate-700">
+                      Подтверждение или отклонение чека выполняет администратор TajStay. Вы можете обсудить детали с гостем в чате ниже.
                     </div>
-                  </div>
-                )}
-                {(b.status === "WAITING_PAYMENT" || b.status === "WAIT_PROOF") && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <OwnerPaymentApproveButton bookingId={b.id} locale={locale} />
                   </div>
                 )}
                 {b.status === "PENDING_OWNER" && (
@@ -1311,23 +1284,11 @@ export default async function OwnerDashboardPage({
 
       {activeSection === "offline-bookings" && (
         <section id="offline-bookings" className="scroll-mt-28 space-y-4">
-          <div className="flex items-center gap-2 lg:flex">
+          <div className="flex items-center gap-2">
             <span className="h-8 w-1 rounded-full bg-orange-500" aria-hidden />
             <h2 className="text-xl font-bold text-slate-100">{m(locale, "owner.offline.title")}</h2>
           </div>
           <p className="text-sm text-slate-300">{m(locale, "owner.offline.hint")}</p>
-
-          <div className="offline-privacy-banner" role="note">
-            <div className="offline-privacy-banner__title">{m(locale, "owner.offline.privacyBannerTitle")}</div>
-            <p className="offline-privacy-banner__text">{m(locale, "owner.offline.privacyBannerOwner")}</p>
-          </div>
-
-          {ownerPmsSettings ? (
-            <OfflineBookingSyncSettings locale={locale} settings={ownerPmsSettings} saved={offlineSyncSaved} />
-          ) : null}
-
-          <OfflineBookingStaffSearch locale={locale} />
-
           {offlineUpdated ? (
             <div className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-100" role="status">
               {m(locale, "owner.offline.updated")}
@@ -1349,14 +1310,8 @@ export default async function OwnerDashboardPage({
             defaultCheckIn={(params?.checkIn ?? "").trim() || undefined}
             defaultCheckOut={(params?.checkOut ?? "").trim() || undefined}
           />
-          {offlineBookingViews.length ? (
-            <OfflineBookingsList
-              locale={locale}
-              bookings={offlineBookingViews}
-              canViewPii
-              canViewFinances
-              canEditStatus
-            />
+          {offlineBookings.length ? (
+            <OfflineBookingsList locale={locale} bookings={offlineBookings} />
           ) : (
             <EmptyState title={m(locale, "owner.offline.empty")} description={m(locale, "owner.offline.emptyHint")} />
           )}
@@ -1409,14 +1364,31 @@ export default async function OwnerDashboardPage({
             <EmptyState title={m(locale, "owner.calendarEmpty")} />
           ) : (
             <>
-              <CalendarOverrideForm
-                locale={locale}
-                action="/api/owner/overrides"
-                rooms={rooms.map((r) => ({
-                  id: r.id,
-                  label: `${r.hotel.name} · ${r.title}`
-                }))}
-              />
+              <form action="/api/owner/overrides" method="post" className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-5">
+                <select name="roomId" className="rounded-xl border px-3 py-2 md:col-span-2">
+                  {rooms.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.hotel.name} · {r.title}
+                    </option>
+                  ))}
+                </select>
+                <input name="date" type="date" className="rounded-xl border px-3 py-2" required />
+                <label className="flex items-center gap-2 rounded-xl border px-3 py-2 text-sm md:col-span-1">
+                  <input type="checkbox" name="isBlocked" defaultChecked={false} />
+                  {m(locale, "owner.block")}
+                </label>
+                <input
+                  name="customPrice"
+                  type="number"
+                  min={0}
+                  step={1}
+                  placeholder={m(locale, "owner.priceIfOpen")}
+                  className="rounded-xl border px-3 py-2 md:col-span-1"
+                />
+                <button type="submit" className="rounded-xl bg-emerald-700 px-4 py-2 font-medium text-white md:col-span-5">
+                  {m(locale, "owner.saveOverride")}
+                </button>
+              </form>
 
               <div className="rounded-2xl border bg-white p-4">
                 <div className="text-sm font-semibold">{m(locale, "owner.overridesTitle")}</div>

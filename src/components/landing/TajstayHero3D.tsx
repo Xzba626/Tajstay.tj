@@ -14,9 +14,7 @@ export function TajstayHero3D({ heroBadge, heroTitle, heroSubtitle, ctaSearch, t
   return (
     <div className="home-hero-layout relative z-[1] grid w-full flex-1 items-center lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] lg:gap-8">
       <div className="text-center lg:text-left">
-        {heroBadge.trim() ? (
-          <div className="home-hero-badge mb-1.5 inline-flex md:mb-3">{heroBadge}</div>
-        ) : null}
+        <div className="home-hero-badge mb-1.5 inline-flex md:mb-3">{heroBadge}</div>
         <h1 className="home-hero-title font-[family-name:var(--taj-font-ui)] text-[clamp(1.625rem,6.5vw,2.75rem)] font-bold leading-[1.08] tracking-tight lg:font-[family-name:var(--taj-font-display)] lg:text-[clamp(1.875rem,5.2vw,2.875rem)]">
           {heroTitle}
         </h1>

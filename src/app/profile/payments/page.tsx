@@ -24,11 +24,11 @@ export default async function ProfilePaymentsPage() {
         <p className="text-sm text-[var(--text-muted)]">{m(locale, "profile.paymentsPaidCount", { count: paidCount })}</p>
       </div>
       <div className="profile-actions">
-        <Link href="/dashboard/bookings?tab=payments" className="profile-actions__item">
-          <span className="flex-1 text-sm font-medium">{m(locale, "tripsHub.tabPayments")}</span>
+        <Link href="/history?tab=all" className="profile-actions__item">
+          <span className="flex-1 text-sm font-medium">{m(locale, "tripsHub.tabAll")}</span>
           <span className="text-[var(--text-muted)]">›</span>
         </Link>
-        <Link href="/dashboard/bookings?tab=history" className="profile-actions__item">
+        <Link href="/history?tab=past" className="profile-actions__item">
           <span className="flex-1 text-sm font-medium">{m(locale, "profile.paymentHistory")}</span>
           <span className="text-[var(--text-muted)]">›</span>
         </Link>

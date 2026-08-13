@@ -4,12 +4,13 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
+import { cn } from "@/lib/cn";
 
 const RECENT_KEY = "tajstay.recentHotels";
 
 type RecentHotel = { id: number; name: string; city: string };
 
-export function GuestHomeExtras({ locale }: { locale: Locale }) {
+export function GuestHomeExtras({ locale, compact = false }: { locale: Locale; compact?: boolean }) {
   const [recent, setRecent] = useState<RecentHotel[]>([]);
 
   useEffect(() => {
@@ -26,7 +27,7 @@ export function GuestHomeExtras({ locale }: { locale: Locale }) {
   if (!recent.length) return null;
 
   return (
-    <section className="home-section home-section--compact home-chapter" data-reveal>
+    <section className={cn(compact ? "search-moved-block" : "home-section home-section--compact home-chapter")} data-reveal={!compact ? true : undefined}>
       <div className="mx-auto w-full max-w-[var(--taj-page-max)] px-[var(--taj-page-px)]">
       <h2 className="text-sm font-semibold text-[var(--taj-color-text-secondary)]">{m(locale, "home.recentTitle")}</h2>
       <ul className="mt-3 flex flex-wrap gap-2">

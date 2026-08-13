@@ -16,7 +16,8 @@ const ROLE_PERMISSIONS: Record<HotelStaffRole, StaffPermission[]> = {
     "assign_rooms",
     "check_in_out",
     "offline_booking",
-    "view_calendar"
+    "view_calendar",
+    "view_guest_pii"
   ],
   [STAFF_ROLE.HOUSEKEEPING]: ["view_calendar", "change_housekeeping"]
 };

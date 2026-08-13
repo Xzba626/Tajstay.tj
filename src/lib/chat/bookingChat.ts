@@ -1,8 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import { syntheticArchiveChatMessageId } from "@/lib/chat/archiveMessageIds";
-import { rowToChatMessageDto } from "@/lib/chat/messageDto";
-import { PUSHER_EVENTS } from "@/lib/pusher/config";
-import { triggerBookingChatEvent } from "@/lib/pusher/server";
 import { deletePublicUploadUrl } from "@/lib/uploads/deletePublicUpload";
 
 export const BOOKING_CHAT_LOG_TYPE = "BOOKING_CHAT_MESSAGE";
@@ -196,7 +193,7 @@ export async function addBookingChatMessage(input: {
 export async function addBookingSystemMessage(input: { bookingId: number; message: string }) {
   const text = input.message.trim();
   if (!text) return;
-  const created = await prisma.chatMessage.create({
+  await prisma.chatMessage.create({
     data: {
       bookingId: input.bookingId,
       senderId: 0,
@@ -205,12 +202,8 @@ export async function addBookingSystemMessage(input: { bookingId: number; messag
       body: text,
       imageUrl: null,
       isArchived: false,
-      deletedAt: null,
-      status: "SENT"
+      deletedAt: null
     }
-  });
-  await triggerBookingChatEvent(input.bookingId, PUSHER_EVENTS.NEW_MESSAGE, {
-    message: rowToChatMessageDto(created)
   });
 }
 
@@ -291,19 +284,6 @@ export async function archiveBookingChatToColdStorage(bookingId: number): Promis
     data: { chatArchivedAt: new Date() }
   });
   return { archivedRows: result.count };
-}
-
-/** Восстановление переписки из архива (админ, споры). */
-export async function restoreBookingChatFromArchive(bookingId: number): Promise<{ restoredRows: number }> {
-  const result = await prisma.chatMessage.updateMany({
-    where: { bookingId, isArchived: true, deletedAt: null },
-    data: { isArchived: false }
-  });
-  await prisma.booking.update({
-    where: { id: bookingId },
-    data: { chatArchivedAt: null }
-  });
-  return { restoredRows: result.count };
 }
 
 const TERMINAL_ARCHIVE_STATUSES = new Set([

@@ -7,10 +7,7 @@ import { agentLog } from "@/lib/debug/agentLog";
 const MIME_TO_EXT: Record<string, string> = {
   "image/jpeg": "jpg",
   "image/png": "png",
-  "image/webp": "webp",
-  "application/pdf": "pdf",
-  "application/msword": "doc",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx"
+  "image/webp": "webp"
 };
 
 function isVercelRuntime(): boolean {

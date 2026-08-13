@@ -688,26 +688,6 @@ body:has(.taj-auth-page) .taj-auth-page {
   background: none !important;
 }
 
-.taj-auth-legal-links {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.75rem 1.25rem;
-  margin-top: 0.75rem;
-  font-size: 13px;
-}
-
-.taj-auth-legal-links a {
-  color: rgba(236, 253, 245, 0.55);
-  text-decoration: none;
-}
-
-.taj-auth-legal-links a:hover {
-  color: #6ee7b7;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
 .taj-form-error {
   border-radius: 14px;
   border: 1px solid rgba(251, 113, 133, 0.35);
@@ -1111,63 +1091,6 @@ body:has(.taj-auth-page) .taj-auth-page {
   .taj-auth-card {
     padding: 20px 16px;
     border-radius: 22px;
-  }
-}
-
-/* —— Desktop: login ↔ register panel swap —— */
-@media (min-width: 1024px) {
-  .taj-auth-shell {
-    overflow: hidden;
-  }
-
-  .taj-promo-card,
-  .taj-auth-card {
-    transition:
-      transform 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-      opacity 0.55s ease,
-      filter 0.55s ease;
-  }
-
-  .taj-auth-shell--register .taj-promo-card {
-    order: 2;
-    transform: translateX(0);
-    opacity: 1;
-    filter: none;
-  }
-
-  .taj-auth-shell--register .taj-auth-card {
-    order: 1;
-    transform: translateX(8%);
-    opacity: 1;
-    filter: none;
-    animation: taj-auth-panel-in 0.7s ease;
-  }
-
-  .taj-auth-shell:not(.taj-auth-shell--register) .taj-auth-card {
-    order: 2;
-    transform: translateX(0);
-    opacity: 1;
-    filter: none;
-  }
-
-  .taj-auth-shell:not(.taj-auth-shell--register) .taj-promo-card {
-    order: 1;
-    transform: translateX(0);
-    opacity: 1;
-    filter: none;
-  }
-}
-
-@keyframes taj-auth-panel-in {
-  from {
-    transform: translateX(120%);
-    opacity: 0;
-    filter: blur(10px);
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-    filter: blur(0);
   }
 }
 

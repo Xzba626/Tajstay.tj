@@ -4,7 +4,6 @@ import { StatusBadge, bookingStatusVariant, paymentStatusVariant } from "@/compo
 import LeaveReviewForm from "@/app/dashboard/guest/leave-review-form";
 import { BookingChatLauncher } from "@/components/chat/BookingChatPanel";
 import type { Locale } from "@/lib/i18n/locale";
-import { formatBookingStatus, formatPaymentStatus } from "@/lib/i18n/bookingStatus";
 import { m } from "@/lib/i18n/messages";
 
 type BookingWithRelations = {
@@ -49,7 +48,7 @@ export function TripBookingCard({ locale, user, booking }: Props) {
   const subtotal = Math.max(0, Number(booking.totalPrice) - Number(booking.commission ?? 0));
   const commission = Number(booking.commission ?? 0);
   const eligibleForReview =
-    (booking.status === "CONFIRMED" || booking.status === "COMPLETED") &&
+    booking.status === "CONFIRMED" &&
     booking.paymentStatus === "PAID" &&
     booking.checkOut.getTime() < Date.now() &&
     !booking.review;
@@ -68,14 +67,14 @@ export function TripBookingCard({ locale, user, booking }: Props) {
           <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
             <span className="text-brand-200">{m(locale, "guestDash.statusBooking")}:</span>
             <StatusBadge variant={bookingStatusVariant(booking.status)} className="!bg-brand-700 !text-white !ring-brand-600">
-              {formatBookingStatus(locale, booking.status)}
+              {m(locale, `status.${booking.status}`)}
             </StatusBadge>
           </div>
         </div>
         <div className="text-sm text-brand-200">
           <span>{m(locale, "guestDash.payment")}: </span>
           <StatusBadge variant={paymentStatusVariant(booking.paymentStatus)} className="!bg-brand-800 !text-white !ring-brand-600">
-            {formatPaymentStatus(locale, booking.paymentStatus)}
+            {m(locale, `status.${booking.paymentStatus}`)}
           </StatusBadge>
           <div className="mt-2 space-y-1 rounded-xl border border-white/10 bg-white/5 p-3 text-xs">
             <div className="flex items-center justify-between gap-3">
@@ -137,9 +136,9 @@ export function TripBookingCard({ locale, user, booking }: Props) {
         <div className="mt-4">
           <LeaveReviewForm
             bookingId={booking.id}
-            locale={locale}
             labels={{
               title: m(locale, "guestDash.leaveReview"),
+              rating: m(locale, "profile.rating"),
               commentPlaceholder: m(locale, "guestDash.reviewCommentPh"),
               imagePlaceholder: m(locale, "guestDash.reviewImagePh"),
               sending: m(locale, "guestDash.reviewSending"),

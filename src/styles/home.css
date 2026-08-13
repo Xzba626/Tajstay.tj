@@ -9,6 +9,12 @@
   --home-section-py-compact: clamp(1.25rem, 3vw, 2rem);
 }
 
+@media (max-width: 767px) {
+  body:has(.home-page) .site-footer {
+    display: none;
+  }
+}
+
 .home-section {
   padding-block: var(--home-section-py);
 }
@@ -172,23 +178,19 @@
   height: 2.25rem;
   padding: 0 0.75rem;
   border-radius: 9999px;
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  color: var(--color-text);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+  color: #ecfdf5;
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.01em;
   white-space: nowrap;
-  transition:
-    background 0.18s ease,
-    border-color 0.18s ease,
-    color 0.18s ease;
+  transition: background 0.18s ease, border-color 0.18s ease;
 }
 
 .header-auth-signin-mobile:hover {
-  background: var(--color-primary-soft);
-  border-color: var(--color-primary);
-  color: var(--color-primary-dark);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(110, 231, 183, 0.32);
 }
 
 .home-section--search {
@@ -576,13 +578,13 @@
   }
 }
 
-/* ---- Site header (Pamir Light) ---- */
+/* ---- Site header ---- */
 .site-header {
-  border-bottom: 1px solid var(--taj-line, #d8dee4);
-  background: rgba(255, 255, 255, 0.92);
+  border-bottom: 1px solid rgba(52, 211, 153, 0.16);
+  background: rgba(0, 53, 29, 0.94);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
-  box-shadow: 0 4px 20px rgba(18, 32, 42, 0.06);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
 }
 
 .site-header__logo-badge {
@@ -676,104 +678,39 @@
   min-width: 2.5rem;
   padding: 0;
   border-radius: var(--taj-radius-lg);
-  border-color: var(--taj-line, #d8dee4);
-  background: var(--taj-snow, #fff);
-  color: var(--taj-ink, #12202a);
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: #ecfdf5;
   box-shadow: none;
 }
 
 .locale-switcher--icon-only .locale-switcher-trigger--icon:hover,
 .locale-switcher--icon-only .locale-switcher-trigger--icon[aria-expanded="true"] {
-  background: var(--taj-lake-soft, #e6f1f3);
-  border-color: var(--taj-lake, #165a63);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(110, 231, 183, 0.28);
 }
 
 .locale-switcher--icon-only .locale-switcher-trigger--icon svg {
-  color: var(--taj-lake, #165a63);
+  color: #6ee7b7;
 }
 
 .site-header .header-nav-link {
-  position: relative;
-  border-radius: var(--taj-radius-md);
+  border-radius: var(--taj-radius-lg);
   padding: 0.5rem 0.75rem;
   font-size: var(--taj-text-sm);
   font-weight: 600;
-  color: var(--color-text-secondary, var(--taj-ink-soft));
-  transition:
-    background var(--duration-fast, 150ms) ease,
-    color var(--duration-fast, 150ms) ease;
+  color: #9fcdb8;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .site-header .header-nav-link:hover {
-  background: var(--color-primary-soft, var(--taj-lake-soft));
-  color: var(--color-primary, var(--taj-lake));
+  background: rgba(52, 211, 153, 0.12);
+  color: #f8fafc;
 }
 
 .site-header .header-nav-link.is-active {
-  background: transparent;
-  color: var(--color-primary, var(--taj-lake));
-}
-
-.site-header .header-nav-link.is-active::after {
-  content: "";
-  position: absolute;
-  left: 0.75rem;
-  right: 0.75rem;
-  bottom: 0.2rem;
-  height: 2px;
-  border-radius: 999px;
-  background: var(--color-primary, var(--taj-lake));
-}
-
-.site-header__pattern {
-  height: 10px;
-  overflow: hidden;
-  color: var(--color-primary);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.site-header__pattern-line {
-  display: block;
-  height: 100%;
-  opacity: 0.28;
-  background: repeating-linear-gradient(
-    90deg,
-    transparent 0 10px,
-    currentColor 10px 11px,
-    transparent 11px 18px,
-    currentColor 18px 22px,
-    transparent 22px 32px
-  );
-}
-
-@media (min-width: 1200px) {
-  .site-header__inner {
-    max-width: var(--taj-page-max);
-    min-height: 4.75rem;
-    padding-inline: 2rem;
-  }
-
-  .site-header .site-header__brand .brand-mark-badge,
-  .site-header .site-header__brand .brand-mark-badge--sm {
-    height: 2.75rem;
-    width: 2.75rem;
-  }
-
-  .site-header .site-header__brand .brand-mark-badge img {
-    height: 2rem !important;
-    width: 2rem !important;
-  }
-
-  .site-header .site-header__brand .brand-mark-name {
-    font-size: 1.35rem;
-  }
-}
-
-@media (min-width: 1600px) {
-  .site-header__inner {
-    max-width: var(--taj-page-max-large, 100rem);
-    padding-inline: 3rem;
-  }
+  background: rgba(34, 197, 94, 0.18);
+  color: #cde7da;
 }
 
 /* ---- Home hotel cards ---- */

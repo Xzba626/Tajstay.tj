@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/requireAuth";
-import { addBookingSystemMessage, archiveBookingChatToColdStorage } from "@/lib/chat/bookingChat";
+import { addBookingSystemMessage } from "@/lib/chat/bookingChat";
 import { bookingHotel } from "@/lib/pms/bookingContext";
 import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
-import { guestBookingCancelAllowed } from "@/lib/booking/guestCancel";
-import { dispatchBookingCancelledEmails } from "@/lib/email/bookingEmailDispatch";
 
 type CancelResult = { ok: true } | { ok: false; error: string };
 
@@ -18,9 +16,16 @@ async function pickAdminId(): Promise<number | null> {
   return admin?.id ?? null;
 }
 
+function cancelAllowed(input: { status: string; paymentStatus: string }): boolean {
+  // After payment confirmation, cancellation must go through admin dispute flow.
+  if (input.status === "CONFIRMED" || input.status === "CHECKED_IN" || input.status === "COMPLETED") return false;
+  if (input.paymentStatus === "PAID") return false;
+  return true;
+}
+
 export async function POST(_: NextRequest, { params }: { params: { id: string } }): Promise<NextResponse<CancelResult>> {
-  const user = await requireUser();
-  if (!user) return NextResponse.json({ ok: false, error: "SESSION_EXPIRED" }, { status: 401 });
+  const guest = await requireUser(["GUEST"]);
+  if (!guest) return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
 
   const id = Number(params.id || "");
   if (!id) return NextResponse.json({ ok: false, error: "Invalid id" }, { status: 400 });
@@ -29,11 +34,9 @@ export async function POST(_: NextRequest, { params }: { params: { id: string } 
     where: { id },
     include: { ...bookingWithHotelInclude, payment: true }
   });
-  if (!booking || (booking.userId !== user.id && user.role !== "ADMIN")) {
-    return NextResponse.json({ ok: false, error: "NOT_FOUND" }, { status: 404 });
-  }
+  if (!booking || booking.userId !== guest.id) return NextResponse.json({ ok: false, error: "Not found" }, { status: 404 });
 
-  if (!guestBookingCancelAllowed({ status: booking.status, paymentStatus: booking.paymentStatus })) {
+  if (!cancelAllowed({ status: booking.status, paymentStatus: booking.paymentStatus })) {
     return NextResponse.json({ ok: false, error: "Нельзя отменить после подтверждения оплаты" }, { status: 409 });
   }
 
@@ -61,12 +64,6 @@ export async function POST(_: NextRequest, { params }: { params: { id: string } 
     bookingId: id,
     message: "🛡️ Система: Бронирование отменено пользователем. Сессия закрыта."
   }).catch(() => undefined);
-
-  await archiveBookingChatToColdStorage(id).catch(() => undefined);
-
-  void dispatchBookingCancelledEmails(id, "guest").catch((e) => {
-    console.error("[bookings/cancel-by-guest] cancelled emails failed", id, e);
-  });
 
   return NextResponse.json({ ok: true }, { status: 200 });
 }

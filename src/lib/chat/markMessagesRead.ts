@@ -1,6 +1,4 @@
 import { prisma } from "@/lib/prisma";
-import { triggerBookingChatEvent } from "@/lib/pusher/server";
-import { PUSHER_EVENTS } from "@/lib/pusher/config";
 
 /** Mark peer messages as read when the user opens the booking chat. */
 export async function markBookingChatMessagesRead(bookingId: number, readerUserId: number): Promise<number> {
@@ -18,13 +16,5 @@ export async function markBookingChatMessagesRead(bookingId: number, readerUserI
       readAt: now
     }
   });
-
-  if (result.count > 0) {
-    await triggerBookingChatEvent(bookingId, PUSHER_EVENTS.MESSAGE_READ, {
-      readerUserId,
-      readAt: now.toISOString()
-    });
-  }
-
   return result.count;
 }

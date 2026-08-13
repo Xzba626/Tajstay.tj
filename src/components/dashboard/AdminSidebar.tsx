@@ -13,7 +13,6 @@ export type AdminSidebarLabels = {
   items: {
     dashboard: string;
     content: string;
-    propertyTypes: string;
     applications: string;
     hotels: string;
     users: string;
@@ -22,7 +21,6 @@ export type AdminSidebarLabels = {
     finance: string;
     complaints: string;
     notifications: string;
-    archive: string;
   };
 };
 
@@ -32,7 +30,6 @@ function buildItems(labels: AdminSidebarLabels): SidebarItem[] {
   return [
     { href: "#dashboard", label: labels.items.dashboard },
     { href: "#content", label: labels.items.content },
-    { href: "#property-types", label: labels.items.propertyTypes },
     { href: "#applications", label: labels.items.applications },
     { href: "#hotels", label: labels.items.hotels },
     { href: "#users", label: labels.items.users },
@@ -40,8 +37,7 @@ function buildItems(labels: AdminSidebarLabels): SidebarItem[] {
     { href: "#bookings", label: labels.items.bookings },
     { href: "#finance", label: labels.items.finance },
     { href: "#complaints", label: labels.items.complaints },
-    { href: "#notifications", label: labels.items.notifications },
-    { href: "#archive", label: labels.items.archive }
+    { href: "#notifications", label: labels.items.notifications }
   ];
 }
 

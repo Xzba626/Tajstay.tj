@@ -4,7 +4,6 @@ import { getAdminUser } from "@/lib/auth/requireAdmin";
 import { forbiddenJson } from "@/lib/auth/apiResponses";
 import { scoreHotelRisk } from "@/lib/services/riskScoring";
 import { publicUrl } from "@/lib/http/publicOrigin";
-import { approveHotel, rejectHotel } from "@/lib/services/hotelModeration";
 
 export async function POST(req: NextRequest) {
   const admin = await getAdminUser();
@@ -13,29 +12,14 @@ export async function POST(req: NextRequest) {
   const form = await req.formData();
   const id = Number(form.get("id"));
   const status = String(form.get("status"));
-  const rejectionReason = String(form.get("rejectionReason") ?? form.get("reason") ?? "").trim();
   if (!id || !["APPROVED", "REJECTED", "PENDING"].includes(status)) {
-    return NextResponse.redirect(publicUrl(req, "/dashboard/admin?section=moderation"));
+    return NextResponse.redirect(publicUrl(req, "/dashboard/admin"));
   }
 
-  const existing = await prisma.hotel.findUnique({ where: { id }, include: { owner: true } });
-  if (!existing) {
-    return NextResponse.redirect(publicUrl(req, "/dashboard/admin?section=moderation"));
-  }
-
-  if (status === "APPROVED" && existing.status !== "APPROVED") {
-    await approveHotel(id, admin.id);
-  } else if (status === "REJECTED" && existing.status !== "REJECTED") {
-    await rejectHotel(id, admin.id, rejectionReason || "Не соответствует требованиям платформы");
-  } else {
-    await prisma.hotel.update({
-      where: { id },
-      data: {
-        status: status as "APPROVED" | "REJECTED" | "PENDING",
-        ...(status === "APPROVED" ? { rejectionReason: null } : {})
-      }
-    });
-  }
+  await prisma.hotel.update({
+    where: { id },
+    data: { status: status as "APPROVED" | "REJECTED" | "PENDING" }
+  });
 
   const updatedHotel = await prisma.hotel.findUnique({
     where: { id },
@@ -61,5 +45,5 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  return NextResponse.redirect(publicUrl(req, "/dashboard/admin?section=moderation"));
+  return NextResponse.redirect(publicUrl(req, "/dashboard/admin"));
 }

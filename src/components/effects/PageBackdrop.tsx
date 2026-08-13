@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 
 type BackgroundVariant = "mountains" | "grid" | "aurora" | "particles" | "subtle" | "default";
@@ -10,7 +10,7 @@ function variantForPath(pathname: string): BackgroundVariant {
   if (pathname.startsWith("/search")) return "grid";
   if (pathname.startsWith("/hotel")) return "aurora";
   if (pathname.startsWith("/auth")) return "particles";
-  if (pathname.startsWith("/dashboard")) return "subtle";
+  if (pathname.startsWith("/dashboard") || pathname.startsWith("/history")) return "subtle";
   return "default";
 }
 
@@ -18,6 +18,11 @@ export function PageBackdrop() {
   const pathname = usePathname() ?? "/";
   const variant = useMemo(() => variantForPath(pathname), [pathname]);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [canvasReady, setCanvasReady] = useState(false);
+
+  useEffect(() => {
+    setCanvasReady(true);
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -48,17 +53,16 @@ export function PageBackdrop() {
       const time = t * 0.001;
 
       ctx.clearRect(0, 0, w, h);
-      /* Soft canvas — UI backdrop (not brand logo). Canonical soft bg. */
-      ctx.fillStyle = "#F8FAFC";
+      ctx.fillStyle = "#004724";
       ctx.fillRect(0, 0, w, h);
 
       if (variant === "subtle" || variant === "default") return;
 
       if (variant === "mountains") {
         const grad = ctx.createLinearGradient(0, 0, 0, h);
-        grad.addColorStop(0, "#E6F5F0");
-        grad.addColorStop(0.55, "#F8FAFC");
-        grad.addColorStop(1, "#EEF2F7");
+        grad.addColorStop(0, "#006b38");
+        grad.addColorStop(0.45, "#004724");
+        grad.addColorStop(1, "#012f1a");
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, w, h);
 
@@ -74,7 +78,7 @@ export function PageBackdrop() {
           }
           ctx.lineTo(w, h);
           ctx.closePath();
-          ctx.fillStyle = `rgba(8,127,91,${0.08 - layer * 0.02})`;
+          ctx.fillStyle = `rgba(34,197,94,${0.11 - layer * 0.025})`;
           ctx.fill();
         }
       } else if (variant === "grid") {
@@ -111,7 +115,7 @@ export function PageBackdrop() {
           ctx.stroke();
         }
       } else if (variant === "particles") {
-        ctx.fillStyle = "#F8FAFC";
+        ctx.fillStyle = "#012f1a";
         ctx.fillRect(0, 0, w, h);
 
         for (const p of particles) {
@@ -124,7 +128,7 @@ export function PageBackdrop() {
           const py = p.y * h;
           ctx.beginPath();
           ctx.arc(px, py, 2.2 * dpr, 0, Math.PI * 2);
-          ctx.fillStyle = "rgba(8,127,91,0.35)";
+          ctx.fillStyle = "rgba(34,197,94,0.85)";
           ctx.fill();
         }
         for (let i = 0; i < particles.length; i++) {
@@ -157,11 +161,11 @@ export function PageBackdrop() {
       if (raf) window.cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);
     };
-  }, [variant]);
+  }, [variant, canvasReady]);
 
   return (
-    <div aria-hidden className="pointer-events-none fixed inset-0 -z-30">
-      <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
+    <div aria-hidden className="pointer-events-none fixed inset-0 -z-30" suppressHydrationWarning>
+      {canvasReady ? <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" /> : null}
       <div className={`page-backdrop page-backdrop--${variant}`} />
       <div className="page-vignette" />
     </div>

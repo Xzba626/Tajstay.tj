@@ -1,17 +1,6 @@
-import type { Metadata } from "next";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
 import { getSiteContent } from "@/lib/site-content";
-import { buildPageMetadata } from "@/lib/seo/page-metadata";
-
-export async function generateMetadata(): Promise<Metadata> {
-  const locale = getLocale();
-  return buildPageMetadata({
-    title: m(locale, "meta.policyTitle"),
-    description: m(locale, "meta.policyDescription"),
-    path: "/policy"
-  });
-}
 
 export default async function PolicyPage() {
   const locale = getLocale();

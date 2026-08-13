@@ -6,7 +6,9 @@ import {
   CreditCard,
   Database,
   FileText,
+  Heart,
   HelpCircle,
+  History,
   Info,
   Shield,
   User,
@@ -51,11 +53,13 @@ function MenuItem({ href, icon: Icon, label }: { href: string; icon: typeof User
 export function ProfileMenuSections({ locale, role, logoutLabel }: Props) {
   return (
     <div className="space-y-4">
-      <MenuSection title={m(locale, "profile.sectionAccountData")}>
+      <MenuSection title={m(locale, "profile.sectionAccount")}>
         <MenuItem href="/profile/personal" icon={User} label={m(locale, "profile.personalInfo")} />
+        <MenuItem href="/history" icon={History} label={m(locale, "profile.navHistory")} />
+        <MenuItem href="/favorites" icon={Heart} label={m(locale, "profile.navFavorites")} />
+        <MenuItem href="/notifications" icon={Bell} label={m(locale, "profile.actionsNotifications")} />
         <MenuItem href="/profile/security" icon={Shield} label={m(locale, "profile.security")} />
         <MenuItem href="/profile/payments" icon={CreditCard} label={m(locale, "profile.payments")} />
-        <MenuItem href="/notifications" icon={Bell} label={m(locale, "profile.actionsNotifications")} />
       </MenuSection>
 
       {role === "GUEST" ? (

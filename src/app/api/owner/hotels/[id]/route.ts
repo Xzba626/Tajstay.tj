@@ -6,7 +6,8 @@ import { forbiddenJson } from "@/lib/auth/apiResponses";
 import { publicUrl } from "@/lib/http/publicOrigin";
 import { savePublicImageFile } from "@/lib/uploads/savePublicImage";
 import { ImageUploadError } from "@/lib/uploads/imageUploadError";
-import { resolvePropertyTypeId } from "@/lib/propertyTypes/seed";
+
+const PROPERTY_TYPES = new Set(["HOTEL", "HOSTEL", "GUESTHOUSE", "APARTMENT", "ECO"]);
 
 function parseCoord(input: FormDataEntryValue | null): number | null {
   const raw = String(input ?? "").trim();
@@ -41,8 +42,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const description = String(form.get("description") ?? "").trim();
     const latitude = parseCoord(form.get("latitude"));
     const longitude = parseCoord(form.get("longitude"));
-    const propertyTypeId = String(form.get("propertyTypeId") ?? "").trim();
-    const propertyTypeLegacy = String(form.get("propertyType") ?? "").trim();
+    const propertyType = String(form.get("propertyType") ?? "HOTEL");
     const coverFile = form.get("coverFile");
     let coverImageUrl: string | null = hotel.coverImageUrl;
 
@@ -61,11 +61,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     if (!name || !city || !address || !description) {
       return redirectProperties(req, "hotel");
     }
-    const typeRow = await resolvePropertyTypeId({
-      propertyTypeId: propertyTypeId || hotel.propertyTypeId,
-      propertyTypeCode: propertyTypeLegacy || hotel.propertyType
-    });
-    if (!typeRow) {
+    if (!PROPERTY_TYPES.has(propertyType)) {
       return redirectProperties(req, "hotel");
     }
 
@@ -78,8 +74,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         description,
         latitude: latitude ?? hotel.latitude,
         longitude: longitude ?? hotel.longitude,
-        propertyTypeId: typeRow.id,
-        propertyType: typeRow.code,
+        propertyType,
         coverImageUrl,
         status: hotel.status
       }

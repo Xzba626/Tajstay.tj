@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { BRAND } from "@/lib/brand";
 import type { Locale } from "@/lib/i18n/locale";
-import { formatBookingStatus } from "@/lib/i18n/bookingStatus";
 import { m } from "@/lib/i18n/messages";
 import type { InboxFilter } from "@/lib/chat/inbox";
 
@@ -47,8 +46,8 @@ export function MessagesInbox({ locale, role }: { locale: Locale; role: string }
 
   const visibleFilters = role === "ADMIN" ? FILTERS : FILTERS.filter((f) => f !== "admin");
 
-  const load = useCallback(async (opts?: { silent?: boolean }) => {
-    if (!opts?.silent) setLoading(true);
+  const load = useCallback(async () => {
+    setLoading(true);
     try {
       const params = new URLSearchParams({ filter });
       if (search.trim()) params.set("q", search.trim());
@@ -59,18 +58,14 @@ export function MessagesInbox({ locale, role }: { locale: Locale; role: string }
       const json = (await res.json()) as { items?: InboxItem[] };
       setItems(json.items ?? []);
     } catch {
-      if (!opts?.silent) setItems([]);
+      setItems([]);
     } finally {
-      if (!opts?.silent) setLoading(false);
+      setLoading(false);
     }
   }, [filter, search]);
 
   useEffect(() => {
     void load();
-    const interval = window.setInterval(() => {
-      void load({ silent: true });
-    }, 12_000);
-    return () => window.clearInterval(interval);
   }, [load]);
 
   return (
@@ -121,7 +116,10 @@ export function MessagesInbox({ locale, role }: { locale: Locale; role: string }
             const preview =
               item.lastMessage.length > 80 ? `${item.lastMessage.slice(0, 80)}…` : item.lastMessage;
             const cover = item.coverImageUrl || BRAND.logoMark;
-            const statusLabel = formatBookingStatus(locale, item.status);
+            const statusLabel =
+              m(locale, `status.${item.status}`) !== `status.${item.status}`
+                ? m(locale, `status.${item.status}`)
+                : item.status;
 
             return (
               <li key={item.bookingId}>
@@ -160,7 +158,7 @@ export function MessagesInbox({ locale, role }: { locale: Locale; role: string }
                       {preview || m(locale, "inbox.noPreview")}
                     </p>
                     <div className="mt-2 flex flex-wrap items-center gap-2">
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${statusPill(item.status)}`}>
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${statusPill(item.status)}`}>
                         {statusLabel}
                       </span>
                       <span className="text-[10px] text-slate-500">

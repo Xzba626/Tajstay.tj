@@ -177,7 +177,7 @@ export function NotificationBell({
         }}
         className={cn(
           "relative flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-white/5 text-slate-100 shadow-sm transition hover:bg-white/10 md:border-slate-200 md:bg-white md:text-slate-700 md:hover:bg-slate-50",
-          open && "ring-2 ring-[var(--taj-lake)]/30"
+          open && "ring-2 ring-emerald-500/30"
         )}
         aria-expanded={open}
         aria-label={labels.ariaLabel}
@@ -199,7 +199,7 @@ export function NotificationBell({
 
       {open ? (
         <div className="absolute right-0 top-full z-[120] mt-2 w-[min(100vw-1.5rem,24rem)] overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-2xl ring-1 ring-black/5">
-          <div className="border-b border-slate-100 bg-gradient-to-r from-[var(--taj-lake-soft)] to-white px-4 py-3">
+          <div className="border-b border-slate-100 bg-gradient-to-r from-emerald-50 to-white px-4 py-3">
             <div className="flex items-center justify-between gap-2">
               <span className="text-sm font-semibold text-slate-900">{labels.title}</span>
               <div className="flex items-center gap-2">
@@ -243,7 +243,7 @@ export function NotificationBell({
                       onClick={() => void openItem(n)}
                       className={cn(
                         "flex w-full gap-3 rounded-xl px-3 py-2.5 text-left transition hover:bg-slate-50",
-                        !n.isRead && "bg-[var(--taj-lake-soft)]"
+                        !n.isRead && "bg-emerald-50/60"
                       )}
                     >
                       <span
@@ -258,19 +258,12 @@ export function NotificationBell({
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="flex items-start justify-between gap-2">
-                          <span
-                            className={cn(
-                              "text-sm break-words whitespace-normal",
-                              !n.isRead ? "font-semibold text-slate-900" : "text-slate-800"
-                            )}
-                          >
+                          <span className={cn("line-clamp-1 text-sm", !n.isRead ? "font-semibold text-slate-900" : "text-slate-800")}>
                             {title}
                           </span>
-                          {!n.isRead ? <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-[var(--taj-lake)]" /> : null}
+                          {!n.isRead ? <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-emerald-500" /> : null}
                         </span>
-                        {body ? (
-                          <span className="mt-0.5 block text-xs break-words whitespace-normal text-slate-500">{body}</span>
-                        ) : null}
+                        {body ? <span className="mt-0.5 line-clamp-2 text-xs text-slate-500">{body}</span> : null}
                         <span className="mt-1 block text-[11px] text-slate-400">{relativeTime(n.createdAt, labels)}</span>
                       </span>
                     </button>

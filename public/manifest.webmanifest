@@ -2,7 +2,7 @@
   "id": "tajstay-pwa",
   "name": "TajStay",
   "short_name": "TajStay",
-  "description": "Поиск и бронирование жилья в Таджикистане",
+  "description": "Национальная платформа бронирования жилья в Таджикистане",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

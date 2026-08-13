@@ -9,16 +9,16 @@ export type MobileBottomNavLabels = {
   ariaLabel: string;
   home: string;
   search: string;
-  favorites: string;
-  bookings: string;
+  tours: string;
+  history: string;
   profile: string;
 };
 
 const LABEL_BY_TAB = {
   home: "home",
   search: "search",
-  favorites: "favorites",
-  bookings: "bookings",
+  tours: "tours",
+  history: "history",
   profile: "profile"
 } as const;
 
@@ -42,7 +42,7 @@ export function MobileBottomNav({ labels, pendingBookingsCount = 0 }: Props) {
           const labelKey = LABEL_BY_TAB[tab.id];
           const label = labels[labelKey];
           const Icon = tab.icon;
-          const badge = tab.id === "bookings" && pendingBookingsCount > 0 ? pendingBookingsCount : 0;
+          const badge = tab.id === "history" && pendingBookingsCount > 0 ? pendingBookingsCount : 0;
 
           return (
             <Link

@@ -43,7 +43,7 @@ export function GlobalToast() {
         <span className="mt-0.5 text-emerald-400" aria-hidden>
           🔔
         </span>
-        <span className="min-w-0 flex-1 break-words whitespace-normal">{msg}</span>
+        <span className="line-clamp-2">{msg}</span>
       </div>
     </div>
   );

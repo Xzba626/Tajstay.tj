@@ -1,7 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { addBookingSystemMessage, BOOKING_CHAT_LOG_TYPE } from "@/lib/chat/bookingChat";
 import { buildChatInitWelcome } from "@/lib/chat/initWelcomeMessage";
-import { createNotification } from "@/lib/notifications/create";
 
 async function globalAdminId(): Promise<number | null> {
   const admin = await prisma.user.findFirst({
@@ -55,24 +54,12 @@ export async function initializeBookingChatRoom(bookingId: number, locale?: stri
   const welcome = buildChatInitWelcome(locale, booking);
   await addBookingSystemMessage({ bookingId, message: welcome });
 
-  await Promise.all([
-    createNotification({
-      userId: ownerId,
-      bookingId,
-      type: "BOOKING_CHAT_CREATED",
-      title: "Чат по бронированию открыт",
-      message: welcome.slice(0, 160),
-      link: `/chat/booking/${bookingId}`
-    }),
-    createNotification({
-      userId: adminId,
-      bookingId,
-      type: "BOOKING_CHAT_CREATED",
-      title: "Чат по бронированию открыт",
-      message: welcome.slice(0, 160),
-      link: `/chat/booking/${bookingId}`
-    })
-  ]);
+  await prisma.notification.createMany({
+    data: [
+      { userId: ownerId, bookingId, type: "BOOKING_CHAT_CREATED", isRead: false },
+      { userId: adminId, bookingId, type: "BOOKING_CHAT_CREATED", isRead: false }
+    ]
+  });
 
   return { ok: true, ownerId, adminId, alreadyInitialized: false };
 }

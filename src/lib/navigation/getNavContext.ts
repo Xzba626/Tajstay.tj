@@ -24,9 +24,7 @@ export async function getOwnerApplicationNavState(user: User | null): Promise<Ow
     if (!latest) return { kind: "none" };
     if (latest.status === OWNER_APPLICATION_STATUS.PENDING) return { kind: "pending" };
     if (latest.status === OWNER_APPLICATION_STATUS.APPROVED) return { kind: "approved" };
-    if (latest.status === OWNER_APPLICATION_STATUS.REJECTED) {
-      return { kind: "rejected", comment: latest.rejectionReason ?? latest.comment };
-    }
+    if (latest.status === OWNER_APPLICATION_STATUS.REJECTED) return { kind: "rejected", comment: latest.comment };
     return { kind: "none" };
   } catch (err) {
     console.error("[getOwnerApplicationNavState]", err);

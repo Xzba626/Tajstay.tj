@@ -3,28 +3,36 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { isSyntheticArchiveChatMessageId } from "@/lib/chat/archiveMessageIds";
-import { guestBookingCancelAllowed } from "@/lib/booking/guestCancel";
 import { groupChatMessages } from "@/lib/chat/groupMessages";
-import { chatSenderBadgeClass, chatSenderLabel } from "@/lib/chat/senderLabel";
 import type { Locale } from "@/lib/i18n/locale";
-import { formatBookingStatus } from "@/lib/i18n/bookingStatus";
 import { m } from "@/lib/i18n/messages";
-import { SensitiveActionConfirmDialog } from "@/components/ui/SensitiveActionConfirmDialog";
 import { PaymentCountdown } from "@/app/payment/[code]/PaymentCountdown";
 import { TrustBadges } from "@/components/auth/TrustBadges";
 import type { TrustBadge } from "@/lib/auth/trustBadges";
-import { ChatComposeActions } from "@/components/chat/ChatComposeActions";
-import {
-  BookingChatRoomContext,
-  type BookingChatRoomContextProps
-} from "@/components/chat/BookingChatRoomContext";
-import {
-  CHAT_POLL_INTERVAL_MS,
-  connectBookingChatStream,
-  fetchChatMessages,
-  messageFromChatResponse,
-  postChatMessage
-} from "@/lib/chat/chatClient";
+
+function mapChatApiError(raw: string | undefined): string {
+  const v = (raw || "").trim();
+  const lower = v.toLowerCase();
+  if (lower === "invalid bookingid" || v === "Invalid bookingId")
+    return "Неверная ссылка на чат. Обновите страницу или откройте бронь из «Мои бронирования».";
+  if (lower === "invalid" || lower === "invalid id" || lower === "invalid payload")
+    return "Запрос отклонён. Обновите страницу, выйдите и войдите снова или откройте чат из «Мои бронирования».";
+  if (v === "Unauthorized") return "Сессия истекла — войдите снова.";
+  if (v === "Forbidden") return "Нет доступа к этому чату.";
+  if (lower === "not found") return "Бронирование не найдено.";
+  if (lower === "admin not configured") return "Поддержка временно недоступна. Напишите через страницу «Контакты».";
+  return v || "";
+}
+
+function messageFromChatResponse(res: Response, json: { error?: string }): string {
+  const mapped = mapChatApiError(json.error);
+  if (mapped) return mapped;
+  if (res.status === 401) return "Сессия истекла — войдите снова.";
+  if (res.status === 404) return "Бронирование не найдено.";
+  if (res.status === 403) return "Нет доступа к этому чату.";
+  if (res.status >= 500) return "Сервер временно недоступен. Попробуйте через минуту.";
+  return `Ошибка сети (${res.status})`;
+}
 
 type ChatMessage = {
   id: number;
@@ -58,7 +66,6 @@ export type BookingChatPanelProps = {
   /** Язык интерфейса (cookie) — приветствие в чате и быстрые ответы */
   locale?: Locale;
   checkInIso?: string;
-  checkOutIso?: string;
   paymentCode?: string;
   title?: string;
   /** page — встроен в макет; overlay — полноэкранная панель поверх страницы */
@@ -76,8 +83,6 @@ export type BookingChatPanelProps = {
   suppressReviewActions?: boolean;
   /** Внутри BookingRoom: без дублирующего header, на всю высоту колонки */
   embeddedInRoom?: boolean;
-  /** Бронь / оплата / таймлайн — внутри ленты чата */
-  roomContext?: Omit<BookingChatRoomContextProps, "expiresAtIso" | "paymentTimerPaused">;
 };
 
 function timeLabel(iso: string): string {
@@ -114,20 +119,36 @@ function statusPillClass(status: string): string {
 }
 
 function statusLabelLocalized(status: string, locale: Locale): string {
-  return formatBookingStatus(locale, status);
+  const label = m(locale, `status.${status}`);
+  if (label && label !== `status.${status}`) return label;
+  return statusLabelRu(status);
+}
+
+function statusLabelRu(status: string): string {
+  switch (status) {
+    case "WAITING_PAYMENT":
+    case "WAIT_PROOF":
+    case "PENDING_OWNER":
+      return "Ожидает оплаты";
+    case "ON_REVIEW":
+      return "На проверке";
+    case "CONFIRMED":
+    case "CHECKED_IN":
+      return "Подтверждено";
+    case "COMPLETED":
+    case "REJECTED":
+    case "CANCELLED":
+    case "EXPIRED":
+    case "CANCELLED_BY_GUEST":
+      return "Архив";
+    default:
+      return status;
+  }
 }
 
 function avatarLetter(name: string): string {
   const t = (name || "?").trim();
   return t.slice(0, 1).toUpperCase();
-}
-
-function SendPlaneIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <path d="M2.01 21 23 12 2.01 3 2 10l15 2-15 2z" />
-    </svg>
-  );
 }
 
 export function BookingChatPanel({
@@ -138,7 +159,6 @@ export function BookingChatPanel({
   paymentStatus,
   locale = "ru",
   checkInIso,
-  checkOutIso,
   paymentCode,
   title = "Чат",
   presentation = "page",
@@ -150,8 +170,7 @@ export function BookingChatPanel({
   density = "default",
   suppressPaymentDeepLink = false,
   suppressReviewActions = false,
-  embeddedInRoom = false,
-  roomContext
+  embeddedInRoom = false
 }: BookingChatPanelProps) {
   const [items, setItems] = useState<ChatMessage[]>([]);
   const [text, setText] = useState("");
@@ -164,17 +183,12 @@ export function BookingChatPanel({
   const [toast, setToast] = useState<string | null>(null);
   const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
   const [confirmAdminCancelOpen, setConfirmAdminCancelOpen] = useState(false);
-  const [deleteMessageId, setDeleteMessageId] = useState<number | null>(null);
-  const [purgeChatOpen, setPurgeChatOpen] = useState(false);
-  const [hideChatOpen, setHideChatOpen] = useState(false);
-  const [sensitiveBusy, setSensitiveBusy] = useState(false);
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [chatArchived, setChatArchived] = useState(false);
   const [canSend, setCanSend] = useState(true);
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
-  const initialScrollDone = useRef(false);
 
   const applyMessagesPayload = useCallback((json: {
     messages?: ChatMessage[];
@@ -192,7 +206,17 @@ export function BookingChatPanel({
   }, []);
 
   const pull = useCallback(async () => {
-    const json = await fetchChatMessages(bookingId);
+    const res = await fetch(`/api/chat/booking/${bookingId}/messages`, { cache: "no-store", credentials: "include" });
+    const json = (await res.json().catch(() => ({}))) as {
+      messages?: ChatMessage[];
+      error?: string;
+      chatArchived?: boolean;
+      canSend?: boolean;
+      booking?: LiveBookingSnap;
+    };
+    if (!res.ok) {
+      throw new Error(messageFromChatResponse(res, json));
+    }
     setError(null);
     applyMessagesPayload(json);
   }, [bookingId, applyMessagesPayload]);
@@ -235,41 +259,41 @@ export function BookingChatPanel({
       if (mounted) setError(e instanceof Error ? e.message : "Не удалось загрузить чат");
     });
 
-    const disconnectStream = connectBookingChatStream(bookingId, () => {
-      if (!mounted) return;
-      pull().catch(() => undefined);
-    });
+    let es: EventSource | null = null;
+    if (typeof EventSource !== "undefined") {
+      es = new EventSource(`/api/chat/booking/${bookingId}/stream`);
+      es.onmessage = () => {
+        if (!mounted) return;
+        pull().catch(() => undefined);
+      };
+      es.onerror = () => {
+        es?.close();
+        es = null;
+      };
+    }
 
     const t = window.setInterval(() => {
       if (!mounted) return;
       pull().catch((e) => {
-        if (mounted) setError(e instanceof Error ? e.message : "Не удалось обновить чат");
+        if (mounted) setError(e instanceof Error ? e.message : "Не удалось загрузить чат");
       });
-    }, CHAT_POLL_INTERVAL_MS);
+    }, es ? 8000 : 3500);
 
     return () => {
       mounted = false;
       window.clearInterval(t);
-      disconnectStream();
+      es?.close();
     };
   }, [pull, bookingId]);
 
   useEffect(() => {
-    initialScrollDone.current = false;
-  }, [bookingId]);
-
-  useEffect(() => {
     const el = scrollRef.current;
-    if (!el || items.length === 0) return;
-
-    const scrollToEnd = () => {
-      const behavior = initialScrollDone.current ? "smooth" : "auto";
-      el.scrollTo({ top: el.scrollHeight, behavior });
-      initialScrollDone.current = true;
-    };
-
-    requestAnimationFrame(() => requestAnimationFrame(scrollToEnd));
-  }, [items, chatArchived]);
+    if (el) {
+      el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+    } else {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [items.length, chatArchived]);
 
   const canSubmit = useMemo(() => (text.trim().length > 0 || !!file) && !sending && canSend && !chatArchived, [text, file, sending, canSend, chatArchived]);
 
@@ -292,7 +316,20 @@ export function BookingChatPanel({
     setSending(true);
     setError(null);
     try {
-      const json = await postChatMessage(bookingId, { text: t });
+      const res = await fetch(`/api/chat/booking/${bookingId}/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", accept: "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ message: t })
+      });
+      const json = (await res.json().catch(() => ({}))) as {
+        messages?: ChatMessage[];
+        error?: string;
+        canSend?: boolean;
+        chatArchived?: boolean;
+        booking?: LiveBookingSnap;
+      };
+      if (!res.ok) throw new Error(messageFromChatResponse(res, json));
       applyMessagesPayload(json);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Ошибка отправки");
@@ -394,7 +431,32 @@ export function BookingChatPanel({
     setSending(true);
     setError(null);
     try {
-      const json = await postChatMessage(bookingId, { text: text.trim(), file });
+      let res: Response;
+      if (file) {
+        const fd = new FormData();
+        fd.set("message", text.trim());
+        fd.set("file", file);
+        res = await fetch(`/api/chat/booking/${bookingId}/messages`, {
+          method: "POST",
+          credentials: "include",
+          body: fd
+        });
+      } else {
+        res = await fetch(`/api/chat/booking/${bookingId}/messages`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ message: text.trim() })
+        });
+      }
+      const json = (await res.json().catch(() => ({}))) as {
+        messages?: ChatMessage[];
+        error?: string;
+        chatArchived?: boolean;
+        canSend?: boolean;
+        booking?: LiveBookingSnap;
+      };
+      if (!res.ok) throw new Error(messageFromChatResponse(res, json as { error?: string }));
       applyMessagesPayload(json);
       setText("");
       setFile(null);
@@ -407,39 +469,30 @@ export function BookingChatPanel({
   }
 
   async function adminDeleteMessage(messageId: number) {
-    if (!isAdmin) return;
-    setSensitiveBusy(true);
+    if (!isAdmin || !confirm("Удалить это сообщение?")) return;
     try {
       const res = await fetch(`/api/admin/chat/messages/${messageId}`, { method: "DELETE", credentials: "include" });
       if (!res.ok) throw new Error("Не удалось удалить");
-      setDeleteMessageId(null);
       await pull();
     } catch (e) {
       setToast(e instanceof Error ? e.message : "Ошибка удаления");
-    } finally {
-      setSensitiveBusy(false);
     }
   }
 
   async function adminPurgeRoom() {
-    if (!isAdmin) return;
-    setSensitiveBusy(true);
+    if (!isAdmin || !confirm("Удалить всю переписку и вложения по этой брони?")) return;
     try {
       const res = await fetch(`/api/admin/chat/booking/${bookingId}`, { method: "DELETE", credentials: "include" });
       if (!res.ok) throw new Error("Не удалось очистить чат");
-      setPurgeChatOpen(false);
       await pull();
       setToast("Чат очищен");
     } catch (e) {
       setToast(e instanceof Error ? e.message : "Ошибка");
-    } finally {
-      setSensitiveBusy(false);
     }
   }
 
   async function ownerHideChat() {
-    if (!isOwner) return;
-    setSensitiveBusy(true);
+    if (!isOwner || !confirm("Скрыть переписку у всех? Данные останутся в системе для споров.")) return;
     try {
       const res = await fetch(`/api/chat/booking/${bookingId}/owner-soft-delete`, {
         method: "POST",
@@ -449,18 +502,17 @@ export function BookingChatPanel({
       const json = (await res.json().catch(() => ({}))) as { messages?: ChatMessage[]; error?: string };
       if (!res.ok) throw new Error(messageFromChatResponse(res, json));
       setItems(Array.isArray(json.messages) ? json.messages : []);
-      setHideChatOpen(false);
       setToast("Переписка скрыта");
     } catch (e) {
       setToast(e instanceof Error ? e.message : "Ошибка");
-    } finally {
-      setSensitiveBusy(false);
     }
   }
 
   const canGuestCancel = useMemo(() => {
     if (!isGuest) return false;
-    return guestBookingCancelAllowed({ status: effectiveStatus, paymentStatus: effectivePaymentStatus });
+    if (effectiveStatus === "CONFIRMED" || effectiveStatus === "CHECKED_IN" || effectiveStatus === "COMPLETED") return false;
+    if (effectivePaymentStatus === "PAID") return false;
+    return true;
   }, [effectiveStatus, effectivePaymentStatus, isGuest]);
 
   const canAdminCancel = useMemo(() => {
@@ -563,7 +615,7 @@ export function BookingChatPanel({
             {isAdmin ? (
               <button
                 type="button"
-                onClick={() => setPurgeChatOpen(true)}
+                onClick={() => adminPurgeRoom()}
                 className="text-[10px] font-semibold uppercase tracking-wide text-red-300/90 underline-offset-2 hover:underline"
               >
                 Очистить чат
@@ -572,7 +624,7 @@ export function BookingChatPanel({
             {isOwner ? (
               <button
                 type="button"
-                onClick={() => setHideChatOpen(true)}
+                onClick={() => ownerHideChat()}
                 className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 underline-offset-2 hover:text-slate-200 hover:underline"
               >
                 Удалить чат
@@ -649,13 +701,6 @@ export function BookingChatPanel({
         ref={scrollRef}
         className="chat-messages min-h-0 flex-1 overflow-y-auto overscroll-contain sm:min-h-[280px]"
       >
-        {embeddedInRoom && roomContext ? (
-          <BookingChatRoomContext
-            {...roomContext}
-            expiresAtIso={liveBooking?.expiresAt ?? null}
-            paymentTimerPaused={liveBooking?.paymentTimerPaused}
-          />
-        ) : null}
         {chatArchived ? (
           <div className="mx-auto max-w-md rounded-2xl border border-amber-400/20 bg-amber-500/10 px-4 py-3 text-center text-sm text-amber-100/90 backdrop-blur-md">
             Переписка перенесена в архив (хранение по политике сервиса). Сообщения ниже доступны для просмотра. Отправка недоступна.
@@ -675,19 +720,28 @@ export function BookingChatPanel({
             {groupedItems.map((row) => {
               if (row.kind === "date") {
                 return (
-                  <div key={row.key} className="chat-date-divider">
-                    <span>{row.label}</span>
+                  <div key={row.key} className="my-2 flex justify-center">
+                    <span className="rounded-full border border-white/10 bg-white/5 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                      {row.label}
+                    </span>
                   </div>
                 );
               }
               const msg = row.msg;
               const mine = msg.senderId === currentUserId;
               const system = msg.senderRole === "SYSTEM";
+              const fromGuest = msg.senderRole === "GUEST";
               if (system) {
                 return (
-                  <div key={row.key} className="flex justify-center px-1 py-0.5">
-                    <div className="chat-bubble chat-bubble--system">
-                      {msg.message.replace(/^🛡️\s*/, "")}
+                  <div key={row.key} className="mx-auto my-1 max-w-[92%]">
+                    <div className="rounded-xl border border-violet-400/20 bg-violet-500/10 px-3 py-2 text-center">
+                      <p className="text-[11px] leading-snug text-violet-100/90">
+                        <span aria-hidden className="mr-1">
+                          🛡️
+                        </span>
+                        {msg.message.replace(/^🛡️\s*/, "")}
+                      </p>
+                      <p className="mt-1 text-[9px] text-violet-300/50">{timeLabel(msg.createdAt)}</p>
                     </div>
                   </div>
                 );
@@ -695,39 +749,40 @@ export function BookingChatPanel({
               return (
                 <div
                   key={row.key}
-                  className={`chat-bubble-row ${mine ? "chat-bubble-row--mine" : "chat-bubble-row--theirs"} ${row.showMeta ? "mt-2" : "mt-0.5"}`}
+                  className={`chat-bubble-row ${fromGuest ? "chat-bubble-row--mine" : "chat-bubble-row--theirs"} ${row.showMeta ? "mt-2" : "mt-0.5"}`}
                 >
-                  <div className={`chat-bubble-stack ${mine ? "chat-bubble-stack--mine" : "chat-bubble-stack--theirs"}`}>
-                    <span className={chatSenderBadgeClass(msg.senderRole, mine)}>
-                      {chatSenderLabel(locale, msg, mine)}
-                    </span>
-                    <div className={`group chat-bubble ${mine ? "chat-bubble--mine" : "chat-bubble--theirs"}`}>
+                  <div
+                    className={`chat-bubble ${fromGuest ? "chat-bubble--mine" : "chat-bubble--theirs"}`}
+                  >
                     {isAdmin && !isSyntheticArchiveChatMessageId(msg.id) ? (
                       <button
                         type="button"
                         title="Скрыть"
-                        onClick={() => setDeleteMessageId(msg.id)}
+                        onClick={() => adminDeleteMessage(msg.id)}
                         className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-red-500/90 text-[11px] font-bold text-white opacity-0 transition group-hover:opacity-100"
                       >
                         ×
                       </button>
                     ) : null}
                     {row.showMeta ? (
-                      <div className="chat-bubble__meta mb-1 flex items-center justify-end gap-2">
-                        <span className="chat-bubble__time">
+                      <div
+                        className={`mb-1 flex items-center justify-between gap-2 text-[10px] ${fromGuest ? "text-emerald-100/90" : "text-slate-400"}`}
+                      >
+                        <span className="font-medium">{mine ? m(locale, "chat.you") : msg.senderName}</span>
+                        <span>
                           {timeLabel(msg.createdAt)}
                           {mine && msg.readAt ? (
-                            <span className="chat-bubble__read ml-1" title={m(locale, "chat.readReceipt")}>
+                            <span className="ml-1 text-emerald-200/70" title={m(locale, "chat.readReceipt")}>
                               ✓✓
                             </span>
                           ) : null}
                         </span>
                       </div>
                     ) : (
-                      <div className="chat-bubble__time text-right">
+                      <div className={`text-right text-[9px] ${fromGuest ? "text-emerald-100/60" : "text-slate-500"}`}>
                         {timeLabel(msg.createdAt)}
                         {mine && msg.readAt ? (
-                          <span className="chat-bubble__read ml-1" title={m(locale, "chat.readReceipt")}>
+                          <span className="ml-1 text-emerald-200/70" title={m(locale, "chat.readReceipt")}>
                             ✓✓
                           </span>
                         ) : null}
@@ -746,7 +801,6 @@ export function BookingChatPanel({
                     {msg.message && msg.message !== "📎" ? (
                       <div className={`whitespace-pre-wrap break-words ${row.showMeta ? "pt-1" : ""}`}>{msg.message}</div>
                     ) : null}
-                  </div>
                   </div>
                 </div>
               );
@@ -833,21 +887,36 @@ export function BookingChatPanel({
         ) : null}
 
         {isGuest && canSend && (effectiveStatus === "WAITING_PAYMENT" || effectiveStatus === "WAIT_PROOF") ? (
-          <div className="chat-compose__quick" role="group" aria-label={m(locale, "chat.quickReplies")}>
-            <button type="button" disabled={sending} onClick={() => void sendQuickReply(m(locale, "chat.quickPaidBtn"))}>
+          <div className="chat-compose__quick">
+            <button
+              type="button"
+              disabled={sending}
+              onClick={() => void sendQuickReply(m(locale, "chat.quickPaidBtn"))}
+              className="rounded-full border border-emerald-400/25 bg-emerald-500/10 px-3 py-2 text-[11px] font-semibold text-emerald-100 disabled:opacity-50"
+            >
               {m(locale, "chat.quickPaidBtn")}
             </button>
-            <button type="button" disabled={sending} onClick={() => void sendQuickReply(m(locale, "chat.quickUploadReceipt"))}>
+            <button
+              type="button"
+              disabled={sending}
+              onClick={() => void sendQuickReply(m(locale, "chat.quickUploadReceipt"))}
+              className="rounded-full border border-white/12 bg-white/5 px-3 py-2 text-[11px] font-semibold text-slate-200 disabled:opacity-50"
+            >
               {m(locale, "chat.quickUploadReceipt")}
             </button>
-            <button type="button" disabled={sending} onClick={() => void sendQuickReply(m(locale, "chat.quickAlmostThere"))}>
+            <button
+              type="button"
+              disabled={sending}
+              onClick={() => void sendQuickReply(m(locale, "chat.quickAlmostThere"))}
+              className="rounded-full border border-white/12 bg-white/5 px-3 py-2 text-[11px] font-semibold text-slate-200 disabled:opacity-50"
+            >
               {m(locale, "chat.quickAlmostThere")}
             </button>
           </div>
         ) : null}
 
         {isOwner && canSend && !chatArchived ? (
-          <div className="chat-compose__quick" role="group" aria-label={m(locale, "chat.quickReplies")}>
+          <div className="flex flex-wrap gap-2">
             {HOST_QUICK_KEYS.map((k) => {
               const label = m(locale, `chat.quickReply.host.${k}`);
               return (
@@ -857,6 +926,7 @@ export function BookingChatPanel({
                   disabled={sending}
                   title={label}
                   onClick={() => void sendQuickReply(label)}
+                  className="max-w-[220px] truncate rounded-full border border-emerald-400/25 bg-emerald-500/10 px-3 py-2 text-[11px] font-semibold text-emerald-100 disabled:opacity-50"
                 >
                   {label}
                 </button>
@@ -866,7 +936,7 @@ export function BookingChatPanel({
         ) : null}
 
         {isAdmin && canSend && !chatArchived ? (
-          <div className="chat-compose__quick" role="group" aria-label={m(locale, "chat.quickReplies")}>
+          <div className="flex flex-wrap gap-2">
             {ADMIN_QUICK_KEYS.map((k) => {
               const label = m(locale, `chat.quickReply.admin.${k}`);
               return (
@@ -876,37 +946,13 @@ export function BookingChatPanel({
                   disabled={sending}
                   title={label}
                   onClick={() => void sendQuickReply(label)}
+                  className="max-w-[220px] truncate rounded-full border border-indigo-400/25 bg-indigo-500/10 px-3 py-2 text-[11px] font-semibold text-indigo-100 disabled:opacity-50"
                 >
                   {label}
                 </button>
               );
             })}
           </div>
-        ) : null}
-
-        {embeddedInRoom ? (
-          <ChatComposeActions
-            locale={locale}
-            bookingId={bookingId}
-            bookingStatus={effectiveStatus}
-            paymentStatus={effectivePaymentStatus}
-            paymentCode={paymentCode}
-            currentUserRole={currentUserRole}
-            checkOutIso={checkOutIso}
-            canGuestCancel={canGuestCancel}
-            onGuestCancel={() => setConfirmCancelOpen(true)}
-            onCheckoutConfirm={() => {
-              void callAction({
-                nextStatus: "COMPLETED",
-                url: `/api/bookings/${bookingId}/confirm-checkout`,
-                errorPrefix: "Не удалось подтвердить выезд"
-              });
-            }}
-            onDisputeOpened={() => {
-              void pull();
-            }}
-            suppressPaymentLink={suppressPaymentDeepLink}
-          />
         ) : null}
 
         <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
@@ -924,7 +970,7 @@ export function BookingChatPanel({
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder={chatArchived ? "Архив…" : m(locale, "chat.messagePlaceholder")}
+            placeholder={chatArchived ? "Архив…" : "Сообщение…"}
             disabled={chatArchived || !canSend}
             rows={1}
             className="chat-compose__input disabled:opacity-50"
@@ -943,9 +989,8 @@ export function BookingChatPanel({
             }}
             disabled={!canSubmit}
             className="chat-compose__send disabled:opacity-45"
-            aria-label={m(locale, "chat.send")}
           >
-            {sending ? <span className="text-sm font-bold">…</span> : <SendPlaneIcon />}
+            {sending ? "…" : "Отпр."}
           </button>
         </div>
         {error ? <div className="text-xs text-red-300">{error}</div> : null}
@@ -1033,41 +1078,6 @@ export function BookingChatPanel({
           </div>
         </div>
       ) : null}
-
-      <SensitiveActionConfirmDialog
-        open={deleteMessageId != null}
-        onClose={() => setDeleteMessageId(null)}
-        onConfirm={() => (deleteMessageId != null ? adminDeleteMessage(deleteMessageId) : undefined)}
-        locale={locale}
-        title={m(locale, "confirmDialog.deleteMessageTitle")}
-        description={m(locale, "confirmDialog.deleteMessageDesc")}
-        confirmLabel={m(locale, "confirmDialog.confirm")}
-        variant="danger"
-        busy={sensitiveBusy}
-      />
-      <SensitiveActionConfirmDialog
-        open={purgeChatOpen}
-        onClose={() => setPurgeChatOpen(false)}
-        onConfirm={adminPurgeRoom}
-        locale={locale}
-        title={m(locale, "confirmDialog.purgeChatTitle")}
-        description={m(locale, "confirmDialog.purgeChatDesc")}
-        confirmLabel={m(locale, "confirmDialog.confirm")}
-        confirmPhrase={m(locale, "confirmDialog.purgeChatPhrase")}
-        variant="danger"
-        busy={sensitiveBusy}
-      />
-      <SensitiveActionConfirmDialog
-        open={hideChatOpen}
-        onClose={() => setHideChatOpen(false)}
-        onConfirm={ownerHideChat}
-        locale={locale}
-        title={m(locale, "confirmDialog.hideChatTitle")}
-        description={m(locale, "confirmDialog.hideChatDesc")}
-        confirmLabel={m(locale, "confirmDialog.confirm")}
-        variant="danger"
-        busy={sensitiveBusy}
-      />
     </>
   );
 

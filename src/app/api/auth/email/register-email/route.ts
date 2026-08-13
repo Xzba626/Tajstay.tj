@@ -3,7 +3,7 @@ import { z } from "zod";
 import { hashPassword } from "@/lib/auth/password";
 import { buildUniquePlaceholderPhone } from "@/lib/auth/accountPhone";
 import { prisma } from "@/lib/prisma";
-import { issueEmailVerification } from "@/lib/auth/emailVerification";
+import { createSessionCookie } from "@/lib/auth/session";
 import { clientIp, rateLimit } from "@/lib/security/rateLimit";
 
 const schema = z.object({
@@ -43,21 +43,11 @@ export async function POST(req: Request) {
       email: normalizedEmail,
       password: passwordHash,
       role: "GUEST",
-      verified: true,
-      emailVerified: null
+      verified: true
     }
   });
 
-  const mail = await issueEmailVerification(user.id, normalizedEmail);
-  if (!mail.ok) {
-    await prisma.user.delete({ where: { id: user.id } }).catch(() => undefined);
-    return NextResponse.json({ error: "Failed to send verification email" }, { status: 503 });
-  }
-
-  return NextResponse.json({
-    ok: true,
-    verifyPending: true,
-    email: normalizedEmail,
-    emailSkipped: mail.skipped === true
-  });
+  const res = NextResponse.json({ ok: true });
+  await createSessionCookie(user.id, res);
+  return res;
 }

@@ -45,19 +45,19 @@ export function PaymentMethodActions({ amount, account, provider }: Props) {
         <button
           type="button"
           onClick={copyAccount}
-          className="rounded-lg border border-[var(--taj-line)] bg-[var(--taj-snow)] px-3 py-1.5 text-xs font-semibold text-[var(--taj-ink)]"
+          className="rounded-lg border border-brand-700 bg-brand-800 px-3 py-1.5 text-xs font-semibold text-white"
         >
           {copied ? "Скопировано" : "Копировать номер"}
         </button>
         <button
           type="button"
           onClick={openApp}
-          className="rounded-lg bg-[var(--taj-lake)] px-3 py-1.5 text-xs font-semibold text-white"
+          className="rounded-lg bg-brand-500 px-3 py-1.5 text-xs font-semibold text-white"
         >
           Открыть в {isDc ? "Dushanbe City" : "Alif Mobi"}
         </button>
       </div>
-      <div className="text-[11px] text-[var(--taj-ink-soft)]">
+      <div className="text-[11px] text-brand-200">
         Нажмите «Открыть в {isDc ? "Dushanbe City" : "Alif Mobi"}», чтобы продолжить оплату в приложении.
       </div>
     </div>

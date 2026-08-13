@@ -10,7 +10,6 @@ import { AuthPromoPanel, type AuthPromoLabels } from "@/components/auth/AuthProm
 import type { AuthPromoFeaturedHotel } from "@/lib/services/authPromoHotel";
 import { AuthSocialButtons } from "@/components/auth/AuthSocialButtons";
 import { TelegramLoginPanel } from "@/components/auth/TelegramLoginPanel";
-import { TajikPattern } from "@/components/ds/TajikPattern";
 
 type ApiUser = { id: number; role: string; name: string; phone: string; email?: string | null };
 
@@ -30,10 +29,6 @@ export type SignInLabels = {
   confirmPassword: string;
   confirmPasswordPlaceholder: string;
   agreeTerms: string;
-  agreeTermsIntro: string;
-  agreeTermsAnd: string;
-  policyLinkLabel: string;
-  termsLinkLabel: string;
   errPasswordMismatch: string;
   errTermsRequired: string;
   errorGeneric: string;
@@ -239,8 +234,8 @@ export function SignInClient({
     if (isLoginSubmitting) return;
     setFormError(null);
     setIsLoginSubmitting(true);
-    const email = loginEmail.trim().toLowerCase();
     try {
+      const email = loginEmail.trim().toLowerCase();
       if (!email || !loginPassword) {
         setFormError(L.fieldRequired);
         return;
@@ -260,12 +255,7 @@ export function SignInClient({
       await postJson("/api/auth/email/login", { email, password: loginPassword });
       await refreshMe();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "";
-      if (msg.toLowerCase().includes("email_not_verified")) {
-        window.location.href = `/auth/verify-pending?email=${encodeURIComponent(email)}`;
-        return;
-      }
-      setFormError(mapApiErrorMessage(msg));
+      setFormError(mapApiErrorMessage(err instanceof Error ? err.message : ""));
     } finally {
       setIsLoginSubmitting(false);
     }
@@ -289,15 +279,11 @@ export function SignInClient({
     }
     setIsRegisterSubmitting(true);
     try {
-      const regResult = await postJson<{ verifyPending?: boolean }>("/api/auth/email/register-email", {
+      await postJson("/api/auth/email/register-email", {
         name: regName.trim(),
         email: regEmail.trim().toLowerCase(),
         password: regPassword
       });
-      if (regResult.verifyPending) {
-        window.location.href = `/auth/verify-pending?email=${encodeURIComponent(regEmail.trim().toLowerCase())}`;
-        return;
-      }
       await refreshMe();
     } catch (err: unknown) {
       setFormError(mapApiErrorMessage(err instanceof Error ? err.message : ""));
@@ -319,13 +305,12 @@ export function SignInClient({
     codeSuccess: L.telegramCodeSuccess,
     codeInvalid: L.telegramCodeInvalid,
     tooManyAttempts: L.telegramTooManyAttempts,
-    errorGeneric: L.errorGeneric,
-    confirmCta: L.telegramVerify
+    errorGeneric: L.errorGeneric
   };
 
   return (
-    <main className="taj-auth-page" data-heritage-motif="crown">
-      <section className={`taj-auth-shell${isRegister ? " taj-auth-shell--register" : ""}`}>
+    <main className="taj-auth-page">
+      <section className="taj-auth-shell">
         <AuthPromoPanel labels={promoLabels} featuredHotel={featuredHotel} />
 
         <section className="taj-auth-card">
@@ -340,7 +325,6 @@ export function SignInClient({
           ) : (
             <div className="taj-auth-inner">
               <div className="taj-auth-welcome">
-                <TajikPattern kind="crown" className="mx-auto mb-2" />
                 <div className="taj-auth-logo">
                   <Image
                     src={brandMarkUrl}
@@ -420,16 +404,7 @@ export function SignInClient({
                       onChange={(e) => setRegAgree(e.target.checked)}
                       aria-invalid={!!formError && !regAgree}
                     />
-                    <span>
-                      {L.agreeTermsIntro}{" "}
-                      <Link href="/terms" className="text-emerald-300 underline underline-offset-2">
-                        {L.termsLinkLabel}
-                      </Link>{" "}
-                      {L.agreeTermsAnd}{" "}
-                      <Link href="/policy" className="text-emerald-300 underline underline-offset-2">
-                        {L.policyLinkLabel}
-                      </Link>
-                    </span>
+                    <span>{L.agreeTerms}</span>
                   </label>
                   <button
                     type="submit"
@@ -543,11 +518,6 @@ export function SignInClient({
                   </>
                 )}
               </p>
-
-              <nav className="taj-auth-legal-links" aria-label="Legal">
-                <Link href="/policy">{L.footerPrivacy}</Link>
-                <Link href="/terms">{L.footerTerms}</Link>
-              </nav>
               </div>
             </div>
           )}

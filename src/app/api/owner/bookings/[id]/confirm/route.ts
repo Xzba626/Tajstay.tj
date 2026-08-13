@@ -9,7 +9,6 @@ import { assertDatesAvailable, DatesUnavailableError } from "@/lib/booking/avail
 import { autoAssignBookingIfPossible } from "@/lib/pms/assignment";
 import { assertRoomTypeAvailable, RoomTypeUnavailableError } from "@/lib/pms/inventory";
 import { getBookingPhysicalRoomId } from "@/lib/pms/types";
-import { dispatchBookingConfirmedEmails } from "@/lib/email/bookingEmailDispatch";
 
 function wantsJson(req: NextRequest): boolean {
   const accept = req.headers.get("accept") ?? "";
@@ -80,10 +79,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       }
     });
   }
-
-  void dispatchBookingConfirmedEmails(id).catch((e) => {
-    console.error("[owner/confirm] confirmed emails failed", id, e);
-  });
 
   if (wantsJson(req)) {
     return NextResponse.json({

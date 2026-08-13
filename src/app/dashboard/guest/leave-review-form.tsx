@@ -2,11 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { Locale } from "@/lib/i18n/locale";
-import { m } from "@/lib/i18n/messages";
 
 type LeaveReviewLabels = {
   title: string;
+  rating: string;
   commentPlaceholder: string;
   imagePlaceholder: string;
   sending: string;
@@ -14,67 +13,19 @@ type LeaveReviewLabels = {
   error: string;
 };
 
-type CriteriaKey = "cleanliness" | "staff" | "location" | "value" | "overall";
-
-function StarRow({
-  label,
-  value,
-  onChange
-}: {
-  label: string;
-  value: number;
-  onChange: (n: number) => void;
-}) {
-  return (
-    <div className="flex flex-wrap items-center justify-between gap-2">
-      <span className="text-sm text-brand-200">{label}</span>
-      <div className="flex gap-1" role="group" aria-label={label}>
-        {[1, 2, 3, 4, 5].map((n) => (
-          <button
-            key={n}
-            type="button"
-            onClick={() => onChange(n)}
-            className={`text-lg leading-none transition ${n <= value ? "text-[var(--brand-star)]" : "text-brand-700"}`}
-            aria-pressed={n <= value}
-            aria-label={`${n}`}
-          >
-            ★
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export default function LeaveReviewForm({
   bookingId,
-  locale,
   labels
 }: {
   bookingId: number;
-  locale: Locale;
   labels: LeaveReviewLabels;
 }) {
   const router = useRouter();
-  const [scores, setScores] = useState<Record<CriteriaKey, number>>({
-    cleanliness: 5,
-    staff: 5,
-    location: 5,
-    value: 5,
-    overall: 5
-  });
+  const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
-  const criteriaRows: { key: CriteriaKey; label: string }[] = [
-    { key: "cleanliness", label: m(locale, "guestDash.reviewCriteriaCleanliness") },
-    { key: "staff", label: m(locale, "guestDash.reviewCriteriaStaff") },
-    { key: "location", label: m(locale, "guestDash.reviewCriteriaLocation") },
-    { key: "value", label: m(locale, "guestDash.reviewCriteriaValue") },
-    { key: "overall", label: m(locale, "guestDash.reviewCriteriaOverall") }
-  ];
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -87,8 +38,8 @@ export default function LeaveReviewForm({
         credentials: "include",
         body: JSON.stringify({
           bookingId,
-          criteria: scores,
-          comment: comment.trim() || undefined,
+          rating,
+          comment,
           imageUrl: imageUrl || null
         })
       });
@@ -108,17 +59,22 @@ export default function LeaveReviewForm({
       className="surface-1 space-y-4 rounded-2xl p-5 ring-1 ring-brand-700 transition"
     >
       <div className="text-sm font-semibold tracking-tight text-white">{labels.title}</div>
-      <div className="space-y-3">
-        {criteriaRows.map((row) => (
-          <StarRow
-            key={row.key}
-            label={row.label}
-            value={scores[row.key]}
-            onChange={(n) => setScores((s) => ({ ...s, [row.key]: n }))}
-          />
-        ))}
-      </div>
+      <label className="block text-sm font-medium text-brand-200">
+        {labels.rating}
+        <select
+          value={rating}
+          onChange={(e) => setRating(Number(e.target.value))}
+          className="ds-input mt-2 w-full cursor-pointer text-white"
+        >
+          {[1, 2, 3, 4, 5].map((n) => (
+            <option key={n} value={n} className="bg-brand-900">
+              {n}
+            </option>
+          ))}
+        </select>
+      </label>
       <textarea
+        required
         value={comment}
         onChange={(e) => setComment(e.target.value)}
         placeholder={labels.commentPlaceholder}

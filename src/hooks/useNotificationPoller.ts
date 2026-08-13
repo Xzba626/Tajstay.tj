@@ -4,9 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef } from "react";
 import { setAppNotificationBadge } from "@/lib/pwa/appBadge";
 import { dispatchNotificationNew, dispatchNotificationToast } from "@/lib/pwa/notificationEvents";
-import { isViewingBookingChat } from "@/lib/chat/chatViewState";
 import { playNewNotificationSound } from "@/lib/pwa/notificationSound";
-import { showBrowserNotification } from "@/lib/pwa/browserNotification";
 
 const POLL_MS = 25_000;
 
@@ -17,7 +15,6 @@ export type NotificationListItem = {
   message: string | null;
   isRead: boolean;
   createdAt: string;
-  bookingId: number | null;
   bookingCode: string | null;
   link: string;
 };
@@ -31,7 +28,6 @@ export function useNotificationPoller(opts: {
   const pathname = usePathname();
   const prevCountRef = useRef(opts.initialCount);
   const itemsRef = useRef<NotificationListItem[]>([]);
-  const pusherEnabledRef = useRef<boolean | null>(null);
 
   const refreshList = useCallback(async () => {
     try {
@@ -53,36 +49,12 @@ export function useNotificationPoller(opts: {
       const count = typeof data.count === "number" ? Math.max(0, data.count) : 0;
       const prev = prevCountRef.current;
       if (count > prev) {
-        if (pusherEnabledRef.current === null) {
-          try {
-            const statusRes = await fetch("/api/pusher/status", { cache: "no-store" });
-            const statusJson = (await statusRes.json().catch(() => ({}))) as { enabled?: boolean };
-            pusherEnabledRef.current = Boolean(statusJson.enabled);
-          } catch {
-            pusherEnabledRef.current = false;
-          }
-        }
-
         await refreshList();
         const newest = itemsRef.current.find((i) => !i.isRead);
         const preview = newest?.title || newest?.message || opts.toastLabel || "";
-        const isChatType = newest?.type === "BOOKING_CHAT_NEW";
-        const viewingChat =
-          isChatType && newest?.bookingId ? isViewingBookingChat(pathname, newest.bookingId) : false;
-        const shouldPlaySound = !isChatType || (!pusherEnabledRef.current && !viewingChat);
-        if (shouldPlaySound) {
-          playNewNotificationSound();
-        }
+        playNewNotificationSound();
         dispatchNotificationToast(preview || opts.toastLabel || "");
         dispatchNotificationNew({ count, delta: count - prev, preview });
-        if (newest && shouldPlaySound) {
-          showBrowserNotification({
-            title: newest.title || opts.toastLabel || "Tajstay",
-            body: newest.message || preview,
-            url: newest.link,
-            tag: `n-${newest.id}`
-          });
-        }
       }
       prevCountRef.current = count;
       setAppNotificationBadge(count);

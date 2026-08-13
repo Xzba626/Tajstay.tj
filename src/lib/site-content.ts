@@ -36,7 +36,6 @@ export type SupportContacts = {
 export type LegalPages = {
   privacyText: string;
   termsText: string;
-  aboutText: string;
 };
 
 type SiteContent = {
@@ -78,9 +77,7 @@ const defaultContent: SiteContent = {
   },
   legal: {
     privacyText: "Политика конфиденциальности будет добавлена администратором.",
-    termsText: "Пользовательское соглашение будет добавлено администратором.",
-    aboutText:
-      "TajStay — цифровой маркетплейс краткосрочного жилья в Таджикистане. Платформа соединяет путешественников с владельцами отелей, квартир, гостевых домов и эко-объектов в Душанбе, Худжанде, Пенджикенте и горных регионах, включая Памир.\n\nНаша миссия — сделать путешествия по Таджикистану более доступными, прозрачными и удобными, предоставляя единую площадку для поиска и бронирования жилья.\n\nTajStay выступает посредником: объявления ведут владельцы, а платформа обеспечивает инфраструктуру бронирования, поддержку оплаты и инструменты общения."
+    termsText: "Пользовательское соглашение будет добавлено администратором."
   }
 };
 
@@ -227,8 +224,7 @@ export async function saveLegalPages(input: LegalPages): Promise<void> {
   await updateSection({
     legal: {
       privacyText: input.privacyText.trim() || defaultContent.legal.privacyText,
-      termsText: input.termsText.trim() || defaultContent.legal.termsText,
-      aboutText: input.aboutText.trim() || defaultContent.legal.aboutText
+      termsText: input.termsText.trim() || defaultContent.legal.termsText
     }
   });
 }

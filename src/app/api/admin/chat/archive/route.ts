@@ -2,28 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth/requireAuth";
 import { prisma } from "@/lib/prisma";
 import { getArchivedChatExport } from "@/lib/chat/bookingChat";
-import { searchArchivedChatBookings } from "@/lib/chat/archiveSearch";
 import { bookingHotel, bookingRoomTitle, bookingPhysicalRoomId } from "@/lib/pms/bookingContext";
 import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
 
-/** Список архивных чатов или выгрузка одной брони. */
+/** Выгрузка архива переписки и метаданных брони (налоги / споры). */
 export async function GET(req: NextRequest) {
   const user = await requireUser(["ADMIN"]);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const bookingIdRaw = String(req.nextUrl.searchParams.get("bookingId") ?? "").trim();
-  const bookingId = Number.parseInt(bookingIdRaw, 10);
-
-  if (!bookingIdRaw) {
-    const q = req.nextUrl.searchParams.get("q") ?? "";
-    const from = req.nextUrl.searchParams.get("from") ?? undefined;
-    const to = req.nextUrl.searchParams.get("to") ?? undefined;
-    const page = Number.parseInt(String(req.nextUrl.searchParams.get("page") ?? "1"), 10);
-    const pageSize = Number.parseInt(String(req.nextUrl.searchParams.get("pageSize") ?? "20"), 10);
-    const result = await searchArchivedChatBookings({ q, from, to, page, pageSize });
-    return NextResponse.json({ ok: true, ...result }, { status: 200 });
-  }
-
+  const bookingId = Number.parseInt(String(req.nextUrl.searchParams.get("bookingId") ?? "").trim(), 10);
   if (!Number.isFinite(bookingId) || bookingId < 1) {
     return NextResponse.json({ error: "Invalid bookingId" }, { status: 400 });
   }

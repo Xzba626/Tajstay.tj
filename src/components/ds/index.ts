@@ -1,12 +1,10 @@
 /**
- * TajStay Design System — Phase 3 core primitives
+ * TajStay Design System — PR-1 foundation
  * @see src/styles/tokens.css
  */
 
 export { Button } from "./Button";
 export { Input, Textarea } from "./Input";
-export { Select } from "./Select";
-export { IconButton } from "./IconButton";
 export { AppCard } from "./AppCard";
 export { StatCard } from "./StatCard";
 export { EmptyStateCard } from "./EmptyStateCard";
@@ -21,12 +19,4 @@ export { DashboardShell } from "./DashboardShell";
 export { DashboardSection } from "./DashboardSection";
 export { ContentGrid } from "./ContentGrid";
 export { StickyActions } from "./StickyActions";
-export { Stack } from "./Stack";
-export { Cluster } from "./Cluster";
-export { FilterChip } from "./FilterChip";
-export type { FilterChipTone } from "./FilterChip";
-export { Dropdown } from "./Dropdown";
-export { Separator } from "./Separator";
-export { TajikPattern, TajPattern } from "./TajikPattern";
-export type { TajikPatternVariant, TajPatternKind } from "./TajikPattern";
 export type { TajButtonVariant, TajButtonSize, TajCardVariant, TajCardPadding } from "./types";

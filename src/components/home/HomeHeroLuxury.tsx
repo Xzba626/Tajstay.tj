@@ -26,11 +26,9 @@ export function HomeHeroLuxury({
       <div className="relative z-[1] mx-auto flex w-full max-w-7xl flex-1 flex-col justify-center px-4 sm:px-6 lg:px-8">
         {/* initial opacity 0 + ждать JS гидрации = «пустой сайт» на медленном Cloudflare Tunnel; контент виден из HTML */}
         <div className="mx-auto max-w-3xl text-center lg:max-w-4xl">
-          {heroBadge.trim() ? (
-            <div className="mb-3 inline-flex rounded-full border border-[rgba(34,197,94,0.28)] bg-[rgba(34,197,94,0.08)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--brand-green-light)] sm:text-xs">
-              {heroBadge}
-            </div>
-          ) : null}
+          <div className="mb-3 inline-flex rounded-full border border-[rgba(34,197,94,0.28)] bg-[rgba(34,197,94,0.08)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--brand-green-light)] sm:text-xs">
+            {heroBadge}
+          </div>
           <h1 className="text-[clamp(2rem,6.5vw,3.75rem)] font-extrabold leading-[1.06] tracking-tight text-[#F0EDE8] drop-shadow-lg">
             {heroTitle}
           </h1>

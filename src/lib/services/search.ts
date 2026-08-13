@@ -2,35 +2,39 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { safeDbQuery } from "@/lib/db/safeDb";
 import { scoreHotelByIntent } from "@/lib/services/searchIntent";
-import { citiesMatch } from "@/lib/geo/cities";
-import { sortByDistance, type GeoCoords } from "@/lib/geo/distance";
-import {
-  ACTIVE_OFFLINE_BOOKING_STATUSES,
-  INACTIVE_ONLINE_BOOKING_STATUSES
-} from "@/lib/booking/availability";
-import { BOOKING_SOURCE } from "@/lib/domain/booking";
-import { normalizePropertyTypeFilterCode } from "@/lib/property-types/seed";
+
+const CITY_ALIASES: Array<{ canonical: string; aliases: string[] }> = [
+  { canonical: "Dushanbe", aliases: ["dushanbe", "душанбе"] },
+  { canonical: "Khujand", aliases: ["khujand", "худжанд", "хуҷанд"] },
+  { canonical: "Penjikent", aliases: ["penjikent", "пенджикент", "панҷакент"] },
+  { canonical: "Badakhshan", aliases: ["badakhshan", "бадахшан", "khorog", "хорог", "хоруғ"] }
+];
+
+function normalizeCityFilter(city?: string) {
+  const raw = city?.trim();
+  if (!raw) return undefined;
+  const lower = raw.toLowerCase();
+  const hit = CITY_ALIASES.find(
+    (item) => item.canonical.toLowerCase() === lower || item.aliases.some((alias) => alias === lower || lower.includes(alias))
+  );
+  return hit?.canonical ?? raw;
+}
+
+function matchesQueryText(hotel: { name: string; city: string; description: string }, query: string) {
+  const q = query.toLowerCase();
+  const blob = `${hotel.name} ${hotel.city} ${hotel.description}`.toLowerCase();
+  if (blob.includes(q)) return true;
+  return CITY_ALIASES.some((item) => {
+    const cityHit = item.canonical.toLowerCase() === hotel.city.toLowerCase() || item.aliases.includes(hotel.city.toLowerCase());
+    return cityHit && item.aliases.some((alias) => q.includes(alias) || alias.includes(q));
+  });
+}
 
 export type PropertyTypeFilter = "ANY" | "HOTEL" | "HOSTEL" | "GUEST_HOUSE" | "APARTMENT" | "ECO_HOUSE";
-
-export const SEARCH_DEFAULT_PAGE_SIZE = 60;
-export const SEARCH_MAX_PAGE_SIZE = 100;
-/** Safety cap when loading full result sets (map, home). */
-const SEARCH_INTERNAL_FETCH_CAP = 500;
-
-export type SearchPaginatedResult = {
-  hotels: Awaited<ReturnType<typeof searchApprovedHotels>>;
-  total: number;
-  page: number;
-  limit: number;
-  hasMore: boolean;
-};
 
 type SearchInput = {
   q?: string;
   city?: string;
-  /** Boost hotels in this city (IP geo) when no explicit city filter */
-  nearbyCity?: string;
   guests?: number;
   minPrice?: number;
   maxPrice?: number;
@@ -40,159 +44,34 @@ type SearchInput = {
   parking?: boolean;
   ratingMin?: number;
   sortBy?: "POPULAR" | "PRICE_ASC" | "RATING_DESC";
-  checkIn?: string;
-  checkOut?: string;
-  /** Visitor GPS — sort by distance when set */
-  origin?: GeoCoords;
-  page?: number;
-  limit?: number;
 };
-
-function parseSearchDateOnly(value?: string): Date | undefined {
-  if (!value?.trim()) return undefined;
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
-  if (!match) return undefined;
-  const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
-  return Number.isNaN(date.getTime()) ? undefined : date;
-}
-
-function conflictingBookingsWhere(checkIn: Date, checkOut: Date): Prisma.BookingWhereInput {
-  return {
-    AND: [
-      { checkIn: { lt: checkOut } },
-      { checkOut: { gt: checkIn } },
-      {
-        OR: [
-          {
-            source: BOOKING_SOURCE.PLATFORM,
-            status: { notIn: [...INACTIVE_ONLINE_BOOKING_STATUSES] }
-          },
-          {
-            source: BOOKING_SOURCE.OWNER_MANUAL,
-            offlineStatus: { in: [...ACTIVE_OFFLINE_BOOKING_STATUSES] }
-          }
-        ]
-      }
-    ]
-  };
-}
-
-function roomAvailableForDatesFilter(checkIn: Date, checkOut: Date): Prisma.RoomWhereInput {
-  return {
-    bookings: {
-      none: conflictingBookingsWhere(checkIn, checkOut)
-    }
-  };
-}
-
-type RoomWithBookings = {
-  capacity: number;
-  price: Prisma.Decimal | number;
-  amenities: string;
-  bookings?: { id: number }[];
-};
-
-function roomMeetsSearchFilters(room: RoomWithBookings, input: SearchInput): boolean {
-  if (input.guests && room.capacity < input.guests) return false;
-  const price = Number(room.price);
-  if (input.minPrice != null && price < input.minPrice) return false;
-  if (input.maxPrice != null && price > input.maxPrice) return false;
-  if (input.wifi && !room.amenities.includes('"wifi"')) return false;
-  if (input.breakfast && !room.amenities.includes('"breakfast_included"') && !room.amenities.includes('"breakfast"')) {
-    return false;
-  }
-  if (input.parking && !room.amenities.includes('"parking"')) return false;
-  return true;
-}
-
-type HotelAvailabilityData = {
-  rooms: RoomWithBookings[];
-  roomTypes?: Array<{ rooms: RoomWithBookings[] }>;
-};
-
-function countAvailableRoomsForDates(hotel: HotelAvailabilityData, input: SearchInput): number {
-  const typedRooms = hotel.roomTypes?.flatMap((rt) => rt.rooms) ?? [];
-  const candidates = typedRooms.length > 0 ? typedRooms : hotel.rooms;
-  return candidates.filter((room) => roomMeetsSearchFilters(room, input) && (room.bookings?.length ?? 0) === 0).length;
-}
 
 export async function searchApprovedHotels(input: SearchInput) {
   return safeDbQuery("searchApprovedHotels", () => searchApprovedHotelsQuery(input), []);
 }
 
-export async function searchApprovedHotelsPaginated(input: SearchInput): Promise<SearchPaginatedResult> {
-  return safeDbQuery(
-    "searchApprovedHotelsPaginated",
-    () => searchApprovedHotelsPaginatedQuery(input),
-    { hotels: [], total: 0, page: 1, limit: SEARCH_DEFAULT_PAGE_SIZE, hasMore: false }
-  );
-}
-
-/** Alias used by map page (Part 3 spec). */
-export const searchHotels = searchApprovedHotels;
-
-function normalizePagination(input: SearchInput) {
-  const limit = Math.min(
-    Math.max(input.limit ?? SEARCH_DEFAULT_PAGE_SIZE, 1),
-    SEARCH_MAX_PAGE_SIZE
-  );
-  const page = Math.max(input.page ?? 1, 1);
-  return { page, limit, skip: (page - 1) * limit };
-}
-
-async function searchApprovedHotelsPaginatedQuery(input: SearchInput): Promise<SearchPaginatedResult> {
-  const { page, limit, skip } = normalizePagination(input);
-  const all = await searchApprovedHotelsQuery({ ...input, page: undefined, limit: undefined });
-  const total = all.length;
-  const hotels = all.slice(skip, skip + limit);
-  return {
-    hotels,
-    total,
-    page,
-    limit,
-    hasMore: skip + hotels.length < total
-  };
-}
-
 async function searchApprovedHotelsQuery(input: SearchInput) {
   const amenitiesAnd: Prisma.RoomWhereInput[] = [];
   if (input.wifi) amenitiesAnd.push({ amenities: { contains: '"wifi"' } });
-  if (input.breakfast) {
-    amenitiesAnd.push({
-      OR: [{ amenities: { contains: '"breakfast_included"' } }, { amenities: { contains: '"breakfast"' } }]
-    });
-  }
+  if (input.breakfast) amenitiesAnd.push({ amenities: { contains: '"breakfast"' } });
   if (input.parking) amenitiesAnd.push({ amenities: { contains: '"parking"' } });
 
-  const checkIn = parseSearchDateOnly(input.checkIn);
-  const checkOut = parseSearchDateOnly(input.checkOut);
-  const hasDateRange = Boolean(checkIn && checkOut && checkOut.getTime() > checkIn.getTime());
-
-  const roomMatch: Prisma.RoomWhereInput = {
-    capacity: input.guests ? { gte: input.guests } : undefined,
-    price: {
-      gte: input.minPrice ?? undefined,
-      lte: input.maxPrice ?? undefined
-    },
-    ...(amenitiesAnd.length ? { AND: amenitiesAnd } : {}),
-    ...(hasDateRange ? roomAvailableForDatesFilter(checkIn!, checkOut!) : {})
-  };
-
-  const propertyTypeCode =
-    input.propertyType && input.propertyType !== "ANY"
-      ? normalizePropertyTypeFilterCode(input.propertyType)
-      : undefined;
+  const city = normalizeCityFilter(input.city);
 
   const where: Prisma.HotelWhereInput = {
     status: "APPROVED",
-    deletedAt: null,
-    city: input.city ? { contains: input.city } : undefined,
-    ...(propertyTypeCode
-      ? { propertyTypeRef: { code: propertyTypeCode, isActive: true } }
-      : {}),
+    city: city ? { contains: city, mode: "insensitive" } : undefined,
+    propertyType: input.propertyType && input.propertyType !== "ANY" ? input.propertyType : undefined,
     rating: input.ratingMin != null ? { gte: input.ratingMin } : undefined,
     rooms: {
-      some: roomMatch
+      some: {
+        capacity: input.guests ? { gte: input.guests } : undefined,
+        price: {
+          gte: input.minPrice ?? undefined,
+          lte: input.maxPrice ?? undefined
+        },
+        ...(amenitiesAnd.length ? { AND: amenitiesAnd } : {})
+      }
     }
   };
 
@@ -203,63 +82,33 @@ async function searchApprovedHotelsQuery(input: SearchInput) {
 
   const hotels = await prisma.hotel.findMany({
     where,
-    take: SEARCH_INTERNAL_FETCH_CAP,
     include: {
-      propertyTypeRef: true,
-      rooms: hasDateRange
-        ? {
-            include: {
-              bookings: {
-                where: conflictingBookingsWhere(checkIn!, checkOut!),
-                select: { id: true }
-              }
-            }
-          }
-        : true,
-      ...(hasDateRange
-        ? {
-            roomTypes: {
-              include: {
-                rooms: {
-                  include: {
-                    bookings: {
-                      where: conflictingBookingsWhere(checkIn!, checkOut!),
-                      select: { id: true }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        : {})
+      rooms: true
     },
     orderBy
   });
 
   if (input.q?.trim()) {
-    hotels.sort((a, b) => {
-      const aMin = a.rooms.length ? Math.min(...a.rooms.map((r) => Number(r.price))) : 0;
-      const bMin = b.rooms.length ? Math.min(...b.rooms.map((r) => Number(r.price))) : 0;
-      const aScore = scoreHotelByIntent({
-        query: input.q,
-        hotelName: a.name,
-        city: a.city,
-        rating: a.rating,
-        minPrice: aMin,
-        rooms: a.rooms.map((room) => ({ capacity: room.capacity, amenities: room.amenities }))
-      });
-      const bScore = scoreHotelByIntent({
-        query: input.q,
-        hotelName: b.name,
-        city: b.city,
-        rating: b.rating,
-        minPrice: bMin,
-        rooms: b.rooms.map((room) => ({ capacity: room.capacity, amenities: room.amenities }))
-      });
-      if (aScore === bScore) return b.rating - a.rating;
-      return bScore - aScore;
-    });
-  } else if (input.sortBy === "PRICE_ASC") {
+    const query = input.q.trim();
+    const ranked = hotels
+      .map((hotel) => {
+        const minPrice = hotel.rooms.length ? Math.min(...hotel.rooms.map((r) => Number(r.price))) : 0;
+        const score = scoreHotelByIntent({
+          query,
+          hotelName: hotel.name,
+          city: hotel.city,
+          rating: hotel.rating,
+          minPrice,
+          rooms: hotel.rooms.map((room) => ({ capacity: room.capacity, amenities: room.amenities }))
+        });
+        return { hotel, score, matched: matchesQueryText(hotel, query) || score > 0 };
+      })
+      .filter((item) => item.matched)
+      .sort((a, b) => (a.score === b.score ? b.hotel.rating - a.hotel.rating : b.score - a.score));
+    return ranked.map((item) => item.hotel);
+  }
+
+  if (input.sortBy === "PRICE_ASC") {
     hotels.sort((a, b) => {
       const aMin = a.rooms.length ? Math.min(...a.rooms.map((r) => Number(r.price))) : Number.POSITIVE_INFINITY;
       const bMin = b.rooms.length ? Math.min(...b.rooms.map((r) => Number(r.price))) : Number.POSITIVE_INFINITY;
@@ -267,37 +116,6 @@ async function searchApprovedHotelsQuery(input: SearchInput) {
     });
   }
 
-  if (input.nearbyCity?.trim() && !input.city?.trim() && !input.origin) {
-    const near = input.nearbyCity.trim();
-    hotels.sort((a, b) => {
-      const aNear = citiesMatch(a.city, near) ? 0 : 1;
-      const bNear = citiesMatch(b.city, near) ? 0 : 1;
-      if (aNear !== bNear) return aNear - bNear;
-      return b.rating - a.rating;
-    });
-  }
-
-  const withAvailability = hotels.map((hotel) => {
-    const availableRoomsCount = hasDateRange
-      ? countAvailableRoomsForDates(hotel as unknown as HotelAvailabilityData, input)
-      : undefined;
-    const { roomTypes: _roomTypes, rooms, ...rest } = hotel;
-    return {
-      ...rest,
-      rooms: rooms.map((room) => {
-        const { bookings: _bookings, ...roomRest } = room as (typeof room) & { bookings?: { id: number }[] };
-        return roomRest;
-      }),
-      ...(availableRoomsCount != null ? { availableRoomsCount } : {})
-    };
-  });
-
-  if (input.origin) {
-    return sortByDistance(
-      withAvailability.map((h) => ({ ...h, lat: h.latitude, lng: h.longitude })),
-      input.origin
-    );
-  }
-
-  return withAvailability;
+  return hotels;
 }
+

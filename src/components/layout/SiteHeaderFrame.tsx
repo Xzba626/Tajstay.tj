@@ -55,7 +55,7 @@ export function SiteHeaderFrame({ children }: Props) {
   return (
     <header
       className={cn(
-        "site-header sticky top-0 z-[100] transition-[background-color,transform] duration-[220ms] ease-out",
+        "site-header sticky top-0 z-[50] transition-[background-color,transform] duration-[220ms] ease-out",
         hidden && "site-header--scroll-hidden"
       )}
     >

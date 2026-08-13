@@ -13,38 +13,31 @@ export type SearchFiltersState = {
   maxPrice: string;
   ratingMin: string;
   sortBy: "POPULAR" | "PRICE_ASC" | "RATING_DESC";
-  propertyType: PropertyTypeFilter;
   wifi: boolean;
   breakfast: boolean;
   parking: boolean;
+  propertyType: PropertyTypeFilter;
 };
 
-export const DEFAULT_SEARCH_FILTERS: SearchFiltersState = {
-  q: "",
-  city: "",
-  checkIn: "",
-  checkOut: "",
-  guests: "1",
-  minPrice: "",
-  maxPrice: "",
-  ratingMin: "",
-  sortBy: "POPULAR",
-  propertyType: "ANY",
-  wifi: false,
-  breakfast: false,
-  parking: false
-};
+function asBool(value: unknown) {
+  return value === true || value === "true" || value === "on" || value === "1";
+}
 
-export function useSearchFilters(initial: Partial<SearchFiltersState>) {
+export function useSearchFilters(initial: Record<string, unknown> = {}) {
   const [filters, setFilters] = useState<SearchFiltersState>({
-    ...DEFAULT_SEARCH_FILTERS,
-    ...initial,
-    guests: initial.guests ?? "1",
-    sortBy: initial.sortBy ?? "POPULAR",
-    propertyType: initial.propertyType ?? "ANY",
-    wifi: initial.wifi ?? false,
-    breakfast: initial.breakfast ?? false,
-    parking: initial.parking ?? false
+    q: String(initial.q ?? ""),
+    city: String(initial.city ?? ""),
+    checkIn: String(initial.checkIn ?? ""),
+    checkOut: String(initial.checkOut ?? ""),
+    guests: String(initial.guests ?? "1"),
+    minPrice: String(initial.minPrice ?? ""),
+    maxPrice: String(initial.maxPrice ?? ""),
+    ratingMin: String(initial.ratingMin ?? ""),
+    sortBy: (initial.sortBy as SearchFiltersState["sortBy"]) ?? "POPULAR",
+    wifi: asBool(initial.wifi),
+    breakfast: asBool(initial.breakfast),
+    parking: asBool(initial.parking),
+    propertyType: (initial.propertyType as PropertyTypeFilter) ?? "ANY"
   });
 
   return { filters, setFilters };

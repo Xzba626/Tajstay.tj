@@ -5,21 +5,12 @@ import { requireUser } from "@/lib/auth/requireAuth";
 import { OWNER_APPLICATION_STATUS } from "@/lib/domain/booking";
 import { clientIp, rateLimit } from "@/lib/security/rateLimit";
 import { normalizePhone } from "@/lib/validation/phone";
+import { saveUploadFile } from "@/lib/uploads/saveUpload";
 import { ImageUploadError } from "@/lib/uploads/imageUploadError";
-import type { OwnerApplicationFileSlot, OwnerApplicationMeta } from "@/lib/owner/applicationMeta";
-import { savePrivateOwnerDoc } from "@/lib/uploads/savePrivateFile";
-import {
-  OWNER_DOCUMENT_MAX_BYTES,
-  OWNER_PHOTO_MAX_BYTES,
-  validateOwnerDocumentFile,
-  validateOwnerPhotoFile
-} from "@/lib/owner/applicationUpload";
-import { notifyOwnerRequestAdmins } from "@/lib/owner/notifyOwnerRequestAdmins";
-import { encryptOwnerApplicationInput, decryptOwnerApplicationField } from "@/lib/owner/ownerApplicationPii";
+import type { OwnerApplicationMeta } from "@/lib/owner/applicationMeta";
 
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
-export const maxDuration = 60;
+const MAX_FILE = 5 * 1024 * 1024;
+const UPLOAD_DIR = "owner-applications";
 
 const jsonSchema = z
   .object({
@@ -51,44 +42,15 @@ const jsonSchema = z
     }
   });
 
-async function saveOptionalPhoto(form: FormData, key: string, userId: number): Promise<string | undefined> {
+async function saveOptionalFile(form: FormData, key: string): Promise<string | undefined> {
   const f = form.get(key);
   if (!(f instanceof File) || f.size <= 0) return undefined;
-  const err = validateOwnerPhotoFile(f);
-  if (err === "type") throw new ImageUploadError("unsupported_type", "Only JPG, PNG, and WebP photos are allowed.");
-  if (err === "size") throw new ImageUploadError("too_large", "Photo exceeds 10MB limit.");
-  return savePrivateOwnerDoc(f, userId, key, OWNER_PHOTO_MAX_BYTES);
-}
-
-async function saveDualSlot(
-  form: FormData,
-  base: string,
-  userId: number
-): Promise<OwnerApplicationFileSlot | undefined> {
-  const photo = form.get(`${base}Photo`);
-  if (photo instanceof File && photo.size > 0) {
-    const err = validateOwnerPhotoFile(photo);
-    if (err === "type") throw new ImageUploadError("unsupported_type", "Only JPG, PNG, and WebP photos are allowed.");
-    if (err === "size") throw new ImageUploadError("too_large", "Photo exceeds 10MB limit.");
-    const photo_url = await savePrivateOwnerDoc(photo, userId, base, OWNER_PHOTO_MAX_BYTES);
-    return { photo_url, file_type: "photo" };
+  try {
+    return await saveUploadFile(f, UPLOAD_DIR, MAX_FILE);
+  } catch (err) {
+    if (err instanceof ImageUploadError) throw err;
+    throw new ImageUploadError("store_failed", "Upload failed");
   }
-
-  const document = form.get(`${base}Document`);
-  if (document instanceof File && document.size > 0) {
-    const err = validateOwnerDocumentFile(document);
-    if (err === "type") throw new ImageUploadError("unsupported_type", "Only PDF, DOC, and DOCX documents are allowed.");
-    if (err === "size") throw new ImageUploadError("too_large", "Document exceeds 20MB limit.");
-    const document_url = await savePrivateOwnerDoc(document, userId, base, OWNER_DOCUMENT_MAX_BYTES);
-    return { document_url, file_type: "document" };
-  }
-
-  return undefined;
-}
-
-function storageRefFromSlot(slot: OwnerApplicationFileSlot | undefined): string | null {
-  if (!slot) return null;
-  return slot.photo_url ?? slot.document_url ?? null;
 }
 
 async function ensureNoPending(userId: number) {
@@ -109,13 +71,6 @@ export async function POST(req: NextRequest) {
   }
 
   const ip = clientIp(req);
-  const ipRl = rateLimit(`post:owner-application:ip:${ip}`, 10, 60 * 60_000);
-  if (!ipRl.ok) {
-    const res = NextResponse.json({ error: "Слишком много попыток. Попробуйте позже." }, { status: 429 });
-    if (ipRl.retryAfterSec) res.headers.set("Retry-After", String(ipRl.retryAfterSec));
-    return res;
-  }
-
   const userRl = rateLimit(`post:owner-application:user:${user.id}`, 3, 60 * 60_000);
   if (!userRl.ok) {
     const res = NextResponse.json({ error: "Слишком много попыток. Попробуйте позже." }, { status: 429 });
@@ -155,37 +110,25 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-      const [identity, identityBack, propertyDoc, facade, room, bathroom, selfie] = await Promise.all([
-        saveDualSlot(form, "identity", user.id),
-        saveDualSlot(form, "identityBack", user.id),
-        saveDualSlot(form, "propertyDoc", user.id),
-        saveOptionalPhoto(form, "facade", user.id),
-        saveOptionalPhoto(form, "room", user.id),
-        saveOptionalPhoto(form, "bathroom", user.id),
-        saveOptionalPhoto(form, "selfie", user.id)
-      ]);
-
+      const identity = await saveOptionalFile(form, "identity");
       if (!identity) {
-        return NextResponse.json({ error: "Загрузите фото или документ паспорта (лицевая сторона)" }, { status: 400 });
+        return NextResponse.json({ error: "Загрузите фото паспорта / ID" }, { status: 400 });
       }
-      if (!identityBack) {
-        return NextResponse.json({ error: "Загрузите фото или документ паспорта (задняя сторона)" }, { status: 400 });
-      }
-      if (!propertyDoc) {
-        return NextResponse.json({ error: "Загрузите фото или документ на объект" }, { status: 400 });
-      }
+      const facade = await saveOptionalFile(form, "facade");
+      const room = await saveOptionalFile(form, "room");
+      const bathroom = await saveOptionalFile(form, "bathroom");
       if (!facade || !room || !bathroom) {
         return NextResponse.json({ error: "Загрузите фото объекта (фасад, комната, санузел)" }, { status: 400 });
       }
 
       const uploads = {
         identity,
-        identityBack,
-        selfie,
+        identityBack: await saveOptionalFile(form, "identityBack"),
+        selfie: await saveOptionalFile(form, "selfie"),
         facade,
         room,
         bathroom,
-        propertyDoc
+        propertyDoc: await saveOptionalFile(form, "propertyDoc")
       };
 
       const meta: OwnerApplicationMeta = {
@@ -209,35 +152,26 @@ export async function POST(req: NextRequest) {
       }
 
       const app = await prisma.ownerApplication.create({
-        data: encryptOwnerApplicationInput({
+        data: {
           userId: user.id,
           fullName: parsed.data.fullName.trim(),
           phone: normalizedPhone,
           email: normalizedEmail,
           businessName: parsed.data.businessName.trim(),
-          address: parsed.data.address.trim(),
           documentUrl: parsed.data.documentUrl || null,
           comment: parsed.data.adminComment || null,
-          passportFront: storageRefFromSlot(identity),
-          passportBack: storageRefFromSlot(identityBack),
-          selfieWithDoc: selfie ?? null,
-          propertyDoc: storageRefFromSlot(propertyDoc),
           applicationMeta: meta,
           status: OWNER_APPLICATION_STATUS.PENDING
-        })
+        }
       });
 
-      await notifyOwnerRequestAdmins({
-        applicationId: app.id,
-        fullName: decryptOwnerApplicationField(app.fullName) ?? parsed.data.fullName.trim()
-      });
+      await notifyAdmins();
       return NextResponse.json({ ok: true, id: app.id });
     } catch (err) {
       if (err instanceof ImageUploadError) {
         return NextResponse.json({ error: err.message }, { status: 400 });
       }
-      console.error("[owner/applications] multipart submit failed", err);
-      return NextResponse.json({ error: "Не удалось сохранить заявку. Попробуйте позже." }, { status: 500 });
+      throw err;
     }
   }
 
@@ -270,7 +204,7 @@ export async function POST(req: NextRequest) {
   };
 
   const app = await prisma.ownerApplication.create({
-    data: encryptOwnerApplicationInput({
+    data: {
       userId: user.id,
       fullName: parsed.data.fullName.trim(),
       phone: normalizedPhone,
@@ -280,12 +214,22 @@ export async function POST(req: NextRequest) {
       comment: parsed.data.adminComment || null,
       applicationMeta: meta,
       status: OWNER_APPLICATION_STATUS.PENDING
-    })
+    }
   });
 
-  await notifyOwnerRequestAdmins({
-    applicationId: app.id,
-    fullName: decryptOwnerApplicationField(app.fullName) ?? parsed.data.fullName.trim()
-  });
+  await notifyAdmins();
   return NextResponse.json({ ok: true, id: app.id });
+}
+
+async function notifyAdmins() {
+  const admins = await prisma.user.findMany({ where: { role: "ADMIN" }, select: { id: true } });
+  if (!admins.length) return;
+  await prisma.notification.createMany({
+    data: admins.map((a) => ({
+      userId: a.id,
+      bookingId: null,
+      type: "OWNER_APPLICATION_NEW",
+      isRead: false
+    }))
+  });
 }

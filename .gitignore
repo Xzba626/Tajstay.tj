@@ -26,6 +26,3 @@ data/admin-security.json
 # Legacy JSON stores (migrated to SiteContentState / OwnerPaymentMethod in DB)
 data/site-content.json
 data/owner-payment-methods.json
-
-# Private KYC documents (never serve from /public)
-private/

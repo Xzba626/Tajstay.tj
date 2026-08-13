@@ -101,7 +101,7 @@ export function PaymentAfterPay({
         <button
           type="button"
           onClick={handleOpen}
-          className="taj-btn taj-btn--primary taj-btn--full"
+          className="brand-gradient inline-flex w-full items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-900/35 transition hover:brightness-110"
         >
           {labels.paidNext}
         </button>
@@ -109,7 +109,7 @@ export function PaymentAfterPay({
 
       <div ref={sectionRef} className={show ? (isDeal ? "space-y-3" : "mt-4 space-y-4") : isDeal ? "" : "mt-4"}>
         {open && isExpired ? (
-          <div className="rounded-xl border border-[var(--taj-line)] bg-[var(--taj-snow)] px-4 py-3 text-sm text-[var(--taj-ink-soft)]" role="alert">
+          <div className="rounded-xl border border-brand-700 bg-brand-800 px-4 py-3 text-sm text-brand-200" role="alert">
             Время вышло. Оформите бронь заново.
           </div>
         ) : null}
@@ -117,30 +117,30 @@ export function PaymentAfterPay({
         {show ? (
           <>
             {!isDeal && (labels.instructionTitle || labels.instructionBody) ? (
-              <div className="rounded-2xl border border-[var(--taj-line)] bg-[var(--taj-snow)] p-4 text-sm text-[var(--taj-ink)]">
+              <div className="rounded-2xl border border-brand-700 bg-brand-800 p-4 text-sm text-white">
                 {labels.instructionTitle ? <div className="font-semibold">{labels.instructionTitle}</div> : null}
-                {labels.instructionBody ? <div className="mt-1 text-[var(--taj-ink-soft)]">{labels.instructionBody}</div> : null}
+                {labels.instructionBody ? <div className="mt-1 text-brand-200">{labels.instructionBody}</div> : null}
               </div>
             ) : null}
 
             {canSubmitProof ? (
               <form id="payment-proof" action="/api/payments/proof" method="post" encType="multipart/form-data" className="space-y-3">
                 <input type="hidden" name="code" value={code} />
-                {!isDeal && labels.proofTitle ? <div className="text-sm font-semibold text-[var(--taj-ink)]">{labels.proofTitle}</div> : null}
+                {!isDeal && labels.proofTitle ? <div className="text-sm font-semibold text-white">{labels.proofTitle}</div> : null}
 
                 {isDeal ? (
                   <>
-                    <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-[var(--taj-lake)]/50 bg-[var(--taj-lake-soft)] px-4 py-8 transition hover:border-[var(--taj-lake)] hover:bg-[var(--taj-mist)] active:scale-[0.99]">
-                      <ReceiptIcon className="h-10 w-10 text-[var(--taj-lake)]" />
-                      <span className="text-base font-semibold text-[var(--taj-ink)]">Загрузить чек</span>
-                      <span className="text-center text-xs text-[var(--taj-color-text-muted)]">PNG, JPG или WebP</span>
+                    <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-emerald-400/35 bg-emerald-500/[0.07] px-4 py-8 transition hover:border-emerald-400/55 hover:bg-emerald-500/10 active:scale-[0.99]">
+                      <ReceiptIcon className="h-10 w-10 text-emerald-200/90" />
+                      <span className="text-base font-semibold text-white">Загрузить чек</span>
+                      <span className="text-center text-xs text-slate-400">PNG, JPG или WebP</span>
                       <input name="proofFile" type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" />
                     </label>
                     {showOptionalUrl ? (
                       <input
                         name="proofUrl"
                         placeholder={labels.proofUrlPh}
-                        className="w-full rounded-xl border border-[var(--taj-line)] bg-[var(--taj-mist)] px-3 py-2.5 text-sm text-[var(--taj-ink)] placeholder:text-[var(--taj-color-text-muted)]"
+                        className="w-full rounded-xl border border-brand-700/80 bg-black/20 px-3 py-2.5 text-sm text-white placeholder:text-slate-500"
                       />
                     ) : null}
                   </>
@@ -149,15 +149,15 @@ export function PaymentAfterPay({
                     <input
                       name="proofUrl"
                       placeholder={labels.proofUrlPh}
-                      className="w-full rounded-xl border border-[var(--taj-line)] bg-[var(--taj-mist)] px-3 py-2 text-sm text-[var(--taj-ink)]"
+                      className="w-full rounded-xl border border-brand-700 bg-brand-900 px-3 py-2 text-sm text-white"
                     />
                     <label className="block">
-                      <span className="mb-1 block text-xs text-[var(--taj-ink-soft)]">{labels.proofFileLabel}</span>
+                      <span className="mb-1 block text-xs text-brand-200">{labels.proofFileLabel}</span>
                       <input
                         name="proofFile"
                         type="file"
                         accept="image/png,image/jpeg,image/webp"
-                        className="w-full rounded-xl border border-[var(--taj-line)] bg-[var(--taj-mist)] px-3 py-2 text-sm text-[var(--taj-ink)] file:mr-3 file:rounded-lg file:border-0 file:bg-[var(--taj-lake)] file:px-3 file:py-1.5 file:text-white"
+                        className="w-full rounded-xl border border-brand-700 bg-brand-900 px-3 py-2 text-sm text-white file:mr-3 file:rounded-lg file:border-0 file:bg-brand-500 file:px-3 file:py-1.5 file:text-white"
                       />
                     </label>
                   </>
@@ -168,8 +168,8 @@ export function PaymentAfterPay({
                     type="submit"
                     className={
                       isDeal
-                        ? "taj-btn taj-btn--primary min-h-[52px] flex-1"
-                        : "taj-btn taj-btn--primary"
+                        ? "brand-gradient inline-flex min-h-[52px] flex-1 items-center justify-center rounded-2xl px-5 text-base font-semibold text-white shadow-lg shadow-emerald-900/30 transition hover:brightness-110"
+                        : "brand-gradient inline-flex rounded-2xl px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-900/35 transition hover:brightness-110"
                     }
                   >
                     {isDeal ? "Отправить" : labels.submitProof}
@@ -182,7 +182,7 @@ export function PaymentAfterPay({
                       className={
                         isDeal
                           ? "inline-flex min-h-[52px] min-w-[52px] items-center justify-center rounded-2xl border border-white/15 bg-white/5 text-sm font-semibold text-slate-200 transition hover:bg-white/10 sm:min-w-[88px]"
-                          : "inline-flex rounded-2xl border border-[var(--taj-line)] bg-[var(--taj-snow)] px-5 py-2.5 text-sm font-semibold text-[var(--taj-ink-soft)] transition hover:bg-brand-700"
+                          : "inline-flex rounded-2xl border border-brand-700 bg-brand-800 px-5 py-2.5 text-sm font-semibold text-brand-200 transition hover:bg-brand-700"
                       }
                       aria-label={labels.cancel}
                     >
@@ -202,11 +202,11 @@ export function PaymentAfterPay({
                     <>
                       <a
                         href="/contacts"
-                        className="text-sm font-semibold text-[var(--taj-ink-soft)] underline-offset-4 transition hover:underline"
+                        className="text-sm font-semibold text-brand-200 underline-offset-4 transition hover:underline"
                       >
                         {labels.contactUs}
                       </a>
-                      {labels.supportLine ? <span className="text-xs text-[var(--taj-ink-soft)]">{labels.supportLine}</span> : null}
+                      {labels.supportLine ? <span className="text-xs text-brand-200">{labels.supportLine}</span> : null}
                     </>
                   ) : null}
                 </div>

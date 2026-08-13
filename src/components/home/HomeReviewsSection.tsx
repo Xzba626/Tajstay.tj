@@ -27,7 +27,7 @@ type Props = {
 export function HomeReviewsSection({ locale, reviews }: Props) {
   return (
     <>
-      <HomeSectionHeader title={m(locale, "home.reviewsTitle")} align="center" motif="chakan" className="!text-center" />
+      <HomeSectionHeader title={m(locale, "home.reviewsTitle")} align="center" className="!text-center" />
       {reviews.length ? (
         <ContentGrid cols={3} gap="lg" className="mt-2">
           {reviews.map((r) => (

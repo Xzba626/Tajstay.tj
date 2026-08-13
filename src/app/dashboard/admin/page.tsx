@@ -4,13 +4,8 @@ import { cookies } from "next/headers";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { AdminBookingPayCountdown } from "@/components/admin/AdminBookingPayCountdown";
 import { AdminOwnerApplicationActions } from "@/components/admin/AdminOwnerApplicationActions";
-import { AdminUserVerifyDocumentsButton } from "@/components/admin/AdminUserVerifyDocumentsButton";
-import { AdminHotelModerationActions } from "@/components/admin/AdminHotelModerationActions";
-import { AdminPropertyTypesPanel } from "@/components/admin/AdminPropertyTypesPanel";
 import { OWNER_APPLICATION_STATUS } from "@/lib/domain/booking";
-import { decryptOwnerApplicationRow } from "@/lib/owner/ownerApplicationPii";
 import { getLocale } from "@/lib/i18n/get-locale";
-import { formatBookingStatus } from "@/lib/i18n/bookingStatus";
 import { m } from "@/lib/i18n/messages";
 import { formatDateTimeShort } from "@/lib/i18n/format";
 import {
@@ -27,27 +22,14 @@ import { Pagination } from "@/components/ui/Pagination";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { scoreHotelRisk } from "@/lib/services/riskScoring";
 import { deriveEscrowState } from "@/lib/domain/booking";
-import { formatRiskNoteType } from "@/lib/admin/formatRiskNote";
 import { notificationText } from "@/lib/notifications/text";
 import { isAdminSecurityResetConfigured } from "@/lib/admin-security";
-import {
-  AdminMobileDashboard,
-  type AdminMobileActivityItem,
-  type AdminMobileDashboardStats,
-  type AdminMobileQuickAction
-} from "@/components/admin/mobile/AdminMobileDashboard";
-import { fetchLastSessionsForUsers, type UserLastSession } from "@/lib/admin/userLastSessions";
-import { userAgentLabel } from "@/lib/auth/userAgentLabel";
-import { formatUserDisplayName } from "@/lib/users/displayName";
-import { PropertyTypesAdmin } from "@/components/admin/PropertyTypesAdmin";
-import { ChatArchiveClient } from "@/app/dashboard/admin/chat-archive/ChatArchiveClient";
 
 export const dynamic = "force-dynamic";
 
 type AdminSection =
   | "dashboard"
   | "content"
-  | "property-types"
   | "applications"
   | "hotels"
   | "users"
@@ -55,14 +37,11 @@ type AdminSection =
   | "bookings"
   | "finance"
   | "notifications"
-  | "complaints"
-  | "archive"
-  | "property-types";
+  | "complaints";
 
 const VALID_SECTIONS = new Set<AdminSection>([
   "dashboard",
   "content",
-  "property-types",
   "applications",
   "hotels",
   "users",
@@ -70,9 +49,7 @@ const VALID_SECTIONS = new Set<AdminSection>([
   "bookings",
   "finance",
   "notifications",
-  "complaints",
-  "archive",
-  "property-types"
+  "complaints"
 ]);
 
 export default async function AdminDashboardPage({
@@ -86,20 +63,14 @@ export default async function AdminDashboardPage({
   const locale = getLocale();
   const params = searchParams ? await searchParams : undefined;
   const sectionParam = params?.section;
-  const isModerationSection = sectionParam === "moderation";
-  const activeSection: AdminSection =
-    sectionParam && VALID_SECTIONS.has(sectionParam as AdminSection)
-      ? (sectionParam as AdminSection)
-      : isModerationSection
-        ? "hotels"
-        : "dashboard";
-  const tStatus = (status: string) => formatBookingStatus(locale, status);
+  const activeSection: AdminSection = sectionParam && VALID_SECTIONS.has(sectionParam as AdminSection) ? (sectionParam as AdminSection) : "dashboard";
+  const tStatus = (status: string) => m(locale, `status.${status}`);
   const tRole = (role: string) => m(locale, `roles.${role}`);
 
   const pageSize = 20;
   const page = Math.max(1, Number(params?.page ?? "1") || 1);
   const q = (params?.q ?? "").trim();
-  const status = (params?.status ?? (isModerationSection ? "PENDING" : "")).trim();
+  const status = (params?.status ?? "").trim();
   const role = (params?.role ?? "").trim();
   const paymentStatus = (params?.paymentStatus ?? "").trim();
   const resetToken = (params?.resetToken ?? "").trim();
@@ -173,18 +144,7 @@ export default async function AdminDashboardPage({
   let totalRows = 0;
   let totalPages = 1;
 
-  let mobileDashboardStats: AdminMobileDashboardStats | null = null;
-  let mobileQuickActions: AdminMobileQuickAction[] = [];
-  let mobileActivity: AdminMobileActivityItem[] = [];
-  let userLastSessions = new Map<number, UserLastSession>();
-  let latestOwnerAppByUserId = new Map<number, { id: number; status: string }>();
-
   if (activeSection === "dashboard") {
-    const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0);
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-    const sixtyDaysAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
-
     const analytics = await Promise.all([
       prisma.hotel.count(),
       prisma.hotel.count({ where: { status: "APPROVED" } }),
@@ -192,7 +152,7 @@ export default async function AdminDashboardPage({
       prisma.booking.count(),
       prisma.booking.aggregate({
         _sum: { totalPrice: true, commission: true },
-        where: { createdAt: { gte: thirtyDaysAgo } }
+        where: { createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } }
       }),
       prisma.notification.findMany({
         where: {
@@ -201,109 +161,9 @@ export default async function AdminDashboardPage({
         },
         orderBy: { createdAt: "desc" },
         take: 8
-      }),
-      prisma.hotel.count({ where: { createdAt: { gte: startOfToday } } }),
-      prisma.user.count({ where: { createdAt: { gte: startOfToday } } }),
-      prisma.booking.count({
-        where: {
-          status: {
-            in: ["CONFIRMED", "CHECKED_IN", "WAITING_PAYMENT", "ON_REVIEW", "PENDING_OWNER", "WAIT_PROOF"]
-          }
-        }
-      }),
-      prisma.booking.count({ where: { createdAt: { gte: startOfToday } } }),
-      prisma.booking.aggregate({
-        _sum: { totalPrice: true },
-        where: { createdAt: { gte: sixtyDaysAgo, lt: thirtyDaysAgo } }
-      }),
-      prisma.hotel.count({ where: { status: "PENDING" } }),
-      prisma.ownerApplication.count({ where: { status: OWNER_APPLICATION_STATUS.PENDING } }),
-      prisma.complaint.count({ where: { status: "PENDING" } }),
-      prisma.booking.findMany({
-        orderBy: { createdAt: "desc" },
-        take: 6,
-        include: {
-          user: true,
-          room: { include: { hotel: true } },
-          roomType: { include: { hotel: true } }
-        }
       })
     ]);
-    const [
-      hTotal,
-      hApproved,
-      uTotal,
-      bTotal,
-      bAgg,
-      risks,
-      hotelsToday,
-      usersToday,
-      activeBookings,
-      newBookingsToday,
-      priorRevenueAgg,
-      pendingHotels,
-      pendingApps,
-      pendingComplaints,
-      recentBookings
-    ] = analytics as any;
-
-    hotelTotal = hTotal;
-    hotelApproved = hApproved;
-    userTotal = uTotal;
-    bookingTotal = bTotal;
-    bookingAgg = bAgg;
-    riskNotes = risks;
-
-    const revenue30 = Number(bookingAgg._sum.totalPrice ?? 0);
-    const priorRevenue = Number(priorRevenueAgg._sum.totalPrice ?? 0);
-    const revenueGrowthPercent =
-      priorRevenue > 0 ? Math.round(((revenue30 - priorRevenue) / priorRevenue) * 100) : revenue30 > 0 ? 100 : 0;
-
-    mobileDashboardStats = {
-      hotelTotal,
-      hotelApproved,
-      hotelsToday,
-      userTotal,
-      usersToday,
-      bookingTotal,
-      activeBookings,
-      newBookings: newBookingsToday,
-      revenue30,
-      revenueGrowthPercent
-    };
-
-    mobileQuickActions = [
-      {
-        section: "hotels",
-        label: `⚠️ ${m(locale, "admin.mobileQuickModeration")}`,
-        count: pendingHotels
-      },
-      {
-        section: "applications",
-        label: `📋 ${m(locale, "admin.mobileQuickApplications")}`,
-        count: pendingApps
-      },
-      {
-        section: "complaints",
-        label: `💬 ${m(locale, "admin.mobileQuickComplaints")}`,
-        count: pendingComplaints
-      },
-      {
-        section: "notifications",
-        label: `🔔 ${m(locale, "admin.mobileQuickNotifications")}`,
-        count: 0
-      }
-    ];
-
-    mobileActivity = (recentBookings as any[]).map((b) => {
-      const hotel = b.room?.hotel ?? b.roomType?.hotel;
-      return {
-        id: `booking-${b.id}`,
-        title: `#${b.id} · ${tStatus(b.status)}`,
-        subtitle: `${b.user?.name ?? "—"} · ${hotel?.name ?? "—"}`,
-        at: b.createdAt as Date
-      };
-    });
+    [hotelTotal, hotelApproved, userTotal, bookingTotal, bookingAgg, riskNotes] = analytics as any;
   } else if (activeSection === "content") {
     content = await getSiteContent();
   } else if (activeSection === "applications") {
@@ -314,8 +174,6 @@ export default async function AdminDashboardPage({
     });
   } else if (activeSection === "hotels") {
     const where = {
-      deletedAt: null,
-      status: { not: "DELETED" },
       ...(status ? { status } : {}),
       ...(q
         ? {
@@ -327,15 +185,10 @@ export default async function AdminDashboardPage({
     totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
     hotels = await prisma.hotel.findMany({
       where,
-      include: { owner: true, propertyTypeRef: true, photos: { orderBy: { sortOrder: "asc" } } },
-      orderBy: [{ status: "asc" }, { createdAt: "asc" }],
+      include: { owner: true },
+      orderBy: { createdAt: "desc" },
       skip: (page - 1) * pageSize,
       take: pageSize
-    });
-    hotels.sort((a, b) => {
-      if (a.status === "PENDING" && b.status !== "PENDING") return -1;
-      if (b.status === "PENDING" && a.status !== "PENDING") return 1;
-      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
     });
   } else if (activeSection === "users") {
     const where = {
@@ -354,17 +207,6 @@ export default async function AdminDashboardPage({
       skip: (page - 1) * pageSize,
       take: pageSize
     });
-    userLastSessions = await fetchLastSessionsForUsers(users.map((u) => u.id));
-    const ownerApps = await prisma.ownerApplication.findMany({
-      where: { userId: { in: users.map((u) => u.id) } },
-      orderBy: { createdAt: "desc" },
-      select: { id: true, userId: true, status: true }
-    });
-    for (const app of ownerApps) {
-      if (!latestOwnerAppByUserId.has(app.userId)) {
-        latestOwnerAppByUserId.set(app.userId, { id: app.id, status: app.status });
-      }
-    }
   } else if (activeSection === "owner-access") {
     const where = {
       role: "OWNER",
@@ -451,13 +293,13 @@ export default async function AdminDashboardPage({
   }
 
   return (
-    <div className="admin-page-root dashboard-skin space-y-12 pb-16 text-slate-100">
-      <header className="hidden border-b border-white/10 pb-8 lg:block">
+    <div className="dashboard-skin space-y-12 pb-16 text-slate-100">
+      <header className="border-b border-white/10 pb-8">
         <h1 className="text-3xl font-bold tracking-tight text-slate-100">{m(locale, "admin.pageTitle")}</h1>
         <p className="mt-2 max-w-2xl text-sm text-slate-300">{m(locale, "admin.pageSubtitle")}</p>
       </header>
 
-      <section className="hidden gap-4 lg:grid lg:grid-cols-3">
+      <section className="grid gap-4 md:grid-cols-3">
         <article className="glass-panel rounded-2xl p-5 shadow-sm">
           <h3 className="text-sm font-bold text-slate-100">{m(locale, "admin.guideOwnersTitle")}</h3>
           <p className="mt-2 text-sm text-slate-300">{m(locale, "admin.guideOwnersText")}</p>
@@ -472,16 +314,7 @@ export default async function AdminDashboardPage({
         </article>
       </section>
 
-      {activeSection === "dashboard" && mobileDashboardStats ? (
-        <AdminMobileDashboard
-          locale={locale}
-          stats={mobileDashboardStats}
-          quickActions={mobileQuickActions}
-          activity={mobileActivity}
-        />
-      ) : null}
-
-      {activeSection === "dashboard" && <section id="dashboard" className="scroll-mt-28 space-y-4 hidden lg:block">
+      {activeSection === "dashboard" && <section id="dashboard" className="scroll-mt-28 space-y-4">
         <div className="flex items-center gap-2">
           <span className="h-8 w-1 rounded-full bg-emerald-600" aria-hidden />
           <h2 className="text-lg font-bold text-slate-100">{m(locale, "admin.analytics")}</h2>
@@ -515,11 +348,11 @@ export default async function AdminDashboardPage({
         </div>
         {riskNotes.length > 0 && (
           <div className="glass-panel rounded-2xl p-5">
-            <h3 className="text-sm font-bold text-slate-100">{m(locale, "admin.riskHistoryTitle")}</h3>
+            <h3 className="text-sm font-bold text-slate-100">Risk history (auto flags)</h3>
             <ul className="mt-3 space-y-2 text-xs text-slate-200">
               {riskNotes.map((note) => (
                 <li key={note.id} className="rounded-lg border border-white/10 bg-white/5 px-3 py-2">
-                  {formatRiskNoteType(locale, note.type)} · {formatDateTimeShort(locale, note.createdAt)}
+                  {note.type} · {formatDateTimeShort(locale, note.createdAt)}
                 </li>
               ))}
             </ul>
@@ -680,19 +513,8 @@ export default async function AdminDashboardPage({
 
         <div className="glass-panel rounded-2xl p-6 shadow-sm">
           <div className="text-sm font-semibold text-slate-100">Юридические страницы</div>
-          <p className="mt-1 text-sm text-slate-300">
-            Редактирование «О нас», «Политики конфиденциальности» и «Условий».
-          </p>
+          <p className="mt-1 text-sm text-slate-300">Редактирование “Политики конфиденциальности” и “Условий”.</p>
           <form action="/api/admin/content/legal" method="post" className="mt-4 space-y-3">
-            <label className="text-sm text-slate-200">
-              О нас (текст)
-              <textarea
-                name="aboutText"
-                defaultValue={content!.legal.aboutText}
-                rows={8}
-                className="ds-input mt-1 h-auto w-full px-3 py-2.5"
-              />
-            </label>
             <label className="text-sm text-slate-200">
               Политика конфиденциальности (текст)
               <textarea
@@ -805,16 +627,6 @@ export default async function AdminDashboardPage({
         </div>
       </section>}
 
-      {activeSection === "property-types" && (
-        <section id="property-types" className="scroll-mt-28 space-y-4">
-          <div className="flex items-center gap-2">
-            <span className="h-8 w-1 rounded-full bg-amber-400" aria-hidden />
-            <h2 className="text-lg font-bold text-slate-100">{m(locale, "admin.propertyTypesSection")}</h2>
-          </div>
-          <PropertyTypesAdmin />
-        </section>
-      )}
-
       {activeSection === "applications" && <section id="applications" className="scroll-mt-28 space-y-4">
         <div className="flex items-center gap-2">
           <span className="h-8 w-1 rounded-full bg-amber-500" aria-hidden />
@@ -826,29 +638,26 @@ export default async function AdminDashboardPage({
           </p>
         ) : (
           <div className="grid gap-4 lg:grid-cols-2">
-            {ownerApplications.map((app) => {
-              const decrypted = decryptOwnerApplicationRow(app);
-              return (
+            {ownerApplications.map((app) => (
               <div
                 key={app.id}
                 className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm ring-1 ring-slate-100 transition-shadow hover:shadow-md"
               >
                 <div className="flex flex-wrap items-start justify-between gap-2">
-                  <div className="font-semibold text-slate-900">{decrypted.fullName}</div>
+                  <div className="font-semibold text-slate-900">{app.fullName}</div>
                   <StatusBadge variant="warning">{tStatus("PENDING")}</StatusBadge>
                 </div>
                 <div className="mt-2 text-sm text-slate-600">
-                  {decrypted.businessName} · {decrypted.phone} · {decrypted.email}
+                  {app.businessName} · {app.phone} · {app.email}
                 </div>
                 <div className="mt-1 text-xs text-slate-500">{m(locale, "admin.owner")}: {app.user.name} (id {app.userId})</div>
-                <div className="mt-3">
-                  <a
-                    className="text-sm font-medium text-emerald-700 underline underline-offset-2"
-                    href={`/dashboard/owner-requests/${app.id}`}
-                  >
-                    {m(locale, "admin.openApplication")}
-                  </a>
-                </div>
+                {app.documentUrl && (
+                  <div className="mt-3">
+                    <a className="text-sm font-medium text-emerald-700 underline underline-offset-2" href={app.documentUrl} target="_blank" rel="noreferrer">
+                      {m(locale, "admin.document")}
+                    </a>
+                  </div>
+                )}
                 <AdminOwnerApplicationActions
                   applicationId={app.id}
                   labels={{
@@ -863,8 +672,7 @@ export default async function AdminDashboardPage({
                   }}
                 />
               </div>
-            );
-            })}
+            ))}
           </div>
         )}
       </section>}
@@ -875,7 +683,7 @@ export default async function AdminDashboardPage({
           <h2 className="text-lg font-bold text-slate-900">{m(locale, "admin.moderateHotels")}</h2>
         </div>
         <DataToolbar
-          section={isModerationSection ? "moderation" : "hotels"}
+          section="hotels"
           submitLabel={m(locale, "search.search")}
           fields={[
             { kind: "search", name: "q", placeholder: m(locale, "admin.searchPlaceholder") },
@@ -928,45 +736,10 @@ export default async function AdminDashboardPage({
                     </span>
                   </div>
                   {risk.reasons.length > 0 && (
-                    <div className="mt-2 text-xs text-slate-500">
-                      {m(locale, "admin.riskSignals")}: {risk.reasons.join(", ")}
-                    </div>
+                    <div className="mt-2 text-xs text-slate-500">Signals: {risk.reasons.join(", ")}</div>
                   )}
-                  {risk.level === "HIGH" && (
-                    <div className="mt-1 text-xs font-semibold text-red-600">{m(locale, "admin.riskAutoFlag")}</div>
-                  )}
+                  {risk.level === "HIGH" && <div className="mt-1 text-xs font-semibold text-red-600">AUTO FLAGGED FOR MANUAL REVIEW</div>}
                 </div>
-              </div>
-              <AdminHotelModerationActions
-                hotelId={hotel.id}
-                hotelName={hotel.name}
-                city={hotel.city}
-                address={hotel.address}
-                description={hotel.description}
-                propertyType={hotel.propertyType?.nameRu ?? hotel.propertyType?.code ?? "—"}
-                status={hotel.status}
-                createdAt={hotel.createdAt.toISOString()}
-                coverImageUrl={hotel.coverImageUrl}
-                photos={hotel.photos ?? []}
-                owner={{
-                  name: hotel.owner.name,
-                  email: hotel.owner.email,
-                  phone: hotel.owner.phone
-                }}
-                labels={{
-                  approve: m(locale, "admin.approve"),
-                  reject: m(locale, "admin.reject"),
-                  rejectReason: m(locale, "admin.rejectReason"),
-                  confirmApproveTitle: m(locale, "admin.confirmApproveTitle"),
-                  confirmApproveDesc: m(locale, "admin.confirmApproveDesc"),
-                  confirmApproveCta: m(locale, "admin.confirmApproveCta"),
-                  cancel: m(locale, "admin.cancel"),
-                  processing: m(locale, "admin.processing"),
-                  submittedAt: m(locale, "admin.submittedAt"),
-                  host: m(locale, "admin.hostLabel")
-                }}
-              />
-              <div className="mt-3 border-t border-slate-100 pt-3">
                 <form action="/api/admin/hotels/moderate" method="post" className="flex flex-col gap-2 sm:flex-row sm:items-center">
                   <input type="hidden" name="id" value={hotel.id} />
                   <select name="status" defaultValue={hotel.status} className="rounded-xl border border-slate-200 px-3 py-2 text-sm">
@@ -974,8 +747,8 @@ export default async function AdminDashboardPage({
                     <option value="APPROVED">{tStatus("APPROVED")}</option>
                     <option value="REJECTED">{tStatus("REJECTED")}</option>
                   </select>
-                  <button className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700">
-                    {m(locale, "admin.saveStatus")}
+                  <button className="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white">
+                    {m(locale, "admin.save")}
                   </button>
                 </form>
               </div>
@@ -1012,68 +785,23 @@ export default async function AdminDashboardPage({
           ]}
         />
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="hidden grid-cols-[1.2fr_1fr_1fr_1.1fr_1.2fr] gap-4 border-b border-slate-100 bg-slate-50/80 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 lg:grid">
-            <div>{m(locale, "admin.userName")}</div>
+          <div className="hidden grid-cols-[1.2fr_1fr_1fr_1.4fr] gap-4 border-b border-slate-100 bg-slate-50/80 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 md:grid">
+            <div>{m(locale, "admin.name")}</div>
             <div>{m(locale, "profile.email")}</div>
             <div>{m(locale, "profile.phone")}</div>
-            <div>{m(locale, "admin.userDevice")}</div>
             <div>{m(locale, "admin.management")}</div>
           </div>
           <ul className="divide-y divide-slate-100">
-            {users.map((u) => {
-              const displayName = formatUserDisplayName(u);
-              const session = userLastSessions.get(u.id);
-              const ownerApp = latestOwnerAppByUserId.get(u.id);
-              return (
+            {users.map((u) => (
               <li key={u.id} className="px-4 py-4 transition-colors hover:bg-slate-50/80 md:px-5">
-                <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr_1fr_1.1fr_1.2fr] lg:items-start">
+                <div className="grid gap-4 md:grid-cols-[1.2fr_1fr_1fr_1.4fr] md:items-center">
                   <div className="flex flex-wrap items-center gap-2">
-                    <div className="min-w-0">
-                      <span className="font-medium text-slate-900">{displayName}</span>
-                      {displayName !== u.name && u.name?.trim() ? (
-                        <div className="text-xs text-slate-500">{u.name}</div>
-                      ) : null}
-                    </div>
+                    <span className="font-medium text-slate-900">{u.name}</span>
                     <StatusBadge variant={roleVariant(u.role)}>{tRole(u.role)}</StatusBadge>
                     {u.isBanned && <StatusBadge variant="danger">{m(locale, "admin.ban")}</StatusBadge>}
-                    {ownerApp ? (
-                      <AdminUserVerifyDocumentsButton
-                        locale={locale}
-                        applicationId={ownerApp.id}
-                        applicationStatus={ownerApp.status}
-                      />
-                    ) : null}
                   </div>
-                  <div className="text-sm text-slate-600">
-                    <span className="font-medium text-slate-400 lg:hidden">{m(locale, "profile.email")}: </span>
-                    {u.email ?? "—"}
-                  </div>
-                  <div className="text-sm text-slate-600">
-                    <span className="font-medium text-slate-400 lg:hidden">{m(locale, "profile.phone")}: </span>
-                    {u.phone}
-                  </div>
-                  <div className="text-sm text-slate-600">
-                    <span className="font-medium text-slate-400 lg:hidden">{m(locale, "admin.userDevice")}: </span>
-                    {session ? (
-                      <>
-                        <div>{userAgentLabel(session.userAgent)}</div>
-                        <div className="text-xs text-slate-500">
-                          {[session.ip, session.city, session.countryCode].filter(Boolean).join(" · ") || "—"}
-                        </div>
-                        {session.systemLanguage || (session.screenWidth && session.screenHeight) ? (
-                          <div className="text-xs text-slate-500">
-                            {session.systemLanguage ?? "—"}
-                            {session.screenWidth && session.screenHeight
-                              ? ` · ${session.screenWidth}×${session.screenHeight}`
-                              : ""}
-                          </div>
-                        ) : null}
-                        <div className="text-xs text-slate-400">{formatDateTimeShort(locale, session.at)}</div>
-                      </>
-                    ) : (
-                      <span className="text-slate-400">{m(locale, "admin.noDeviceData")}</span>
-                    )}
-                  </div>
+                  <div className="text-sm text-slate-600">{u.email ?? "—"}</div>
+                  <div className="text-sm text-slate-600">{u.phone}</div>
                   <div>
                     <form action="/api/admin/users/update" method="post" className="flex flex-wrap items-center gap-2">
                       <input type="hidden" name="id" value={u.id} />
@@ -1093,8 +821,7 @@ export default async function AdminDashboardPage({
                   </div>
                 </div>
               </li>
-            );
-            })}
+            ))}
           </ul>
         </div>
         {!users.length && <EmptyState title={m(locale, "admin.emptyResults")} description={m(locale, "admin.emptyResultsHint")} />}
@@ -1225,7 +952,7 @@ export default async function AdminDashboardPage({
                   {b.room.hotel.name} · {b.checkIn.toISOString().slice(0, 10)} — {b.checkOut.toISOString().slice(0, 10)} · {b.phone}
                 </span>
                 <span className="flex items-center gap-2">
-                  <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">{m(locale, "admin.timer")}</span>
+                  <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Таймер</span>
                   <AdminBookingPayCountdown
                     expiresAtIso={b.expiresAt ? b.expiresAt.toISOString() : null}
                     active={b.status === "WAITING_PAYMENT" || b.status === "WAIT_PROOF"}
@@ -1235,22 +962,20 @@ export default async function AdminDashboardPage({
               <div className="mt-1 text-sm font-medium text-slate-800">
                 {Number(b.totalPrice)} TJS · {m(locale, "admin.commission")} {Number(b.commission)} TJS
               </div>
-              <div className="mt-1 text-xs text-slate-500">
-                {m(locale, "admin.escrow")}: {tStatus(deriveEscrowState({ status: b.status, paymentStatus: b.paymentStatus }))}
-              </div>
+              <div className="mt-1 text-xs text-slate-500">Escrow: {deriveEscrowState({ status: b.status, paymentStatus: b.paymentStatus })}</div>
               <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-4">
                 <Link
                   href={`/chat/booking/${b.id}`}
                   className="inline-flex items-center rounded-xl bg-teal-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-500"
                 >
-                  {m(locale, "admin.openChat")}
+                  Открыть чат
                 </Link>
                 {b.publicCode ? (
                   <Link
                     href={`/payment/${encodeURIComponent(b.publicCode)}`}
                     className="inline-flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50"
                   >
-                    {m(locale, "admin.paymentPage")}
+                    Страница оплаты
                   </Link>
                 ) : null}
               </div>
@@ -1451,27 +1176,6 @@ export default async function AdminDashboardPage({
         {!complaints.length && <EmptyState title={m(locale, "admin.complaintsEmpty")} />}
         <Pagination page={page} totalPages={totalPages} />
       </section>}
-
-      {activeSection === "property-types" && (
-        <section id="property-types" className="scroll-mt-28 space-y-4">
-          <div className="flex items-center gap-2">
-            <span className="h-8 w-1 rounded-full bg-teal-500" aria-hidden />
-            <h2 className="text-lg font-bold text-slate-900">{m(locale, "admin.propertyTypesSection")}</h2>
-          </div>
-          <AdminPropertyTypesPanel />
-        </section>
-      )}
-
-      {activeSection === "archive" && (
-        <section id="archive" className="scroll-mt-28 space-y-4">
-          <div className="flex items-center gap-2">
-            <span className="h-8 w-1 rounded-full bg-violet-400" aria-hidden />
-            <h2 className="text-lg font-bold text-slate-100">{m(locale, "chatArchive.title")}</h2>
-          </div>
-          <p className="text-sm text-slate-400">{m(locale, "chatArchive.subtitle")}</p>
-          <ChatArchiveClient locale={locale} />
-        </section>
-      )}
     </div>
   );
 }

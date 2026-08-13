@@ -21,9 +21,9 @@ type Stat = {
 export function ProfileStatsGrid({ locale, favorites, bookings, reviews, trips }: Props) {
   const stats: Stat[] = [
     { href: "/favorites", icon: Heart, label: m(locale, "profile.statFavorites"), value: favorites },
-    { href: "/dashboard/bookings", icon: ClipboardList, label: m(locale, "profile.statBookings"), value: bookings },
+    { href: "/history", icon: ClipboardList, label: m(locale, "profile.statBookings"), value: bookings },
     { href: "/profile/personal#reviews", icon: Star, label: m(locale, "profile.statReviews"), value: reviews },
-    { href: "/dashboard/bookings?tab=active", icon: Luggage, label: m(locale, "profile.statTrips"), value: trips }
+    { href: "/history?tab=confirmed", icon: Luggage, label: m(locale, "profile.statTrips"), value: trips }
   ];
 
   return (

@@ -1,24 +1,11 @@
-import { t } from "@/lib/i18n/dictionaries";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
 
-type Props = {
-  locale: Locale;
-};
-
-export function HomeHeroMobile({ locale }: Props) {
-  const subtitle = t(locale, "heroSubtitle");
+export function HomeHeroMobile({ locale }: { locale: Locale }) {
   return (
     <header className="home-hero-mobile md:hidden">
-      {m(locale, "home.heroBadge").trim() ? (
-        <div className="home-hero-mobile__badge home-hero-badge">{m(locale, "home.heroBadge")}</div>
-      ) : null}
-      <h1 className="home-hero-mobile__title home-hero-title w-full max-w-md text-2xl font-bold leading-tight text-balance sm:text-3xl">
-        {t(locale, "heroTitle")}
-      </h1>
-      {subtitle.trim() ? (
-        <p className="home-hero-mobile__trust home-hero-trust-compact">{subtitle}</p>
-      ) : null}
+      <h1 className="home-hero-mobile__title">{m(locale, "home.heroTitle")}</h1>
+      <p className="home-hero-mobile__subtitle">{m(locale, "home.mobileSubtitle")}</p>
     </header>
   );
 }

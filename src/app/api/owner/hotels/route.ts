@@ -8,11 +8,10 @@ import { savePublicImageFile } from "@/lib/uploads/savePublicImage";
 import { ImageUploadError } from "@/lib/uploads/imageUploadError";
 import { agentLog } from "@/lib/debug/agentLog";
 import { getPublicOriginFromRequest } from "@/lib/http/publicOrigin";
-import { createNotification } from "@/lib/notifications/create";
-import { sendHotelPendingAdminEmail } from "@/lib/email/hotelModerationEmails";
-import { resolvePropertyTypeId } from "@/lib/propertyTypes/seed";
 
 export const runtime = "nodejs";
+
+const PROPERTY_TYPES = new Set(["HOTEL", "HOSTEL", "GUESTHOUSE", "APARTMENT", "ECO"]);
 const DEFAULT_LAT = 38.5598;
 const DEFAULT_LNG = 68.787;
 
@@ -60,7 +59,7 @@ function uploadErrorCode(err: ImageUploadError): string {
   }
 }
 
-/** Создание объекта владельцем — отправляется на модерацию (PENDING). */
+/** Создание объекта владельцем после одобрения заявки — без повторной модерации админом. */
 export async function POST(req: NextRequest) {
   try {
     const owner = await getOwnerUser();
@@ -86,19 +85,13 @@ export async function POST(req: NextRequest) {
     const description = String(form.get("description") ?? "").trim();
     const latitude = parseCoord(form.get("latitude")) ?? DEFAULT_LAT;
     const longitude = parseCoord(form.get("longitude")) ?? DEFAULT_LNG;
-    const propertyTypeId = String(form.get("propertyTypeId") ?? "").trim();
-    const propertyTypeLegacy = String(form.get("propertyType") ?? "").trim();
+    const propertyType = String(form.get("propertyType") ?? "HOTEL");
     const coverFile = form.get("coverFile");
 
     if (!name || !city || !address || !description) {
       return redirectBack(req, "hotel");
     }
-
-    const typeRow = await resolvePropertyTypeId({
-      propertyTypeId: propertyTypeId || null,
-      propertyTypeCode: propertyTypeLegacy || "HOTEL"
-    });
-    if (!typeRow) {
+    if (!PROPERTY_TYPES.has(propertyType)) {
       return redirectBack(req, "hotel");
     }
 
@@ -130,26 +123,10 @@ export async function POST(req: NextRequest) {
         description,
         latitude,
         longitude,
-        propertyTypeId: typeRow.id,
-        propertyType: typeRow.code,
+        propertyType,
         coverImageUrl,
-        status: "PENDING"
+        status: "APPROVED"
       }
-    });
-
-    await createNotification({
-      userId: owner.id,
-      type: "HOTEL_PENDING_REVIEW",
-      message: "Ваш объект принят на проверку. Обычно это занимает до 24 часов.",
-      link: "/dashboard/owner?section=properties"
-    });
-
-    await sendHotelPendingAdminEmail({
-      ownerName: owner.name,
-      ownerEmail: owner.email,
-      hotelName: hotel.name,
-      hotelAddress: hotel.address,
-      hotelId: hotel.id
     });
 
     // #region agent log

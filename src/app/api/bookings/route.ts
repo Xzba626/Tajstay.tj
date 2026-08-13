@@ -12,8 +12,6 @@ import { normalizePhone } from "@/lib/validation/phone";
 import { publicUrl } from "@/lib/http/publicOrigin";
 import { isPlaceholderAccountPhone } from "@/lib/auth/accountPhone";
 import { initializeBookingChatRoom } from "@/lib/chat/initializeBookingChat";
-import { notifyNewBookingRequest } from "@/lib/notifications/bookingChatNotify";
-import { dispatchBookingCreatedEmails } from "@/lib/email/bookingEmailDispatch";
 
 function bookingFormRedirect(
   req: NextRequest,
@@ -192,20 +190,19 @@ export async function POST(req: NextRequest) {
         ? await prisma.roomType.findUnique({ where: { id: resolvedRoomTypeId }, include: { hotel: true } })
         : null;
 
-    if (ownerTarget && "hotel" in ownerTarget) {
-      const guestLabel = guestName?.trim() || phone || "Гость";
-      await notifyNewBookingRequest({
-        bookingId: booking.id,
-        ownerId: ownerTarget.hotel.ownerId,
-        hotelId: ownerTarget.hotel.id,
-        hotelName: ownerTarget.hotel.name,
-        guestLabel
+    const ownerId =
+      ownerTarget && "hotel" in ownerTarget ? ownerTarget.hotel.ownerId : null;
+
+    if (ownerId) {
+      await prisma.notification.create({
+        data: {
+          userId: ownerId,
+          bookingId: booking.id,
+          type: "NEW_BOOKING",
+          isRead: false
+        }
       });
     }
-
-    void dispatchBookingCreatedEmails(booking.id).catch((e) => {
-      console.error("[bookings] booking created emails failed", booking.id, e);
-    });
 
     try {
       const chatInit = await initializeBookingChatRoom(booking.id);
@@ -255,13 +252,7 @@ export async function POST(req: NextRequest) {
     return response;
   } catch (err: unknown) {
     const code = bookingErrorCode(err);
-    const status = code === "unavailable" ? 409 : 500;
-    if (wantsJson) {
-      return NextResponse.json(
-        { error: code, message: "Номер недоступен на выбранные даты. Выберите другие дни." },
-        { status }
-      );
-    }
+    if (wantsJson) return NextResponse.json({ error: code }, { status: 500 });
     return bookingFormRedirect(req, { roomId, checkIn: checkInRaw, checkOut: checkOutRaw, code });
   }
 }

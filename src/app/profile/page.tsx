@@ -2,9 +2,9 @@ import { requireUser } from "@/lib/auth/requireAuth";
 import { prisma } from "@/lib/prisma";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
-import { ProfileHubView } from "@/components/profile/ProfileHubView";
+import { ProfileMockupView } from "@/components/profile/ProfileMockupView";
 import { PageContainer } from "@/components/ds";
-import { getOwnerApplicationNavState } from "@/lib/navigation/getNavContext";
+import { getUnreadNotificationsCount } from "@/lib/notifications/unread";
 
 export const dynamic = "force-dynamic";
 
@@ -13,28 +13,39 @@ export default async function ProfilePage() {
   const user = await requireUser(["GUEST", "OWNER", "ADMIN"]);
   if (!user) {
     return (
-      <PageContainer width="narrow" className="mockup-screen">
-        <h1 className="mockup-screen__title">{m(locale, "profile.title")}</h1>
-        <p className="mockup-screen__subtitle">{m(locale, "profile.signInPrompt")}</p>
-        <a className="btn-primary mt-4 inline-flex !w-auto px-6" href="/auth/sign-in">
-          {m(locale, "profile.signInCta")}
-        </a>
+      <PageContainer width="default" className="pb-10">
+        <div className="profile-center">
+          <h1 className="profile-center__title">{m(locale, "profile.title")}</h1>
+          <p className="text-[var(--text-secondary)]">{m(locale, "profile.signInPrompt")}</p>
+          <a className="btn-primary mt-4 inline-flex !w-auto px-6" href="/auth/sign-in?next=/profile">
+            {m(locale, "profile.signInCta")}
+          </a>
+        </div>
       </PageContainer>
     );
   }
 
-  const full = await prisma.user.findUnique({
-    where: { id: user.id },
-    include: { bookings: true, favorites: true }
-  });
+  const [full, unreadNotifications] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: user.id },
+      include: {
+        bookings: true,
+        favorites: true
+      }
+    }),
+    getUnreadNotificationsCount(user.id)
+  ]);
 
   if (!full) return null;
 
-  const ownerNav = await getOwnerApplicationNavState(full);
-
   return (
-    <PageContainer width="narrow" className="profile-hub-page pb-6">
-      <ProfileHubView locale={locale} user={full} ownerNav={ownerNav} logoutLabel={m(locale, "userMenu.logout")} />
+    <PageContainer width="default" className="pb-10">
+      <ProfileMockupView
+        locale={locale}
+        user={full}
+        logoutLabel={m(locale, "userMenu.logout")}
+        unreadNotifications={unreadNotifications}
+      />
     </PageContainer>
   );
 }

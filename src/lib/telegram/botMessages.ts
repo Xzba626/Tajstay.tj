@@ -20,9 +20,6 @@ const MESSAGES: Record<
     cooldown: string;
     phoneRequired: string;
     openSiteToSignIn: string;
-    changeTelegramCode: (code: string) => string;
-    changeTelegramOpenProfile: string;
-    telegramAccountTaken: string;
   }
 > = {
   ru: {
@@ -37,13 +34,7 @@ const MESSAGES: Record<
     cooldown: "Подождите минуту перед повторной отправкой кода.",
     phoneRequired: "Пожалуйста, нажмите кнопку «Отправить номер телефона».",
     openSiteToSignIn:
-      "Откройте <b>TajStay</b> и нажмите «Войти через Telegram».\n\n<a href=\"https://www.tajstay.site/auth/sign-in\">tajstay.site/auth/sign-in</a>",
-    changeTelegramCode: (code) =>
-      `Код для смены Telegram в TajStay: <code>${code}</code>\n\nВведите его в профиле на сайте (10 минут).`,
-    changeTelegramOpenProfile:
-      "Откройте профиль на <b>TajStay</b> → Аккаунт → Telegram → «Открыть Telegram».",
-    telegramAccountTaken:
-      "Этот Telegram уже привязан к другому аккаунту TajStay. Войдите в тот аккаунт или отвяжите Telegram там."
+      "Откройте <b>TajStay</b> и нажмите «Войти через Telegram».\n\n<a href=\"https://www.tajstay.site/auth/sign-in\">tajstay.site/auth/sign-in</a>"
   },
   tg: {
     startWelcome:
@@ -57,13 +48,7 @@ const MESSAGES: Record<
     cooldown: "Пеш аз фиристодани дубораи рамз 1 дақиқа интизор шавед.",
     phoneRequired: "Лутфан тугмаи «Фиристодани рақами телефон»-ро пахш кунед.",
     openSiteToSignIn:
-      "<b>TajStay</b>-ро кушоед ва «Ворид шудан бо Telegram»-ро пахш кунед.\n\n<a href=\"https://www.tajstay.site/auth/sign-in\">tajstay.site/auth/sign-in</a>",
-    changeTelegramCode: (code) =>
-      `Рамзи тағйири Telegram дар TajStay: <code>${code}</code>\n\nДар профили сомона ворид кунед (10 дақиқа).`,
-    changeTelegramOpenProfile:
-      "Профили TajStay → Ҳисоб → Telegram → «Кушодани Telegram».",
-    telegramAccountTaken:
-      "Ин Telegram аллакай ба ҳисоби дигари TajStay пайваст аст."
+      "<b>TajStay</b>-ро кушоед ва «Ворид шудан бо Telegram»-ро пахш кунед.\n\n<a href=\"https://www.tajstay.site/auth/sign-in\">tajstay.site/auth/sign-in</a>"
   },
   en: {
     startWelcome:
@@ -77,13 +62,7 @@ const MESSAGES: Record<
     cooldown: "Please wait 60 seconds before requesting a new code.",
     phoneRequired: "Please tap “Share phone number”.",
     openSiteToSignIn:
-      "Open <b>TajStay</b> and tap “Sign in with Telegram”.\n\n<a href=\"https://www.tajstay.site/auth/sign-in\">tajstay.site/auth/sign-in</a>",
-    changeTelegramCode: (code) =>
-      `Your TajStay Telegram change code: <code>${code}</code>\n\nEnter it in your profile on the website (10 minutes).`,
-    changeTelegramOpenProfile:
-      "Open <b>TajStay</b> profile → Account → Telegram → “Open Telegram”.",
-    telegramAccountTaken:
-      "This Telegram account is already linked to another TajStay account."
+      "Open <b>TajStay</b> and tap “Sign in with Telegram”.\n\n<a href=\"https://www.tajstay.site/auth/sign-in\">tajstay.site/auth/sign-in</a>"
   }
 };
 

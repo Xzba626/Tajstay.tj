@@ -3,7 +3,6 @@ import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
 import { RoomPhotoCarousel } from "@/components/RoomPhotoCarousel";
 import { parseAmenitiesJson } from "@/lib/pms/amenities";
-import { getAmenityLabel } from "@/lib/pms/amenityLabels";
 
 type RoomTypeRow = {
   id: number;
@@ -44,45 +43,40 @@ export function RoomTypeCards({
         return (
           <div
             key={rt.id}
-            className="flex flex-col gap-4 rounded-xl border border-[var(--taj-line)] bg-[var(--taj-snow)] p-4 shadow-[var(--taj-shadow-sm)] transition sm:flex-row sm:items-stretch"
+            className="glass-panel flex flex-col gap-4 rounded-xl p-4 transition sm:flex-row sm:items-stretch"
           >
             <div className="w-full shrink-0 sm:max-w-xs sm:min-w-[280px]">
-              <RoomPhotoCarousel urls={photos} title={rt.name} variant="light" />
+              <RoomPhotoCarousel urls={photos} title={rt.name} variant="dark" />
             </div>
             <div className="flex min-w-0 flex-1 flex-col justify-between gap-3">
               <div>
-                <div className="font-semibold text-[var(--taj-ink)]">{rt.name}</div>
-                {rt.description ? (
-                  <p className="mt-1 text-sm text-[var(--taj-ink-soft)]">{rt.description}</p>
-                ) : null}
-                <div className="mt-2 text-sm text-[var(--taj-ink-soft)]">
+                <div className="font-semibold text-white">{rt.name}</div>
+                {rt.description ? <p className="mt-1 text-sm text-brand-200">{rt.description}</p> : null}
+                <div className="mt-2 text-sm text-brand-200">
                   {m(locale, "owner.capacity")}: {rt.maxGuests} · {m(locale, "pms.beds")}: {rt.bedsCount}
                 </div>
                 {amenities.length ? (
-                  <div className="mt-3 flex flex-wrap gap-2">
+                  <div className="mt-2 flex flex-wrap gap-1">
                     {amenities.map((a) => (
-                      <span
-                        key={a}
-                        className="rounded-full border border-[var(--taj-line)] bg-[var(--taj-mist)] px-3 py-1.5 text-sm text-[var(--taj-ink-soft)]"
-                      >
-                        {getAmenityLabel(locale, a)}
+                      <span key={a} className="rounded-full border border-brand-700 px-2 py-0.5 text-[11px] text-brand-200">
+                        {a}
                       </span>
                     ))}
                   </div>
                 ) : null}
                 {roomsLeft > 0 ? (
-                  <p className="mt-2 text-xs text-[var(--taj-lake)]">
+                  <p className="mt-2 text-xs text-emerald-300">
                     {m(locale, "pms.roomsLeft", { count: String(roomsLeft) })}
                   </p>
                 ) : null}
               </div>
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="font-semibold text-[var(--taj-ink)]">
+                <div className="font-semibold text-white">
                   {m(locale, "search.fromPrice")} {Number(rt.basePrice)} TJS
                 </div>
                 <Link
                   href={`/booking?roomTypeId=${rt.id}${qs}`}
-                  className="taj-btn taj-btn--primary taj-btn--sm"
+                  className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white"
                 >
                   {m(locale, "search.bookNow")}
                 </Link>

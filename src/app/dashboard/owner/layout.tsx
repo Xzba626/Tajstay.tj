@@ -1,21 +1,11 @@
 import type { ReactNode } from "react";
-import { OwnerSidebar, type OwnerSidebarLabels } from "@/components/dashboard/OwnerSidebar";
+import { OwnerMobileNav, OwnerSidebar, type OwnerSidebarLabels } from "@/components/dashboard/OwnerSidebar";
 import { DashboardShell } from "@/components/ds";
-import { OwnerMobileShell, type OwnerMobileShellLabels } from "@/components/owner/mobile/OwnerMobileShell";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
-import { requireOwner } from "@/lib/auth/requireOwner";
-import { getUnreadNotificationsCount } from "@/lib/notifications/unread";
-import { resolveUserNames } from "@/lib/profile/userName";
-import { getSiteContent } from "@/lib/site-content";
 
-export default async function OwnerDashboardLayout({ children }: { children: ReactNode }) {
+export default function OwnerDashboardLayout({ children }: { children: ReactNode }) {
   const locale = getLocale();
-  const content = await getSiteContent();
-  const owner = await requireOwner();
-  const { fullName } = resolveUserNames(owner);
-  const unreadNotifications = await getUnreadNotificationsCount(owner.id);
-
   const labels: OwnerSidebarLabels = {
     sectionTitle: m(locale, "roles.OWNER"),
     navLabel: m(locale, "owner.mobileNav"),
@@ -25,7 +15,6 @@ export default async function OwnerDashboardLayout({ children }: { children: Rea
       overview: m(locale, "owner.navOverview"),
       properties: m(locale, "owner.navProperties"),
       rooms: m(locale, "owner.navRooms"),
-      personnel: m(locale, "owner.navPersonnel"),
       bookings: m(locale, "owner.navBookings"),
       offlineBookings: m(locale, "owner.navOfflineBookings"),
       calendar: m(locale, "owner.navCalendar"),
@@ -38,33 +27,9 @@ export default async function OwnerDashboardLayout({ children }: { children: Rea
     }
   };
 
-  const mobileLabels: OwnerMobileShellLabels = {
-    items: labels.items,
-    tabs: {
-      home: m(locale, "owner.mobileTabHome"),
-      properties: m(locale, "owner.mobileTabProperties"),
-      bookings: m(locale, "owner.mobileTabBookings"),
-      calendar: m(locale, "owner.mobileTabCalendar"),
-      menu: m(locale, "owner.mobileTabMenu")
-    },
-    drawerTitle: m(locale, "roles.OWNER"),
-    profile: m(locale, "userMenu.profile"),
-    logout: m(locale, "userMenu.logout")
-  };
-
   return (
-    <DashboardShell sidebar={<OwnerSidebar labels={labels} />} mobileNav={null}>
-      <OwnerMobileShell
-        locale={locale}
-        labels={mobileLabels}
-        brandName={content.brand.siteName}
-        brandMarkUrl={content.brand.logoMarkUrl}
-        ownerName={fullName}
-        ownerImage={owner.image ?? owner.telegramPhotoUrl}
-        unreadNotifications={unreadNotifications}
-      >
-        {children}
-      </OwnerMobileShell>
+    <DashboardShell sidebar={<OwnerSidebar labels={labels} />} mobileNav={<OwnerMobileNav labels={labels} />}>
+      {children}
     </DashboardShell>
   );
 }

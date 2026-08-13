@@ -9,17 +9,11 @@ export const dynamic = "force-dynamic";
 
 export default async function DashboardMessagesPage() {
   const locale = getLocale();
-  const user = await requireUser(["GUEST", "OWNER", "ADMIN", "HOTEL_MODERATOR"]);
+  const user = await requireUser(["GUEST", "OWNER", "ADMIN"]);
   if (!user) redirect("/auth/sign-in?next=/dashboard/messages");
 
   const backHref =
-    user.role === "OWNER"
-      ? "/dashboard/owner"
-      : user.role === "HOTEL_MODERATOR"
-        ? "/dashboard/moderator"
-        : user.role === "ADMIN"
-          ? "/dashboard/admin"
-          : "/dashboard/bookings";
+    user.role === "OWNER" ? "/dashboard/owner" : user.role === "ADMIN" ? "/dashboard/admin" : "/dashboard/bookings";
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-[var(--brand-bg)]">

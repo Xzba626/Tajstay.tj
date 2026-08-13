@@ -11,7 +11,8 @@ import { m } from "@/lib/i18n/messages";
 import { getUserTrustBadges } from "@/lib/auth/trustBadges";
 import { bookingHotel, bookingRoomTitle } from "@/lib/pms/bookingContext";
 import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
-import { canAccessBookingChat } from "@/lib/chat/bookingAccess";
+import { canLeaveReview } from "@/lib/trips/historyRecord";
+import { tripsHubPath } from "@/lib/trips/urls";
 
 export const dynamic = "force-dynamic";
 
@@ -20,10 +21,10 @@ export default async function BookingChatPage({
   searchParams
 }: {
   params: { bookingId: string };
-  searchParams?: { proofSent?: string };
+  searchParams?: { proofSent?: string; review?: string };
 }) {
   const locale = getLocale();
-  const user = await requireUser(["GUEST", "OWNER", "ADMIN", "HOTEL_MODERATOR"]);
+  const user = await requireUser(["GUEST", "OWNER", "ADMIN"]);
   if (!user) notFound();
 
   const bookingId = Number(params.bookingId || "");
@@ -35,18 +36,18 @@ export default async function BookingChatPage({
       ...bookingWithHotelInclude,
       room: { include: { hotel: { include: { owner: true } } } },
       payment: true,
-      user: true
+      user: true,
+      review: true
     }
   });
-  if (!booking || !(await canAccessBookingChat(booking, user))) notFound();
+  if (!booking) notFound();
 
   const hotel = bookingHotel(booking);
   const isGuest = booking.userId === user.id;
   const guestLabel = getBookingGuestLabel(booking);
   const isOwner = hotel.ownerId === user.id;
-  const isModerator = user.role === "HOTEL_MODERATOR";
   const isAdmin = user.role === "ADMIN";
-  const isHostSide = isOwner || isModerator || isAdmin;
+  if (!isGuest && !isOwner && !isAdmin) notFound();
 
   if (isOwner && (booking.status === "WAITING_PAYMENT" || booking.status === "WAIT_PROOF")) {
     return (
@@ -59,7 +60,7 @@ export default async function BookingChatPage({
     );
   }
 
-  const backHref = isAdmin || isGuest ? "/dashboard/bookings" : isModerator ? "/dashboard/messages" : "/dashboard/owner";
+  const backHref = isAdmin || isGuest ? tripsHubPath("all") : "/dashboard/owner";
   const title =
     user.role === "ADMIN"
       ? m(locale, "bookingRoom.titleAdmin")
@@ -68,12 +69,14 @@ export default async function BookingChatPage({
         : m(locale, "bookingRoom.titleOwner");
 
   const [paymentMethods, timeline, proofMeta] = await Promise.all([
-    isHostSide && !isModerator ? getOwnerPaymentMethods(hotel.ownerId) : Promise.resolve([]),
+    getOwnerPaymentMethods(hotel.ownerId),
     getBookingTimeline(bookingId),
     getProofMetaFromLogs(bookingId)
   ]);
 
   const proofSent = searchParams?.proofSent === "1";
+  const focusReview = (searchParams?.review ?? "").trim() === "1";
+  const eligibleForReview = isGuest && canLeaveReview(booking);
 
   const counterpartUser = isGuest ? booking.room?.hotel?.owner : booking.user;
   const counterpartTrustBadges = counterpartUser ? getUserTrustBadges(counterpartUser) : [];
@@ -83,7 +86,7 @@ export default async function BookingChatPage({
       locale={locale}
       bookingId={bookingId}
       currentUserId={user.id}
-      currentUserRole={user.role as "GUEST" | "OWNER" | "ADMIN" | "HOTEL_MODERATOR"}
+      currentUserRole={user.role as "GUEST" | "OWNER" | "ADMIN"}
       isGuest={isGuest}
       backHref={backHref}
       title={title}
@@ -116,6 +119,13 @@ export default async function BookingChatPage({
       proofAmount={proofMeta.proofAmount}
       proofComment={proofMeta.proofComment}
       counterpartTrustBadges={counterpartTrustBadges}
+      eligibleForReview={eligibleForReview}
+      focusReview={focusReview}
+      existingReview={
+        booking.review
+          ? { rating: booking.review.rating, comment: booking.review.comment, reply: booking.review.reply }
+          : null
+      }
     />
   );
 }

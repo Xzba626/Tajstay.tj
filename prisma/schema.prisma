@@ -2,22 +2,16 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// DATABASE_URL — pooled Neon URL for the app at runtime (?sslmode=require).
-// DIRECT_URL — non-pooler host for prisma migrate (advisory locks fail through pooler).
+// DATABASE_URL must be PostgreSQL, e.g. postgresql://user:pass@host:5432/db?schema=public
 // If Prisma says "URL must start with file:" your generated client still matches sqlite — run: npx prisma generate
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
   id        Int      @id @default(autoincrement())
   name      String
-  firstName String?
-  lastName  String?
-  preferredCurrency String?
-  preferredTheme    String   @default("system")
   phone     String   @unique
   email     String?  @unique
   emailVerified DateTime?
@@ -43,9 +37,8 @@ model User {
   reviewedBookings    Booking[]           @relation("BookingProofReviewedBy")
   notes               Notification[]      @relation("UserNotifications")
   sessions            Session[]
-  passwordResetTokens       PasswordResetToken[]
-  emailVerificationTokens   EmailVerificationToken[]
-  emailOtps                 EmailOtp[]
+  passwordResetTokens PasswordResetToken[]
+  emailOtps           EmailOtp[]
   favorites           Favorite[]
   complaints          Complaint[]
   accounts            Account[]
@@ -59,25 +52,6 @@ model User {
   disputesOpened      Dispute[]           @relation("DisputesOpened")
   disputesAgainst     Dispute[]           @relation("DisputesAgainst")
   pushSubscriptions   PushSubscription[]
-  telegramChangeRequests TelegramChangeRequest[]
-  deviceSessions      UserDeviceSession[]
-  paymentApprovedBookings Booking[] @relation("BookingPaymentApprovedBy")
-  hotelModeratorAssignments HotelModerator[] @relation("HotelModeratorUser")
-  hotelModeratorsAssigned   HotelModerator[] @relation("HotelModeratorAssignedBy")
-}
-
-model PropertyType {
-  id        String   @id @default(cuid())
-  /// Stable slug for search filters and legacy mapping (HOTEL, APARTMENT, …)
-  code      String   @unique
-  nameRu    String
-  nameTg    String
-  nameEn    String
-  icon      String?
-  isActive  Boolean  @default(true)
-  sortOrder Int      @default(0)
-  createdAt DateTime @default(now())
-  hotels    Hotel[]
 }
 
 model Account {
@@ -109,18 +83,7 @@ model OwnerApplication {
   email        String
   businessName String
   documentUrl  String?
-  /// Адрес заявителя (дублируется в applicationMeta для расширенного онбординга).
-  address      String?
-  /// ИНН / идентификационный номер.
-  inn          String?
-  /// Пути к приватным файлам (не публичные URL).
-  passportFront String?
-  passportBack  String?
-  selfieWithDoc String?
-  propertyDoc   String?
   comment      String?
-  /// Admin rejection reason (separate from optional user note in comment on submit).
-  rejectionReason String?
   /// Extended onboarding: property details, upload URLs, applicant type (JSON).
   applicationMeta Json?
   status       String    @default("PENDING")
@@ -128,24 +91,6 @@ model OwnerApplication {
   reviewedAt   DateTime?
   reviewedById Int?
   reviewedBy   User?     @relation("OwnerApplicationReviewedBy", fields: [reviewedById], references: [id])
-
-  documentViewLogs OwnerApplicationDocumentViewLog[]
-}
-
-/// Аудит просмотра конфиденциальных документов заявки (только ADMIN).
-model OwnerApplicationDocumentViewLog {
-  id            Int              @id @default(autoincrement())
-  applicationId Int
-  application   OwnerApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  adminId       Int
-  fileType      String
-  ip            String?
-  userAgent     String?
-  createdAt     DateTime         @default(now())
-
-  @@index([applicationId])
-  @@index([adminId])
-  @@index([createdAt])
 }
 
 model Hotel {
@@ -156,25 +101,19 @@ model Hotel {
   city           String
   address        String
   description    String
-  propertyTypeId String?
-  propertyTypeRef PropertyType? @relation(fields: [propertyTypeId], references: [id])
-  /// Denormalized code synced from PropertyType (search/filters)
   propertyType   String   @default("HOTEL")
   /// URL обложки (внешняя ссылка или /uploads/…)
   coverImageUrl  String?
   rating         Float    @default(0)
-  status           String    @default("PENDING")
-  rejectionReason  String?
-  deletedAt        DateTime?
-  latitude         Float
-  longitude        Float
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  status         String   @default("PENDING")
+  latitude       Float
+  longitude      Float
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   rooms      Room[]
   roomTypes  RoomType[]
   staff      HotelStaff[]
-  moderators HotelModerator[]
   favorites  Favorite[]
 
   photos    HotelPhoto[]
@@ -293,21 +232,6 @@ model HotelStaff {
   @@index([userId])
 }
 
-/// Назначение модератора отеля (User.role = HOTEL_MODERATOR).
-model HotelModerator {
-  id               Int      @id @default(autoincrement())
-  hotelId          Int
-  hotel            Hotel    @relation(fields: [hotelId], references: [id], onDelete: Cascade)
-  userId           Int
-  user             User     @relation("HotelModeratorUser", fields: [userId], references: [id], onDelete: Cascade)
-  assignedByUserId Int?
-  assignedBy       User?    @relation("HotelModeratorAssignedBy", fields: [assignedByUserId], references: [id], onDelete: SetNull)
-  createdAt        DateTime @default(now())
-
-  @@unique([hotelId, userId])
-  @@index([userId])
-}
-
 /// Фото номера (галерея / слайдер на карточке и странице отеля).
 model RoomPhoto {
   id        Int      @id @default(autoincrement())
@@ -384,10 +308,6 @@ model Booking {
   proofReviewedAt  DateTime?
   proofReviewedById Int?
   proofReviewedBy   User?   @relation("BookingProofReviewedBy", fields: [proofReviewedById], references: [id])
-  paymentApprovedAt DateTime?
-  paymentApprovedBy Int?
-  paymentApprovedByUser User? @relation("BookingPaymentApprovedBy", fields: [paymentApprovedBy], references: [id])
-  cancellationReason String?
   /// Guest identity document (passport/ID) for verification by owner/admin
   guestDocumentUrl String?
   guestDocumentSubmittedAt DateTime?
@@ -466,8 +386,6 @@ model HostProfile {
   documentUrl     String?
   kycStatus       String   @default("PENDING") // PENDING | APPROVED | REJECTED
   riskScore       Int      @default(0)
-  /// PMS prefs: offline cloud sync, backup channels (JSON)
-  pmsSettings     Json?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
@@ -657,15 +575,6 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-model EmailVerificationToken {
-  id        String   @id @default(cuid())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    Int      @unique
-  token     String   @unique
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-}
-
 model PasswordResetToken {
   id        Int      @id @default(autoincrement())
   token     String   @unique
@@ -683,7 +592,7 @@ model EmailOtp {
   userId    Int
   email     String
   codeHash  String
-  /// PASSWORD_RESET | CHANGE_EMAIL
+  /// PASSWORD_RESET (reserved for future purposes).
   purpose   String
   expiresAt DateTime
   usedAt    DateTime?
@@ -733,31 +642,10 @@ model SiteContentState {
 
 /// Auth security / audit events (OTP, login, suspicious activity).
 /// One-time login via @TajstayBot (/start login_<token>).
-/// Profile-only Telegram change (not login/register).
-model TelegramChangeRequest {
-  id                Int       @id @default(autoincrement())
-  userId            Int
-  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  sessionToken      String    @unique
-  codeHash          String?
-  telegramId        String?
-  telegramUsername  String?
-  telegramFirstName String?
-  telegramPhotoUrl  String?
-  expiresAt         DateTime
-  usedAt            DateTime?
-  createdAt         DateTime  @default(now())
-
-  @@index([userId, usedAt])
-  @@index([telegramId])
-  @@index([expiresAt])
-}
-
 model TelegramLoginChallenge {
   id                 Int       @id @default(autoincrement())
   token              String    @unique
   codeHash           String
-  /// When set, successful verification links Telegram to this user instead of login/register.
   telegramId         String?
   telegramUsername   String?
   telegramFirstName  String?
@@ -786,24 +674,6 @@ model AuthAuditLog {
   @@index([userId])
   @@index([event])
   @@index([createdAt])
-}
-
-/// Latest device fingerprint per user (server IP/geo/UA + client language/screen).
-model UserDeviceSession {
-  id             Int      @id @default(autoincrement())
-  userId         Int
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  ip             String?
-  city           String?
-  countryCode    String?
-  userAgent      String?
-  systemLanguage String?
-  screenWidth    Int?
-  screenHeight   Int?
-  lastSeenAt     DateTime @default(now()) @updatedAt
-  createdAt      DateTime @default(now())
-
-  @@index([userId, lastSeenAt])
 }
 
 /// Per-owner payment requisites shown to guests during checkout / booking room.

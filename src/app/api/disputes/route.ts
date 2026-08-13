@@ -3,11 +3,8 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/requireAuth";
 import { createNotification } from "@/lib/notifications/create";
-import { addBookingSystemMessage } from "@/lib/chat/bookingChat";
 import { bookingHotel } from "@/lib/pms/bookingContext";
 import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
-import { m } from "@/lib/i18n/messages";
-import { getLocale } from "@/lib/i18n/get-locale";
 
 const schema = z.object({
   bookingId: z.number().int(),
@@ -59,12 +56,6 @@ export async function POST(req: Request) {
   if (guestId) notifyIds.add(guestId);
   const admins = await prisma.user.findMany({ where: { role: "ADMIN" }, select: { id: true }, take: 20 });
   for (const a of admins) notifyIds.add(a.id);
-
-  const locale = getLocale();
-  await addBookingSystemMessage({
-    bookingId: booking.id,
-    message: `🛡️ ${m(locale, "chat.dispute.openedSystem")}`
-  });
 
   await Promise.all(
     [...notifyIds].map((userId) =>

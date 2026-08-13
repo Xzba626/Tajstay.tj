@@ -441,7 +441,7 @@ export function MobileMenu({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="mobile-menu-trigger relative z-[10002] inline-flex touch-manipulation items-center justify-center rounded-xl border border-[var(--taj-lake)]/40 bg-[var(--taj-lake)] text-sm font-semibold text-white shadow-lg shadow-[var(--taj-lake-deep)]/20 transition active:scale-[0.97] hover:bg-[var(--taj-lake)] md:hidden"
+        className="mobile-menu-trigger relative z-[10002] inline-flex touch-manipulation items-center justify-center rounded-xl border border-emerald-300/45 bg-emerald-600 text-sm font-semibold text-white shadow-lg shadow-emerald-900/35 transition active:scale-[0.97] hover:bg-emerald-500 md:hidden"
         aria-label={L.menu}
         aria-expanded={open}
       >

@@ -2,7 +2,6 @@ import Link from "next/link";
 import { BRAND } from "@/lib/brand";
 import { BookingChatLauncher } from "@/components/chat/BookingChatPanel";
 import type { Locale } from "@/lib/i18n/locale";
-import { formatBookingStatus } from "@/lib/i18n/bookingStatus";
 import { m } from "@/lib/i18n/messages";
 
 function statusDotClass(status: string) {
@@ -38,7 +37,6 @@ export function TripChatRow({ locale, user, booking: b, showAdminGuest }: Props)
   const preview = last.length > 72 ? `${last.slice(0, 72)}…` : last;
   const cover = hotel?.coverImageUrl || BRAND.logoMark;
   const rowHref = `/chat/booking/${b.id}`;
-  const statusLabel = formatBookingStatus(locale, b.status);
 
   return (
     <div className="trip-chat-row">
@@ -50,7 +48,7 @@ export function TripChatRow({ locale, user, booking: b, showAdminGuest }: Props)
         <Link href={rowHref} className="block min-w-0">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0 truncate font-semibold text-white">{hotel?.name ?? "—"}</div>
-            <span className={`trip-chat-row__dot ${statusDotClass(b.status)}`} title={statusLabel} aria-hidden />
+            <span className={`trip-chat-row__dot ${statusDotClass(b.status)}`} title={b.status} aria-hidden />
           </div>
           <div className="truncate text-xs text-emerald-100/55">{roomTitle}</div>
           <div className="mt-1 truncate text-sm text-emerald-100/45">{preview}</div>

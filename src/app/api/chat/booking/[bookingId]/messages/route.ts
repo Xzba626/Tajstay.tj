@@ -6,12 +6,8 @@ import { markBookingChatMessagesRead } from "@/lib/chat/markMessagesRead";
 import { BOOKING_STATUS } from "@/lib/domain/booking";
 import { saveChatAttachmentFile } from "@/lib/uploads/saveChatAttachment";
 import { canAccessBookingChat } from "@/lib/chat/bookingAccess";
-import { rowToChatMessageDto } from "@/lib/chat/messageDto";
 import { bookingHotel } from "@/lib/pms/bookingContext";
 import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
-import { triggerBookingChatEvent } from "@/lib/pusher/server";
-import { PUSHER_EVENTS } from "@/lib/pusher/config";
-import { notifyBookingChatMessage } from "@/lib/notifications/bookingChatNotify";
 
 const TERMINAL_NO_NEW_MESSAGES = new Set<string>([
   BOOKING_STATUS.EXPIRED,
@@ -51,12 +47,12 @@ async function ensureAccess(bookingId: number, userId: number) {
   });
   if (!booking) return null;
   const roleRow = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
-  if (!roleRow || !(await canAccessBookingChat(booking, { id: userId, role: roleRow.role }))) return null;
+  if (!roleRow || !canAccessBookingChat(booking, { id: userId, role: roleRow.role })) return null;
   return booking;
 }
 
 export async function GET(_: NextRequest, { params }: { params: { bookingId: string } }) {
-  const user = await requireUser(["GUEST", "OWNER", "ADMIN", "HOTEL_MODERATOR"]);
+  const user = await requireUser(["GUEST", "OWNER", "ADMIN"]);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const bookingId = Number.parseInt(String(params.bookingId ?? "").trim(), 10);
@@ -77,11 +73,7 @@ export async function GET(_: NextRequest, { params }: { params: { bookingId: str
     );
   }
 
-  try {
-    await markBookingChatMessagesRead(bookingId, user.id);
-  } catch {
-    /* best-effort — do not block message loading */
-  }
+  await markBookingChatMessagesRead(bookingId, user.id);
 
   let messages =
     user.role === "ADMIN" && (archivedFlag || locked)
@@ -100,7 +92,7 @@ export async function GET(_: NextRequest, { params }: { params: { bookingId: str
 }
 
 export async function POST(req: NextRequest, { params }: { params: { bookingId: string } }) {
-  const user = await requireUser(["GUEST", "OWNER", "ADMIN", "HOTEL_MODERATOR"]);
+  const user = await requireUser(["GUEST", "OWNER", "ADMIN"]);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const bookingId = Number.parseInt(String(params.bookingId ?? "").trim(), 10);
@@ -114,7 +106,7 @@ export async function POST(req: NextRequest, { params }: { params: { bookingId: 
   });
   if (!booking) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  if (!(await canAccessBookingChat(booking, user))) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!canAccessBookingChat(booking, user)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const isGuest = booking.userId != null && booking.userId === user.id;
   const isOwner = bookingHotel(booking).ownerId === user.id;
   const isAdmin = user.role === "ADMIN";
@@ -149,7 +141,6 @@ export async function POST(req: NextRequest, { params }: { params: { bookingId: 
   const proofFromGuestStatuses = [BOOKING_STATUS.WAITING_PAYMENT, BOOKING_STATUS.WAIT_PROOF] as const;
 
   let proofJustSubmitted = false;
-  const pushedMessages: ReturnType<typeof rowToChatMessageDto>[] = [];
   await prisma.$transaction(async (tx) => {
     if (isGuest && imageUrl) {
       const transitioned = await tx.booking.updateMany({
@@ -169,7 +160,7 @@ export async function POST(req: NextRequest, { params }: { params: { bookingId: 
       proofJustSubmitted = transitioned.count > 0;
     }
 
-    const created = await tx.chatMessage.create({
+    await tx.chatMessage.create({
       data: {
         bookingId,
         senderId: user.id,
@@ -178,11 +169,9 @@ export async function POST(req: NextRequest, { params }: { params: { bookingId: 
         body: message || (imageUrl ? "📎" : ""),
         imageUrl,
         isArchived: false,
-        deletedAt: null,
-        status: "SENT"
+        deletedAt: null
       }
     });
-    pushedMessages.push(rowToChatMessageDto(created));
 
     if (proofJustSubmitted) {
       await tx.notification.create({
@@ -193,7 +182,7 @@ export async function POST(req: NextRequest, { params }: { params: { bookingId: 
           isRead: false
         }
       });
-      const sys = await tx.chatMessage.create({
+      await tx.chatMessage.create({
         data: {
           bookingId,
           senderId: 0,
@@ -202,25 +191,28 @@ export async function POST(req: NextRequest, { params }: { params: { bookingId: 
           body: "🛡️ Система: Чек получен. Отведено 5 минут на проверку администратором и владельцем.",
           imageUrl: null,
           isArchived: false,
-          deletedAt: null,
-          status: "SENT"
+          deletedAt: null
         }
       });
-      pushedMessages.push(rowToChatMessageDto(sys));
     }
   });
 
-  for (const msg of pushedMessages) {
-    await triggerBookingChatEvent(bookingId, PUSHER_EVENTS.NEW_MESSAGE, { message: msg });
-  }
-
-  const lastHumanMsg = pushedMessages.filter((m) => m.senderRole !== "SYSTEM").pop();
-  if (lastHumanMsg && lastHumanMsg.senderId === user.id) {
-    await notifyBookingChatMessage({
-      bookingId,
-      senderUserId: user.id,
-      senderName: user.name,
-      messagePreview: lastHumanMsg.message || (imageUrl ? "📎 Вложение" : "")
+  const adminRow = await prisma.user.findFirst({
+    where: { role: "ADMIN" },
+    orderBy: { id: "asc" },
+    select: { id: true }
+  });
+  const ownerId = bookingHotel(booking).ownerId;
+  const targets = [booking.userId, ownerId, adminRow?.id].filter((v): v is number => typeof v === "number");
+  const receivers = targets.filter((uid) => uid !== user.id);
+  if (receivers.length) {
+    await prisma.notification.createMany({
+      data: receivers.map((userId) => ({
+        userId,
+        bookingId: booking.id,
+        type: "BOOKING_CHAT_NEW",
+        isRead: false
+      }))
     });
   }
 

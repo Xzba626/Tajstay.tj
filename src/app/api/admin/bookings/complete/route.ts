@@ -4,8 +4,6 @@ import { getAdminUser } from "@/lib/auth/requireAdmin";
 import { forbiddenJson } from "@/lib/auth/apiResponses";
 import { BOOKING_STATUS } from "@/lib/domain/booking";
 import { bookingHotel } from "@/lib/pms/bookingContext";
-import { appBaseUrl } from "@/lib/email/bookingEmails";
-import { sendOwnerPayoutEmail } from "@/lib/email/sendOwnerPayoutEmail";
 import { publicUrl } from "@/lib/http/publicOrigin";
 
 /** Ручное вмешательство админа: подтвердить бронь (например спор). */
@@ -63,23 +61,6 @@ export async function POST(req: NextRequest) {
       payload: JSON.stringify({ byAdminId: admin.id, ownerId: hotel.ownerId, amount: payoutAmount, currency: booking.currency })
     }
   });
-
-  const owner = await prisma.user.findUnique({
-    where: { id: hotel.ownerId },
-    select: { email: true, name: true }
-  });
-  const ownerEmail = owner?.email?.trim();
-  if (ownerEmail && booking.publicCode) {
-    await sendOwnerPayoutEmail({
-      ownerEmail,
-      ownerName: owner?.name?.trim() || "Owner",
-      hotelName: hotel.name,
-      bookingCode: booking.publicCode,
-      amount: payoutAmount,
-      currency: booking.currency,
-      dashboardUrl: `${appBaseUrl()}/dashboard/owner?section=finances`
-    });
-  }
 
   return NextResponse.redirect(publicUrl(req, `/chat/booking/${id}`));
 }

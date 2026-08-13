@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/requireAuth";
-import { guestBookingCancelAllowed } from "@/lib/booking/guestCancel";
+import { BOOKING_STATUS } from "@/lib/domain/booking";
 import { publicUrl } from "@/lib/http/publicOrigin";
 import { bookingHotel } from "@/lib/pms/bookingContext";
 import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
-import { dispatchBookingCancelledEmails } from "@/lib/email/bookingEmailDispatch";
-import { addBookingSystemMessage, archiveBookingChatToColdStorage } from "@/lib/chat/bookingChat";
+
+function canCancel(status: string): boolean {
+  return (
+    status === BOOKING_STATUS.WAIT_PROOF ||
+    status === BOOKING_STATUS.ON_REVIEW ||
+    status === BOOKING_STATUS.REJECTED
+  );
+}
 
 export async function POST(req: NextRequest) {
   const user = await requireUser(["GUEST", "OWNER", "ADMIN"]);
@@ -24,7 +30,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  if (!guestBookingCancelAllowed({ status: booking.status, paymentStatus: booking.paymentStatus })) {
+  if (!canCancel(booking.status)) {
     return NextResponse.redirect(publicUrl(req, `/payment/${encodeURIComponent(code)}`));
   }
 
@@ -33,7 +39,7 @@ export async function POST(req: NextRequest) {
   await prisma.booking.update({
     where: { id: booking.id },
     data: {
-      status: "CANCELLED_BY_GUEST",
+      status: BOOKING_STATUS.CANCELLED,
       paymentStatus: booking.paymentStatus === "PAID" ? "REFUNDED" : booking.paymentStatus
     }
   });
@@ -45,17 +51,6 @@ export async function POST(req: NextRequest) {
       type: "BOOKING_CANCELLED_BY_GUEST",
       isRead: false
     }
-  });
-
-  await addBookingSystemMessage({
-    bookingId: booking.id,
-    message: "🛡️ Система: Бронирование отменено пользователем. Сессия закрыта."
-  }).catch(() => undefined);
-
-  await archiveBookingChatToColdStorage(booking.id).catch(() => undefined);
-
-  void dispatchBookingCancelledEmails(booking.id, "guest").catch((e) => {
-    console.error("[bookings/cancel] cancelled emails failed", booking.id, e);
   });
 
   return NextResponse.redirect(publicUrl(req, `/payment/${encodeURIComponent(code)}`));

@@ -3,7 +3,6 @@ import { prisma } from "@/lib/prisma";
 import { createNotification } from "@/lib/notifications/create";
 import { bookingHotel } from "@/lib/pms/bookingContext";
 import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
-import { dispatchCheckInReminderEmail, dispatchReviewRequestEmail } from "@/lib/email/bookingEmailDispatch";
 
 async function sentRecently(bookingId: number, type: string, since: Date): Promise<boolean> {
   const count = await prisma.notification.count({
@@ -43,9 +42,6 @@ export async function runBookingReminderJob() {
         link
       });
       created += 1;
-      void dispatchCheckInReminderEmail(b.id).catch((e) => {
-        console.error("[reminders] check-in email failed", b.id, e);
-      });
     }
     const ownerId = bookingHotel(b).ownerId;
     await createNotification({
@@ -105,9 +101,6 @@ export async function runBookingReminderJob() {
       link: `/dashboard/bookings`
     });
     created += 1;
-    void dispatchReviewRequestEmail(b.id).catch((e) => {
-      console.error("[reminders] review email failed", b.id, e);
-    });
   }
 
   return { created, checkIns: checkIns.length, checkOuts: checkOuts.length, reviews: reviewEligible.length };

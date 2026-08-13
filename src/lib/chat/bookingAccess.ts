@@ -1,36 +1,16 @@
-import { prisma } from "@/lib/prisma";
-import { USER_ROLE } from "@/lib/auth/permissions";
 import { bookingHotel, type BookingLike } from "@/lib/pms/bookingContext";
 
-export async function canAccessBookingChat(
+export function canAccessBookingChat(
   booking: BookingLike & { userId: number | null },
   user: { id: number; role: string }
-): Promise<boolean> {
+): boolean {
   const isGuest = booking.userId != null && booking.userId === user.id;
-  if (isGuest) return true;
-  if (user.role === USER_ROLE.ADMIN) return true;
-
-  let hotelId: number;
-  let ownerId: number;
+  let isOwner = false;
   try {
-    const hotel = bookingHotel(booking);
-    hotelId = hotel.id;
-    ownerId = hotel.ownerId;
+    isOwner = bookingHotel(booking).ownerId === user.id;
   } catch {
-    return false;
+    isOwner = false;
   }
-
-  if (user.role === USER_ROLE.OWNER) {
-    return ownerId === user.id;
-  }
-
-  if (user.role === USER_ROLE.HOTEL_MODERATOR) {
-    const assignment = await prisma.hotelModerator.findFirst({
-      where: { userId: user.id, hotelId },
-      select: { id: true }
-    });
-    return !!assignment;
-  }
-
-  return false;
+  const isAdmin = user.role === "ADMIN";
+  return isGuest || isOwner || isAdmin;
 }

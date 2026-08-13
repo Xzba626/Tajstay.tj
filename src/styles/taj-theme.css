@@ -1,30 +1,34 @@
 /**
- * TajStay canonical theme (Phase 2) — surfaces, buttons, inputs
+ * TajStay unified rich emerald theme — brand #004724
+ * UI surfaces, text, buttons, inputs, dropdowns, icons
  */
 
 :root,
 [data-theme="light"],
 [data-theme="dark"] {
-  --taj-brand: var(--color-primary);
-  --taj-bg: var(--color-background-soft);
-  --taj-bg-light: var(--color-surface);
-  --taj-bg-dark: var(--color-primary-dark);
-  --taj-header: var(--color-surface);
+  --taj-brand: #004724;
+  --taj-bg: #004724;
+  --taj-bg-light: #006b38;
+  --taj-bg-dark: #012f1a;
+  --taj-header: #00351d;
 
-  --taj-app-bg: var(--color-background-soft);
+  --taj-app-bg:
+    radial-gradient(circle at 20% 15%, rgba(34, 197, 94, 0.18), transparent 34%),
+    radial-gradient(circle at 85% 20%, rgba(212, 175, 55, 0.07), transparent 32%),
+    linear-gradient(135deg, #006b38 0%, #004724 45%, #012f1a 100%);
 
   /* Sections */
-  --taj-section-bg: var(--color-surface);
-  --taj-section-border: var(--color-border);
+  --taj-section-bg: rgba(0, 71, 36, 0.38);
+  --taj-section-border: rgba(52, 211, 153, 0.14);
 
   /* Cards / panels */
-  --taj-card: var(--color-surface);
-  --taj-card-border: var(--color-border);
-  --taj-card-shadow: 0 12px 32px rgba(15, 26, 20, 0.08);
+  --taj-card: rgba(1, 47, 26, 0.72);
+  --taj-card-border: rgba(52, 211, 153, 0.18);
+  --taj-card-shadow: 0 24px 70px rgba(0, 0, 0, 0.22);
 
   /* Strong cards */
-  --taj-card-strong: var(--color-surface);
-  --taj-card-strong-border: var(--color-border-strong);
+  --taj-card-strong: rgba(1, 47, 26, 0.86);
+  --taj-card-strong-border: rgba(212, 175, 55, 0.18);
 
   /* Legacy aliases */
   --taj-surface: var(--taj-section-bg);
@@ -35,58 +39,58 @@
   --taj-section: var(--taj-section-bg);
 
   /* Text */
-  --taj-text: var(--color-text);
-  --taj-text-secondary: var(--color-text-secondary);
-  --taj-text-muted: var(--color-text-muted);
+  --taj-text: #f8fafc;
+  --taj-text-secondary: #d8f1e2;
+  --taj-text-muted: #b7d8c4;
   --taj-muted: var(--taj-text-muted);
 
   /* Brand accents */
-  --taj-primary: var(--color-primary);
-  --taj-primary-hover: var(--color-primary-dark);
-  --taj-accent: var(--color-accent);
-  --taj-accent-hover: #a34a1e;
-  --taj-gold: var(--color-accent);
+  --taj-primary: #22c55e;
+  --taj-primary-hover: #34d399;
+  --taj-accent: #22c55e;
+  --taj-accent-hover: #34d399;
+  --taj-gold: #d4af37;
 
   /* Inputs */
-  --taj-input: var(--color-surface);
-  --taj-input-border: var(--color-border);
-  --taj-input-focus-border: var(--color-primary);
-  --taj-input-focus-ring: 0 0 0 3px rgba(8, 127, 91, 0.28);
+  --taj-input: rgba(1, 47, 26, 0.72);
+  --taj-input-border: rgba(183, 216, 196, 0.24);
+  --taj-input-focus-border: rgba(52, 211, 153, 0.62);
+  --taj-input-focus-ring: 0 0 0 3px rgba(52, 211, 153, 0.14);
 
-  /* Primary button — solid lake, no neon gradient */
-  --taj-btn-primary-bg: var(--color-primary);
-  --taj-btn-primary-bg-hover: var(--color-primary-dark);
-  --taj-btn-primary-text: var(--color-on-primary);
-  --taj-btn-primary-border: transparent;
-  --taj-btn-primary-shadow: 0 8px 20px rgba(10, 77, 55, 0.22);
-  --taj-btn-primary-shadow-hover: 0 12px 28px rgba(10, 77, 55, 0.28);
-  --taj-btn-primary-shadow-active: 0 4px 12px rgba(10, 77, 55, 0.2);
+  /* Primary button */
+  --taj-btn-primary-bg: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  --taj-btn-primary-bg-hover: linear-gradient(135deg, #34d399 0%, #22c55e 100%);
+  --taj-btn-primary-text: #052e1a;
+  --taj-btn-primary-border: rgba(187, 247, 208, 0.32);
+  --taj-btn-primary-shadow: 0 16px 36px rgba(34, 197, 94, 0.26);
+  --taj-btn-primary-shadow-hover: 0 20px 42px rgba(34, 197, 94, 0.34);
+  --taj-btn-primary-shadow-active: 0 8px 18px rgba(34, 197, 94, 0.22);
 
   /* Secondary button */
-  --taj-btn-secondary-bg: var(--color-surface);
-  --taj-btn-secondary-text: var(--color-text);
-  --taj-btn-secondary-border: var(--color-border);
-  --taj-btn-secondary-bg-hover: var(--color-primary-soft);
-  --taj-btn-secondary-border-hover: var(--color-primary);
+  --taj-btn-secondary-bg: rgba(1, 47, 26, 0.72);
+  --taj-btn-secondary-text: #f8fafc;
+  --taj-btn-secondary-border: rgba(52, 211, 153, 0.24);
+  --taj-btn-secondary-bg-hover: rgba(34, 197, 94, 0.12);
+  --taj-btn-secondary-border-hover: rgba(52, 211, 153, 0.42);
 
   /* Dropdown */
-  --taj-dropdown-bg: var(--color-surface);
-  --taj-dropdown-border: var(--color-border);
-  --taj-dropdown-shadow: 0 16px 40px rgba(15, 26, 20, 0.12);
-  --taj-dropdown-item: var(--color-text);
-  --taj-dropdown-item-hover-bg: var(--color-primary-soft);
-  --taj-dropdown-item-hover-text: var(--color-primary-dark);
+  --taj-dropdown-bg: rgba(1, 47, 26, 0.94);
+  --taj-dropdown-border: rgba(52, 211, 153, 0.18);
+  --taj-dropdown-shadow: 0 20px 60px rgba(0, 0, 0, 0.28);
+  --taj-dropdown-item: #d8f1e2;
+  --taj-dropdown-item-hover-bg: rgba(34, 197, 94, 0.12);
+  --taj-dropdown-item-hover-text: #f8fafc;
 
   /* Icons */
-  --taj-icon: var(--color-text-secondary);
-  --taj-icon-active: var(--color-primary);
-  --taj-icon-success: var(--color-success);
-  --taj-icon-gold: var(--color-accent);
-  --taj-icon-warning: var(--color-accent);
-  --taj-icon-error: var(--color-danger);
+  --taj-icon: #d8f1e2;
+  --taj-icon-active: #34d399;
+  --taj-icon-success: #22c55e;
+  --taj-icon-gold: #d4af37;
+  --taj-icon-warning: #fbbf24;
+  --taj-icon-error: #f87171;
 
   /* Logo badge on dark green */
-  --taj-badge-bg: var(--color-primary-soft);
+  --taj-badge-bg: #f3f8f5;
   --taj-badge-border: rgba(212, 175, 55, 0.35);
 
   /* DS / public aliases */
@@ -95,7 +99,7 @@
   --taj-color-bg-card: var(--taj-card);
   --taj-color-bg-card-solid: var(--taj-card-strong);
   --taj-color-border: var(--taj-card-border);
-  --taj-color-border-strong: var(--color-border-strong);
+  --taj-color-border-strong: rgba(52, 211, 153, 0.28);
   --taj-color-text: var(--taj-text);
   --taj-color-text-secondary: var(--taj-text-secondary);
   --taj-color-text-muted: var(--taj-text-muted);
@@ -329,8 +333,8 @@
 
 /* ---- Footer ---- */
 .site-footer {
-  border-top: 1px solid var(--taj-line);
-  background: var(--taj-snow);
+  border-top: 1px solid var(--taj-section-border);
+  background: linear-gradient(180deg, transparent, rgba(1, 47, 26, 0.75));
 }
 
 .site-footer a {
@@ -338,15 +342,15 @@
 }
 
 .site-footer a:hover {
-  color: var(--taj-lake);
+  color: var(--taj-text);
 }
 
 /* ---- Dashboard ---- */
 .dashboard-sidebar {
-  border-right: 1px solid var(--taj-line);
-  background: var(--taj-snow);
+  border-right: 1px solid var(--taj-card-border);
+  background: linear-gradient(180deg, rgba(0, 53, 29, 0.98), rgba(0, 71, 36, 0.94));
   backdrop-filter: blur(12px);
-  box-shadow: inset -1px 0 0 rgba(15, 26, 20, 0.04);
+  box-shadow: inset -1px 0 0 rgba(52, 211, 153, 0.06);
 }
 
 .dashboard-sidebar__title {
@@ -358,14 +362,14 @@
 }
 
 .dashboard-sidebar__link:hover {
-  background: var(--taj-lake-soft);
-  color: var(--taj-lake-deep);
+  background: var(--taj-dropdown-item-hover-bg);
+  color: var(--taj-text);
 }
 
 .dashboard-sidebar__link.is-active {
-  background: var(--taj-lake-soft);
-  color: var(--taj-lake);
-  box-shadow: inset 3px 0 0 var(--taj-lake);
+  background: rgba(34, 197, 94, 0.14);
+  color: var(--taj-text);
+  box-shadow: inset 0 0 0 1px rgba(52, 211, 153, 0.22);
 }
 
 .dashboard-skin {
