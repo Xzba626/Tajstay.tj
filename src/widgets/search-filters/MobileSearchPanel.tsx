@@ -324,7 +324,7 @@ export function MobileSearchPanel({
             <button type="button" className="mobile-map-overlay__close" onClick={() => setMapOpen(false)} aria-label={m(locale, "common.close")}>
               <X size={20} />
             </button>
-            <button type="button" className="mobile-map-overlay__geo" onClick={requestLocation}>
+            <button type="button" className="mobile-map-overlay__geo" onClick={() => requestLocation()}>
               {m(locale, "search.nearMe")}
             </button>
           </div>
