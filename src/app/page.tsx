@@ -12,6 +12,7 @@ import { ViewTransitionLink } from "@/components/effects/ViewTransitionLink";
 import { HomeScrollEnhancer } from "./HomeScrollEnhancer";
 import { GuestHomeExtras } from "@/components/guest/GuestHomeExtras";
 import { HomeSearchCompact } from "@/components/home/HomeSearchCompact";
+import { SearchBar } from "@/components/SearchBar";
 import { TajstayHero3D } from "@/components/landing/TajstayHero3D";
 import { PageContainer, SectionContainer, ContentGrid, EmptyStateCard } from "@/components/ds";
 import { HomeSectionHeader } from "@/components/home/HomeSectionHeader";
@@ -76,7 +77,7 @@ export default async function HomePage() {
       {/* 1. Hero + search (first screen) */}
       <section className="home-section home-section--hero home-chapter home-chapter--band-hero relative overflow-hidden">
         <div className="home-hero-bg home-hero-bg-fallback absolute inset-0" aria-hidden />
-        <PageContainer publicPage className="relative z-[1] flex min-h-[inherit] flex-col justify-center !py-0">
+        <PageContainer publicPage className="relative z-[1] flex flex-col !py-0 md:min-h-[inherit] md:justify-center">
           <HomeHeroMobile locale={locale} />
           <div className="hidden md:block">
             <TajstayHero3D
@@ -88,13 +89,18 @@ export default async function HomePage() {
             />
           </div>
           <div id="home-search" className="home-hero-search-overlap scroll-mt-24" data-reveal>
-            <HomeSearchCompact locale={locale} />
+            <div className="md:hidden">
+              <SearchBar locale={locale} />
+            </div>
+            <div className="hidden md:block">
+              <HomeSearchCompact locale={locale} />
+            </div>
           </div>
         </PageContainer>
       </section>
 
       {content.homeBanner.enabled ? (
-        <section className="home-section home-section--compact" data-reveal>
+        <section className="home-section home-section--compact hidden md:block" data-reveal>
           <PageContainer publicPage className="!py-0">
             <div className="rounded-2xl border border-emerald-400/20 bg-gradient-to-r from-emerald-950/90 to-teal-900/80 p-5 sm:p-6">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -112,7 +118,7 @@ export default async function HomePage() {
       ) : null}
 
       {/* 2. Popular hotels */}
-      <section className="home-section home-section--compact home-chapter" data-reveal>
+      <section className="home-section home-section--compact home-chapter hidden md:block" data-reveal>
         <PageContainer publicPage className="!py-0">
           <HomeSectionHeader
             title={m(locale, "home.featuredTitle")}
@@ -139,7 +145,7 @@ export default async function HomePage() {
       </section>
 
       {/* Popular destinations — discovery aid below listings */}
-      <section id="popular-destinations" className="home-section home-section--compact home-chapter scroll-mt-24" data-reveal>
+      <section id="popular-destinations" className="home-section home-section--compact home-chapter hidden scroll-mt-24 md:block" data-reveal>
         <PageContainer publicPage className="!py-0">
           <HomeSectionHeader
             eyebrow={m(locale, "home.destinationsBadge")}
@@ -159,17 +165,19 @@ export default async function HomePage() {
         </PageContainer>
       </section>
 
-      <GuestHomeExtras locale={locale} />
+      <div className="hidden md:block">
+        <GuestHomeExtras locale={locale} />
+      </div>
 
       {/* 3. Reviews — social proof */}
-      <section className="home-section home-section--compact home-chapter" data-reveal>
+      <section className="home-section home-section--compact home-chapter hidden md:block" data-reveal>
         <PageContainer publicPage className="!py-0">
           <HomeReviewsSection locale={locale} reviews={latestReviews} />
         </PageContainer>
       </section>
 
       {/* 4. AI generator */}
-      <section className="home-section home-section--compact home-chapter" data-reveal>
+      <section className="home-section home-section--compact home-chapter hidden md:block" data-reveal>
         <PageContainer publicPage className="!py-0">
           <AIRecommendationLab
             hotels={aiHotels}
@@ -197,7 +205,7 @@ export default async function HomePage() {
       </section>
 
       {/* 5. Info block — Why TajStay (kept last per UX flow) */}
-      <SectionContainer tight className="home-section home-section--compact home-chapter" data-reveal>
+      <SectionContainer tight className="home-section home-section--compact home-chapter hidden md:block" data-reveal>
         <PageContainer publicPage className="!py-0">
           <HomeSectionHeader title={m(locale, "home.trustTitle")} align="center" className="!text-center [&_.home-section__desc]:mx-auto" />
           <ContentGrid cols={3} gap="md">

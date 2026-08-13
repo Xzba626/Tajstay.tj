@@ -2,6 +2,8 @@
 
 import { BRAND } from "@/lib/brand";
 import type { Locale } from "@/lib/i18n/locale";
+import { formatMoney, formatStayDateRange } from "@/lib/i18n/format";
+import { formatCountLabel } from "@/lib/i18n/plural";
 import { m } from "@/lib/i18n/messages";
 
 export type BookingChatHeaderProps = {
@@ -50,11 +52,15 @@ export function BookingChatHeader({
   publicCode,
   compact = true
 }: BookingChatHeaderProps) {
-  const checkIn = checkInIso.slice(0, 10);
-  const checkOut = checkOutIso.slice(0, 10);
+  const checkIn = new Date(checkInIso);
+  const checkOut = new Date(checkOutIso);
+  const dateLabel = formatStayDateRange(locale, checkIn, checkOut);
+  const guestsLabel = formatCountLabel(locale, guestCount, "people");
   const cover = coverImageUrl || BRAND.logoMark;
   const statusLabel =
     m(locale, `status.${bookingStatus}`) !== `status.${bookingStatus}` ? m(locale, `status.${bookingStatus}`) : bookingStatus;
+  const paymentLabel =
+    m(locale, `status.${paymentStatus}`) !== `status.${paymentStatus}` ? m(locale, `status.${paymentStatus}`) : paymentStatus;
 
   return (
     <section className={`chat-header ${compact ? "chat-header--compact" : ""}`}>
@@ -67,13 +73,9 @@ export function BookingChatHeader({
           <h1 className="chat-header__title truncate">{hotelName}</h1>
           <p className="chat-header__sub truncate">{roomTitle}</p>
           <div className="chat-header__meta">
-            <span>
-              {checkIn} — {checkOut}
-            </span>
+            <span>{dateLabel}</span>
             <span aria-hidden>·</span>
-            <span>
-              {guestCount} {m(locale, "bookingRoom.header.guests").toLowerCase()}
-            </span>
+            <span>{guestsLabel}</span>
             {publicCode ? (
               <>
                 <span aria-hidden>·</span>
@@ -83,12 +85,8 @@ export function BookingChatHeader({
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-1.5">
             <span className={statusPillClass(bookingStatus)}>{statusLabel}</span>
-            <span className={paymentPillClass(paymentStatus)}>
-              {m(locale, `status.${paymentStatus}`) !== `status.${paymentStatus}` ? m(locale, `status.${paymentStatus}`) : paymentStatus}
-            </span>
-            <span className="chat-header__price ml-auto sm:ml-0">
-              {Number(totalPrice)} {currency}
-            </span>
+            <span className={paymentPillClass(paymentStatus)}>{paymentLabel}</span>
+            <span className="chat-header__price ml-auto sm:ml-0">{formatMoney(locale, Number(totalPrice), currency)}</span>
           </div>
         </div>
       </div>

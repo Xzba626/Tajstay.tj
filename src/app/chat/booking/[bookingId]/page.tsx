@@ -11,6 +11,8 @@ import { m } from "@/lib/i18n/messages";
 import { getUserTrustBadges } from "@/lib/auth/trustBadges";
 import { bookingHotel, bookingRoomTitle } from "@/lib/pms/bookingContext";
 import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
+import { canLeaveReview } from "@/lib/trips/historyRecord";
+import { tripsHubPath } from "@/lib/trips/urls";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +21,7 @@ export default async function BookingChatPage({
   searchParams
 }: {
   params: { bookingId: string };
-  searchParams?: { proofSent?: string };
+  searchParams?: { proofSent?: string; review?: string };
 }) {
   const locale = getLocale();
   const user = await requireUser(["GUEST", "OWNER", "ADMIN"]);
@@ -34,7 +36,8 @@ export default async function BookingChatPage({
       ...bookingWithHotelInclude,
       room: { include: { hotel: { include: { owner: true } } } },
       payment: true,
-      user: true
+      user: true,
+      review: true
     }
   });
   if (!booking) notFound();
@@ -57,7 +60,7 @@ export default async function BookingChatPage({
     );
   }
 
-  const backHref = isAdmin || isGuest ? "/dashboard/bookings" : "/dashboard/owner";
+  const backHref = isAdmin || isGuest ? tripsHubPath("all") : "/dashboard/owner";
   const title =
     user.role === "ADMIN"
       ? m(locale, "bookingRoom.titleAdmin")
@@ -72,6 +75,8 @@ export default async function BookingChatPage({
   ]);
 
   const proofSent = searchParams?.proofSent === "1";
+  const focusReview = (searchParams?.review ?? "").trim() === "1";
+  const eligibleForReview = isGuest && canLeaveReview(booking);
 
   const counterpartUser = isGuest ? booking.room?.hotel?.owner : booking.user;
   const counterpartTrustBadges = counterpartUser ? getUserTrustBadges(counterpartUser) : [];
@@ -114,6 +119,13 @@ export default async function BookingChatPage({
       proofAmount={proofMeta.proofAmount}
       proofComment={proofMeta.proofComment}
       counterpartTrustBadges={counterpartTrustBadges}
+      eligibleForReview={eligibleForReview}
+      focusReview={focusReview}
+      existingReview={
+        booking.review
+          ? { rating: booking.review.rating, comment: booking.review.comment, reply: booking.review.reply }
+          : null
+      }
     />
   );
 }

@@ -74,7 +74,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const pendingTripsCount =
     user?.role === "GUEST" ? await getPendingTripsCount(user.id) : 0;
   return (
-    <html lang={locale} className="scroll-smooth" data-theme="dark">
+    <html lang={locale} className="scroll-smooth" data-theme="dark" suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.webmanifest" />
         <link rel="icon" href="/favicon.ico" sizes="48x48" />
@@ -83,9 +83,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-title" content={BRAND.name} />
       </head>
-      <body className="min-h-screen bg-[var(--brand-bg)] text-[var(--brand-text)] antialiased font-sans">
+      <body className="min-h-screen bg-[var(--brand-bg)] text-[var(--brand-text)] antialiased font-sans" suppressHydrationWarning>
         <AuthProvider>
-          <AppShell />
+          <AppShell locale={locale} />
           <SplashScreen />
           <PageBackdrop />
           <GlobalToast />
@@ -119,8 +119,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
               ariaLabel: m(locale, "bottomNav.ariaLabel"),
               home: m(locale, "bottomNav.home"),
               search: m(locale, "bottomNav.search"),
-              favorites: m(locale, "bottomNav.favorites"),
-              bookings: m(locale, "bottomNav.bookings"),
+              tours: m(locale, "bottomNav.tours"),
+              history: m(locale, "bottomNav.history"),
               profile: m(locale, "bottomNav.profile")
             }}
           />

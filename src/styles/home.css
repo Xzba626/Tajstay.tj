@@ -9,6 +9,12 @@
   --home-section-py-compact: clamp(1.25rem, 3vw, 2rem);
 }
 
+@media (max-width: 767px) {
+  body:has(.home-page) .site-footer {
+    display: none;
+  }
+}
+
 .home-section {
   padding-block: var(--home-section-py);
 }

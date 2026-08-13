@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { HotelCard } from "@/components/HotelCard";
 import { useDebounce } from "@/shared/hooks/useDebounce";
@@ -8,6 +8,8 @@ import { useSearchFilters } from "@/features/search-hotels/model/useSearchFilter
 import dynamic from "next/dynamic";
 import { Modal } from "@/components/ui/Modal";
 import { AppImage } from "@/components/ui/AppImage";
+import { MobileSearchPanel } from "@/widgets/search-filters/MobileSearchPanel";
+import type { PropertyTypeFilter } from "@/lib/services/search";
 
 const MapClient = dynamic(() => import("@/app/map/MapClient"), { ssr: false });
 
@@ -25,11 +27,16 @@ type Props = {
     maxPrice?: string;
     ratingMin?: string;
     sortBy?: "POPULAR" | "PRICE_ASC" | "RATING_DESC";
+    wifi?: string | boolean;
+    breakfast?: string | boolean;
+    parking?: string | boolean;
+    propertyType?: PropertyTypeFilter;
   };
   locale: string;
+  mobileAfterHotels?: ReactNode;
 };
 
-export function SearchExperience({ initialHotels, initialFilters, locale }: Props) {
+export function SearchExperience({ initialHotels, initialFilters, locale, mobileAfterHotels }: Props) {
   const { filters, setFilters } = useSearchFilters(initialFilters);
   const [hotels, setHotels] = useState(initialHotels);
   const [loading, setLoading] = useState(false);
@@ -46,7 +53,11 @@ export function SearchExperience({ initialHotels, initialFilters, locale }: Prop
   const queryString = useMemo(() => {
     const params = new URLSearchParams();
     Object.entries(debouncedFilters).forEach(([key, value]) => {
-      if (value) params.set(key, String(value));
+      if (typeof value === "boolean") {
+        if (value) params.set(key, "true");
+        return;
+      }
+      if (value && value !== "ANY") params.set(key, String(value));
     });
     return params.toString();
   }, [debouncedFilters]);
@@ -122,6 +133,20 @@ export function SearchExperience({ initialHotels, initialFilters, locale }: Prop
 
   return (
     <>
+      <div className="md:hidden">
+        <MobileSearchPanel
+          hotels={hotels}
+          loading={loading}
+          loadError={loadError}
+          onRetry={() => setRetryTick((v) => v + 1)}
+          filters={filters}
+          setFilters={setFilters}
+          locale={locale as any}
+          mapHotels={mapHotels}
+          afterHotels={mobileAfterHotels}
+        />
+      </div>
+      <div className="hidden md:block">
       <div className="grid gap-3 rounded-[2rem] border border-white/10 bg-[rgba(18,31,20,0.9)] p-4 shadow-[0_20px_60px_rgba(0,0,0,0.35)] md:grid-cols-6">
         <input
           name="q"
@@ -192,7 +217,11 @@ export function SearchExperience({ initialHotels, initialFilters, locale }: Prop
                 minPrice: "",
                 maxPrice: "",
                 ratingMin: "",
-                sortBy: "POPULAR"
+                sortBy: "POPULAR",
+                wifi: false,
+                breakfast: false,
+                parking: false,
+                propertyType: "ANY"
               }));
               setFocusedHotelId(null);
               setPreviewHotel(null);
@@ -352,6 +381,7 @@ export function SearchExperience({ initialHotels, initialFilters, locale }: Prop
           <div className="text-sm text-brand-200">—</div>
         )}
       </Modal>
+      </div>
     </>
   );
 }

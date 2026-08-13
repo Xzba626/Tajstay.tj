@@ -7,7 +7,7 @@ import { m } from "@/lib/i18n/messages";
 type Props = {
   hotel: Hotel & { rooms: Room[] };
   locale?: Locale;
-  variant?: "accent" | "list";
+  variant?: "accent" | "list" | "compact";
   hrefQuery?: {
     checkIn?: string;
     checkOut?: string;
@@ -62,6 +62,54 @@ export function HotelCard({ hotel, locale = "ru", variant = "accent", hrefQuery 
   };
   const cityLabel = cityMap[hotel.city.toLowerCase()] ?? hotel.city;
   const showRating = hotel.rating > 0.05;
+
+  if (variant === "compact") {
+    return (
+      <article className="hotel-card-premium hotel-card-premium--compact group">
+        <Link href={`/hotel/${hotel.id}${query}`} className="block">
+          <div className="hotel-img-wrap relative w-full">
+            {hotel.coverImageUrl ? (
+              <AppImage src={hotel.coverImageUrl} alt={hotel.name} fill className="object-cover" sizes="(max-width:768px) 50vw, 220px" />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-brand-900 via-brand-800 to-brand-700">
+                <div className="text-2xl opacity-20">🏨</div>
+              </div>
+            )}
+            <div className="hotel-img-overlay" />
+            {showRating ? (
+              <div className="absolute top-1.5 right-1.5 z-10">
+                <div className="rating-badge !px-1.5 !py-0.5 !text-[10px]">
+                  <span>★</span>
+                  <span>{hotel.rating.toFixed(1)}</span>
+                </div>
+              </div>
+            ) : null}
+            <div className="absolute bottom-0 left-0 right-0 z-10 p-2 pb-1.5">
+              <h3 className="line-clamp-1 text-[13px] font-bold leading-tight text-white drop-shadow-lg">{hotel.name}</h3>
+            </div>
+          </div>
+        </Link>
+        <div className="relative z-[1] px-2 py-1.5">
+          {availableRooms > 0 ? (
+            <div className="flex items-center gap-1">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-brand-500" />
+              </span>
+              <span className="truncate text-[10px] font-medium text-brand-100">
+                {availableRooms} {availableRooms === 1 ? "номер" : "номера"}
+              </span>
+            </div>
+          ) : null}
+          <div className="mt-1 flex items-baseline gap-1">
+            <span className="text-sm font-extrabold tabular-nums tracking-tight text-[var(--taj-color-text)]">
+              {minPrice.toLocaleString()}
+            </span>
+            <span className="text-[10px] font-semibold text-[var(--taj-color-text-secondary)]">TJS</span>
+          </div>
+        </div>
+      </article>
+    );
+  }
 
   return (
     <article className="hotel-card-premium group" data-reveal>

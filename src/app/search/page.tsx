@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
 import { SearchExperience } from "@/widgets/search-filters/SearchExperience";
+import { HomeSearchExtras } from "@/components/home/HomeSearchExtras";
+import { getSiteContent } from "@/lib/site-content";
 
 const BOOK_ERR_KEYS: Record<string, string> = {
   invalid: "checkout.errInvalid",
@@ -43,6 +45,7 @@ export default async function SearchPage({ searchParams }: Props) {
   const locale = getLocale();
   const bookErr = (searchParams.bookErr ?? "").trim();
   const errPath = BOOK_ERR_KEYS[bookErr];
+  const content = await getSiteContent();
   const hotels = await searchApprovedHotels({
     q: searchParams.q,
     city: searchParams.city,
@@ -56,9 +59,8 @@ export default async function SearchPage({ searchParams }: Props) {
     ratingMin: searchParams.ratingMin ? Number(searchParams.ratingMin) : undefined,
     sortBy: searchParams.sortBy ?? "POPULAR"
   });
-
   return (
-    <div className="mx-auto flex w-[94%] max-w-7xl flex-col justify-center space-y-8 px-0 py-8 sm:w-full sm:px-6 lg:px-8">
+    <div className="mx-auto flex w-[94%] max-w-7xl flex-col justify-center space-y-4 px-0 py-4 sm:w-full sm:space-y-8 sm:px-6 sm:py-8 lg:px-8">
       {errPath && (
         <div
           className="rounded-xl border border-brand-700 bg-brand-800 px-4 py-3 text-sm text-brand-200"
@@ -68,11 +70,11 @@ export default async function SearchPage({ searchParams }: Props) {
           {m(locale, errPath)}
         </div>
       )}
-      <div data-reveal data-stagger="30">
+      <div className="hidden md:block" data-reveal data-stagger="30">
         <h1 className="text-[clamp(1.7rem,6vw,2.2rem)] font-bold tracking-tight text-white">{m(locale, "header.search")}</h1>
         <p className="mt-2 text-brand-200">{m(locale, "search.filters")}</p>
       </div>
-      <div className="surface-1 rounded-3xl p-4 sm:p-5" data-reveal data-stagger="70">
+      <div className="p-0 md:rounded-3xl md:p-5" data-reveal data-stagger="70">
         <SearchExperience
           initialHotels={hotels}
           locale={locale}
@@ -85,9 +87,16 @@ export default async function SearchPage({ searchParams }: Props) {
             minPrice: searchParams.minPrice,
             maxPrice: searchParams.maxPrice,
             ratingMin: searchParams.ratingMin,
-            sortBy: searchParams.sortBy
+            sortBy: searchParams.sortBy,
+            wifi: searchParams.wifi,
+            breakfast: searchParams.breakfast,
+            parking: searchParams.parking,
+            propertyType: searchParams.propertyType
           }}
         />
+      </div>
+      <div className="search-moved-sections md:hidden">
+        <HomeSearchExtras locale={locale} banner={content.homeBanner} />
       </div>
     </div>
   );

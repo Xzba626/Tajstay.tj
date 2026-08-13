@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 
 type BackgroundVariant = "mountains" | "grid" | "aurora" | "particles" | "subtle" | "default";
@@ -10,7 +10,7 @@ function variantForPath(pathname: string): BackgroundVariant {
   if (pathname.startsWith("/search")) return "grid";
   if (pathname.startsWith("/hotel")) return "aurora";
   if (pathname.startsWith("/auth")) return "particles";
-  if (pathname.startsWith("/dashboard")) return "subtle";
+  if (pathname.startsWith("/dashboard") || pathname.startsWith("/history")) return "subtle";
   return "default";
 }
 
@@ -18,6 +18,11 @@ export function PageBackdrop() {
   const pathname = usePathname() ?? "/";
   const variant = useMemo(() => variantForPath(pathname), [pathname]);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [canvasReady, setCanvasReady] = useState(false);
+
+  useEffect(() => {
+    setCanvasReady(true);
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -156,11 +161,11 @@ export function PageBackdrop() {
       if (raf) window.cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);
     };
-  }, [variant]);
+  }, [variant, canvasReady]);
 
   return (
-    <div aria-hidden className="pointer-events-none fixed inset-0 -z-30">
-      <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
+    <div aria-hidden className="pointer-events-none fixed inset-0 -z-30" suppressHydrationWarning>
+      {canvasReady ? <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" /> : null}
       <div className={`page-backdrop page-backdrop--${variant}`} />
       <div className="page-vignette" />
     </div>

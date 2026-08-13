@@ -9,7 +9,9 @@
 @import "../styles/premium-shell.css";
 @import "../styles/premium-overhaul.css";
 @import "../styles/mockup-shell.css";
+@import "../styles/profile-center.css";
 @import "../styles/home-mobile-first.css";
+@import "../styles/tst-assistant.css";
 @import "../styles/chat.css";
 
 @tailwind base;

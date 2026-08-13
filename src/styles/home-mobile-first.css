@@ -3,9 +3,10 @@
  */
 
 @media (max-width: 767px) {
-  .home-section--hero {
-    padding-block: 0.25rem 0;
-    min-height: 0;
+  .home-page .home-section--hero.home-chapter {
+    padding-top: 0.25rem !important;
+    padding-bottom: 0.5rem !important;
+    min-height: 0 !important;
   }
 
   .home-hero-mobile {
@@ -33,26 +34,9 @@
     margin-inline: auto;
   }
 
-  .home-hero-search-overlap {
-    margin-top: 0.5rem;
-    padding-bottom: 0.75rem;
-  }
-
-  .home-search-compact--premium {
-    border-radius: var(--radius-xl);
-  }
-
-  .home-search-compact--premium .home-search-compact__row {
-    min-height: 4.25rem;
-    padding: 0.85rem 1.125rem;
-  }
-
-  .home-search-compact--premium .home-search-compact__field-value {
-    font-size: 1.0625rem;
-  }
-
-  .home-search-compact--premium .home-search-compact__submit {
-    min-height: 3.375rem;
+  .home-page .home-hero-search-overlap {
+    margin-top: 1.25rem;
+    padding-bottom: 0.5rem;
   }
 
   .header-mobile-avatar {
@@ -132,3 +116,16 @@
   color: var(--green-accent);
   text-decoration: none;
 }
+
+.search-moved-sections {
+  display: block;
+  opacity: 1 !important;
+  transform: none !important;
+  margin-top: 1.25rem;
+  padding-bottom: 0.5rem;
+}
+
+.search-moved-block {
+  margin-top: 1.25rem;
+}
+
