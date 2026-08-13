@@ -2,11 +2,12 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// DATABASE_URL must be PostgreSQL, e.g. postgresql://user:pass@host:5432/db?schema=public
-// If Prisma says "URL must start with file:" your generated client still matches sqlite — run: npx prisma generate
+// DATABASE_URL — app queries (Neon pooler OK).
+// DIRECT_URL — migrations only: Neon *non-pooler* host (without `-pooler`), else P1002 advisory lock timeouts on Vercel.
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
