@@ -610,6 +610,22 @@ That subagent could not complete browser login (autofill interference) and relie
 
 Subagent auth/autofill issues (OWNER-001) — same class as traveler subagent; not reproduced via `POST /api/auth/email/login`.
 
+### Cross-validation with [Admin panel audit](bc-1cd34e49-c1d6-5a5f-aa96-1a1cbe718de9)
+
+Subagent relied on **incorrect route assumptions** (`/dashboard/admin/moderation/*`, missing analytics). Primary audit + code confirm admin is a **single RSC page** with `?section=` query:
+
+| Subagent claim | Actual state |
+|----------------|--------------|
+| User management missing (ADMIN-006) | **Exists** — `?section=users` (list, role update forms) |
+| Analytics dashboard missing (ADMIN-008) | **Partial** — KPI tiles on `?section=dashboard` (hotels, users, bookings, 30-day turnover); no charts |
+| `/moderation/owners` routes | **Not used** — owner apps at `?section=applications`, hotels at `?section=hotels` |
+| Complaints workflow missing | **Exists** — `?section=complaints` |
+| Finance missing | **Exists** — `?section=finance` |
+
+**Aligned with primary audit:** ADMIN-001 — landing is tutorial cards + snapshot KPIs, not an operational “attention inbox”. Analytics are raw numbers, not trend visualizations.
+
+**Do not promote to P0 from subagent:** “zero admin functionality” — overstated. **Do promote:** weak situational awareness, no charts, table-heavy IA.
+
 ---
 
 *End of audit report.*
