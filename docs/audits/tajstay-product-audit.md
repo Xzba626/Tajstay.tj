@@ -594,6 +594,22 @@ A parallel [Traveler mobile UX audit](bc-1ec6a517-fe21-56ad-9066-d6b43d4ebed2) (
 
 **Recommendation:** Use Playwright MCP with stable mobile viewport (390×844) for Ralph QA loop; do not promote subagent P0 auth items to backlog without reproduction.
 
+### Cross-validation with [Owner dashboard audit](bc-13ac9dba-6617-5432-b96d-243b64aff347)
+
+That subagent could not complete browser login (autofill interference) and relied on **code review**. Primary audit **did** reach owner sections at 390×844 via API session cookies — findings align on:
+
+- Occupancy/calendar grid too dense for mobile (OWNER-003 ↔ subagent OWNER-004)
+- Database-style tables vs task-oriented UX (OWNER-002 area)
+- Payment-methods block pinned on mobile sections
+
+**New from code review (add to backlog):**
+
+| ID | Sev | Finding |
+|----|-----|---------|
+| OWNER-007 | P1 | **One hotel per owner** enforced (`owner.oneHotelRule`, `hotel_limit` API) — limits multi-property hosts |
+
+Subagent auth/autofill issues (OWNER-001) — same class as traveler subagent; not reproduced via `POST /api/auth/email/login`.
+
 ---
 
 *End of audit report.*
