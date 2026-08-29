@@ -571,4 +571,29 @@ If Telegram/Google login is primary in production, misconfiguration may be **de 
 
 ---
 
+---
+
+## Addendum: Cross-validation with desktop `computerUse` subagent
+
+A parallel [Traveler mobile UX audit](bc-1ec6a517-fe21-56ad-9066-d6b43d4ebed2) (`computerUse`, desktop viewport) reported several **P0 auth/navigation blockers** (home search → sign-in, hotel cards → sign-in, sign-in form concatenation).
+
+**Headless re-check at the same commit (`4ebda0c`) contradicts those P0s:**
+
+| Claim (subagent) | Re-check result |
+|------------------|-----------------|
+| `/hotel/1` requires auth | **Not confirmed** — HTTP 200 without session; `requireUser()` returns `null`, page renders |
+| Home/search blocked without auth | **Not confirmed** — `/`, `/search`, `/search?city=Dushanbe` all HTTP 200 |
+| HotelCard forces sign-in | **Not in code** — `HotelCard` links to `/hotel/{id}` directly |
+
+**Likely explanation:** desktop GUI automation artifacts (address-bar focus hijacking, mis-clicks, modal overlays) rather than product logic. Treat subagent P0 auth blockers as **UNVERIFIED / probable false positive** until reproduced manually.
+
+**Still worth investigating from subagent (not contradicted):**
+- Repeated `/1000/favicon.ico` 500 errors — **not observed** in primary audit; needs DevTools confirmation
+- Missing `auth-botanist.webp` 404 — **not verified** in primary audit
+- Sign-in input concatenation — **not reproduced** via API login (`POST /api/auth/email/login` works)
+
+**Recommendation:** Use Playwright MCP with stable mobile viewport (390×844) for Ralph QA loop; do not promote subagent P0 auth items to backlog without reproduction.
+
+---
+
 *End of audit report.*
