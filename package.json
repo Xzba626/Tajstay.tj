@@ -14,9 +14,9 @@
     "postinstall": "prisma generate",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:deploy": "prisma migrate deploy && prisma generate",
+    "prisma:deploy": "node scripts/ensure-direct-url.mjs prisma migrate deploy && prisma generate",
     "db:seed": "prisma db seed",
-    "doctor": "node scripts/ensure-node.mjs && prisma generate && prisma migrate deploy && prisma db seed",
+    "doctor": "node scripts/ensure-node.mjs && prisma generate && node scripts/ensure-direct-url.mjs prisma migrate deploy && prisma db seed",
     "icons:generate": "node scripts/generate-pwa-icons.mjs"
   },
   "engines": {
