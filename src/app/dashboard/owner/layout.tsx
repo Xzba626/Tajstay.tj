@@ -11,6 +11,7 @@ export default function OwnerDashboardLayout({ children }: { children: ReactNode
     navLabel: m(locale, "owner.mobileNav"),
     mobileNav: m(locale, "owner.mobileNav"),
     navHint: m(locale, "owner.navHint"),
+    mobileMore: m(locale, "owner.mobileMore"),
     items: {
       overview: m(locale, "owner.navOverview"),
       properties: m(locale, "owner.navProperties"),
@@ -24,11 +25,21 @@ export default function OwnerDashboardLayout({ children }: { children: ReactNode
       statistics: m(locale, "owner.navStatistics"),
       help: m(locale, "owner.navHelp"),
       notifications: m(locale, "owner.navNotifications")
+    },
+    mobileShort: {
+      overview: m(locale, "owner.navOverviewShort"),
+      properties: m(locale, "owner.navPropertiesShort"),
+      bookings: m(locale, "owner.navBookingsShort"),
+      finances: m(locale, "owner.navFinancesShort")
     }
   };
 
   return (
-    <DashboardShell sidebar={<OwnerSidebar labels={labels} />} mobileNav={<OwnerMobileNav labels={labels} />}>
+    <DashboardShell
+      className="owner-command-center-shell ts-workspace-light"
+      sidebar={<OwnerSidebar labels={labels} />}
+      mobileNav={<OwnerMobileNav labels={labels} />}
+    >
       {children}
     </DashboardShell>
   );

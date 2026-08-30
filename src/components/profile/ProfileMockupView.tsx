@@ -2,13 +2,17 @@ import Link from "next/link";
 import {
   Bell,
   ChevronRight,
+  CircleHelp,
+  FileText,
   Globe,
   Heart,
   History,
   Mail,
   Megaphone,
+  MessageCircle,
   Pencil,
   Phone,
+  ScrollText,
   Send,
   Settings,
   Shield,
@@ -50,6 +54,7 @@ function MenuRow({
   icon: Icon,
   label,
   meta,
+  desc,
   badge,
   className
 }: {
@@ -57,6 +62,7 @@ function MenuRow({
   icon: typeof User;
   label: string;
   meta?: string;
+  desc?: string;
   badge?: number;
   className?: string;
 }) {
@@ -65,6 +71,7 @@ function MenuRow({
       <Icon size={17} className="profile-center__row-icon" aria-hidden />
       <span className="profile-center__row-body">
         <span className="profile-center__row-label">{label}</span>
+        {desc ? <span className="profile-center__row-desc">{desc}</span> : null}
         {meta ? <span className="profile-center__row-meta">{meta}</span> : null}
       </span>
       {badge && badge > 0 ? <span className="profile-center__row-badge">{badge > 99 ? "99+" : badge}</span> : null}
@@ -175,27 +182,15 @@ export function ProfileMockupView({ locale, user, logoutLabel, unreadNotificatio
 
         <div className="profile-center__main">
           <MenuGroup title={m(locale, "profile.sectionMain")} ariaLabel={m(locale, "profile.sectionMain")}>
-            <MenuRow href="/history" icon={History} label={m(locale, "profile.navHistory")} />
-            <MenuRow href="/favorites" icon={Heart} label={m(locale, "profile.navFavorites")} />
+            <MenuRow href="/history" icon={History} label={m(locale, "profile.navHistory")} desc={m(locale, "profile.navBookingsDesc")} />
+            <MenuRow href="/favorites" icon={Heart} label={m(locale, "profile.navFavorites")} desc={m(locale, "profile.navFavoritesDesc")} />
             <MenuRow
               href="/notifications"
               icon={Bell}
               label={m(locale, "profile.actionsNotifications")}
+              desc={m(locale, "profile.subscriptionsSubtitle")}
               badge={unreadNotifications}
             />
-          </MenuGroup>
-
-          <MenuGroup title={m(locale, "profile.sectionSettings")} ariaLabel={m(locale, "profile.sectionSettings")}>
-            <MenuRow href="/profile/settings" icon={Globe} label={m(locale, "profile.language")} />
-            <MenuRow href="/profile/security" icon={Shield} label={m(locale, "profile.security")} />
-            <MenuRow href="/profile/settings" icon={Settings} label={m(locale, "profile.settings")} />
-            <MenuRow
-              href="/profile/personal"
-              icon={User}
-              label={m(locale, "profile.personalInfo")}
-              className="profile-center__row--mobile-only"
-            />
-            <MenuRow href="/profile/subscriptions" icon={Megaphone} label={m(locale, "profile.subscriptions")} />
           </MenuGroup>
 
           <MenuGroup
@@ -203,25 +198,18 @@ export function ProfileMockupView({ locale, user, logoutLabel, unreadNotificatio
             ariaLabel={m(locale, "profile.sectionPersonal")}
             className="profile-center__group--contacts"
           >
-            <MenuRow
-              href="/profile/personal"
-              icon={User}
-              label={m(locale, "profile.personalInfo")}
-              className="profile-center__row--desktop-only"
-            />
+            <MenuRow href="/profile/personal" icon={User} label={m(locale, "profile.personalInfo")} />
             <MenuRow
               href="/profile/phone"
               icon={Phone}
               label={m(locale, "profile.phone")}
               meta={`${phoneShort}${phoneOk ? ` · ${m(locale, "profile.statusVerified")}` : ""}`}
-              className="profile-center__row--desktop-only"
             />
             <MenuRow
               href="/profile/email"
               icon={Mail}
               label={m(locale, "profile.email")}
               meta={`${emailShort}${emailOk ? ` · ${m(locale, "profile.statusVerified")}` : ""}`}
-              className="profile-center__row--desktop-only"
             />
             <MenuRow
               href="/profile/telegram"
@@ -232,8 +220,21 @@ export function ProfileMockupView({ locale, user, logoutLabel, unreadNotificatio
                   ? `${tgShort} · ${m(locale, "profile.telegramConnected")}`
                   : m(locale, "profile.telegramNotConnected")
               }
-              className="profile-center__row--desktop-only"
             />
+          </MenuGroup>
+
+          <MenuGroup title={m(locale, "profile.sectionSettings")} ariaLabel={m(locale, "profile.sectionSettings")}>
+            <MenuRow href="/profile/settings" icon={Globe} label={m(locale, "profile.language")} />
+            <MenuRow href="/profile/security" icon={Shield} label={m(locale, "profile.security")} />
+            <MenuRow href="/profile/settings" icon={Settings} label={m(locale, "profile.settings")} />
+            <MenuRow href="/profile/subscriptions" icon={Megaphone} label={m(locale, "profile.subscriptions")} />
+          </MenuGroup>
+
+          <MenuGroup title={m(locale, "profile.sectionSupport")} ariaLabel={m(locale, "profile.sectionSupport")}>
+            <MenuRow href="/faq" icon={CircleHelp} label={m(locale, "footer.helpCenter")} />
+            <MenuRow href="/contacts" icon={MessageCircle} label={m(locale, "footer.contactUs")} />
+            <MenuRow href="/policy" icon={FileText} label={m(locale, "footer.policy")} />
+            <MenuRow href="/terms" icon={ScrollText} label={m(locale, "footer.terms")} />
           </MenuGroup>
 
           {user.role === "GUEST" ? (

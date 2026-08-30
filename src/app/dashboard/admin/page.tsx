@@ -155,6 +155,12 @@ export default async function AdminDashboardPage({
   let openComplaints = 0;
   let unreadNotifications = 0;
   let bookingsOnReview = 0;
+  let usersGuest = 0;
+  let usersOwner = 0;
+  let usersAdmin = 0;
+  let bookingConfirmed = 0;
+  let bookingPending = 0;
+  let bookingCancelled = 0;
 
   if (activeSection === "dashboard") {
     const analytics = await Promise.all([
@@ -184,8 +190,12 @@ export default async function AdminDashboardPage({
           createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
         }
       }),
-      prisma.booking.count({ where: { paymentStatus: "ON_REVIEW" } })
+      prisma.booking.count({ where: { paymentStatus: "ON_REVIEW" } }),
+      prisma.user.groupBy({ by: ["role"], _count: { _all: true } }),
+      prisma.booking.groupBy({ by: ["status"], _count: { _all: true } })
     ]);
+    const bookingStatusGroups = analytics.pop() as Array<{ status: string; _count: { _all: number } }>;
+    const userRoleGroups = analytics.pop() as Array<{ role: string; _count: { _all: number } }>;
     [
       hotelTotal,
       hotelApproved,
@@ -199,6 +209,19 @@ export default async function AdminDashboardPage({
       unreadNotifications,
       bookingsOnReview
     ] = analytics as any;
+
+    const sumBookingStatus = (statuses: string[]) =>
+      bookingStatusGroups
+        .filter((row) => statuses.includes(row.status))
+        .reduce((sum, row) => sum + row._count._all, 0);
+
+    bookingConfirmed = sumBookingStatus(["CONFIRMED", "COMPLETED", "CHECKED_IN", "CHECKED_OUT"]);
+    bookingPending = sumBookingStatus(["PENDING_OWNER", "ON_REVIEW", "WAIT_PROOF", "PENDING"]);
+    bookingCancelled = sumBookingStatus(["CANCELLED", "REJECTED", "EXPIRED"]);
+
+    usersGuest = userRoleGroups.find((row) => row.role === "GUEST")?._count._all ?? 0;
+    usersOwner = userRoleGroups.find((row) => row.role === "OWNER")?._count._all ?? 0;
+    usersAdmin = userRoleGroups.find((row) => row.role === "ADMIN")?._count._all ?? 0;
   } else if (activeSection === "content") {
     content = await getSiteContent();
   } else if (activeSection === "applications") {
@@ -328,7 +351,7 @@ export default async function AdminDashboardPage({
   }
 
   return (
-    <div className="admin-command-center space-y-8 pb-8 lg:space-y-10 lg:pb-10">
+    <div className="admin-command-center space-y-4 pb-4 lg:space-y-10 lg:pb-10">
       <header className="admin-page-header">
         <h1 className="admin-page-header__title">{m(locale, "admin.pageTitle")}</h1>
         <p className="admin-page-header__subtitle">{m(locale, "admin.pageSubtitle")}</p>
@@ -342,7 +365,13 @@ export default async function AdminDashboardPage({
             hotelTotal,
             hotelApproved,
             userTotal,
+            usersGuest,
+            usersOwner,
+            usersAdmin,
             bookingTotal,
+            bookingConfirmed,
+            bookingPending,
+            bookingCancelled,
             revenue30: Number(bookingAgg._sum.totalPrice ?? 0),
             commission30: Number(bookingAgg._sum.commission ?? 0),
             pendingApplications,

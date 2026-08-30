@@ -283,6 +283,14 @@
   white-space: nowrap;
 }
 
+.profile-center__row-desc {
+  display: block;
+  margin-top: 0.08rem;
+  font-size: 0.6875rem;
+  line-height: 1.35;
+  color: var(--text-muted);
+}
+
 .profile-center__row-badge {
   flex-shrink: 0;
   min-width: 1.25rem;
@@ -303,16 +311,32 @@
   opacity: 0.7;
 }
 
-.profile-center__row--mobile-only {
-  display: flex;
-}
-
-.profile-center__row--desktop-only {
-  display: none;
-}
-
 .profile-center__group--contacts {
-  display: none;
+  display: block;
+}
+
+@media (max-width: 767px) {
+  .profile-center {
+    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .profile-center__title {
+    font-size: 1.125rem;
+    margin-bottom: 0.65rem;
+  }
+
+  .profile-center__main {
+    gap: 0.75rem;
+  }
+
+  .profile-center__group-title {
+    margin-bottom: 0.35rem;
+  }
+
+  .profile-center__row {
+    min-height: 2.65rem;
+    padding: 0.5rem 0.75rem;
+  }
 }
 
 /* ---- Role promo ---- */
@@ -513,17 +537,6 @@
     gap: 1rem;
   }
 
-  .profile-center__row--mobile-only {
-    display: none;
-  }
-
-  .profile-center__row--desktop-only {
-    display: flex;
-  }
-
-  .profile-center__group--contacts {
-    display: block;
-  }
 }
 
 @media (min-width: 1024px) {

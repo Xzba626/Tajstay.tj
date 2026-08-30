@@ -520,10 +520,12 @@ export default async function OwnerDashboardPage({
   );
 
   return (
-    <div className="dashboard-skin space-y-12 pb-16 text-slate-100">
-      <header className="border-b border-white/10 pb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-slate-100">{m(locale, "owner.pageTitle")}</h1>
-        <p className="mt-2 max-w-2xl text-sm text-slate-300">{m(locale, "owner.pageSubtitle")}</p>
+    <div className="owner-command-center space-y-4 pb-4 lg:space-y-8 lg:pb-10">
+      <header className="owner-page-header border-b border-[var(--owner-border)] pb-4 lg:pb-6">
+        <h1 className="owner-page-header__title">{m(locale, "owner.pageTitle")}</h1>
+        {m(locale, "owner.pageSubtitle") ? (
+          <p className="owner-page-header__subtitle">{m(locale, "owner.pageSubtitle")}</p>
+        ) : null}
       </header>
 
       {activeSection === "overview" && (
@@ -535,56 +537,43 @@ export default async function OwnerDashboardPage({
             </div>
           )}
 
-          <section id="overview" className="scroll-mt-28 space-y-4" data-reveal data-stagger="40">
-            <div className="flex items-center gap-2">
-              <span className="h-8 w-1 rounded-full bg-amber-400" aria-hidden />
-              <h2 className="text-lg font-bold text-slate-100">{m(locale, "owner.overview")}</h2>
+          <section id="overview" className="owner-section scroll-mt-28 space-y-4">
+            <div className="owner-section-head">
+              <span className="owner-section-head__bar" aria-hidden />
+              <h2 className="owner-section-head__title">{m(locale, "owner.overview")}</h2>
             </div>
-            <div className="surface-1 rounded-3xl p-6 sm:p-7 space-y-4">
+            <div className="owner-panel space-y-4">
               {dashboardKpis ? <OwnerDashboardKpis locale={locale} kpis={dashboardKpis} /> : null}
-              <div className="flex flex-wrap gap-2 text-sm">
-                <a href="/dashboard/owner?section=offline-bookings" className="rounded-xl bg-emerald-700 px-4 py-2 font-semibold text-white hover:bg-emerald-600">
+              <div className="owner-quick-actions">
+                <a href="/dashboard/owner?section=offline-bookings" className="owner-btn owner-btn--primary">
                   {m(locale, "owner.quick.offlineBooking")}
                 </a>
-                <a href="/dashboard/owner?section=calendar" className="rounded-xl border border-white/15 px-4 py-2 text-slate-100 hover:bg-white/5">
+                <a href="/dashboard/owner?section=calendar" className="owner-btn owner-btn--secondary">
                   {m(locale, "owner.quick.calendar")}
                 </a>
-                <a href="/dashboard/messages" className="rounded-xl border border-white/15 px-4 py-2 text-slate-100 hover:bg-white/5">
+                <a href="/dashboard/messages" className="owner-btn owner-btn--secondary">
                   {m(locale, "owner.quick.messages")}
                 </a>
-                <a href="/dashboard/owner?section=calendar" className="rounded-xl border border-white/15 px-4 py-2 text-slate-100 hover:bg-white/5">
-                  {m(locale, "owner.quick.editPrices")}
-                </a>
-                <a href="/dashboard/owner?section=finances" className="rounded-xl border border-white/15 px-4 py-2 text-slate-100 hover:bg-white/5">
+                <a href="/dashboard/owner?section=finances" className="owner-btn owner-btn--secondary">
                   {m(locale, "owner.quick.payouts")}
                 </a>
               </div>
             </div>
-            <div className="grid gap-4 lg:grid-cols-2">
-              <Card className="space-y-2 border-emerald-300/30 bg-emerald-500/10">
-                <h3 className="text-base font-semibold text-emerald-200">{m(locale, "owner.aiPricing")}</h3>
-                <p className="text-sm text-slate-200">{aiPriceRecommendation}</p>
-                <p className="text-xs text-slate-400">{m(locale, "owner.aiPricingHint")}</p>
-                {aiHotelRecommendations.length > 0 && (
-                  <ul className="space-y-1 pt-2 text-xs text-emerald-100">
-                    {aiHotelRecommendations.map((rec) => (
-                      <li key={rec.hotelId}>
-                        {rec.hotelName}: {rec.suggestedDelta >= 0 ? "+" : ""}{rec.suggestedDelta}% ({rec.pressure.toFixed(2)} спрос/номер)
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </Card>
-              <Card className="space-y-2">
-                <h3 className="text-base font-semibold text-slate-100">{m(locale, "owner.conversionTitle")}</h3>
-                <ul className="space-y-1 text-sm text-slate-300">
-                  <li>{m(locale, "owner.viewsProxy")}: {hotels.length * 24}</li>
-                  <li>{m(locale, "owner.clicksProxy")}: {hotels.length * 7}</li>
-                  <li>{m(locale, "owner.pendingBookings")}: {pendingCount}</li>
-                  <li>{m(locale, "owner.conversionProxy")}: {bookingConversion}%</li>
+            {aiHotelRecommendations.length > 0 && (
+              <div className="owner-panel owner-panel--accent">
+                <h3 className="owner-panel__title">{m(locale, "owner.aiPricing")}</h3>
+                <p className="owner-panel__body">{aiPriceRecommendation}</p>
+                <p className="owner-panel__meta">{m(locale, "owner.aiPricingHint")}</p>
+                <ul className="owner-panel__list">
+                  {aiHotelRecommendations.map((rec) => (
+                    <li key={rec.hotelId}>
+                      {rec.hotelName}: {rec.suggestedDelta >= 0 ? "+" : ""}
+                      {rec.suggestedDelta}%
+                    </li>
+                  ))}
                 </ul>
-              </Card>
-            </div>
+              </div>
+            )}
           </section>
         </>
       )}

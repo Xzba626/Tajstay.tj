@@ -5,18 +5,24 @@ import {
   ChevronRight,
   ClipboardList,
   MessageSquareWarning,
-  ShieldAlert,
-  Users
+  ShieldAlert
 } from "lucide-react";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
 import { formatDateTimeShort } from "@/lib/i18n/format";
+import { WorkspaceKpiBar } from "@/components/ds/WorkspaceKpiBar";
 
 export type AdminDashboardStats = {
   hotelTotal: number;
   hotelApproved: number;
   userTotal: number;
+  usersGuest: number;
+  usersOwner: number;
+  usersAdmin: number;
   bookingTotal: number;
+  bookingConfirmed: number;
+  bookingPending: number;
+  bookingCancelled: number;
   revenue30: number;
   commission30: number;
   pendingApplications: number;
@@ -44,6 +50,10 @@ function formatMoney(value: number) {
 }
 
 export function AdminDashboardOverview({ locale, stats, riskNotes, basePath }: Props) {
+  const hotelPending = Math.max(0, stats.hotelTotal - stats.hotelApproved);
+  const commissionShare =
+    stats.revenue30 > 0 ? Math.min(100, Math.round((stats.commission30 / stats.revenue30) * 100)) : 0;
+
   const attentionItems = [
     stats.pendingApplications > 0
       ? {
@@ -114,36 +124,60 @@ export function AdminDashboardOverview({ locale, stats, riskNotes, basePath }: P
       </div>
 
       <div className="admin-kpi-grid">
-        <article className="admin-kpi-card">
+        <article className="admin-kpi-card admin-kpi-card--visual">
           <div className="admin-kpi-card__label">{m(locale, "admin.hotelsTotal")}</div>
           <div className="admin-kpi-card__value">
             {stats.hotelApproved}
             <span className="admin-kpi-card__value-sub"> / {stats.hotelTotal}</span>
           </div>
-          <div className="admin-kpi-card__meta">{m(locale, "admin.hotelsSub")}</div>
+          <WorkspaceKpiBar
+            segments={[
+              { value: stats.hotelApproved, tone: "success", label: m(locale, "admin.kpiHotelsApproved") },
+              { value: hotelPending, tone: "warning", label: m(locale, "admin.kpiHotelsPending") }
+            ]}
+          />
         </article>
 
-        <article className="admin-kpi-card">
+        <article className="admin-kpi-card admin-kpi-card--visual">
           <div className="admin-kpi-card__label">{m(locale, "admin.users")}</div>
           <div className="admin-kpi-card__value">{stats.userTotal.toLocaleString()}</div>
-          <div className="admin-kpi-card__indicator">
-            <Users className="h-3 w-3" aria-hidden />
-            {m(locale, "admin.kpiRegistered")}
-          </div>
+          <WorkspaceKpiBar
+            segments={[
+              { value: stats.usersGuest, tone: "info", label: m(locale, "admin.kpiUsersGuests") },
+              { value: stats.usersOwner, tone: "success", label: m(locale, "admin.kpiUsersOwners") },
+              { value: stats.usersAdmin, tone: "neutral", label: m(locale, "admin.kpiUsersAdmins") }
+            ]}
+          />
         </article>
 
-        <article className="admin-kpi-card">
+        <article className="admin-kpi-card admin-kpi-card--visual">
           <div className="admin-kpi-card__label">{m(locale, "admin.bookingsTotal")}</div>
           <div className="admin-kpi-card__value">{stats.bookingTotal.toLocaleString()}</div>
-          <div className="admin-kpi-card__meta">{m(locale, "admin.kpiAllTime")}</div>
+          <WorkspaceKpiBar
+            segments={[
+              { value: stats.bookingConfirmed, tone: "success", label: m(locale, "admin.kpiBookingsConfirmed") },
+              { value: stats.bookingPending, tone: "warning", label: m(locale, "admin.kpiBookingsPending") },
+              { value: stats.bookingCancelled, tone: "danger", label: m(locale, "admin.kpiBookingsCancelled") }
+            ]}
+          />
         </article>
 
-        <article className="admin-kpi-card">
+        <article className="admin-kpi-card admin-kpi-card--visual">
           <div className="admin-kpi-card__label">{m(locale, "admin.revenue30")}</div>
           <div className="admin-kpi-card__value">{formatMoney(stats.revenue30)}</div>
           <div className="admin-kpi-card__meta">
             {m(locale, "admin.commission")}: {formatMoney(stats.commission30)}
+            {commissionShare > 0 ? ` · ${commissionShare}%` : ""}
           </div>
+          {stats.revenue30 > 0 ? (
+            <WorkspaceKpiBar
+              single
+              segments={[
+                { value: stats.revenue30 - stats.commission30, tone: "success", label: m(locale, "admin.kpiRevenueGross") },
+                { value: stats.commission30, tone: "info", label: m(locale, "admin.commission") }
+              ]}
+            />
+          ) : null}
         </article>
       </div>
 
@@ -163,6 +197,7 @@ export function AdminDashboardOverview({ locale, stats, riskNotes, basePath }: P
                   <span className="admin-attention-item__body">
                     <span className="admin-attention-item__label">{item.label}</span>
                     <div className="admin-attention-item__hint">{item.hint}</div>
+                    <span className="admin-attention-item__action">{m(locale, "admin.attentionOpen")}</span>
                   </span>
                   <span className="admin-attention-item__badge">{item.count}</span>
                   <ChevronRight className="h-4 w-4 shrink-0 text-[var(--admin-text-muted)]" aria-hidden />

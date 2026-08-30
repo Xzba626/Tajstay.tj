@@ -1,8 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import {
+  BarChart3,
+  BedDouble,
+  Bell,
+  Building2,
+  CalendarDays,
+  CircleHelp,
+  CreditCard,
+  LayoutDashboard,
+  Menu,
+  MessageSquare,
+  Star,
+  Wallet
+} from "lucide-react";
 import { cn } from "@/lib/cn";
 
 export type OwnerSidebarLabels = {
@@ -10,6 +24,7 @@ export type OwnerSidebarLabels = {
   navLabel: string;
   mobileNav: string;
   navHint?: string;
+  mobileMore: string;
   items: {
     overview: string;
     properties: string;
@@ -24,26 +39,39 @@ export type OwnerSidebarLabels = {
     help: string;
     notifications: string;
   };
+  mobileShort?: {
+    overview: string;
+    properties: string;
+    bookings: string;
+    finances: string;
+  };
 };
 
-type SidebarItem = { label: string; section?: string; href?: string };
+type SidebarItem = {
+  section?: string;
+  href?: string;
+  label: string;
+  Icon: typeof LayoutDashboard;
+};
 
 function buildItems(labels: OwnerSidebarLabels): SidebarItem[] {
   return [
-    { section: "overview", label: labels.items.overview },
-    { section: "properties", label: labels.items.properties },
-    { section: "rooms", label: labels.items.rooms },
-    { section: "bookings", label: labels.items.bookings },
-    { section: "offline-bookings", label: labels.items.offlineBookings },
-    { section: "calendar", label: labels.items.calendar },
-    { href: "/dashboard/messages", label: labels.items.messages },
-    { section: "reviews", label: labels.items.reviews },
-    { section: "finances", label: labels.items.finances },
-    { section: "statistics", label: labels.items.statistics },
-    { section: "help", label: labels.items.help },
-    { section: "notifications", label: labels.items.notifications }
+    { section: "overview", label: labels.items.overview, Icon: LayoutDashboard },
+    { section: "properties", label: labels.items.properties, Icon: Building2 },
+    { section: "rooms", label: labels.items.rooms, Icon: BedDouble },
+    { section: "bookings", label: labels.items.bookings, Icon: Wallet },
+    { section: "offline-bookings", label: labels.items.offlineBookings, Icon: Wallet },
+    { section: "calendar", label: labels.items.calendar, Icon: CalendarDays },
+    { href: "/dashboard/messages", label: labels.items.messages, Icon: MessageSquare },
+    { section: "reviews", label: labels.items.reviews, Icon: Star },
+    { section: "finances", label: labels.items.finances, Icon: CreditCard },
+    { section: "statistics", label: labels.items.statistics, Icon: BarChart3 },
+    { section: "help", label: labels.items.help, Icon: CircleHelp },
+    { section: "notifications", label: labels.items.notifications, Icon: Bell }
   ];
 }
+
+const MOBILE_PRIMARY = ["overview", "properties", "bookings", "finances"] as const;
 
 function resolveHref(pathname: string, item: SidebarItem): string {
   if (item.href) return item.href;
@@ -62,11 +90,9 @@ export function OwnerSidebar({ labels }: { labels: OwnerSidebarLabels }) {
   const items = buildItems(labels);
 
   return (
-    <aside className="dashboard-sidebar sticky top-0 z-30 hidden h-[calc(100vh-3.5rem)] w-56 shrink-0 flex-col py-6 pl-4 pr-2 lg:flex">
-      <div className="dashboard-sidebar__title mb-4 px-2 text-[10px] font-semibold uppercase tracking-[0.15em]">
-        {labels.sectionTitle}
-      </div>
-      <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto pr-1 text-sm" aria-label={labels.navLabel}>
+    <aside className="owner-sidebar" aria-label={labels.navLabel}>
+      <p className="owner-sidebar__title">{labels.sectionTitle}</p>
+      <nav className="owner-sidebar__nav">
         {items.map((item) => {
           const active = isActive(pathname, section, item);
           const href = resolveHref(pathname, item);
@@ -75,11 +101,11 @@ export function OwnerSidebar({ labels }: { labels: OwnerSidebarLabels }) {
               key={href + item.label}
               href={href}
               scroll={!item.href}
-              className={cn(
-                "dashboard-sidebar__link rounded-xl px-3 py-2.5 font-medium transition-colors",
-                active && "is-active"
-              )}
+              className={cn("owner-sidebar__link", active && "is-active")}
             >
+              <span className="owner-sidebar__link-icon">
+                <item.Icon className="h-[1.125rem] w-[1.125rem]" aria-hidden />
+              </span>
               {item.label}
             </Link>
           );
@@ -93,41 +119,102 @@ export function OwnerMobileNav({ labels }: { labels: OwnerSidebarLabels }) {
   const pathname = usePathname();
   const search = useSearchParams();
   const section = search.get("section") ?? "overview";
-  const [open, setOpen] = useState(false);
   const items = buildItems(labels);
+  const [moreOpen, setMoreOpen] = useState(false);
+
+  const primaryItems = items.filter((item) =>
+    item.section ? MOBILE_PRIMARY.includes(item.section as (typeof MOBILE_PRIMARY)[number]) : false
+  );
+  const moreItems = items.filter(
+    (item) => !item.section || !MOBILE_PRIMARY.includes(item.section as (typeof MOBILE_PRIMARY)[number])
+  );
+  const moreActive = moreItems.some((item) => isActive(pathname, section, item));
+
+  useEffect(() => {
+    if (!moreOpen) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMoreOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [moreOpen]);
 
   return (
-    <div className="mb-6 lg:hidden">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-slate-950/55 px-4 py-3 text-left text-sm font-semibold text-slate-100 shadow-sm backdrop-blur-md"
-        aria-expanded={open}
-      >
-        {labels.mobileNav}
-        <span className="text-slate-500">{open ? "▲" : "▼"}</span>
-      </button>
-      {open && (
-        <nav className="mt-2 flex flex-col gap-1 rounded-xl border border-white/10 bg-slate-950/70 p-2 shadow-lg backdrop-blur-xl">
-          {items.map((item) => {
-            const href = resolveHref(pathname, item);
-            const active = isActive(pathname, section, item);
-            return (
-              <Link
-                key={href + item.label}
-                href={href}
-                onClick={() => setOpen(false)}
-                className={cn(
-                  "rounded-lg px-3 py-2.5 text-sm font-medium",
-                  active ? "bg-emerald-500/15 text-emerald-100" : "text-slate-300 hover:bg-emerald-500/10 hover:text-emerald-100"
-                )}
+    <>
+      <nav className="owner-mobile-bottom-nav lg:hidden" aria-label={labels.mobileNav}>
+        {primaryItems.map((item) => {
+          const active = isActive(pathname, section, item);
+          const href = resolveHref(pathname, item);
+          const shortLabel =
+            labels.mobileShort?.[item.section as keyof NonNullable<OwnerSidebarLabels["mobileShort"]>] ?? item.label;
+          return (
+            <Link
+              key={href}
+              href={href}
+              className={cn("owner-mobile-bottom-nav__link", active && "is-active")}
+            >
+              <item.Icon className="owner-mobile-bottom-nav__icon" aria-hidden />
+              <span>{shortLabel}</span>
+            </Link>
+          );
+        })}
+        <button
+          type="button"
+          className={cn("owner-mobile-bottom-nav__link", (moreOpen || moreActive) && "is-active")}
+          onClick={() => setMoreOpen(true)}
+          aria-expanded={moreOpen}
+          aria-haspopup="dialog"
+        >
+          <Menu className="owner-mobile-bottom-nav__icon" aria-hidden />
+          <span>{labels.mobileMore}</span>
+        </button>
+      </nav>
+
+      {moreOpen && (
+        <>
+          <button
+            type="button"
+            className="owner-mobile-more-backdrop lg:hidden"
+            aria-label={labels.mobileMore}
+            onClick={() => setMoreOpen(false)}
+          />
+          <div
+            className="owner-mobile-more-sheet lg:hidden"
+            role="dialog"
+            aria-modal="true"
+            aria-label={labels.mobileMore}
+          >
+            <div className="owner-mobile-more-sheet__head">
+              <h2 className="owner-mobile-more-sheet__title">{labels.mobileMore}</h2>
+              <button
+                type="button"
+                className="owner-mobile-more-sheet__close"
+                onClick={() => setMoreOpen(false)}
+                aria-label="×"
               >
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
+                ×
+              </button>
+            </div>
+            <div className="owner-mobile-more-sheet__grid">
+              {moreItems.map((item) => {
+                const active = isActive(pathname, section, item);
+                const href = resolveHref(pathname, item);
+                return (
+                  <Link
+                    key={href + item.label}
+                    href={href}
+                    onClick={() => setMoreOpen(false)}
+                    className={cn("owner-mobile-more-sheet__link", active && "is-active")}
+                  >
+                    <item.Icon className="h-4 w-4 shrink-0" aria-hidden />
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </>
       )}
-    </div>
+    </>
   );
 }

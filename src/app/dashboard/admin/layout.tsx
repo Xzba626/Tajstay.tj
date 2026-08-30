@@ -34,7 +34,7 @@ export default function AdminDashboardLayout({ children }: { children: ReactNode
 
   return (
     <DashboardShell
-      className="admin-command-center-shell"
+      className="admin-command-center-shell ts-workspace-light"
       sidebar={<AdminSidebar labels={labels} />}
       mobileNav={<AdminMobileNav labels={labels} />}
     >
