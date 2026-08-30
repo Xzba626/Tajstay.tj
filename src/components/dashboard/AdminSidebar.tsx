@@ -1,8 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import {
+  AlertTriangle,
+  Bell,
+  Building2,
+  ClipboardList,
+  CreditCard,
+  FileText,
+  LayoutDashboard,
+  Menu,
+  UserCog,
+  Users,
+  Wallet
+} from "lucide-react";
 import { cn } from "@/lib/cn";
 
 export type AdminSidebarLabels = {
@@ -10,6 +23,7 @@ export type AdminSidebarLabels = {
   navLabel: string;
   mobileNav: string;
   navHint: string;
+  mobileMore: string;
   items: {
     dashboard: string;
     content: string;
@@ -22,23 +36,39 @@ export type AdminSidebarLabels = {
     complaints: string;
     notifications: string;
   };
+  mobileShort?: {
+    dashboard: string;
+    applications: string;
+    users: string;
+    bookings: string;
+  };
 };
 
-type SidebarItem = { href: string; label: string };
+type SidebarItem = {
+  section: string;
+  label: string;
+  Icon: typeof LayoutDashboard;
+};
 
 function buildItems(labels: AdminSidebarLabels): SidebarItem[] {
   return [
-    { href: "#dashboard", label: labels.items.dashboard },
-    { href: "#content", label: labels.items.content },
-    { href: "#applications", label: labels.items.applications },
-    { href: "#hotels", label: labels.items.hotels },
-    { href: "#users", label: labels.items.users },
-    { href: "#owner-access", label: labels.items.ownerAccess },
-    { href: "#bookings", label: labels.items.bookings },
-    { href: "#finance", label: labels.items.finance },
-    { href: "#complaints", label: labels.items.complaints },
-    { href: "#notifications", label: labels.items.notifications }
+    { section: "dashboard", label: labels.items.dashboard, Icon: LayoutDashboard },
+    { section: "content", label: labels.items.content, Icon: FileText },
+    { section: "applications", label: labels.items.applications, Icon: ClipboardList },
+    { section: "hotels", label: labels.items.hotels, Icon: Building2 },
+    { section: "users", label: labels.items.users, Icon: Users },
+    { section: "owner-access", label: labels.items.ownerAccess, Icon: UserCog },
+    { section: "bookings", label: labels.items.bookings, Icon: Wallet },
+    { section: "finance", label: labels.items.finance, Icon: CreditCard },
+    { section: "complaints", label: labels.items.complaints, Icon: AlertTriangle },
+    { section: "notifications", label: labels.items.notifications, Icon: Bell }
   ];
+}
+
+const MOBILE_PRIMARY = ["dashboard", "applications", "users", "bookings"] as const;
+
+function sectionHref(pathname: string, section: string) {
+  return `${pathname}?section=${section}`;
 }
 
 export function AdminSidebar({ labels }: { labels: AdminSidebarLabels }) {
@@ -48,61 +78,114 @@ export function AdminSidebar({ labels }: { labels: AdminSidebarLabels }) {
   const items = buildItems(labels);
 
   return (
-    <aside className="dashboard-sidebar sticky top-0 z-30 hidden h-[calc(100vh-3.5rem)] w-56 shrink-0 flex-col py-6 pl-4 pr-2 lg:flex">
-      <div className="dashboard-sidebar__title mb-4 px-2 text-xs font-semibold uppercase tracking-wider">{labels.sectionTitle}</div>
-      <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto pr-1 text-sm" aria-label={labels.navLabel}>
+    <aside className="admin-sidebar" aria-label={labels.navLabel}>
+      <p className="admin-sidebar__title">{labels.sectionTitle}</p>
+      <nav className="admin-sidebar__nav">
         {items.map((item) => {
-          const itemSection = item.href.slice(1);
-          const active = section === itemSection;
+          const active = section === item.section;
           return (
             <Link
-              key={item.href}
-              href={`${pathname}?section=${itemSection}`}
+              key={item.section}
+              href={sectionHref(pathname, item.section)}
               scroll
-              className={cn(
-                "dashboard-sidebar__link rounded-xl px-3 py-2.5 font-medium transition-colors",
-                active && "is-active"
-              )}
+              className={cn("admin-sidebar__link", active && "is-active")}
             >
+              <span className="admin-sidebar__link-icon">
+                <item.Icon className="h-[1.125rem] w-[1.125rem]" aria-hidden />
+              </span>
               {item.label}
             </Link>
           );
         })}
       </nav>
-      <p className="dashboard-sidebar__title mt-4 px-2 text-[11px] leading-snug">{labels.navHint}</p>
     </aside>
   );
 }
 
 export function AdminMobileNav({ labels }: { labels: AdminSidebarLabels }) {
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
+  const search = useSearchParams();
+  const section = search.get("section") ?? "dashboard";
   const items = buildItems(labels);
+  const [moreOpen, setMoreOpen] = useState(false);
+
+  const primaryItems = items.filter((item) => MOBILE_PRIMARY.includes(item.section as (typeof MOBILE_PRIMARY)[number]));
+  const moreItems = items.filter((item) => !MOBILE_PRIMARY.includes(item.section as (typeof MOBILE_PRIMARY)[number]));
+  const moreActive = moreItems.some((item) => item.section === section);
+
+  useEffect(() => {
+    if (!moreOpen) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMoreOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [moreOpen]);
 
   return (
-    <div className="mb-6 lg:hidden">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="taj-surface-card flex w-full items-center justify-between rounded-xl px-4 py-3 text-left text-sm font-semibold text-[var(--taj-text)] shadow-sm"
-      >
-        {labels.mobileNav}
-        <span className="text-[var(--taj-text-muted)]">{open ? "▲" : "▼"}</span>
-      </button>
-      {open && (
-        <nav className="taj-surface-card mt-2 flex flex-col gap-1 rounded-xl p-2 shadow-lg">
-          {items.map((item) => (
+    <>
+      <nav className="admin-mobile-bottom-nav lg:hidden" aria-label={labels.mobileNav}>
+        {primaryItems.map((item) => {
+          const active = section === item.section;
+          const shortLabel =
+            labels.mobileShort?.[item.section as keyof NonNullable<AdminSidebarLabels["mobileShort"]>] ?? item.label;
+          return (
             <Link
-              key={item.href}
-              href={`${pathname}?section=${item.href.slice(1)}`}
-              onClick={() => setOpen(false)}
-              className="dashboard-sidebar__link rounded-lg px-3 py-2.5 text-sm font-medium"
+              key={item.section}
+              href={sectionHref(pathname, item.section)}
+              className={cn("admin-mobile-bottom-nav__link", active && "is-active")}
             >
-              {item.label}
+              <item.Icon className="admin-mobile-bottom-nav__icon" aria-hidden />
+              <span>{shortLabel}</span>
             </Link>
-          ))}
-        </nav>
+          );
+        })}
+        <button
+          type="button"
+          className={cn("admin-mobile-bottom-nav__link", (moreOpen || moreActive) && "is-active")}
+          onClick={() => setMoreOpen(true)}
+          aria-expanded={moreOpen}
+          aria-haspopup="dialog"
+        >
+          <Menu className="admin-mobile-bottom-nav__icon" aria-hidden />
+          <span>{labels.mobileMore}</span>
+        </button>
+      </nav>
+
+      {moreOpen && (
+        <>
+          <button
+            type="button"
+            className="admin-mobile-more-backdrop lg:hidden"
+            aria-label={labels.mobileMore}
+            onClick={() => setMoreOpen(false)}
+          />
+          <div className="admin-mobile-more-sheet lg:hidden" role="dialog" aria-modal="true" aria-label={labels.mobileMore}>
+            <div className="admin-mobile-more-sheet__head">
+              <h2 className="admin-mobile-more-sheet__title">{labels.mobileMore}</h2>
+              <button type="button" className="admin-mobile-more-sheet__close" onClick={() => setMoreOpen(false)} aria-label="×">
+                ×
+              </button>
+            </div>
+            <div className="admin-mobile-more-sheet__grid">
+              {moreItems.map((item) => {
+                const active = section === item.section;
+                return (
+                  <Link
+                    key={item.section}
+                    href={sectionHref(pathname, item.section)}
+                    onClick={() => setMoreOpen(false)}
+                    className={cn("admin-mobile-more-sheet__link", active && "is-active")}
+                  >
+                    <item.Icon className="h-4 w-4 shrink-0" aria-hidden />
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </>
       )}
-    </div>
+    </>
   );
 }

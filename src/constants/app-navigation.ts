@@ -40,10 +40,7 @@ export const BOTTOM_TABS: BottomTabConfig[] = [
     isActive: (p) =>
       p.startsWith("/history") ||
       p.startsWith("/dashboard/bookings") ||
-      p.startsWith("/dashboard/guest") ||
-      p.startsWith("/booking") ||
-      p.startsWith("/payment") ||
-      p.startsWith("/chat/booking")
+      p.startsWith("/dashboard/guest")
   },
   {
     id: "profile",

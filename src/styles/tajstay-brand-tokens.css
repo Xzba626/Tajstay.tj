@@ -1,0 +1,125 @@
+/**
+ * TajStay Brand Design Tokens — Phase 2
+ * Premium simplicity: white canvas + deep green brand + dark readable text.
+ * Import after tokens.css; maps to existing --taj-* where needed.
+ */
+
+:root,
+[data-theme="light"] {
+  /* ---- Canvas ---- */
+  --ts-app-background: #ffffff;
+  --ts-surface: #ffffff;
+  --ts-surface-raised: #f8faf9;
+  --ts-surface-muted: #f1f5f3;
+
+  /* ---- Brand green (primary) ---- */
+  --primary: #15803d;
+  --primary-hover: #166534;
+  --primary-pressed: #14532d;
+  --primary-soft: #ecfdf5;
+  --primary-border: rgba(21, 128, 61, 0.28);
+  --primary-foreground: #ffffff;
+  --primary-disabled: #86efac;
+
+  /* ---- Text ---- */
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --text-on-primary: #ffffff;
+
+  /* ---- Border ---- */
+  --border-default: #e2e8f0;
+  --border-strong: #cbd5e1;
+
+  /* ---- Interaction ---- */
+  --focus-ring: 0 0 0 3px rgba(21, 128, 61, 0.22);
+
+  /* ---- Semantic ---- */
+  --success: #15803d;
+  --warning: #d97706;
+  --destructive: #dc2626;
+  --info: #0284c7;
+
+  /* ---- Room / booking states ---- */
+  --state-available: #15803d;
+  --state-occupied: #dc2626;
+  --state-reserved: #d97706;
+  --state-pending: #0284c7;
+  --state-unavailable: #94a3b8;
+  --state-maintenance: #64748b;
+
+  /* Bridge legacy profile/shell vars on light surfaces */
+  --bg-card: var(--ts-surface);
+  --bg-elevated: var(--ts-surface-raised);
+  --border: var(--border-default);
+  --green-accent: var(--primary);
+  --green-muted: var(--primary-soft);
+}
+
+/* Profile & account surfaces use light tokens even on dark app shell */
+.profile-center,
+.profile-page-light {
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --bg-card: #ffffff;
+  --bg-elevated: #f8faf9;
+  --border: #e2e8f0;
+  --green-accent: #15803d;
+  --green-muted: #ecfdf5;
+  color: var(--text-primary);
+}
+
+/* ---- Button grammar (Phase 2) ---- */
+.btn-ts-primary,
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 2.75rem;
+  padding: 0.55rem 1.15rem;
+  border: 0;
+  border-radius: 0.75rem;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-weight: 600;
+  font-size: 0.9375rem;
+  line-height: 1.2;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 140ms ease, transform 80ms ease, box-shadow 140ms ease;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+
+.btn-ts-primary:hover:not(:disabled),
+.btn-primary:hover:not(:disabled) {
+  background: var(--primary-hover);
+}
+
+.btn-ts-primary:active:not(:disabled),
+.btn-primary:active:not(:disabled) {
+  background: var(--primary-pressed);
+  transform: scale(0.985);
+}
+
+.btn-ts-primary:focus-visible,
+.btn-primary:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.btn-ts-primary:disabled,
+.btn-primary:disabled {
+  background: var(--primary-disabled);
+  color: rgba(255, 255, 255, 0.92);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-ts-primary[data-loading="true"],
+.btn-primary[data-loading="true"] {
+  pointer-events: none;
+  opacity: 0.92;
+}

@@ -1,0 +1,46 @@
+---
+description: TajStay quality gate — no task is PASS until checks below are satisfied for its scope.
+alwaysApply: false
+---
+
+# TajStay quality gate
+
+A task is **not done** because it compiles. Apply checks proportional to scope.
+
+## Required by change type
+
+| Change | Minimum gate |
+|--------|----------------|
+| Any code | `npx tsc --noEmit` (or project typecheck) |
+| TS/TSX | `npm run lint` on touched areas |
+| UI / layout | Browser verify (Playwright MCP or cursor-ide-browser) + design-taste review |
+| Routes / nav | Verify bottom nav + deep links; no duplicate History |
+| Auth / payment / booking / API | **Security agent** review + no silent data mutation |
+| i18n touch | ru / tg / en keys present in `messages.ts` |
+
+## Full PASS checklist (when user expects production-ready)
+
+1. Typecheck
+2. Lint
+3. Unit/integration tests (when they exist for the area)
+4. `npm run build`
+5. E2E or browser walkthrough when user flows changed
+6. UX review for interface changes
+7. Security review for security-sensitive changes
+
+## FAIL loop
+
+```
+FAIL → fix root cause → re-run affected checks → only then PASS
+```
+
+## Human-like QA (mandatory for UX tasks)
+
+Run the app (`npm run dev`). Walk the flow as a guest on mobile width. Ask:
+
+- Is the next step obvious?
+- Are errors and empty states clear?
+- Can the user recover (back, cancel, confirm)?
+- Does anything overlap or trap scroll?
+
+Do **not** mark PASS from code inspection alone for user-facing features.

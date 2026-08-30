@@ -1,0 +1,9 @@
+# Ralph runtime artifacts — do not commit
+activity.log
+error.log
+*_output.log
+progress.txt
+failure_memory.json
+prd.json.bak
+.ralph-pause
+.ralph-done

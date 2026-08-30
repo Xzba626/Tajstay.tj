@@ -1,18 +1,21 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
+import type { Locale } from "@/lib/i18n/locale";
 import { AppImage } from "@/components/ui/AppImage";
+import { PhotoPlaceholder } from "@/components/ui/PhotoPlaceholder";
 
 type Props = {
   urls: string[];
   title: string;
+  locale?: Locale;
   /** Светлая карточка владельца или тёмная на странице отеля */
   variant?: "light" | "dark";
 };
 
 const SWIPE_MIN = 48;
 
-export function RoomPhotoCarousel({ urls, title, variant = "light" }: Props) {
+export function RoomPhotoCarousel({ urls, title, locale = "ru", variant = "light" }: Props) {
   const list = urls.filter(Boolean);
   const [idx, setIdx] = useState(0);
   const touchStartX = useRef<number | null>(null);
@@ -30,12 +33,8 @@ export function RoomPhotoCarousel({ urls, title, variant = "light" }: Props) {
 
   if (list.length === 0) {
     return (
-      <div
-        className={`flex aspect-[16/10] w-full items-center justify-center rounded-xl text-sm ${
-          variant === "dark" ? "bg-slate-800/60 text-slate-500" : "bg-slate-100 text-slate-500"
-        }`}
-      >
-        Нет фото
+      <div className={`overflow-hidden rounded-xl ${variant === "dark" ? "ring-1 ring-white/10" : "ring-1 ring-slate-200/80"}`}>
+        <PhotoPlaceholder locale={locale} variant="room" className="aspect-[16/10] w-full" />
       </div>
     );
   }

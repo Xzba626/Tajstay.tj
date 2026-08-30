@@ -17,6 +17,7 @@ import { Pagination } from "@/components/ui/Pagination";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { getSiteContent } from "@/lib/site-content";
 import { getOwnerPaymentMethods } from "@/lib/owner-payment-methods";
+import { OwnerPaymentMethodsPanel } from "@/components/owner/OwnerPaymentMethodsPanel";
 import { Card } from "@/shared/ui";
 import { buildOwnerPricingInsights } from "@/lib/services/ownerInsights";
 import { BookingChatLauncher } from "@/components/chat/BookingChatPanel";
@@ -524,29 +525,6 @@ export default async function OwnerDashboardPage({
         <h1 className="text-3xl font-bold tracking-tight text-slate-100">{m(locale, "owner.pageTitle")}</h1>
         <p className="mt-2 max-w-2xl text-sm text-slate-300">{m(locale, "owner.pageSubtitle")}</p>
       </header>
-
-      <section className="liquid-glass rounded-2xl p-6">
-        <h2 className="text-lg font-bold text-slate-100">{m(locale, "dashboard.paymentMethods.title")}</h2>
-        <p className="mt-1 text-sm text-slate-300">{m(locale, "dashboard.paymentMethods.desc")}</p>
-        <form action="/api/owner/payment-methods" method="post" className="mt-4 space-y-3">
-          <input
-            name="methods"
-            defaultValue={ownerPaymentMethods.join(", ")}
-            placeholder={m(locale, "dashboard.paymentMethods.placeholder")}
-            className="ds-input w-full text-sm"
-          />
-          <button type="submit" className="ds-primary-btn text-sm">
-            {m(locale, "dashboard.paymentMethods.save")}
-          </button>
-        </form>
-        <div className="mt-3 flex flex-wrap gap-2">
-          {content.paymentCatalog.methods.map((method) => (
-            <span key={method} className="rounded-full border border-white/10 bg-white/6 px-3 py-1 text-xs font-semibold text-slate-200">
-              {method}
-            </span>
-          ))}
-        </div>
-      </section>
 
       {activeSection === "overview" && (
         <>
@@ -1505,6 +1483,11 @@ export default async function OwnerDashboardPage({
             <h2 className="text-xl font-bold text-slate-900">{m(locale, "owner.finances.title")}</h2>
           </div>
           <p className="text-sm text-slate-600">{m(locale, "owner.finances.hint")}</p>
+          <OwnerPaymentMethodsPanel
+            locale={locale}
+            ownerPaymentMethods={ownerPaymentMethods}
+            catalogMethods={content.paymentCatalog.methods}
+          />
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="rounded-2xl border bg-white p-5 shadow-sm">
               <div className="text-xs font-semibold uppercase text-slate-500">{m(locale, "owner.finances.revenueMonth")}</div>

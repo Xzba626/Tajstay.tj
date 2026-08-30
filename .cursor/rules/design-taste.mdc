@@ -1,0 +1,46 @@
+---
+description: TajStay design judgment — hierarchy, spacing, typography, restraint. Use for UI review, redesign, polish, and frontend implementation.
+globs:
+  - "**/*.tsx"
+  - "**/*.jsx"
+  - "**/*.css"
+  - "**/styles/**"
+alwaysApply: false
+---
+
+# Design taste (TajStay)
+
+Adapted from [ux-ui-design-taste](https://github.com/arez-xd/ux-ui-design-taste). This rule is a **judgment layer**, not a component library.
+
+## Optimize for
+
+- One clear focal point per view.
+- Spacing as structure, not leftover padding.
+- Color that communicates function and hierarchy — **green = action / brand emphasis**, not full-screen tint.
+- Typography that creates scannable information architecture.
+- Restraint over decoration.
+- Match existing TajStay tokens (`--taj-*`, `--green-accent`, `profile-center`, `mockup-*`) before inventing new systems.
+- Realistic content — no lorem, no fake "Premium Dashboard" copy.
+- Interaction states, responsive behavior, accessibility, final polish.
+
+## Anti-patterns (reject)
+
+- Generic AI SaaS dashboard (three giant stat tiles, purple gradients, glass overload).
+- Decorative motion without purpose.
+- Tables where cards or visualization fit better.
+- Oversized forms — split into steps or subpages (see Profile Center IA).
+- Hardcoded UI strings — use `messages.ts` (ru/tg/en).
+
+## Review checklist (before ship)
+
+1. Can a user tell what to do in 3 seconds?
+2. Is the primary action obvious and reachable on mobile?
+3. Are empty states, errors, and loading states human-readable?
+4. Does the screen feel like **TajStay** (light base, restrained green), not a template?
+5. Did you extend existing components instead of cloning patterns?
+
+## When to pair with other skills
+
+- Visual polish / new UI → `add-ui`, `polish`, `arrange` (better-web-ui)
+- Measurable a11y/perf → `audit`, `a11y`
+- UX flows / IA → `human-like-qa`, `critique`

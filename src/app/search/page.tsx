@@ -15,23 +15,25 @@ const BOOK_ERR_KEYS: Record<string, string> = {
   rate: "checkout.errRate"
 };
 
+type SearchParams = {
+  bookErr?: string;
+  q?: string;
+  city?: string;
+  guests?: string;
+  minPrice?: string;
+  maxPrice?: string;
+  propertyType?: PropertyTypeFilter;
+  checkIn?: string;
+  checkOut?: string;
+  wifi?: string;
+  breakfast?: string;
+  parking?: string;
+  ratingMin?: string;
+  sortBy?: "POPULAR" | "PRICE_ASC" | "RATING_DESC";
+};
+
 type Props = {
-  searchParams: {
-    bookErr?: string;
-    q?: string;
-    city?: string;
-    guests?: string;
-    minPrice?: string;
-    maxPrice?: string;
-    propertyType?: PropertyTypeFilter;
-    checkIn?: string;
-    checkOut?: string;
-    wifi?: string;
-    breakfast?: string;
-    parking?: string;
-    ratingMin?: string;
-    sortBy?: "POPULAR" | "PRICE_ASC" | "RATING_DESC";
-  };
+  searchParams?: Promise<SearchParams> | SearchParams;
 };
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -42,22 +44,23 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function SearchPage({ searchParams }: Props) {
+  const params = searchParams ? await searchParams : undefined;
   const locale = getLocale();
-  const bookErr = (searchParams.bookErr ?? "").trim();
+  const bookErr = (params?.bookErr ?? "").trim();
   const errPath = BOOK_ERR_KEYS[bookErr];
   const content = await getSiteContent();
   const hotels = await searchApprovedHotels({
-    q: searchParams.q,
-    city: searchParams.city,
-    guests: Number(searchParams.guests || 1),
-    minPrice: searchParams.minPrice ? Number(searchParams.minPrice) : undefined,
-    maxPrice: searchParams.maxPrice ? Number(searchParams.maxPrice) : undefined,
-    propertyType: searchParams.propertyType ?? "ANY",
-    wifi: searchParams.wifi === "on" || searchParams.wifi === "true",
-    breakfast: searchParams.breakfast === "on" || searchParams.breakfast === "true",
-    parking: searchParams.parking === "on" || searchParams.parking === "true",
-    ratingMin: searchParams.ratingMin ? Number(searchParams.ratingMin) : undefined,
-    sortBy: searchParams.sortBy ?? "POPULAR"
+    q: params?.q,
+    city: params?.city,
+    guests: Number(params?.guests || 1),
+    minPrice: params?.minPrice ? Number(params?.minPrice) : undefined,
+    maxPrice: params?.maxPrice ? Number(params?.maxPrice) : undefined,
+    propertyType: params?.propertyType ?? "ANY",
+    wifi: params?.wifi === "on" || params?.wifi === "true",
+    breakfast: params?.breakfast === "on" || params?.breakfast === "true",
+    parking: params?.parking === "on" || params?.parking === "true",
+    ratingMin: params?.ratingMin ? Number(params?.ratingMin) : undefined,
+    sortBy: params?.sortBy ?? "POPULAR"
   });
   return (
     <div className="mx-auto flex w-[94%] max-w-7xl flex-col justify-center space-y-4 px-0 py-4 sm:w-full sm:space-y-8 sm:px-6 sm:py-8 lg:px-8">
@@ -79,19 +82,19 @@ export default async function SearchPage({ searchParams }: Props) {
           initialHotels={hotels}
           locale={locale}
           initialFilters={{
-            q: searchParams.q,
-            city: searchParams.city,
-            checkIn: searchParams.checkIn,
-            checkOut: searchParams.checkOut,
-            guests: searchParams.guests,
-            minPrice: searchParams.minPrice,
-            maxPrice: searchParams.maxPrice,
-            ratingMin: searchParams.ratingMin,
-            sortBy: searchParams.sortBy,
-            wifi: searchParams.wifi,
-            breakfast: searchParams.breakfast,
-            parking: searchParams.parking,
-            propertyType: searchParams.propertyType
+            q: params?.q,
+            city: params?.city,
+            checkIn: params?.checkIn,
+            checkOut: params?.checkOut,
+            guests: params?.guests,
+            minPrice: params?.minPrice,
+            maxPrice: params?.maxPrice,
+            ratingMin: params?.ratingMin,
+            sortBy: params?.sortBy,
+            wifi: params?.wifi,
+            breakfast: params?.breakfast,
+            parking: params?.parking,
+            propertyType: params?.propertyType
           }}
         />
       </div>

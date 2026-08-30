@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 /** POST /api/auth/telegram/challenge — start Telegram login (5 min). */
 export async function POST(req: Request) {
   if (!isTelegramLoginConfigured()) {
-    return NextResponse.json({ error: "Telegram login is not configured" }, { status: 503 });
+    return NextResponse.json({ error: "Telegram login unavailable", reason: "not_configured" }, { status: 503 });
   }
 
   const ip = clientIp(req);

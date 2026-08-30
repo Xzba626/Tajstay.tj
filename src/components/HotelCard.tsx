@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AppImage } from "@/components/ui/AppImage";
+import { PhotoPlaceholder } from "@/components/ui/PhotoPlaceholder";
 import { Hotel, Room } from "@prisma/client";
 import { t, type Locale } from "@/lib/i18n/dictionaries";
 import { m } from "@/lib/i18n/messages";
@@ -71,9 +72,7 @@ export function HotelCard({ hotel, locale = "ru", variant = "accent", hrefQuery 
             {hotel.coverImageUrl ? (
               <AppImage src={hotel.coverImageUrl} alt={hotel.name} fill className="object-cover" sizes="(max-width:768px) 50vw, 220px" />
             ) : (
-              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-brand-900 via-brand-800 to-brand-700">
-                <div className="text-2xl opacity-20">🏨</div>
-              </div>
+              <PhotoPlaceholder locale={locale ?? "ru"} variant="hotel" className="absolute inset-0" />
             )}
             <div className="hotel-img-overlay" />
             {showRating ? (
@@ -119,15 +118,7 @@ export function HotelCard({ hotel, locale = "ru", variant = "accent", hrefQuery 
           {hotel.coverImageUrl ? (
             <AppImage src={hotel.coverImageUrl} alt={hotel.name} fill className="object-cover" sizes="(max-width:640px) 100vw, 400px" />
           ) : (
-            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-brand-900 via-brand-800 to-brand-700">
-              <div className="text-5xl opacity-20">🏨</div>
-              <div
-                className="absolute inset-0 opacity-40"
-                style={{
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23059669' fill-opacity='0.08'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E")`,
-                }}
-              />
-            </div>
+            <PhotoPlaceholder locale={locale ?? "ru"} variant="hotel" className="absolute inset-0" />
           )}
 
           {/* Overlay gradient */}

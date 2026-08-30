@@ -8,8 +8,7 @@ type Props = {
   isRegister: boolean;
   googleOAuthEnabled: boolean;
   telegramLoginEnabled: boolean;
-  showTelegramConfigWarning: boolean;
-  telegramBotUsername?: string | null;
+  telegramUnavailable?: boolean;
   telegramFlowActive: boolean;
   onTelegramFlowChange: (active: boolean) => void;
   labels: {
@@ -20,6 +19,7 @@ type Props = {
     telegramRegister: string;
     telegramRegisterHint: string;
     telegramConfigWarning: string;
+    telegramUnavailable: string;
     telegram: TelegramLoginLabels;
   };
   onTelegramSuccess: () => void | Promise<void>;
@@ -32,8 +32,7 @@ export function AuthSocialButtons({
   isRegister,
   googleOAuthEnabled,
   telegramLoginEnabled,
-  showTelegramConfigWarning,
-  telegramBotUsername,
+  telegramUnavailable = false,
   labels: L,
   telegramFlowActive,
   onTelegramFlowChange,
@@ -45,10 +44,9 @@ export function AuthSocialButtons({
 
   return (
     <>
-      {showTelegramConfigWarning ? (
-        <p className="taj-form-error taj-form-error--inline" role="status">
-          {L.telegramConfigWarning}
-          {telegramBotUsername ? ` (@${telegramBotUsername.replace(/^@/, "")})` : ""}
+      {telegramUnavailable ? (
+        <p className="taj-field-hint taj-field-hint--center" role="status">
+          {L.telegramUnavailable}
         </p>
       ) : null}
 

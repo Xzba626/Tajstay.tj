@@ -1,0 +1,36 @@
+---
+description: TajStay visual direction — light premium commercial product, restrained green, strong mobile UX.
+alwaysApply: false
+---
+
+# TajStay visual direction
+
+## Direction
+
+- Light base: white / near-white backgrounds.
+- Text: near-black primary, muted secondary via `--text-muted`.
+- **Green** = brand, primary actions, positive state — not the entire canvas.
+- Premium but restrained — no decorative gradients, no glassmorphism for its own sake.
+- Strong hierarchy: title → section → row → meta.
+- Mobile-first: full-bleed lists, sticky headers where helpful, safe-area padding.
+- Meaningful motion only (drawer, tab switch, confirmation) — respect `prefers-reduced-motion`.
+
+## Layout patterns (canonical)
+
+- **Profile / Account Center** — full-width hub, not floating narrow card (`profile-center`).
+- **History** — tabs via `classify.ts`; card = `HistoryRecordCard`.
+- **Bottom nav** — Home · Search · Tours · History · Profile (Favorites inside Profile).
+- **Desktop** — max width ~1200px content zones; header unchanged.
+
+## Do not introduce
+
+- Generic AI dashboard layouts.
+- Random gradient heroes.
+- Duplicate navigation to History or Favorites.
+- Dark-only assumptions — app supports theme tokens; default product feel is light + green accent.
+
+## Reference files
+
+- Tokens: `src/styles/tokens.css`, `src/styles/taj-theme.css`
+- DS: `src/components/ds/`
+- Profile center: `src/styles/profile-center.css`

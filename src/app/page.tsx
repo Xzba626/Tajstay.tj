@@ -86,6 +86,8 @@ export default async function HomePage() {
               heroSubtitle={t(locale, "heroSubtitle")}
               ctaSearch={m(locale, "home.ctaSearch")}
               trustPoints={heroTrustPoints}
+              trustHighlightsAriaLabel={m(locale, "home.trustHighlightsAria")}
+              primaryActionsAriaLabel={m(locale, "home.primaryActionsAria")}
             />
           </div>
           <div id="home-search" className="home-hero-search-overlap scroll-mt-24" data-reveal>

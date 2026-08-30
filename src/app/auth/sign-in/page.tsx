@@ -1,8 +1,7 @@
 import { isGoogleOAuthConfigured } from "@/lib/auth/googleOAuthEnv";
 import {
-  getTelegramBotUsername,
   isTelegramLoginConfigured,
-  isTelegramLoginUiEnabled
+  getTelegramBotUsernamePublic
 } from "@/lib/telegram/config";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
@@ -18,12 +17,9 @@ export default async function SignInPage({
   const locale = getLocale();
   const content = await getSiteContent();
   const featuredHotel = await getAuthPromoFeaturedHotel();
-  const telegramLoginEnabled = isTelegramLoginUiEnabled();
-  const telegramApiReady = isTelegramLoginConfigured();
-  const telegramBotUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME?.trim() || getTelegramBotUsername();
-  const showTelegramConfigWarning =
-    telegramLoginEnabled &&
-    (!telegramApiReady || !process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME?.trim());
+  const telegramLoginEnabled = isTelegramLoginConfigured();
+  const telegramUnavailable =
+    !telegramLoginEnabled && Boolean(process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME?.trim() || getTelegramBotUsernamePublic());
 
   const promoLabels = {
     badge: m(locale, "auth.promoBadge"),
@@ -104,6 +100,7 @@ export default async function SignInPage({
     otpRequestNew: m(locale, "auth.otpRequestNew"),
     telegramResendOpen: m(locale, "auth.telegramResendOpen"),
     telegramConfigWarning: m(locale, "auth.telegramConfigWarning"),
+    telegramUnavailable: m(locale, "auth.telegramUnavailable"),
     badgeFast: m(locale, "auth.badgeFast"),
     back: m(locale, "common.back"),
     welcomeTitleLogin: m(locale, "auth.welcomeTitleLogin"),
@@ -136,8 +133,7 @@ export default async function SignInPage({
       nextPath={searchParams?.next ?? null}
       googleOAuthEnabled={isGoogleOAuthConfigured()}
       telegramLoginEnabled={telegramLoginEnabled}
-      telegramBotUsername={telegramBotUsername}
-      showTelegramConfigWarning={showTelegramConfigWarning}
+      telegramUnavailable={telegramUnavailable}
     />
   );
 }

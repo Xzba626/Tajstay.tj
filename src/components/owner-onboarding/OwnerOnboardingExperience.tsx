@@ -8,6 +8,8 @@ import { normalizePhone } from "@/lib/validation/phone";
 import { OwnerOnboardingSidebar } from "@/components/owner-onboarding/OwnerOnboardingSidebar";
 import { OwnerStatusPanel } from "@/components/owner-onboarding/OwnerStatusPanel";
 import { FileUploadCard } from "@/components/owner-onboarding/FileUploadCard";
+import type { Locale } from "@/lib/i18n/locale";
+import { TAJIK_CITY_CANONICAL, cityDisplayLabel, isKnownTajikCity } from "@/lib/geo/tajikCities";
 
 type Defaults = { fullName: string; phone: string; email: string };
 
@@ -27,6 +29,7 @@ const MAX_FILE = 5 * 1024 * 1024;
 const ACCEPT_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 type Props = {
+  locale: Locale;
   L: OwnerOnboardingLabels;
   ownerNav: OwnerAppNavState;
   defaults: Defaults;
@@ -81,7 +84,7 @@ function Field({
   );
 }
 
-export function OwnerOnboardingExperience({ L, ownerNav, defaults }: Props) {
+export function OwnerOnboardingExperience({ locale, L, ownerNav, defaults }: Props) {
   const mobileWizard = useIsMobileWizard();
   const [wizardStep, setWizardStep] = useState(0);
   const [submitted, setSubmitted] = useState(false);
@@ -141,6 +144,7 @@ export function OwnerOnboardingExperience({ L, ownerNav, defaults }: Props) {
       if (!normalizePhone(phone)) e.phone = L.errPhone;
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) e.email = L.errEmail;
       if (!city.trim()) e.city = L.errRequired;
+      else if (!isKnownTajikCity(city)) e.city = L.errCity;
     }
     if (step === 1) {
       if (!businessName.trim()) e.businessName = L.errRequired;
@@ -252,7 +256,14 @@ export function OwnerOnboardingExperience({ L, ownerNav, defaults }: Props) {
           <input id="email" className="owner-input" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={L.emailPh} type="email" inputMode="email" autoComplete="email" />
         </Field>
         <Field id="city" label={L.city} required optionalLabel={L.optional} requiredLabel={L.required} error={errors.city}>
-          <input id="city" className="owner-input" value={city} onChange={(e) => setCity(e.target.value)} placeholder={L.cityPh} />
+          <select id="city" className="owner-input" value={city} onChange={(e) => setCity(e.target.value)} required>
+            <option value="">{L.cityPh}</option>
+            {TAJIK_CITY_CANONICAL.map((canonical) => (
+              <option key={canonical} value={canonical}>
+                {cityDisplayLabel(locale, canonical)}
+              </option>
+            ))}
+          </select>
         </Field>
         <div className="sm:col-span-2">
           <Field id="applicantType" label={L.applicantType} required optionalLabel={L.optional} requiredLabel={L.required}>

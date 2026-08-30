@@ -13,11 +13,11 @@ export default async function ProfilePage() {
   const user = await requireUser(["GUEST", "OWNER", "ADMIN"]);
   if (!user) {
     return (
-      <PageContainer width="default" className="pb-10">
-        <div className="profile-center">
+      <PageContainer width="default" className="pb-10 profile-page-light">
+        <div className="profile-center profile-center--guest">
           <h1 className="profile-center__title">{m(locale, "profile.title")}</h1>
-          <p className="text-[var(--text-secondary)]">{m(locale, "profile.signInPrompt")}</p>
-          <a className="btn-primary mt-4 inline-flex !w-auto px-6" href="/auth/sign-in?next=/profile">
+          <p className="profile-center__signin-copy">{m(locale, "profile.signInPrompt")}</p>
+          <a className="btn-primary inline-flex !w-auto px-6" href="/auth/sign-in?next=/profile">
             {m(locale, "profile.signInCta")}
           </a>
         </div>
@@ -39,7 +39,7 @@ export default async function ProfilePage() {
   if (!full) return null;
 
   return (
-    <PageContainer width="default" className="pb-10">
+    <PageContainer width="default" className="pb-10 profile-page-light">
       <ProfileMockupView
         locale={locale}
         user={full}

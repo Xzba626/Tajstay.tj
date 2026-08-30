@@ -18,7 +18,7 @@ export function ProfileSubpageShell({
   children: React.ReactNode;
 }) {
   return (
-    <PageContainer width="narrow" className="space-y-5 pb-10">
+    <PageContainer width="narrow" className="space-y-5 pb-10 profile-page-light">
       <ScreenHeader
         title={title}
         subtitle={subtitle}

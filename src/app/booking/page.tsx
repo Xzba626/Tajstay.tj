@@ -119,6 +119,7 @@ export default async function BookingPage({
       />
 
       <BookingWizard
+        locale={locale}
         labels={{
           titleStep1: m(locale, "checkout.step1"),
           titleStep2: m(locale, "checkout.step2"),
@@ -129,6 +130,8 @@ export default async function BookingPage({
           guestNamePh: m(locale, "checkout.guestNamePh"),
           guestEmailPh: m(locale, "checkout.guestEmailPh"),
           phonePh: m(locale, "checkout.phonePh"),
+          checkIn: m(locale, "search.checkIn"),
+          checkOut: m(locale, "search.checkOut"),
           payAlif: m(locale, "checkout.payAlif"),
           payDc: m(locale, "checkout.payDc"),
           subtotal: m(locale, "checkout.subtotal"),

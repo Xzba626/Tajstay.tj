@@ -1,0 +1,50 @@
+---
+description: TajStay AI team orchestration — pick specialists per task; do not load all skills at once.
+alwaysApply: false
+---
+
+# TajStay orchestration
+
+**Rule:** For each task, select the minimum set of agents/skills. Never invoke the full stack by default.
+
+## Agent roles
+
+| Agent | Scope | Invoke when |
+|-------|--------|-------------|
+| **Design** | Visual hierarchy, typography, spacing, color, motion, polish | New UI, redesign, "looks wrong" |
+| **UX** | IA, flows, cognitive load, forms, nav, a11y usability | Confusing flows, onboarding, registration |
+| **Engineering** | FE/BE, API, DB, performance, architecture | Logic, bugs, integration |
+| **Security** | AuthZ, authN, OWASP, API, AI/TST safety | Login, payments, bookings, TST actions |
+| **QA** | Unit/integration/E2E/regression | After implementation, before PASS |
+| **Human-like QA** | Real browser walkthrough as a user | Any shipped UX change |
+
+## Routing examples
+
+| Task | Agents |
+|------|--------|
+| Owner registration too complex | UX + Design + Engineering + Human-like QA + E2E |
+| AI drawer won't close | UX + Design + Engineering + E2E |
+| Book already-occupied room | Engineering + Security + E2E (+ DB review) |
+| Profile layout | Design + UX + Engineering + Human-like QA |
+| TST password change | Security + Engineering (confirm-only flows) |
+
+## Skill mapping
+
+- Design → better-web-ui: `add-ui`, `polish`, `arrange`, `animate`, `critique`
+- UX → `critique`, `forms`, `search`, `human-like-qa`
+- Engineering → `explore-before-build`, existing codebase modules
+- Security → `.agents/skills/security/*` (UnitOne SecuritySkills subset)
+- QA → `test`, `e2e-browser-qa`, Playwright MCP
+- Autonomous batch → `ralph` (with TajStay guardrails)
+
+## Protected domains (approval required)
+
+Ralph and autonomous loops **must not** silently change:
+
+- Production database schema or migrations
+- Authentication / authorization core
+- Booking engine invariants
+- Payment capture flows
+- Security-critical env secrets
+
+Use human approval or explicit user request for these.

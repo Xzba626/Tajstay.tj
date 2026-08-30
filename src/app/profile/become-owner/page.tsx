@@ -22,6 +22,7 @@ export default async function ProfileBecomeOwnerPage() {
 
   return (
     <OwnerOnboardingExperience
+      locale={locale}
       L={L}
       ownerNav={ownerNav}
       defaults={{

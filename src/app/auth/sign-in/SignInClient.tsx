@@ -64,6 +64,7 @@ export type SignInLabels = {
   telegramVerify: string;
   telegramTooManyAttempts: string;
   telegramConfigWarning: string;
+  telegramUnavailable: string;
   telegramExpiresIn: string;
   otpExpired: string;
   otpRequestNew: string;
@@ -131,8 +132,7 @@ type Props = {
   nextPath?: string | null;
   googleOAuthEnabled?: boolean;
   telegramLoginEnabled?: boolean;
-  telegramBotUsername?: string | null;
-  showTelegramConfigWarning?: boolean;
+  telegramUnavailable?: boolean;
 };
 
 type MainTab = "signIn" | "register";
@@ -148,8 +148,7 @@ export function SignInClient({
   nextPath = null,
   googleOAuthEnabled = false,
   telegramLoginEnabled = false,
-  telegramBotUsername = null,
-  showTelegramConfigWarning = false
+  telegramUnavailable = false
 }: Props) {
   const [me, setMe] = useState<ApiUser | null>(null);
   const [mode, setMode] = useState<MainTab>(initialMode === "register" ? "register" : "signIn");
@@ -305,7 +304,8 @@ export function SignInClient({
     codeSuccess: L.telegramCodeSuccess,
     codeInvalid: L.telegramCodeInvalid,
     tooManyAttempts: L.telegramTooManyAttempts,
-    errorGeneric: L.errorGeneric
+    errorGeneric: L.errorGeneric,
+    unavailable: L.telegramUnavailable
   };
 
   return (
@@ -482,8 +482,7 @@ export function SignInClient({
                 isRegister={isRegister}
                 googleOAuthEnabled={googleOAuthEnabled}
                 telegramLoginEnabled={telegramLoginEnabled}
-                showTelegramConfigWarning={showTelegramConfigWarning}
-                telegramBotUsername={telegramBotUsername}
+                telegramUnavailable={telegramUnavailable}
                 telegramFlowActive={telegramFlowActive}
                 onTelegramFlowChange={setTelegramFlowActive}
                 labels={{
@@ -494,6 +493,7 @@ export function SignInClient({
                   telegramRegister: L.telegramRegister,
                   telegramRegisterHint: L.telegramRegisterHint,
                   telegramConfigWarning: L.telegramConfigWarning,
+                  telegramUnavailable: L.telegramUnavailable,
                   telegram: telegramLabels
                 }}
                 onGoogle={() => handleGoogleAuth().catch(() => setFormError(L.googleSignInError))}

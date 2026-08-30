@@ -1,0 +1,23 @@
+{
+  "project": "tajstay",
+  "feature": "Example Ralph session — replace before running",
+  "workingDirectory": "D:/Tajstay.tj",
+  "branchName": "ralph/example-feature",
+  "userStories": [
+    {
+      "id": "story-001",
+      "title": "Example: verify profile hub links",
+      "description": "Ensure Profile Center menu rows navigate to existing routes without 404.",
+      "acceptanceCriteria": [
+        "npx tsc --noEmit passes",
+        "npm run lint passes",
+        "Manual or MCP: /profile → History → /history",
+        "No new routes for History or Favorites"
+      ],
+      "passes": false,
+      "blocked": false,
+      "notes": null,
+      "priority": 1
+    }
+  ]
+}

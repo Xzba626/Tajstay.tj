@@ -653,7 +653,7 @@ export function TstAssistant({ locale }: Props) {
   return (
     <div className="tst-assistant">
       {open ? (
-        <button type="button" className="tst-assistant__backdrop" aria-label={m(locale, "common.close")} onClick={closePanel} />
+        <button type="button" className="tst-assistant__backdrop" aria-label={m(locale, "tstAssistant.dismissOverlay")} onClick={closePanel} />
       ) : null}
 
       {open ? (

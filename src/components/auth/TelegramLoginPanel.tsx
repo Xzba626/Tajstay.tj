@@ -19,6 +19,7 @@ export type TelegramLoginLabels = {
   codeInvalid: string;
   tooManyAttempts: string;
   errorGeneric: string;
+  unavailable: string;
 };
 
 type Props = {
@@ -199,8 +200,14 @@ export function TelegramLoginPanel({ labels: L, expanded, onExpandedChange, onSu
         headers: { accept: "application/json" },
         credentials: "include"
       });
-      const json = (await res.json().catch(() => ({}))) as ChallengeState & { error?: string };
-      if (!res.ok) throw new Error(json.error || L.errorGeneric);
+      const json = (await res.json().catch(() => ({}))) as ChallengeState & { error?: string; reason?: string };
+      if (!res.ok) {
+        if (res.status === 503 && json.reason === "not_configured") {
+          onError?.(L.unavailable);
+          return;
+        }
+        throw new Error(L.errorGeneric);
+      }
 
       const links = linksFromTelegramDeepLink(json.deepLink);
       setChallenge(json);

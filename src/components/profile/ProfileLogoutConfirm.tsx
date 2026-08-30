@@ -58,7 +58,7 @@ export function ProfileLogoutConfirm({ label, confirmText, confirmYes, confirmCa
             </button>
           </div>
           {error ? (
-            <p className="mt-2 text-xs text-red-300" role="alert">
+            <p className="profile-center__confirm-error" role="alert">
               {error}
             </p>
           ) : null}

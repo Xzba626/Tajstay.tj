@@ -53,14 +53,14 @@ export function AdminOwnerApplicationActions({ applicationId, labels: L }: Props
           <button
             type="button"
             onClick={() => setMode("approve")}
-            className="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-600"
+            className="admin-btn admin-btn--primary"
           >
             {L.approve}
           </button>
           <button
             type="button"
             onClick={() => setMode("reject")}
-            className="rounded-xl border-2 border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-800 hover:bg-red-100"
+            className="admin-btn admin-btn--destructive"
           >
             {L.reject}
           </button>
@@ -76,11 +76,11 @@ export function AdminOwnerApplicationActions({ applicationId, labels: L }: Props
               type="button"
               disabled={busy}
               onClick={() => void submit("approve")}
-              className="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+              className="admin-btn admin-btn--primary"
             >
               {busy ? L.processing : L.confirmApproveCta}
             </button>
-            <button type="button" onClick={() => setMode("idle")} className="rounded-xl px-4 py-2 text-sm text-slate-600">
+            <button type="button" onClick={() => setMode("idle")} className="admin-btn admin-btn--ghost">
               {L.cancel}
             </button>
           </div>
@@ -103,11 +103,11 @@ export function AdminOwnerApplicationActions({ applicationId, labels: L }: Props
               type="button"
               disabled={busy || !comment.trim()}
               onClick={() => void submit("reject")}
-              className="rounded-xl bg-red-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+              className="admin-btn admin-btn--destructive"
             >
               {busy ? L.processing : L.reject}
             </button>
-            <button type="button" onClick={() => setMode("idle")} className="rounded-xl px-4 py-2 text-sm text-slate-600">
+            <button type="button" onClick={() => setMode("idle")} className="admin-btn admin-btn--ghost">
               {L.cancel}
             </button>
           </div>

@@ -17,12 +17,18 @@ import {
   roleVariant
 } from "@/components/ui/StatusBadge";
 import { getSiteContent } from "@/lib/site-content";
-import { DataToolbar } from "@/components/ui/DataToolbar";
+import { AdminDataToolbar } from "@/components/admin/AdminDataToolbar";
 import { Pagination } from "@/components/ui/Pagination";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { scoreHotelRisk } from "@/lib/services/riskScoring";
 import { deriveEscrowState } from "@/lib/domain/booking";
 import { notificationText } from "@/lib/notifications/text";
+import { AdminDashboardOverview } from "@/components/admin/AdminDashboardOverview";
+import { AdminSectionHead } from "@/components/admin/AdminSectionHead";
+import { AdminSectionStats } from "@/components/admin/AdminSectionStats";
+import { AdminRecordCard } from "@/components/admin/AdminRecordCard";
+import { AdminNativeForm } from "@/components/admin/AdminNativeForm";
+import { AdminSubmitButton } from "@/components/admin/AdminSubmitButton";
 import { isAdminSecurityResetConfigured } from "@/lib/admin-security";
 
 export const dynamic = "force-dynamic";
@@ -144,6 +150,12 @@ export default async function AdminDashboardPage({
   let totalRows = 0;
   let totalPages = 1;
 
+  let pendingApplications = 0;
+  let pendingHotels = 0;
+  let openComplaints = 0;
+  let unreadNotifications = 0;
+  let bookingsOnReview = 0;
+
   if (activeSection === "dashboard") {
     const analytics = await Promise.all([
       prisma.hotel.count(),
@@ -161,9 +173,32 @@ export default async function AdminDashboardPage({
         },
         orderBy: { createdAt: "desc" },
         take: 8
-      })
+      }),
+      prisma.ownerApplication.count({ where: { status: OWNER_APPLICATION_STATUS.PENDING } }),
+      prisma.hotel.count({ where: { status: "PENDING" } }),
+      prisma.complaint.count({ where: { status: { not: "RESOLVED" } } }),
+      prisma.notification.count({
+        where: {
+          userId: admin.id,
+          isRead: false,
+          createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
+        }
+      }),
+      prisma.booking.count({ where: { paymentStatus: "ON_REVIEW" } })
     ]);
-    [hotelTotal, hotelApproved, userTotal, bookingTotal, bookingAgg, riskNotes] = analytics as any;
+    [
+      hotelTotal,
+      hotelApproved,
+      userTotal,
+      bookingTotal,
+      bookingAgg,
+      riskNotes,
+      pendingApplications,
+      pendingHotels,
+      openComplaints,
+      unreadNotifications,
+      bookingsOnReview
+    ] = analytics as any;
   } else if (activeSection === "content") {
     content = await getSiteContent();
   } else if (activeSection === "applications") {
@@ -293,367 +328,266 @@ export default async function AdminDashboardPage({
   }
 
   return (
-    <div className="dashboard-skin space-y-12 pb-16 text-slate-100">
-      <header className="border-b border-white/10 pb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-slate-100">{m(locale, "admin.pageTitle")}</h1>
-        <p className="mt-2 max-w-2xl text-sm text-slate-300">{m(locale, "admin.pageSubtitle")}</p>
+    <div className="admin-command-center space-y-8 pb-8 lg:space-y-10 lg:pb-10">
+      <header className="admin-page-header">
+        <h1 className="admin-page-header__title">{m(locale, "admin.pageTitle")}</h1>
+        <p className="admin-page-header__subtitle">{m(locale, "admin.pageSubtitle")}</p>
       </header>
 
-      <section className="grid gap-4 md:grid-cols-3">
-        <article className="glass-panel rounded-2xl p-5 shadow-sm">
-          <h3 className="text-sm font-bold text-slate-100">{m(locale, "admin.guideOwnersTitle")}</h3>
-          <p className="mt-2 text-sm text-slate-300">{m(locale, "admin.guideOwnersText")}</p>
-        </article>
-        <article className="glass-panel rounded-2xl p-5 shadow-sm">
-          <h3 className="text-sm font-bold text-slate-100">{m(locale, "admin.guidePropertiesTitle")}</h3>
-          <p className="mt-2 text-sm text-slate-300">{m(locale, "admin.guidePropertiesText")}</p>
-        </article>
-        <article className="glass-panel rounded-2xl p-5 shadow-sm">
-          <h3 className="text-sm font-bold text-slate-100">{m(locale, "admin.guideContentTitle")}</h3>
-          <p className="mt-2 text-sm text-slate-300">{m(locale, "admin.guideContentText")}</p>
-        </article>
-      </section>
+      {activeSection === "dashboard" && (
+        <AdminDashboardOverview
+          locale={locale}
+          basePath="/dashboard/admin"
+          stats={{
+            hotelTotal,
+            hotelApproved,
+            userTotal,
+            bookingTotal,
+            revenue30: Number(bookingAgg._sum.totalPrice ?? 0),
+            commission30: Number(bookingAgg._sum.commission ?? 0),
+            pendingApplications,
+            pendingHotels,
+            openComplaints,
+            unreadNotifications,
+            bookingsOnReview
+          }}
+          riskNotes={riskNotes}
+        />
+      )}
 
-      {activeSection === "dashboard" && <section id="dashboard" className="scroll-mt-28 space-y-4">
-        <div className="flex items-center gap-2">
-          <span className="h-8 w-1 rounded-full bg-emerald-600" aria-hidden />
-          <h2 className="text-lg font-bold text-slate-100">{m(locale, "admin.analytics")}</h2>
-        </div>
-        <div className="liquid-glass rounded-2xl p-6 shadow-md shadow-emerald-900/10">
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <div className="quiet-card rounded-2xl p-5 shadow-sm">
-              <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">{m(locale, "admin.hotelsTotal")}</div>
-              <div className="mt-2 text-3xl font-bold text-slate-100">
-                {hotelApproved}
-                <span className="text-lg font-medium text-slate-400"> / {hotelTotal}</span>
-              </div>
-              <div className="mt-1 text-xs text-slate-400">{m(locale, "admin.hotelsSub")}</div>
-            </div>
-            <div className="quiet-card rounded-2xl p-5 shadow-sm">
-              <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">{m(locale, "admin.users")}</div>
-              <div className="mt-2 text-3xl font-bold text-slate-100">{userTotal}</div>
-            </div>
-            <div className="quiet-card rounded-2xl p-5 shadow-sm">
-              <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">{m(locale, "admin.bookingsTotal")}</div>
-              <div className="mt-2 text-3xl font-bold text-slate-100">{bookingTotal}</div>
-            </div>
-            <div className="quiet-card rounded-2xl p-5 shadow-sm">
-              <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">{m(locale, "admin.revenue30")}</div>
-              <div className="mt-2 text-3xl font-bold text-slate-100">{Number(bookingAgg._sum.totalPrice ?? 0)} TJS</div>
-              <div className="mt-1 text-xs text-slate-400">
-                {m(locale, "admin.commission")}: {Number(bookingAgg._sum.commission ?? 0)} TJS
-              </div>
-            </div>
-          </div>
-        </div>
-        {riskNotes.length > 0 && (
-          <div className="glass-panel rounded-2xl p-5">
-            <h3 className="text-sm font-bold text-slate-100">Risk history (auto flags)</h3>
-            <ul className="mt-3 space-y-2 text-xs text-slate-200">
-              {riskNotes.map((note) => (
-                <li key={note.id} className="rounded-lg border border-white/10 bg-white/5 px-3 py-2">
-                  {note.type} · {formatDateTimeShort(locale, note.createdAt)}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </section>}
-
-      {activeSection === "content" && <section id="content" className="scroll-mt-28 space-y-4">
-        <div className="flex items-center gap-2">
-          <span className="h-8 w-1 rounded-full bg-emerald-500" aria-hidden />
-          <h2 className="text-lg font-bold text-slate-100">{m(locale, "admin.contentSection")}</h2>
-        </div>
-        <form
+      {activeSection === "content" && <section id="content" className="admin-section scroll-mt-28">
+        <AdminSectionHead title={m(locale, "admin.contentSection")} subtitle={m(locale, "admin.brandHint")} />
+        <AdminNativeForm
           action="/api/admin/content/home-banner"
           method="post"
-          className="glass-panel grid gap-3 rounded-2xl p-6 shadow-sm md:grid-cols-2"
+          className="admin-panel admin-form-grid admin-form-grid--2"
         >
-          <label className="text-sm text-slate-200">
+          <label className="admin-field">
             {m(locale, "admin.bannerTitle")}
-            <input
-              name="title"
-              defaultValue={content!.homeBanner.title}
-              required
-              className="ds-input mt-1 w-full px-3 py-2.5"
-            />
+            <input name="title" defaultValue={content!.homeBanner.title} required />
           </label>
-          <label className="text-sm text-slate-200">
+          <label className="admin-field">
             {m(locale, "admin.bannerButton")}
-            <input
-              name="ctaText"
-              defaultValue={content!.homeBanner.ctaText}
-              required
-              className="ds-input mt-1 w-full px-3 py-2.5"
-            />
+            <input name="ctaText" defaultValue={content!.homeBanner.ctaText} required />
           </label>
-          <label className="text-sm text-slate-200 md:col-span-2">
+          <label className="admin-field md:col-span-2">
             {m(locale, "admin.bannerSubtitle")}
-            <textarea
-              name="subtitle"
-              defaultValue={content!.homeBanner.subtitle}
-              required
-              rows={3}
-              className="ds-input mt-1 w-full px-3 py-2.5"
-            />
+            <textarea name="subtitle" defaultValue={content!.homeBanner.subtitle} required rows={3} />
           </label>
-          <label className="text-sm text-slate-200 md:col-span-2">
+          <label className="admin-field md:col-span-2">
             {m(locale, "admin.bannerLink")}
-            <input
-              name="ctaHref"
-              defaultValue={content!.homeBanner.ctaHref}
-              className="ds-input mt-1 w-full px-3 py-2.5"
-            />
+            <input name="ctaHref" defaultValue={content!.homeBanner.ctaHref} />
           </label>
-          <label className="flex items-center gap-2 text-sm text-slate-200 md:col-span-2">
+          <label className="flex items-center gap-2 text-sm md:col-span-2">
             <input type="checkbox" name="enabled" defaultChecked={content!.homeBanner.enabled} />
             {m(locale, "admin.bannerEnabled")}
           </label>
-          <button className="ds-primary-btn rounded-xl px-4 py-2.5 text-sm md:col-span-2">
+          <AdminSubmitButton className="md:col-span-2" loadingLabel={m(locale, "admin.processing")}>
             {m(locale, "admin.saveContent")}
-          </button>
-        </form>
+          </AdminSubmitButton>
+        </AdminNativeForm>
 
-        <div className="glass-panel rounded-2xl p-6 shadow-sm">
-          <div className="text-sm font-semibold text-slate-100">{m(locale, "admin.brandSection")}</div>
-          <p className="mt-1 text-sm text-slate-300">{m(locale, "admin.brandHint")}</p>
-          <form action="/api/admin/content/brand" method="post" className="mt-4 grid gap-3 md:grid-cols-2">
-            <label className="text-sm text-slate-200 md:col-span-2">
+        <div className="admin-panel">
+          <div className="text-sm font-semibold">{m(locale, "admin.brandSection")}</div>
+          <p className="mt-1 text-sm text-[var(--admin-text-muted)]">{m(locale, "admin.brandHint")}</p>
+          <AdminNativeForm action="/api/admin/content/brand" method="post" className="admin-form-grid admin-form-grid--2 mt-4">
+            <label className="admin-field md:col-span-2">
               {m(locale, "admin.brandSiteName")}
-              <input
-                name="siteName"
-                defaultValue={content!.brand.siteName}
-                className="ds-input mt-1 w-full px-3 py-2.5"
-              />
+              <input name="siteName" defaultValue={content!.brand.siteName} />
             </label>
-            <label className="text-sm text-slate-200">
+            <label className="admin-field">
               {m(locale, "admin.brandLogoMain")}
-              <input
-                name="logoMainUrl"
-                defaultValue={content!.brand.logoMainUrl}
-                className="ds-input mt-1 w-full px-3 py-2.5"
-              />
+              <input name="logoMainUrl" defaultValue={content!.brand.logoMainUrl} />
             </label>
-            <label className="text-sm text-slate-200">
+            <label className="admin-field">
               {m(locale, "admin.brandLogoMark")}
-              <input
-                name="logoMarkUrl"
-                defaultValue={content!.brand.logoMarkUrl}
-                className="ds-input mt-1 w-full px-3 py-2.5"
-              />
+              <input name="logoMarkUrl" defaultValue={content!.brand.logoMarkUrl} />
             </label>
-            <label className="text-sm text-slate-200 md:col-span-2">
+            <label className="admin-field md:col-span-2">
               {m(locale, "admin.brandFavicon")}
-              <input
-                name="faviconUrl"
-                defaultValue={content!.brand.faviconUrl}
-                className="ds-input mt-1 w-full px-3 py-2.5"
-              />
+              <input name="faviconUrl" defaultValue={content!.brand.faviconUrl} />
             </label>
-            <button className="ds-primary-btn rounded-xl px-4 py-2.5 text-sm md:col-span-2">
+            <AdminSubmitButton className="md:col-span-2" loadingLabel={m(locale, "admin.processing")}>
               {m(locale, "admin.saveBrand")}
-            </button>
-          </form>
+            </AdminSubmitButton>
+          </AdminNativeForm>
         </div>
 
-        <div className="glass-panel rounded-2xl p-6 shadow-sm">
-          <div className="text-sm font-semibold text-slate-100">Payment methods catalog</div>
-          <p className="mt-1 text-sm text-slate-300">
-            Global list of cards and wallets that hotel owners can select for guests.
-          </p>
-          <form action="/api/admin/content/payment-methods" method="post" className="mt-4 space-y-3">
+        <div className="admin-panel">
+          <div className="text-sm font-semibold">{m(locale, "admin.paymentCatalogTitle")}</div>
+          <p className="mt-1 text-sm text-[var(--admin-text-muted)]">{m(locale, "admin.paymentCatalogHint")}</p>
+          <AdminNativeForm action="/api/admin/content/payment-methods" method="post" className="mt-4 space-y-3">
             <input
               name="methods"
               defaultValue={content!.paymentCatalog.methods.join(", ")}
-              className="ds-input w-full px-3 py-2.5"
-              placeholder="Visa, Mastercard, Humo, Alif Mobi..."
+              placeholder={m(locale, "admin.paymentCatalogPlaceholder")}
             />
-            <button className="rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600">
-              Save payment catalog
-            </button>
-          </form>
+            <AdminSubmitButton loadingLabel={m(locale, "admin.processing")}>{m(locale, "admin.paymentCatalogSave")}</AdminSubmitButton>
+          </AdminNativeForm>
         </div>
 
-        <div className="glass-panel rounded-2xl p-6 shadow-sm">
-          <div className="text-sm font-semibold text-slate-100">Контакты поддержки</div>
-          <p className="mt-1 text-sm text-slate-300">Телефон, соцсети и часы работы для страниц `/contacts` и футера.</p>
-          <form action="/api/admin/content/support" method="post" className="mt-4 grid gap-3 md:grid-cols-2">
-            <label className="text-sm text-slate-200 md:col-span-2">
-              Заголовок блока
-              <input name="supportTitle" defaultValue={content!.support.supportTitle} className="ds-input mt-1 w-full px-3 py-2.5" />
+        <div className="admin-panel">
+          <div className="text-sm font-semibold">{m(locale, "admin.supportContactsTitle")}</div>
+          <p className="mt-1 text-sm text-[var(--admin-text-muted)]">{m(locale, "admin.supportContactsHint")}</p>
+          <AdminNativeForm action="/api/admin/content/support" method="post" className="admin-form-grid admin-form-grid--2 mt-4">
+            <label className="admin-field md:col-span-2">
+              {m(locale, "admin.supportTitleLabel")}
+              <input name="supportTitle" defaultValue={content!.support.supportTitle} />
             </label>
-            <label className="text-sm text-slate-200">
+            <label className="admin-field">
               Email
-              <input name="email" defaultValue={content!.support.email} className="ds-input mt-1 w-full px-3 py-2.5" placeholder="support@tajstay.tj" />
+              <input name="email" defaultValue={content!.support.email} placeholder="support@tajstay.tj" />
             </label>
-            <label className="text-sm text-slate-200">
-              Телефон
-              <input name="phone" defaultValue={content!.support.phone} className="ds-input mt-1 w-full px-3 py-2.5" placeholder="+992 ..." />
+            <label className="admin-field">
+              {m(locale, "profile.phone")}
+              <input name="phone" defaultValue={content!.support.phone} placeholder="+992 ..." />
             </label>
-            <label className="text-sm text-slate-200">
-              WhatsApp (ссылка или номер)
-              <input name="whatsapp" defaultValue={content!.support.whatsapp} className="ds-input mt-1 w-full px-3 py-2.5" placeholder="https://wa.me/992..." />
+            <label className="admin-field">
+              WhatsApp
+              <input name="whatsapp" defaultValue={content!.support.whatsapp} placeholder="https://wa.me/992..." />
             </label>
-            <label className="text-sm text-slate-200">
-              Telegram (ссылка)
-              <input name="telegram" defaultValue={content!.support.telegram} className="ds-input mt-1 w-full px-3 py-2.5" placeholder="https://t.me/..." />
+            <label className="admin-field">
+              Telegram
+              <input name="telegram" defaultValue={content!.support.telegram} placeholder="https://t.me/..." />
             </label>
-            <label className="text-sm text-slate-200">
-              Instagram (ссылка)
-              <input name="instagram" defaultValue={content!.support.instagram} className="ds-input mt-1 w-full px-3 py-2.5" placeholder="https://instagram.com/..." />
+            <label className="admin-field">
+              Instagram
+              <input name="instagram" defaultValue={content!.support.instagram} placeholder="https://instagram.com/..." />
             </label>
-            <label className="text-sm text-slate-200">
-              Часы работы
-              <input name="workingHours" defaultValue={content!.support.workingHours} className="ds-input mt-1 w-full px-3 py-2.5" placeholder="Ежедневно 09:00–21:00" />
+            <label className="admin-field">
+              {m(locale, "admin.supportWorkingHours")}
+              <input name="workingHours" defaultValue={content!.support.workingHours} placeholder="09:00–21:00" />
             </label>
-            <button className="ds-primary-btn rounded-xl px-4 py-2.5 text-sm md:col-span-2">Сохранить контакты</button>
-          </form>
+            <AdminSubmitButton className="md:col-span-2" loadingLabel={m(locale, "admin.processing")}>
+              {m(locale, "admin.supportContactsSave")}
+            </AdminSubmitButton>
+          </AdminNativeForm>
         </div>
 
-        <div className="glass-panel rounded-2xl p-6 shadow-sm">
-          <div className="text-sm font-semibold text-slate-100">Юридические страницы</div>
-          <p className="mt-1 text-sm text-slate-300">Редактирование “Политики конфиденциальности” и “Условий”.</p>
-          <form action="/api/admin/content/legal" method="post" className="mt-4 space-y-3">
-            <label className="text-sm text-slate-200">
-              Политика конфиденциальности (текст)
-              <textarea
-                name="privacyText"
-                defaultValue={content!.legal.privacyText}
-                rows={8}
-                className="ds-input mt-1 h-auto w-full px-3 py-2.5"
-              />
+        <div className="admin-panel">
+          <div className="text-sm font-semibold">{m(locale, "admin.legalPagesTitle")}</div>
+          <p className="mt-1 text-sm text-[var(--admin-text-muted)]">{m(locale, "admin.legalPagesHint")}</p>
+          <AdminNativeForm action="/api/admin/content/legal" method="post" className="mt-4 space-y-3">
+            <label className="admin-field">
+              {m(locale, "admin.legalPrivacyLabel")}
+              <textarea name="privacyText" defaultValue={content!.legal.privacyText} rows={8} />
             </label>
-            <label className="text-sm text-slate-200">
-              Условия использования (текст)
-              <textarea
-                name="termsText"
-                defaultValue={content!.legal.termsText}
-                rows={8}
-                className="ds-input mt-1 h-auto w-full px-3 py-2.5"
-              />
+            <label className="admin-field">
+              {m(locale, "admin.legalTermsLabel")}
+              <textarea name="termsText" defaultValue={content!.legal.termsText} rows={8} />
             </label>
-            <button className="ds-primary-btn rounded-xl px-4 py-2.5 text-sm">Сохранить страницы</button>
-          </form>
+            <AdminSubmitButton loadingLabel={m(locale, "admin.processing")}>{m(locale, "admin.legalPagesSave")}</AdminSubmitButton>
+          </AdminNativeForm>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="text-sm font-semibold text-slate-900">Admin security (login and password)</div>
-          <p className="mt-1 text-sm text-slate-600">
-            Change admin login (phone/email), password, and secret word. Passwords and secret word are stored hashed in the database.
-          </p>
-          <p className="mt-2 text-xs text-slate-500">
-            Current password — тот же пароль, которым вы вошли в админку. Secret word — отдельное слово (по умолчанию{" "}
-            <code className="rounded bg-slate-100 px-1">tajstay-secret</code>, если ещё не меняли).
-          </p>
-          {securityError && (
-            <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-              {securityMessage}
-            </div>
-          )}
-          {securityOk && securityOkMessage && (
-            <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-              {securityOkMessage}
-            </div>
-          )}
-          <form action="/api/admin/security/update" method="post" className="mt-4 grid gap-3 md:grid-cols-2">
-            <label className="text-sm text-slate-700">
-              New phone login
-              <input name="phone" defaultValue={admin.phone} className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5" />
+        <div className="admin-panel">
+          <div className="text-sm font-semibold">{m(locale, "admin.securitySectionTitle")}</div>
+          <p className="mt-1 text-sm text-[var(--admin-text-muted)]">{m(locale, "admin.securitySectionHint")}</p>
+          <p className="mt-2 text-xs text-[var(--admin-text-muted)]">{m(locale, "admin.securityCurrentPasswordHint")}</p>
+          {securityError && <div className="admin-alert admin-alert--error mt-3">{securityMessage}</div>}
+          {securityOk && securityOkMessage && <div className="admin-alert admin-alert--success mt-3">{securityOkMessage}</div>}
+          <AdminNativeForm action="/api/admin/security/update" method="post" className="admin-form-grid admin-form-grid--2 mt-4">
+            <label className="admin-field">
+              {m(locale, "admin.securityNewPhone")}
+              <input name="phone" defaultValue={admin.phone} />
             </label>
-            <label className="text-sm text-slate-700">
-              New email login
-              <input name="email" type="email" defaultValue={admin.email ?? ""} className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5" />
+            <label className="admin-field">
+              {m(locale, "admin.securityNewEmail")}
+              <input name="email" type="email" defaultValue={admin.email ?? ""} />
             </label>
-            <label className="text-sm text-slate-700">
-              Current password (required)
-              <input name="currentPassword" type="password" required className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5" />
+            <label className="admin-field">
+              {m(locale, "admin.securityCurrentPassword")}
+              <input name="currentPassword" type="password" required />
             </label>
-            <label className="text-sm text-slate-700">
-              Secret word (required)
-              <input name="secretWord" type="password" required={!isDev} className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5" />
-              {isDev && <div className="mt-1 text-xs text-slate-500">Dev default: `tajstay-secret`. Можно оставить пустым.</div>}
+            <label className="admin-field">
+              {m(locale, "admin.securitySecretWord")}
+              <input name="secretWord" type="password" required={!isDev} />
+              {isDev && <div className="mt-1 text-xs">{m(locale, "admin.securityDevSecretHint")}</div>}
             </label>
-            <label className="text-sm text-slate-700">
-              New password
-              <input name="newPassword" type="password" minLength={6} className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5" />
+            <label className="admin-field">
+              {m(locale, "admin.securityNewPassword")}
+              <input name="newPassword" type="password" minLength={6} />
             </label>
-            <label className="text-sm text-slate-700">
-              New secret word
-              <input name="newSecretWord" type="password" className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5" />
+            <label className="admin-field">
+              {m(locale, "admin.securityNewSecretWord")}
+              <input name="newSecretWord" type="password" />
             </label>
-            <button className="rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600 md:col-span-2">
-              Save admin security
-            </button>
-          </form>
+            <AdminSubmitButton className="md:col-span-2" loadingLabel={m(locale, "admin.processing")}>
+              {m(locale, "admin.securitySave")}
+            </AdminSubmitButton>
+          </AdminNativeForm>
 
           {adminSecurityResetAvailable && (
-            <div className="mt-8 border-t border-slate-200 pt-6">
-              <div className="text-sm font-semibold text-slate-900">Emergency reset (production recovery)</div>
-              <p className="mt-1 text-xs text-slate-500">
-                Если забыли текущий пароль или secret word. Нужен{" "}
-                <code className="rounded bg-slate-100 px-1">ADMIN_SECURITY_RESET_SECRET</code> из Vercel.
-              </p>
-              <form action="/api/admin/security/reset" method="post" className="mt-4 grid gap-3 md:grid-cols-2">
-                <label className="text-sm text-slate-700 md:col-span-2">
-                  Reset secret (from Vercel env)
-                  <input name="resetSecret" type="password" required className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5" />
+            <div className="mt-8 border-t border-[var(--admin-border)] pt-6">
+              <div className="text-sm font-semibold">{m(locale, "admin.securityEmergencyTitle")}</div>
+              <p className="mt-1 text-xs text-[var(--admin-text-muted)]">{m(locale, "admin.securityEmergencyHint")}</p>
+              <AdminNativeForm action="/api/admin/security/reset" method="post" className="admin-form-grid admin-form-grid--2 mt-4">
+                <label className="admin-field md:col-span-2">
+                  {m(locale, "admin.securityEmergencyResetSecret")}
+                  <input name="resetSecret" type="password" required />
                 </label>
-                <label className="text-sm text-slate-700">
-                  New phone login
-                  <input name="phone" defaultValue={admin.phone} className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5" />
+                <label className="admin-field">
+                  {m(locale, "admin.securityNewPhone")}
+                  <input name="phone" defaultValue={admin.phone} />
                 </label>
-                <label className="text-sm text-slate-700">
-                  New email login
-                  <input name="email" type="email" defaultValue={admin.email ?? ""} className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5" />
+                <label className="admin-field">
+                  {m(locale, "admin.securityNewEmail")}
+                  <input name="email" type="email" defaultValue={admin.email ?? ""} />
                 </label>
-                <label className="text-sm text-slate-700">
-                  New password (required)
-                  <input name="newPassword" type="password" required minLength={6} className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5" />
+                <label className="admin-field">
+                  {m(locale, "admin.securityNewPassword")}
+                  <input name="newPassword" type="password" required minLength={6} />
                 </label>
-                <label className="text-sm text-slate-700">
-                  New secret word (required)
-                  <input name="newSecretWord" type="password" required minLength={4} className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5" />
+                <label className="admin-field">
+                  {m(locale, "admin.securityNewSecretWord")}
+                  <input name="newSecretWord" type="password" required minLength={4} />
                 </label>
-                <button
-                  type="submit"
-                  className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm font-semibold text-amber-900 transition hover:bg-amber-100 md:col-span-2"
-                >
-                  Emergency reset admin security
-                </button>
-              </form>
+                <AdminSubmitButton variant="warning" className="md:col-span-2" loadingLabel={m(locale, "admin.processing")}>
+                  {m(locale, "admin.securityEmergencyCta")}
+                </AdminSubmitButton>
+              </AdminNativeForm>
             </div>
           )}
         </div>
       </section>}
 
-      {activeSection === "applications" && <section id="applications" className="scroll-mt-28 space-y-4">
-        <div className="flex items-center gap-2">
-          <span className="h-8 w-1 rounded-full bg-amber-500" aria-hidden />
-          <h2 className="text-lg font-bold text-slate-900">{m(locale, "admin.applications")}</h2>
-        </div>
+      {activeSection === "applications" && <section id="applications" className="admin-section scroll-mt-28">
+        <AdminSectionHead
+          title={m(locale, "admin.applications")}
+          subtitle={m(locale, "admin.applicationsSubtitle")}
+          meta={
+            ownerApplications.length > 0 ? (
+              <AdminSectionStats
+                stats={[
+                  {
+                    label: m(locale, "admin.applications"),
+                    value: ownerApplications.length,
+                    hint: m(locale, "admin.sectionPendingCount").replace("{count}", String(ownerApplications.length)),
+                    tone: "warning"
+                  }
+                ]}
+              />
+            ) : null
+          }
+        />
         {!ownerApplications.length ? (
-          <p className="rounded-2xl border border-dashed border-slate-200 bg-white px-6 py-10 text-center text-slate-500">
-            {m(locale, "admin.applicationsEmpty")}
-          </p>
+          <div className="admin-empty-inline">{m(locale, "admin.applicationsEmpty")}</div>
         ) : (
-          <div className="grid gap-4 lg:grid-cols-2">
+          <div className="admin-record-grid admin-record-grid--2">
             {ownerApplications.map((app) => (
-              <div
-                key={app.id}
-                className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm ring-1 ring-slate-100 transition-shadow hover:shadow-md"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-2">
-                  <div className="font-semibold text-slate-900">{app.fullName}</div>
+              <AdminRecordCard key={app.id} highlight="warning">
+                <div className="admin-record-card__title-row">
+                  <div className="admin-record-card__title">{app.fullName}</div>
                   <StatusBadge variant="warning">{tStatus("PENDING")}</StatusBadge>
                 </div>
-                <div className="mt-2 text-sm text-slate-600">
+                <div className="admin-record-card__meta">
                   {app.businessName} · {app.phone} · {app.email}
+                  <br />
+                  {m(locale, "admin.owner")}: {app.user.name} (id {app.userId})
                 </div>
-                <div className="mt-1 text-xs text-slate-500">{m(locale, "admin.owner")}: {app.user.name} (id {app.userId})</div>
                 {app.documentUrl && (
-                  <div className="mt-3">
-                    <a className="text-sm font-medium text-emerald-700 underline underline-offset-2" href={app.documentUrl} target="_blank" rel="noreferrer">
+                  <div className="admin-record-card__actions">
+                    <a className="admin-link text-sm" href={app.documentUrl} target="_blank" rel="noreferrer">
                       {m(locale, "admin.document")}
                     </a>
                   </div>
@@ -671,18 +605,30 @@ export default async function AdminDashboardPage({
                     processing: m(locale, "admin.processing")
                   }}
                 />
-              </div>
+              </AdminRecordCard>
             ))}
           </div>
         )}
       </section>}
 
-      {activeSection === "hotels" && <section id="hotels" className="scroll-mt-28 space-y-4">
-        <div className="flex items-center gap-2">
-          <span className="h-8 w-1 rounded-full bg-violet-500" aria-hidden />
-          <h2 className="text-lg font-bold text-slate-900">{m(locale, "admin.moderateHotels")}</h2>
-        </div>
-        <DataToolbar
+      {activeSection === "hotels" && <section id="hotels" className="admin-section scroll-mt-28">
+        <AdminSectionHead
+          title={m(locale, "admin.moderateHotels")}
+          subtitle={m(locale, "admin.emptyResultsHint")}
+          meta={
+            <AdminSectionStats
+              stats={[
+                { label: m(locale, "admin.hotelsTotal"), value: totalRows || hotels.length, hint: m(locale, "admin.hotelsSub") },
+                {
+                  label: tStatus("PENDING"),
+                  value: hotels.filter((h) => h.status === "PENDING").length,
+                  tone: hotels.some((h) => h.status === "PENDING") ? "warning" : "default"
+                }
+              ]}
+            />
+          }
+        />
+        <AdminDataToolbar
           section="hotels"
           submitLabel={m(locale, "search.search")}
           fields={[
@@ -700,9 +646,8 @@ export default async function AdminDashboardPage({
             }
           ]}
         />
-        <div className="grid gap-4 lg:grid-cols-2">
-          {hotels.map((hotel) => (
-            (() => {
+        <div className="admin-record-grid admin-record-grid--2">
+          {hotels.map((hotel) => {
               const risk = scoreHotelRisk({
                 status: hotel.status,
                 rating: hotel.rating,
@@ -711,62 +656,63 @@ export default async function AdminDashboardPage({
                 createdAt: hotel.createdAt
               });
               return (
-            <div
+            <AdminRecordCard
               key={hotel.id}
-              className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm ring-1 ring-slate-100 transition-shadow hover:shadow-md"
-            >
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <div className="font-semibold text-slate-900">{hotel.name}</div>
-                  <div className="mt-1 text-sm text-slate-500">
-                    {hotel.city} · {hotel.owner.name}
-                  </div>
-                  <div className="mt-2">
-                    <StatusBadge variant={hotelStatusVariant(hotel.status)}>{tStatus(hotel.status)}</StatusBadge>
-                    <span
-                      className={`ml-2 inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${
-                        risk.level === "HIGH"
-                          ? "bg-red-100 text-red-700"
-                          : risk.level === "MEDIUM"
-                            ? "bg-amber-100 text-amber-700"
-                            : "bg-emerald-100 text-emerald-700"
-                      }`}
-                    >
-                      Risk {risk.level} ({risk.score})
-                    </span>
-                  </div>
-                  {risk.reasons.length > 0 && (
-                    <div className="mt-2 text-xs text-slate-500">Signals: {risk.reasons.join(", ")}</div>
-                  )}
-                  {risk.level === "HIGH" && <div className="mt-1 text-xs font-semibold text-red-600">AUTO FLAGGED FOR MANUAL REVIEW</div>}
-                </div>
-                <form action="/api/admin/hotels/moderate" method="post" className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              highlight={risk.level === "HIGH" ? "danger" : risk.level === "MEDIUM" ? "warning" : "default"}
+              footer={
+                <AdminNativeForm action="/api/admin/hotels/moderate" method="post" className="admin-record-card__actions">
                   <input type="hidden" name="id" value={hotel.id} />
-                  <select name="status" defaultValue={hotel.status} className="rounded-xl border border-slate-200 px-3 py-2 text-sm">
+                  <select name="status" defaultValue={hotel.status} className="admin-field min-w-[8rem]">
                     <option value="PENDING">{tStatus("PENDING")}</option>
                     <option value="APPROVED">{tStatus("APPROVED")}</option>
                     <option value="REJECTED">{tStatus("REJECTED")}</option>
                   </select>
-                  <button className="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white">
-                    {m(locale, "admin.save")}
-                  </button>
-                </form>
+                  <AdminSubmitButton loadingLabel={m(locale, "admin.processing")}>{m(locale, "admin.save")}</AdminSubmitButton>
+                </AdminNativeForm>
+              }
+            >
+              <div className="admin-record-card__title-row">
+                <div className="admin-record-card__title">{hotel.name}</div>
+                <StatusBadge variant={hotelStatusVariant(hotel.status)}>{tStatus(hotel.status)}</StatusBadge>
               </div>
-            </div>
+              <div className="admin-record-card__meta">
+                {hotel.city} · {hotel.owner.name}
+              </div>
+              <div className="admin-chip-row mt-2">
+                <span
+                  className={`admin-risk-chip ${
+                    risk.level === "HIGH" ? "admin-risk-chip--high" : risk.level === "MEDIUM" ? "admin-risk-chip--medium" : "admin-risk-chip--low"
+                  }`}
+                >
+                  {m(locale, "admin.riskLevel").replace("{level}", risk.level).replace("{score}", String(risk.score))}
+                </span>
+              </div>
+              {risk.reasons.length > 0 && (
+                <div className="mt-1 text-xs text-[var(--admin-text-muted)]">
+                  {m(locale, "admin.riskSignals")}: {risk.reasons.join(", ")}
+                </div>
+              )}
+              {risk.level === "HIGH" && (
+                <div className="mt-1 text-xs font-semibold text-red-600">{m(locale, "admin.riskAutoFlag")}</div>
+              )}
+            </AdminRecordCard>
               );
-            })()
-          ))}
+            })}
         </div>
         {!hotels.length && <EmptyState title={m(locale, "admin.emptyResults")} description={m(locale, "admin.emptyResultsHint")} />}
         <Pagination page={page} totalPages={totalPages} />
       </section>}
 
-      {activeSection === "users" && <section id="users" className="scroll-mt-28 space-y-4">
-        <div className="flex items-center gap-2">
-          <span className="h-8 w-1 rounded-full bg-slate-500" aria-hidden />
-          <h2 className="text-lg font-bold text-slate-900">{m(locale, "admin.usersSection")}</h2>
-        </div>
-        <DataToolbar
+      {activeSection === "users" && <section id="users" className="admin-section scroll-mt-28">
+        <AdminSectionHead
+          title={m(locale, "admin.usersSection")}
+          meta={
+            <AdminSectionStats
+              stats={[{ label: m(locale, "admin.users"), value: totalRows || users.length, hint: m(locale, "admin.kpiRegistered") }]}
+            />
+          }
+        />
+        <AdminDataToolbar
           section="users"
           submitLabel={m(locale, "search.search")}
           fields={[
@@ -784,40 +730,50 @@ export default async function AdminDashboardPage({
             }
           ]}
         />
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="hidden grid-cols-[1.2fr_1fr_1fr_1.4fr] gap-4 border-b border-slate-100 bg-slate-50/80 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 md:grid">
+        <div className="admin-data-table" style={{ ["--admin-table-cols" as string]: "1.2fr 1fr 1fr 1.4fr" }}>
+          <div className="admin-data-table__head">
             <div>{m(locale, "admin.name")}</div>
             <div>{m(locale, "profile.email")}</div>
             <div>{m(locale, "profile.phone")}</div>
             <div>{m(locale, "admin.management")}</div>
           </div>
-          <ul className="divide-y divide-slate-100">
+          <ul className="admin-data-table__body">
             {users.map((u) => (
-              <li key={u.id} className="px-4 py-4 transition-colors hover:bg-slate-50/80 md:px-5">
-                <div className="grid gap-4 md:grid-cols-[1.2fr_1fr_1fr_1.4fr] md:items-center">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-medium text-slate-900">{u.name}</span>
-                    <StatusBadge variant={roleVariant(u.role)}>{tRole(u.role)}</StatusBadge>
-                    {u.isBanned && <StatusBadge variant="danger">{m(locale, "admin.ban")}</StatusBadge>}
-                  </div>
-                  <div className="text-sm text-slate-600">{u.email ?? "—"}</div>
-                  <div className="text-sm text-slate-600">{u.phone}</div>
+              <li key={u.id} className="admin-data-table__row">
+                <div className="admin-data-table__cells">
                   <div>
-                    <form action="/api/admin/users/update" method="post" className="flex flex-wrap items-center gap-2">
+                    <span className="admin-data-table__cell-label">{m(locale, "admin.name")}</span>
+                    <div className="admin-chip-row">
+                      <span className="font-medium">{u.name}</span>
+                      <StatusBadge variant={roleVariant(u.role)}>{tRole(u.role)}</StatusBadge>
+                      {u.isBanned && <StatusBadge variant="danger">{m(locale, "admin.ban")}</StatusBadge>}
+                    </div>
+                  </div>
+                  <div>
+                    <span className="admin-data-table__cell-label">{m(locale, "profile.email")}</span>
+                    <div className="text-sm">{u.email ?? "—"}</div>
+                  </div>
+                  <div>
+                    <span className="admin-data-table__cell-label">{m(locale, "profile.phone")}</span>
+                    <div className="text-sm">{u.phone}</div>
+                  </div>
+                  <div>
+                    <span className="admin-data-table__cell-label">{m(locale, "admin.management")}</span>
+                    <AdminNativeForm action="/api/admin/users/update" method="post" className="admin-record-card__actions">
                       <input type="hidden" name="id" value={u.id} />
-                      <select name="role" defaultValue={u.role} className="rounded-lg border border-slate-200 px-2 py-1.5 text-sm">
+                      <select name="role" defaultValue={u.role} className="admin-field min-w-[6rem]">
                         <option value="GUEST">{tRole("GUEST")}</option>
                         <option value="OWNER">{tRole("OWNER")}</option>
                         <option value="ADMIN">{tRole("ADMIN")}</option>
                       </select>
-                      <label className="flex items-center gap-1.5 text-xs text-slate-600">
+                      <label className="flex items-center gap-1.5 text-xs">
                         <input type="checkbox" name="isBanned" defaultChecked={u.isBanned} />
                         {m(locale, "admin.ban")}
                       </label>
-                      <button className="rounded-lg bg-emerald-700 px-3 py-1.5 text-sm font-semibold text-white" type="submit">
+                      <AdminSubmitButton variant="primary" className="admin-btn--sm" loadingLabel={m(locale, "admin.processing")}>
                         {m(locale, "admin.save")}
-                      </button>
-                    </form>
+                      </AdminSubmitButton>
+                    </AdminNativeForm>
                   </div>
                 </div>
               </li>
@@ -828,77 +784,72 @@ export default async function AdminDashboardPage({
         <Pagination page={page} totalPages={totalPages} />
       </section>}
 
-      {activeSection === "owner-access" && <section id="owner-access" className="scroll-mt-28 space-y-4">
-        <div className="flex items-center gap-2">
-          <span className="h-8 w-1 rounded-full bg-emerald-500" aria-hidden />
-          <h2 className="text-lg font-bold text-slate-900">{m(locale, "admin.ownerAccessSection")}</h2>
-        </div>
-        <p className="text-sm text-slate-600">{m(locale, "admin.ownerAccessHint")}</p>
+      {activeSection === "owner-access" && <section id="owner-access" className="admin-section scroll-mt-28">
+        <AdminSectionHead title={m(locale, "admin.ownerAccessSection")} subtitle={m(locale, "admin.ownerAccessHint")} />
         {effectiveResetToken && effectiveResetUser ? (
-          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-900">
+          <div className="admin-alert admin-alert--success">
             <div className="font-semibold">{m(locale, "admin.resetLinkReady")}</div>
-            <div className="mt-2 break-all rounded-xl bg-white px-3 py-2 font-mono text-[12px] text-slate-800 ring-1 ring-emerald-100">
+            <div className="mt-2 break-all rounded-lg bg-white px-3 py-2 font-mono text-[12px] ring-1 ring-[var(--admin-accent-border)]">
               {`/auth/reset-password#token=${effectiveResetToken}`}
             </div>
           </div>
         ) : null}
-        <DataToolbar
+        <AdminDataToolbar
           section="owner-access"
           submitLabel={m(locale, "search.search")}
           fields={[{ kind: "search", name: "q", placeholder: m(locale, "admin.searchPlaceholderOwners") }]}
         />
-        <div className="space-y-4">
+        <div className="admin-record-grid">
           {users.map((u) => (
-            <div key={u.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="mb-3 flex flex-wrap items-center gap-2">
-                <div className="font-semibold text-slate-900">{u.name}</div>
+            <AdminRecordCard key={u.id}>
+              <div className="admin-record-card__title-row">
+                <div className="admin-record-card__title">{u.name}</div>
                 <StatusBadge variant={roleVariant(u.role)}>{tRole(u.role)}</StatusBadge>
               </div>
-              <form action="/api/admin/users/credentials" method="post" className="grid gap-3 md:grid-cols-3">
+              <AdminNativeForm action="/api/admin/users/credentials" method="post" className="admin-form-grid admin-form-grid--2 mt-3">
                 <input type="hidden" name="id" value={u.id} />
-                <label className="text-sm text-slate-700">
+                <label className="admin-field">
                   {m(locale, "admin.loginPhone")}
-                  <input
-                    name="phone"
-                    type="text"
-                    defaultValue={u.phone}
-                    required
-                    className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5"
-                  />
+                  <input name="phone" type="text" defaultValue={u.phone} required />
                 </label>
-                <label className="text-sm text-slate-700">
+                <label className="admin-field">
                   {m(locale, "profile.email")}
-                  <input
-                    name="email"
-                    type="email"
-                    defaultValue={u.email ?? ""}
-                    placeholder="owner@example.com"
-                    className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5"
-                  />
+                  <input name="email" type="email" defaultValue={u.email ?? ""} placeholder="owner@example.com" />
                 </label>
-                <button className="rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600 md:col-span-3">
+                <AdminSubmitButton className="md:col-span-2" loadingLabel={m(locale, "admin.processing")}>
                   {m(locale, "admin.saveOwnerAccess")}
-                </button>
-              </form>
-              <form action="/api/admin/users/reset-password" method="post" className="mt-3">
+                </AdminSubmitButton>
+              </AdminNativeForm>
+              <AdminNativeForm action="/api/admin/users/reset-password" method="post" className="mt-3">
                 <input type="hidden" name="id" value={u.id} />
-                <button type="submit" className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                <AdminSubmitButton variant="secondary" className="admin-btn--sm" loadingLabel={m(locale, "admin.processing")}>
                   {m(locale, "admin.generateResetLink")}
-                </button>
-              </form>
-            </div>
+                </AdminSubmitButton>
+              </AdminNativeForm>
+            </AdminRecordCard>
           ))}
           {!users.length && <EmptyState title={m(locale, "admin.ownerAccessEmpty")} />}
         </div>
         <Pagination page={page} totalPages={totalPages} />
       </section>}
 
-      {activeSection === "bookings" && <section id="bookings" className="scroll-mt-28 space-y-4">
-        <div className="flex items-center gap-2">
-          <span className="h-8 w-1 rounded-full bg-teal-500" aria-hidden />
-          <h2 className="text-lg font-bold text-slate-900">{m(locale, "admin.bookingsSection")}</h2>
-        </div>
-        <DataToolbar
+      {activeSection === "bookings" && <section id="bookings" className="admin-section scroll-mt-28">
+        <AdminSectionHead
+          title={m(locale, "admin.bookingsSection")}
+          meta={
+            <AdminSectionStats
+              stats={[
+                { label: m(locale, "admin.bookingsTotal"), value: totalRows || bookings.length },
+                {
+                  label: tStatus("ON_REVIEW"),
+                  value: bookings.filter((b) => b.paymentStatus === "ON_REVIEW" || b.status === "ON_REVIEW").length,
+                  tone: bookings.some((b) => b.paymentStatus === "ON_REVIEW") ? "info" : "default"
+                }
+              ]}
+            />
+          }
+        />
+        <AdminDataToolbar
           section="bookings"
           submitLabel={m(locale, "search.search")}
           fields={[
@@ -935,71 +886,72 @@ export default async function AdminDashboardPage({
             }
           ]}
         />
-        <div className="space-y-3">
+        <div className="admin-record-grid">
           {bookings.map((b) => (
-            <div key={b.id} className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm ring-1 ring-slate-100">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="font-mono text-sm font-semibold text-slate-800">#{b.id}</span>
-                {b.publicCode ? (
-                  <span className="rounded-lg bg-slate-100 px-2 py-0.5 font-mono text-xs font-semibold text-slate-700">{b.publicCode}</span>
-                ) : null}
-                <span className="font-semibold text-slate-900">{b.user.name}</span>
+            <AdminRecordCard
+              key={b.id}
+              footer={
+                <>
+                  <div className="admin-record-card__actions">
+                    <Link href={`/chat/booking/${b.id}`} className="admin-btn admin-btn--primary admin-btn--sm">
+                      {m(locale, "admin.openChat")}
+                    </Link>
+                    {b.publicCode ? (
+                      <Link
+                        href={`/payment/${encodeURIComponent(b.publicCode)}`}
+                        className="admin-btn admin-btn--secondary admin-btn--sm"
+                      >
+                        {m(locale, "admin.paymentPage")}
+                      </Link>
+                    ) : null}
+                  </div>
+                  <div className="admin-record-card__actions mt-2">
+                    <AdminNativeForm action="/api/admin/bookings/payment" method="post" className="admin-record-card__actions">
+                      <input type="hidden" name="id" value={b.id} />
+                      <select name="paymentStatus" defaultValue={b.paymentStatus} className="admin-field min-w-[6rem]">
+                        <option value="PENDING">{tStatus("PENDING")}</option>
+                        <option value="PAID">{tStatus("PAID")}</option>
+                        <option value="FAILED">{tStatus("FAILED")}</option>
+                        <option value="REFUNDED">{tStatus("REFUNDED")}</option>
+                      </select>
+                      <AdminSubmitButton variant="primary" className="admin-btn--sm" loadingLabel={m(locale, "admin.processing")}>
+                        {m(locale, "admin.updatePayment")}
+                      </AdminSubmitButton>
+                    </AdminNativeForm>
+                    <AdminNativeForm action="/api/admin/bookings/complete" method="post">
+                      <input type="hidden" name="id" value={b.id} />
+                      <AdminSubmitButton variant="warning" className="admin-btn--sm" loadingLabel={m(locale, "admin.processing")}>
+                        {m(locale, "admin.confirmBooking")}
+                      </AdminSubmitButton>
+                    </AdminNativeForm>
+                  </div>
+                </>
+              }
+            >
+              <div className="admin-record-card__title-row">
+                <span className="font-mono text-sm font-semibold">#{b.id}</span>
+                {b.publicCode ? <span className="rounded-md bg-[var(--admin-surface-muted)] px-2 py-0.5 font-mono text-xs">{b.publicCode}</span> : null}
+                <span className="admin-record-card__title">{b.user.name}</span>
                 <StatusBadge variant={bookingStatusVariant(b.status)}>{tStatus(b.status)}</StatusBadge>
                 <StatusBadge variant={paymentStatusVariant(b.paymentStatus)}>{tStatus(b.paymentStatus)}</StatusBadge>
               </div>
-              <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-600">
-                <span>
-                  {b.room.hotel.name} · {b.checkIn.toISOString().slice(0, 10)} — {b.checkOut.toISOString().slice(0, 10)} · {b.phone}
-                </span>
-                <span className="flex items-center gap-2">
-                  <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Таймер</span>
+              <div className="admin-record-card__meta">
+                {b.room.hotel.name} · {b.checkIn.toISOString().slice(0, 10)} — {b.checkOut.toISOString().slice(0, 10)} · {b.phone}
+                <span className="ml-2 inline-flex items-center gap-1">
+                  {m(locale, "admin.payTimer")}:{" "}
                   <AdminBookingPayCountdown
                     expiresAtIso={b.expiresAt ? b.expiresAt.toISOString() : null}
                     active={b.status === "WAITING_PAYMENT" || b.status === "WAIT_PROOF"}
                   />
                 </span>
               </div>
-              <div className="mt-1 text-sm font-medium text-slate-800">
+              <div className="mt-1 text-sm font-medium">
                 {Number(b.totalPrice)} TJS · {m(locale, "admin.commission")} {Number(b.commission)} TJS
               </div>
-              <div className="mt-1 text-xs text-slate-500">Escrow: {deriveEscrowState({ status: b.status, paymentStatus: b.paymentStatus })}</div>
-              <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-4">
-                <Link
-                  href={`/chat/booking/${b.id}`}
-                  className="inline-flex items-center rounded-xl bg-teal-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-500"
-                >
-                  Открыть чат
-                </Link>
-                {b.publicCode ? (
-                  <Link
-                    href={`/payment/${encodeURIComponent(b.publicCode)}`}
-                    className="inline-flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50"
-                  >
-                    Страница оплаты
-                  </Link>
-                ) : null}
+              <div className="mt-1 text-xs text-[var(--admin-text-muted)]">
+                {m(locale, "admin.escrowLabel")}: {deriveEscrowState({ status: b.status, paymentStatus: b.paymentStatus })}
               </div>
-              <div className="mt-4 flex flex-wrap gap-3 border-t border-slate-100 pt-4">
-                <form action="/api/admin/bookings/payment" method="post" className="flex flex-wrap items-center gap-2">
-                  <input type="hidden" name="id" value={b.id} />
-                  <select name="paymentStatus" defaultValue={b.paymentStatus} className="rounded-xl border border-slate-200 px-2 py-1.5 text-sm">
-                    <option value="PENDING">{tStatus("PENDING")}</option>
-                    <option value="PAID">{tStatus("PAID")}</option>
-                    <option value="FAILED">{tStatus("FAILED")}</option>
-                    <option value="REFUNDED">{tStatus("REFUNDED")}</option>
-                  </select>
-                  <button className="rounded-xl bg-emerald-700 px-3 py-1.5 text-sm font-semibold text-white" type="submit">
-                    {m(locale, "admin.updatePayment")}
-                  </button>
-                </form>
-                <form action="/api/admin/bookings/complete" method="post">
-                  <input type="hidden" name="id" value={b.id} />
-                  <button className="rounded-xl bg-amber-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm" type="submit">
-                    {m(locale, "admin.confirmBooking")}
-                  </button>
-                </form>
-              </div>
-            </div>
+            </AdminRecordCard>
           ))}
         </div>
         {!bookings.length && <EmptyState title={m(locale, "admin.emptyResults")} description={m(locale, "admin.emptyResultsHint")} />}
@@ -1007,132 +959,137 @@ export default async function AdminDashboardPage({
       </section>}
 
       {activeSection === "finance" && (
-        <section id="finance" className="scroll-mt-28 space-y-4">
-          <div className="flex items-center gap-2">
-            <span className="h-8 w-1 rounded-full bg-emerald-600" aria-hidden />
-            <h2 className="text-lg font-bold text-slate-900">Finance</h2>
-          </div>
-          <p className="text-sm text-slate-600">
-            Auditable records: payments, payouts, refunds. This is the backbone of a real marketplace.
-          </p>
+        <section id="finance" className="admin-section scroll-mt-28">
+          <AdminSectionHead title={m(locale, "admin.financeSection")} subtitle={m(locale, "admin.financeSubtitle")} />
+          <AdminSectionStats
+            stats={[
+              { label: m(locale, "admin.financePayments"), value: payments.length, tone: "accent" },
+              { label: m(locale, "admin.financePayouts"), value: payouts.length, tone: "info" },
+              { label: m(locale, "admin.financeRefunds"), value: refunds.length, tone: "warning" }
+            ]}
+          />
 
-          <div className="grid gap-4 lg:grid-cols-3">
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="text-sm font-semibold text-slate-900">Payments</div>
-              <div className="mt-3 space-y-2 text-xs">
-                {payments.map((p) => (
-                  <div key={p.id} className="rounded-xl border border-slate-100 bg-slate-50/60 px-3 py-2">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="font-semibold text-slate-900">
-                        {p.amount} {p.currency}
-                      </div>
-                      <div className="text-slate-600">{p.status}</div>
+          <div className="admin-finance-grid">
+            <div className="admin-finance-column">
+              <h3 className="admin-finance-column__title">{m(locale, "admin.financePayments")}</h3>
+              {payments.map((p) => (
+                <div key={p.id} className="admin-finance-entry">
+                  <div className="admin-finance-entry__top">
+                    <div className="admin-finance-entry__amount">
+                      {p.amount} {p.currency}
                     </div>
-                    <div className="mt-1 text-slate-600">
-                      {p.booking?.room?.hotel?.name ?? "—"} · {p.provider}/{p.method}
-                    </div>
-                    <div className="mt-1 text-slate-500">
-                      Guest: {p.booking?.user?.name ?? "—"} · #{p.bookingId}
-                    </div>
+                    <StatusBadge variant={paymentStatusVariant(p.status)}>{p.status}</StatusBadge>
                   </div>
-                ))}
-                {!payments.length && <div className="text-slate-500">No payments yet.</div>}
-              </div>
+                  <div className="mt-1">{p.booking?.room?.hotel?.name ?? "—"} · {p.provider}/{p.method}</div>
+                  <div className="mt-1 text-[var(--admin-text-muted)]">
+                    {m(locale, "admin.financeGuest")}: {p.booking?.user?.name ?? "—"} · #{p.bookingId}
+                  </div>
+                </div>
+              ))}
+              {!payments.length && <div className="admin-empty-inline">{m(locale, "admin.financeEmptyPayments")}</div>}
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="text-sm font-semibold text-slate-900">Payouts</div>
-              <div className="mt-3 space-y-2 text-xs">
-                {payouts.map((po) => (
-                  <div key={po.id} className="rounded-xl border border-slate-100 bg-slate-50/60 px-3 py-2">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="font-semibold text-slate-900">
-                        {po.amount} {po.currency}
-                      </div>
-                      <div className="text-slate-600">{po.status}</div>
+            <div className="admin-finance-column">
+              <h3 className="admin-finance-column__title">{m(locale, "admin.financePayouts")}</h3>
+              {payouts.map((po) => (
+                <div key={po.id} className="admin-finance-entry">
+                  <div className="admin-finance-entry__top">
+                    <div className="admin-finance-entry__amount">
+                      {po.amount} {po.currency}
                     </div>
-                    <div className="mt-1 text-slate-600">
-                      Owner: {po.owner?.name ?? "—"} · {po.booking?.room?.hotel?.name ?? "—"}
-                    </div>
-                    <div className="mt-1 text-slate-500">Booking #{po.bookingId}</div>
+                    <span>{po.status}</span>
                   </div>
-                ))}
-                {!payouts.length && <div className="text-slate-500">No payouts yet.</div>}
-              </div>
+                  <div className="mt-1">
+                    {m(locale, "admin.financeOwner")}: {po.owner?.name ?? "—"} · {po.booking?.room?.hotel?.name ?? "—"}
+                  </div>
+                  <div className="mt-1 text-[var(--admin-text-muted)]">
+                    {m(locale, "admin.financeBooking")} #{po.bookingId}
+                  </div>
+                </div>
+              ))}
+              {!payouts.length && <div className="admin-empty-inline">{m(locale, "admin.financeEmptyPayouts")}</div>}
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="text-sm font-semibold text-slate-900">Refunds</div>
-              <div className="mt-3 space-y-2 text-xs">
-                {refunds.map((r) => (
-                  <div key={r.id} className="rounded-xl border border-slate-100 bg-slate-50/60 px-3 py-2">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="font-semibold text-slate-900">
-                        {r.amount} {r.currency}
-                      </div>
-                      <div className="text-slate-600">{r.status}</div>
+            <div className="admin-finance-column">
+              <h3 className="admin-finance-column__title">{m(locale, "admin.financeRefunds")}</h3>
+              {refunds.map((r) => (
+                <div key={r.id} className="admin-finance-entry">
+                  <div className="admin-finance-entry__top">
+                    <div className="admin-finance-entry__amount">
+                      {r.amount} {r.currency}
                     </div>
-                    <div className="mt-1 text-slate-600">Payment #{r.paymentId}</div>
-                    <div className="mt-1 text-slate-500">Reason: {r.reason ?? "—"}</div>
+                    <span>{r.status}</span>
                   </div>
-                ))}
-                {!refunds.length && <div className="text-slate-500">No refunds yet.</div>}
-              </div>
+                  <div className="mt-1">
+                    {m(locale, "admin.financePayment")} #{r.paymentId}
+                  </div>
+                  <div className="mt-1 text-[var(--admin-text-muted)]">
+                    {m(locale, "admin.financeReason")}: {r.reason ?? "—"}
+                  </div>
+                </div>
+              ))}
+              {!refunds.length && <div className="admin-empty-inline">{m(locale, "admin.financeEmptyRefunds")}</div>}
             </div>
           </div>
         </section>
       )}
 
-      {activeSection === "notifications" && <section id="notifications" className="scroll-mt-28 space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="h-8 w-1 rounded-full bg-cyan-500" aria-hidden />
-            <h2 className="text-lg font-bold text-slate-900">{m(locale, "admin.notifications")}</h2>
-          </div>
-          {unreadCount > 0 && (
-            <span className="rounded-full bg-emerald-700 px-3 py-1 text-xs font-bold text-white shadow-sm">{unreadCount} {m(locale, "admin.unread")}</span>
-          )}
-          <form action="/api/admin/notifications/cleanup" method="post" className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white p-2">
-            <input
-              type="number"
-              min={1}
-              max={3650}
-              defaultValue={30}
-              name="days"
-              className="w-24 rounded-lg border border-slate-200 px-2 py-1.5 text-xs"
-            />
-            <button type="submit" className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-500">
-              {m(locale, "admin.deleteOld")}
-            </button>
-          </form>
-        </div>
-        <div className="space-y-3">
+      {activeSection === "notifications" && <section id="notifications" className="admin-section scroll-mt-28">
+        <AdminSectionHead
+          title={m(locale, "admin.notifications")}
+          meta={
+            unreadCount > 0 ? (
+              <span className="admin-attention-panel__count">{unreadCount}</span>
+            ) : (
+              <AdminSectionStats stats={[{ label: m(locale, "admin.notifications"), value: totalRows || notes.length }]} />
+            )
+          }
+        />
+        <AdminNativeForm action="/api/admin/notifications/cleanup" method="post" className="admin-panel admin-panel--flat flex flex-wrap items-center gap-2">
+          <input type="number" min={1} max={3650} defaultValue={30} name="days" className="w-24 admin-field" />
+          <AdminSubmitButton variant="destructive" className="admin-btn--sm" loadingLabel={m(locale, "admin.processing")}>
+            {m(locale, "admin.deleteOld")}
+          </AdminSubmitButton>
+        </AdminNativeForm>
+        <div className="admin-record-grid">
           {notes.map((n) => (
-            <div key={n.id} className="rounded-2xl border border-slate-200/80 bg-white p-5 text-sm shadow-sm">
-              <div className="font-semibold text-slate-800">{notificationText(locale, n.type, n.booking?.publicCode ?? null)}</div>
-              <div className="mt-1 text-xs text-slate-500">{formatDateTimeShort(locale, n.createdAt)}</div>
+            <AdminRecordCard key={n.id}>
+              <div className="admin-record-card__title">{notificationText(locale, n.type, n.booking?.publicCode ?? null)}</div>
+              <div className="admin-record-card__meta">{formatDateTimeShort(locale, n.createdAt)}</div>
               {n.booking ? (
-                <div className="mt-2 text-slate-600">
+                <div className="mt-2 text-sm">
                   {n.booking.user.name} · {n.booking.room.hotel.name} · {n.booking.checkIn.toISOString().slice(0, 10)} —{" "}
                   {n.booking.checkOut.toISOString().slice(0, 10)} · {n.booking.phone} ·{" "}
                   <StatusBadge variant={paymentStatusVariant(n.booking.paymentStatus)}>{tStatus(n.booking.paymentStatus)}</StatusBadge>
                 </div>
               ) : (
-                <div className="mt-2 text-slate-500">{m(locale, "admin.systemNote")} ({m(locale, "admin.noBookingLink")})</div>
+                <div className="mt-2 text-sm text-[var(--admin-text-muted)]">
+                  {m(locale, "admin.systemNote")} ({m(locale, "admin.noBookingLink")})
+                </div>
               )}
-            </div>
+            </AdminRecordCard>
           ))}
         </div>
         {!notes.length && <EmptyState title={m(locale, "admin.emptyResults")} description={m(locale, "admin.emptyResultsHint")} />}
         <Pagination page={page} totalPages={totalPages} />
       </section>}
 
-      {activeSection === "complaints" && <section id="complaints" className="scroll-mt-28 space-y-4">
-        <div className="flex items-center gap-2">
-          <span className="h-8 w-1 rounded-full bg-red-400" aria-hidden />
-          <h2 className="text-lg font-bold text-slate-900">{m(locale, "admin.complaints")}</h2>
-        </div>
-        <DataToolbar
+      {activeSection === "complaints" && <section id="complaints" className="admin-section scroll-mt-28">
+        <AdminSectionHead
+          title={m(locale, "admin.complaints")}
+          meta={
+            <AdminSectionStats
+              stats={[
+                {
+                  label: m(locale, "admin.complaints"),
+                  value: totalRows || complaints.length,
+                  tone: complaints.some((c) => c.status !== "RESOLVED") ? "danger" : "default"
+                }
+              ]}
+            />
+          }
+        />
+        <AdminDataToolbar
           section="complaints"
           submitLabel={m(locale, "search.search")}
           fields={[
@@ -1150,27 +1107,30 @@ export default async function AdminDashboardPage({
             }
           ]}
         />
-        <div className="space-y-3">
+        <div className="admin-record-grid">
           {complaints.map((c) => (
-            <div key={c.id} className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm ring-1 ring-slate-100">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="font-semibold text-slate-900">{c.user.name}</span>
+            <AdminRecordCard
+              key={c.id}
+              highlight={c.status !== "RESOLVED" ? "danger" : "default"}
+              footer={
+                c.status !== "RESOLVED" ? (
+                  <AdminNativeForm action="/api/admin/complaints/resolve" method="post">
+                    <input type="hidden" name="id" value={c.id} />
+                    <AdminSubmitButton loadingLabel={m(locale, "admin.processing")}>{m(locale, "admin.resolve")}</AdminSubmitButton>
+                  </AdminNativeForm>
+                ) : undefined
+              }
+            >
+              <div className="admin-record-card__title-row">
+                <span className="admin-record-card__title">{c.user.name}</span>
                 <StatusBadge variant={complaintStatusVariant(c.status)}>{tStatus(c.status)}</StatusBadge>
               </div>
-              <div className="mt-1 text-sm text-slate-600">
+              <div className="admin-record-card__meta">
                 {c.booking.room.hotel.name} · {c.booking.phone} · {c.booking.checkIn.toISOString().slice(0, 10)} —{" "}
                 {c.booking.checkOut.toISOString().slice(0, 10)}
               </div>
-              <div className="mt-3 whitespace-pre-wrap rounded-xl bg-slate-50 p-4 text-sm text-slate-700">{c.message}</div>
-              {c.status !== "RESOLVED" && (
-                <form action="/api/admin/complaints/resolve" method="post" className="mt-4">
-                  <input type="hidden" name="id" value={c.id} />
-                  <button className="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white" type="submit">
-                    {m(locale, "admin.resolve")}
-                  </button>
-                </form>
-              )}
-            </div>
+              <div className="mt-3 whitespace-pre-wrap rounded-lg bg-[var(--admin-surface-muted)] p-3 text-sm">{c.message}</div>
+            </AdminRecordCard>
           ))}
         </div>
         {!complaints.length && <EmptyState title={m(locale, "admin.complaintsEmpty")} />}

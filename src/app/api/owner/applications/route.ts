@@ -7,6 +7,7 @@ import { clientIp, rateLimit } from "@/lib/security/rateLimit";
 import { normalizePhone } from "@/lib/validation/phone";
 import { saveUploadFile } from "@/lib/uploads/saveUpload";
 import { ImageUploadError } from "@/lib/uploads/imageUploadError";
+import { normalizeTajikCity } from "@/lib/geo/tajikCities";
 import type { OwnerApplicationMeta } from "@/lib/owner/applicationMeta";
 
 const MAX_FILE = 5 * 1024 * 1024;
@@ -85,6 +86,12 @@ export async function POST(req: NextRequest) {
     if (pendingBlock) return pendingBlock;
 
     const form = await req.formData();
+    const rawCity = String(form.get("city") ?? "").trim();
+    const normalizedCity = normalizeTajikCity(rawCity);
+    if (!normalizedCity) {
+      return NextResponse.json({ error: "Выберите город из списка" }, { status: 400 });
+    }
+
     const payload = {
       fullName: String(form.get("fullName") ?? "").trim(),
       phone: String(form.get("phone") ?? "").trim(),
@@ -92,7 +99,7 @@ export async function POST(req: NextRequest) {
       businessName: String(form.get("businessName") ?? "").trim(),
       documentUrl: String(form.get("documentUrl") ?? "").trim(),
       applicantType: String(form.get("applicantType") ?? "").trim(),
-      city: String(form.get("city") ?? "").trim(),
+      city: normalizedCity,
       propertyType: String(form.get("propertyType") ?? "").trim(),
       address: String(form.get("address") ?? "").trim(),
       roomCount: String(form.get("roomCount") ?? "").trim() || undefined,

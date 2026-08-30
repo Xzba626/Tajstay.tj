@@ -7,10 +7,20 @@ type Props = {
   heroSubtitle: string;
   ctaSearch: string;
   trustPoints: string[];
+  trustHighlightsAriaLabel: string;
+  primaryActionsAriaLabel: string;
 };
 
 /** Premium travel hero — dark emerald, static visual on tablet+ */
-export function TajstayHero3D({ heroBadge, heroTitle, heroSubtitle, ctaSearch, trustPoints }: Props) {
+export function TajstayHero3D({
+  heroBadge,
+  heroTitle,
+  heroSubtitle,
+  ctaSearch,
+  trustPoints,
+  trustHighlightsAriaLabel,
+  primaryActionsAriaLabel
+}: Props) {
   return (
     <div className="home-hero-layout relative z-[1] grid w-full flex-1 items-center lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] lg:gap-8">
       <div className="text-center lg:text-left">
@@ -22,17 +32,17 @@ export function TajstayHero3D({ heroBadge, heroTitle, heroSubtitle, ctaSearch, t
           {heroSubtitle}
         </p>
 
-        <div className="mt-6 hidden justify-center md:flex lg:justify-start" role="group" aria-label="Primary actions">
+        <div className="mt-6 hidden justify-center md:flex lg:justify-start" role="group" aria-label={primaryActionsAriaLabel}>
           <Link href="#home-search" className="taj-btn taj-btn--primary taj-btn--lg sm:w-auto sm:min-w-[14rem]">
             {ctaSearch}
           </Link>
         </div>
 
-        <p className="home-hero-trust-compact mt-2 md:hidden" aria-label="Trust highlights">
+        <p className="home-hero-trust-compact mt-2 md:hidden" aria-label={trustHighlightsAriaLabel}>
           {trustPoints.join(" · ")}
         </p>
 
-        <ul className="home-hero-trust hidden md:flex" aria-label="Trust highlights">
+        <ul className="home-hero-trust hidden md:flex" aria-label={trustHighlightsAriaLabel}>
           {trustPoints.map((point) => (
             <li key={point} className="home-hero-trust__item">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>

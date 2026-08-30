@@ -3,8 +3,11 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Button, Card, Input } from "@/shared/ui";
 import { DcNextPaymentCard } from "@/components/payment/DcNextPaymentCard";
+import { LocaleDateInput } from "@/components/ui/LocaleDateInput";
+import type { Locale } from "@/lib/i18n/locale";
 
 type Props = {
+  locale: Locale;
   labels: {
     titleStep1: string;
     titleStep2: string;
@@ -17,6 +20,8 @@ type Props = {
     guestNamePh: string;
     guestEmailPh: string;
     phonePh: string;
+    checkIn: string;
+    checkOut: string;
     subtotal: string;
     serviceFee: string;
     tax: string;
@@ -95,7 +100,7 @@ function ShieldCheckIcon({ className }: { className?: string }) {
   );
 }
 
-export function BookingWizard({ labels, defaults, pricePerNight, finance, dcReturnUrl }: Props) {
+export function BookingWizard({ locale, labels, defaults, pricePerNight, finance, dcReturnUrl }: Props) {
   const formRef = useRef<HTMLFormElement>(null);
   const submitInFlight = useRef(false);
   const [step, setStep] = useState<Step>(1);
@@ -268,38 +273,39 @@ export function BookingWizard({ labels, defaults, pricePerNight, finance, dcRetu
                   </div>
                 )}
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <label className="grid gap-1">
-                    <span className={labelRow}>
-                      <span className={labelIcon} aria-hidden>
-                        📅
+                  <LocaleDateInput
+                    locale={locale}
+                    name="checkIn"
+                    value={checkIn}
+                    onChange={setCheckIn}
+                    required
+                    className={`${mobileField} cursor-pointer`}
+                    label={
+                      <span className={labelRow}>
+                        <span className={labelIcon} aria-hidden>
+                          📅
+                        </span>
+                        {labels.checkIn}
                       </span>
-                      Заезд
-                    </span>
-                    <Input
-                      required
-                      name="checkIn"
-                      type="date"
-                      value={checkIn}
-                      onChange={(e) => setCheckIn(e.target.value)}
-                      className={`${mobileField} cursor-pointer`}
-                    />
-                  </label>
-                  <label className="grid gap-1">
-                    <span className={labelRow}>
-                      <span className={labelIcon} aria-hidden>
-                        📅
+                    }
+                  />
+                  <LocaleDateInput
+                    locale={locale}
+                    name="checkOut"
+                    value={checkOut}
+                    onChange={setCheckOut}
+                    required
+                    min={checkIn || undefined}
+                    className={`${mobileField} cursor-pointer`}
+                    label={
+                      <span className={labelRow}>
+                        <span className={labelIcon} aria-hidden>
+                          📅
+                        </span>
+                        {labels.checkOut}
                       </span>
-                      Выезд
-                    </span>
-                    <Input
-                      required
-                      name="checkOut"
-                      type="date"
-                      value={checkOut}
-                      onChange={(e) => setCheckOut(e.target.value)}
-                      className={`${mobileField} cursor-pointer`}
-                    />
-                  </label>
+                    }
+                  />
                 </div>
                 <label className="grid gap-1">
                   <span className={labelRow}>

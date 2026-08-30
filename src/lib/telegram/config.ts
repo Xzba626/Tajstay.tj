@@ -12,9 +12,9 @@ export function isTelegramLoginConfigured(): boolean {
   return Boolean(getTelegramBotToken());
 }
 
-/** Show Telegram button on /auth/sign-in (needs public bot name and/or server token). */
+/** Show Telegram button only when server can create challenges (not env-var placeholders). */
 export function isTelegramLoginUiEnabled(): boolean {
-  return Boolean(getTelegramBotToken() || getTelegramBotUsernamePublic());
+  return isTelegramLoginConfigured();
 }
 
 /** Public bot handle for deep links (NEXT_PUBLIC_* on Vercel). */
