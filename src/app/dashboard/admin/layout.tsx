@@ -13,6 +13,13 @@ export default function AdminDashboardLayout({ children }: { children: ReactNode
     navHint: m(locale, "admin.navHint"),
     mobileMore: m(locale, "admin.mobileMore"),
     drawerGroupSecondary: m(locale, "admin.drawerGroupSecondary"),
+    drawerGroups: {
+      hotels: m(locale, "admin.drawerGroupHotels"),
+      platform: m(locale, "admin.drawerGroupPlatform"),
+      finance: m(locale, "admin.drawerGroupFinance"),
+      operations: m(locale, "admin.drawerGroupOperations"),
+      access: m(locale, "admin.drawerGroupAccess")
+    },
     items: {
       dashboard: m(locale, "adminNav.dashboard"),
       content: m(locale, "adminNav.content"),

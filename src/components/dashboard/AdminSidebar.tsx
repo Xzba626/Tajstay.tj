@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
   AlertTriangle,
@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { WorkspaceMobileDrawer } from "@/components/navigation/WorkspaceMobileDrawer";
+import { subscribeWorkspaceDrawerOpen } from "@/lib/workspace/workspace-nav-bridge";
 
 export type AdminSidebarLabels = {
   sectionTitle: string;
@@ -26,6 +27,13 @@ export type AdminSidebarLabels = {
   navHint: string;
   mobileMore: string;
   drawerGroupSecondary?: string;
+  drawerGroups: {
+    hotels: string;
+    platform: string;
+    finance: string;
+    operations: string;
+    access: string;
+  };
   items: {
     dashboard: string;
     content: string;
@@ -51,6 +59,14 @@ type SidebarItem = {
   label: string;
   Icon: typeof LayoutDashboard;
 };
+
+const DRAWER_GROUP_SECTIONS = [
+  { key: "hotels" as const, sections: ["hotels"] },
+  { key: "platform" as const, sections: ["content"] },
+  { key: "finance" as const, sections: ["finance"] },
+  { key: "operations" as const, sections: ["complaints", "notifications"] },
+  { key: "access" as const, sections: ["owner-access"] }
+];
 
 function buildItems(labels: AdminSidebarLabels): SidebarItem[] {
   return [
@@ -111,9 +127,12 @@ export function AdminMobileNav({ labels }: { labels: AdminSidebarLabels }) {
   const items = buildItems(labels);
   const [moreOpen, setMoreOpen] = useState(false);
 
+  useEffect(() => subscribeWorkspaceDrawerOpen("admin", () => setMoreOpen(true)), []);
+
   const primaryItems = items.filter((item) => MOBILE_PRIMARY.includes(item.section as (typeof MOBILE_PRIMARY)[number]));
   const moreItems = items.filter((item) => !MOBILE_PRIMARY.includes(item.section as (typeof MOBILE_PRIMARY)[number]));
   const moreActive = moreItems.some((item) => item.section === section);
+  const itemsBySection = new Map(moreItems.map((item) => [item.section, item]));
 
   return (
     <>
@@ -154,27 +173,34 @@ export function AdminMobileNav({ labels }: { labels: AdminSidebarLabels }) {
         ariaLabel={labels.mobileMore}
         onClose={() => setMoreOpen(false)}
       >
-        <div className="workspace-mobile-drawer__group">
-          <p className="workspace-mobile-drawer__group-title">
-            {labels.drawerGroupSecondary ?? labels.navHint}
-          </p>
-          {moreItems.map((item) => {
-            const active = section === item.section;
-            return (
-              <Link
-                key={item.section}
-                href={sectionHref(pathname, item.section)}
-                onClick={() => setMoreOpen(false)}
-                className={cn("workspace-mobile-drawer__link", active && "is-active")}
-              >
-                <span className="workspace-mobile-drawer__link-icon">
-                  <item.Icon size={18} aria-hidden />
-                </span>
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
-        </div>
+        {DRAWER_GROUP_SECTIONS.map((group) => {
+          const groupItems = group.sections
+            .map((sectionKey) => itemsBySection.get(sectionKey))
+            .filter((item): item is SidebarItem => Boolean(item));
+          if (groupItems.length === 0) return null;
+
+          return (
+            <div key={group.key} className="workspace-mobile-drawer__group">
+              <p className="workspace-mobile-drawer__group-title">{labels.drawerGroups[group.key]}</p>
+              {groupItems.map((item) => {
+                const active = section === item.section;
+                return (
+                  <Link
+                    key={item.section}
+                    href={sectionHref(pathname, item.section)}
+                    onClick={() => setMoreOpen(false)}
+                    className={cn("workspace-mobile-drawer__link", active && "is-active")}
+                  >
+                    <span className="workspace-mobile-drawer__link-icon">
+                      <item.Icon size={18} aria-hidden />
+                    </span>
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          );
+        })}
       </WorkspaceMobileDrawer>
     </>
   );

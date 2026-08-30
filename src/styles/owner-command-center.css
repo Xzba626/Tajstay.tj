@@ -4,16 +4,16 @@
  */
 
 .owner-command-center-shell {
-  --owner-bg: #ffffff;
-  --owner-surface: #ffffff;
-  --owner-surface-muted: #f8faf9;
-  --owner-border: #e2e8f0;
-  --owner-text: #0f172a;
-  --owner-text-secondary: #334155;
-  --owner-text-muted: #475569;
-  --owner-accent: #15803d;
-  --owner-accent-soft: #ecfdf5;
-  --owner-accent-border: rgba(21, 128, 61, 0.22);
+  --owner-bg: var(--ts-surface-page, #ffffff);
+  --owner-surface: var(--ts-surface-primary, #ffffff);
+  --owner-surface-muted: var(--ts-surface-muted, #f4f6f5);
+  --owner-border: var(--ts-border-subtle, #e2e8f0);
+  --owner-text: var(--ts-text-title, #0f172a);
+  --owner-text-secondary: var(--ts-text-secondary, #334155);
+  --owner-text-muted: var(--ts-text-muted, #475569);
+  --owner-accent: var(--ts-brand-primary, #15803d);
+  --owner-accent-soft: var(--ts-brand-primary-soft, #ecfdf5);
+  --owner-accent-border: var(--ts-brand-primary-border, rgba(21, 128, 61, 0.22));
 
   background: var(--owner-bg) !important;
   color: var(--owner-text) !important;
@@ -431,4 +431,55 @@
   border: 1px solid var(--owner-border) !important;
   background: var(--owner-surface) !important;
   backdrop-filter: none !important;
+}
+
+/* Legacy markup normalization inside owner workspace */
+.owner-command-center-shell .glass-panel,
+.owner-command-center .glass-panel,
+.owner-command-center-shell .liquid-glass,
+.owner-command-center .liquid-glass {
+  border: 1px solid var(--owner-border) !important;
+  background: var(--owner-surface) !important;
+  backdrop-filter: none !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+}
+
+.owner-command-center-shell .text-emerald-400,
+.owner-command-center-shell .text-emerald-500,
+.owner-command-center-shell .text-emerald-600,
+.owner-command-center-shell .text-teal-500,
+.owner-command-center-shell .text-teal-600 {
+  color: var(--owner-accent) !important;
+}
+
+.owner-command-center-shell .bg-emerald-500,
+.owner-command-center-shell .bg-emerald-600,
+.owner-command-center-shell .bg-emerald-700,
+.owner-command-center-shell .bg-emerald-800,
+.owner-command-center-shell .bg-teal-600,
+.owner-command-center-shell .bg-teal-700 {
+  background: var(--owner-accent) !important;
+  color: var(--ts-text-on-brand, #ffffff) !important;
+}
+
+.owner-command-center-shell .border-emerald-500,
+.owner-command-center-shell .border-emerald-600 {
+  border-color: var(--owner-accent-border) !important;
+}
+
+.owner-command-center-shell .text-slate-300,
+.owner-command-center-shell .text-slate-400,
+.owner-command-center-shell .text-slate-500 {
+  color: var(--owner-text-muted) !important;
+}
+
+.owner-command-center-shell .border-slate-700,
+.owner-command-center-shell .border-slate-800 {
+  border-color: var(--owner-border) !important;
+}
+
+.owner-command-center-shell .bg-slate-800,
+.owner-command-center-shell .bg-slate-900,
+.owner-command-center-shell .bg-slate-950 {
+  background: var(--owner-surface) !important;
 }

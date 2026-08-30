@@ -150,7 +150,7 @@ export function AdminDashboardOverview({ locale, stats, riskNotes, basePath }: P
           />
         </article>
 
-        <article className="admin-kpi-card admin-kpi-card--visual">
+        <article className="admin-kpi-card admin-kpi-card--visual admin-kpi-card--brand">
           <div className="admin-kpi-card__label">{m(locale, "admin.bookingsTotal")}</div>
           <div className="admin-kpi-card__value">{stats.bookingTotal.toLocaleString()}</div>
           <WorkspaceKpiBar

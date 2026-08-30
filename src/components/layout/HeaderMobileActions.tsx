@@ -1,11 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { Menu } from "lucide-react";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
 import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
 import { AuthEntryModal } from "@/components/layout/AuthEntryModal";
+import { openWorkspaceDrawer } from "@/lib/workspace/workspace-nav-bridge";
 
 type Props = {
   locale: Locale;
@@ -14,6 +17,35 @@ type Props = {
 
 export function HeaderMobileActions({ locale, user }: Props) {
   const [authOpen, setAuthOpen] = useState(false);
+  const pathname = usePathname();
+  const isAdminWorkspace = pathname.startsWith("/dashboard/admin");
+  const isOwnerWorkspace = pathname.startsWith("/dashboard/owner");
+
+  if (user && isAdminWorkspace) {
+    return (
+      <button
+        type="button"
+        className="header-workspace-menu"
+        aria-label={m(locale, "admin.mobileMore")}
+        onClick={() => openWorkspaceDrawer("admin")}
+      >
+        <Menu size={22} aria-hidden />
+      </button>
+    );
+  }
+
+  if (user && isOwnerWorkspace) {
+    return (
+      <button
+        type="button"
+        className="header-workspace-menu"
+        aria-label={m(locale, "owner.mobileMore")}
+        onClick={() => openWorkspaceDrawer("owner")}
+      >
+        <Menu size={22} aria-hidden />
+      </button>
+    );
+  }
 
   if (user) {
     return (

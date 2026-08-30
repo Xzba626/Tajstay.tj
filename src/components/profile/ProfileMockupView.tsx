@@ -189,8 +189,18 @@ export function ProfileMockupView({ locale, user, logoutLabel, unreadNotificatio
           icon={History}
           defaultOpen
         >
-          <HubRow href="/history" icon={History} label={m(locale, "profile.navHistory")} meta={m(locale, "profile.statBookings")} />
-          <HubRow href="/favorites" icon={Heart} label={m(locale, "profile.navFavorites")} meta={m(locale, "profile.statFavorites")} />
+          <div className="profile-hub__activity-grid">
+            <Link href="/history" className="profile-hub__activity-tile">
+              <History size={18} aria-hidden />
+              <span className="profile-hub__activity-tile-label">{m(locale, "profile.navHistory")}</span>
+              <span className="profile-hub__activity-tile-value">{user.bookings.length}</span>
+            </Link>
+            <Link href="/favorites" className="profile-hub__activity-tile">
+              <Heart size={18} aria-hidden />
+              <span className="profile-hub__activity-tile-label">{m(locale, "profile.navFavorites")}</span>
+              <span className="profile-hub__activity-tile-value">{user.favorites.length}</span>
+            </Link>
+          </div>
           <HubRow
             href="/notifications"
             icon={Bell}
@@ -227,8 +237,10 @@ export function ProfileMockupView({ locale, user, logoutLabel, unreadNotificatio
         </HubSection>
 
         <HubSection id="profile-settings" title={m(locale, "profile.sectionSettings")} summary={m(locale, "profile.settingsSubtitle")} icon={Settings}>
-          <HubRow href="/profile/settings" icon={Globe} label={m(locale, "profile.language")} />
+          <p className="profile-hub__subgroup-title">{m(locale, "profile.sectionAccount")}</p>
           <HubRow href="/profile/security" icon={Shield} label={m(locale, "profile.security")} />
+          <p className="profile-hub__subgroup-title">{m(locale, "profile.sectionApp")}</p>
+          <HubRow href="/profile/settings" icon={Globe} label={m(locale, "profile.language")} />
           <HubRow href="/profile/settings" icon={Settings} label={m(locale, "profile.settings")} />
           <HubRow href="/profile/subscriptions" icon={Megaphone} label={m(locale, "profile.subscriptions")} />
         </HubSection>

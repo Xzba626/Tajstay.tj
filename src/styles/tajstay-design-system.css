@@ -8,7 +8,22 @@
   --workspace-header-height: 3.5rem;
   --workspace-bottom-nav-height: 3.75rem;
 
-  /* Surfaces */
+  /* Brand — single TajStay green (no emerald/teal/lime in workspace) */
+  --ts-brand-primary: #15803d;
+  --ts-brand-primary-hover: #166534;
+  --ts-brand-primary-pressed: #14532d;
+  --ts-brand-primary-soft: #ecfdf5;
+  --ts-brand-primary-border: rgba(21, 128, 61, 0.22);
+  --ts-accent-gold: #d97706;
+  --ts-accent-gold-soft: #fffbeb;
+
+  /* Semantic colors — meaning only, not decoration */
+  --ts-semantic-success: #16a34a;
+  --ts-semantic-warning: #d97706;
+  --ts-semantic-danger: #dc2626;
+  --ts-semantic-info: #2563eb;
+
+  /* Surfaces — workspace canvas is pure white */
   --ts-surface-page: #ffffff;
   --ts-surface-primary: #ffffff;
   --ts-surface-secondary: #ffffff;
@@ -16,6 +31,7 @@
   --ts-surface-elevated: #ffffff;
   --ts-surface-nav: #ffffff;
   --ts-surface-modal: #ffffff;
+  --ts-surface-brand: var(--ts-brand-primary);
 
   /* Typography colors — WCAG AA on white (#475569 ≈ 7:1 for small text) */
   --ts-text-display: #0f172a;
@@ -30,6 +46,15 @@
   --ts-border-subtle: #e2e8f0;
   --ts-border-default: #cbd5e1;
   --ts-border-strong: #94a3b8;
+
+  /* Geometry — shared mobile/desktop workspace chrome */
+  --ws-nav-icon-size: 1.125rem;
+  --ws-nav-label-size: 0.625rem;
+  --ws-nav-item-min-height: 3.25rem;
+  --ws-nav-touch-min: 2.75rem;
+  --ws-row-min-height: 2.65rem;
+  --ws-card-radius: 0.75rem;
+  --ws-drawer-width: min(18.5rem, 86vw);
 
   /* Type scale */
   --ts-type-display-size: clamp(1.375rem, 4vw, 1.75rem);
@@ -110,6 +135,41 @@
 .owner-command-center-shell .text-slate-800,
 .owner-command-center-shell .text-slate-900 {
   color: var(--ts-text-body) !important;
+}
+
+/* Ban legacy rainbow greens in workspace shells */
+.ts-workspace-light .text-emerald-400,
+.ts-workspace-light .text-emerald-500,
+.ts-workspace-light .text-emerald-600,
+.ts-workspace-light .text-teal-500,
+.ts-workspace-light .text-teal-600,
+.admin-command-center-shell .text-emerald-400,
+.admin-command-center-shell .text-emerald-500,
+.admin-command-center-shell .text-emerald-600,
+.owner-command-center-shell .text-teal-500 {
+  color: var(--ts-brand-primary, #15803d) !important;
+}
+
+.ts-workspace-light .bg-emerald-600,
+.ts-workspace-light .bg-emerald-700,
+.ts-workspace-light .bg-emerald-800,
+.ts-workspace-light .bg-teal-600,
+.ts-workspace-light .bg-teal-700,
+.admin-command-center-shell .bg-emerald-600,
+.admin-command-center-shell .bg-emerald-700,
+.admin-command-center-shell .bg-emerald-800 {
+  background: var(--ts-brand-primary, #15803d) !important;
+  color: var(--ts-text-on-brand, #ffffff) !important;
+}
+
+.ts-workspace-light .glass-panel,
+.ts-workspace-light .liquid-glass,
+.admin-command-center-shell .glass-panel,
+.profile-page-light .glass-panel {
+  border: 1px solid var(--ts-border-subtle, #e2e8f0) !important;
+  background: var(--ts-surface-primary, #ffffff) !important;
+  backdrop-filter: none !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
 }
 
 /* Typography utilities */

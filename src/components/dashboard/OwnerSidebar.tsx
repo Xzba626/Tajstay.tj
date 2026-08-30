@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
   BarChart3,
@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { WorkspaceMobileDrawer } from "@/components/navigation/WorkspaceMobileDrawer";
+import { subscribeWorkspaceDrawerOpen } from "@/lib/workspace/workspace-nav-bridge";
 
 export type OwnerSidebarLabels = {
   sectionTitle: string;
@@ -123,6 +124,8 @@ export function OwnerMobileNav({ labels }: { labels: OwnerSidebarLabels }) {
   const section = search.get("section") ?? "overview";
   const items = buildItems(labels);
   const [moreOpen, setMoreOpen] = useState(false);
+
+  useEffect(() => subscribeWorkspaceDrawerOpen("owner", () => setMoreOpen(true)), []);
 
   const primaryItems = items.filter((item) =>
     item.section ? MOBILE_PRIMARY.includes(item.section as (typeof MOBILE_PRIMARY)[number]) : false

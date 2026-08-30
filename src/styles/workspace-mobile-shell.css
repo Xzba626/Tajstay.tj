@@ -3,17 +3,27 @@
  * Fixed Mobile Bottom Navigation, and right-side More drawer.
  */
 
-:root {
-  --ws-nav-icon-size: 1.125rem;
-  --ws-nav-label-size: 0.625rem;
-  --ws-nav-item-min-height: 3.25rem;
-  --ws-nav-touch-min: 2.75rem;
-  --ws-drawer-width: min(18.5rem, 86vw);
-  --ws-drawer-z: 55;
-  --ws-nav-z: 50;
-  --ts-brand-green: #15803d;
-  --ts-brand-green-soft: #ecfdf5;
-  --ts-surface-page: #ffffff;
+/* Fixed Mobile App Header — workspace menu trigger (Admin/Owner) */
+.header-workspace-menu {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: none;
+  border-radius: 0.625rem;
+  background: transparent;
+  color: var(--ts-text-title, #0f172a);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.header-workspace-menu:active {
+  background: var(--ts-surface-muted, #f4f6f5);
+  transform: scale(0.96);
+}
+
+body.app-shell--workspace .header-workspace-menu {
+  color: var(--ts-text-title, #0f172a);
 }
 
 /* Fixed Mobile Bottom Navigation — Admin + Owner share identical chrome */
@@ -67,7 +77,7 @@
 .workspace-mobile-bottom-nav__link.is-active,
 .admin-mobile-bottom-nav__link.is-active,
 .owner-mobile-bottom-nav__link.is-active {
-  color: var(--ts-brand-green, #15803d);
+  color: var(--ts-brand-primary, #15803d);
 }
 
 .workspace-mobile-bottom-nav__icon,
@@ -192,8 +202,8 @@
 }
 
 .workspace-mobile-drawer__link.is-active {
-  background: var(--ts-brand-green-soft, #ecfdf5);
-  color: var(--ts-brand-green, #15803d);
+  background: var(--ts-brand-primary-soft, #ecfdf5);
+  color: var(--ts-brand-primary, #15803d);
   font-weight: 600;
 }
 

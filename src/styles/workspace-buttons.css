@@ -1,0 +1,129 @@
+/**
+ * TajStay workspace button system — shared across Admin, Owner, Profile hubs.
+ * Aliases legacy .admin-btn / .owner-btn / .btn-primary inside workspace shells.
+ */
+
+:root {
+  --ws-btn-height: 2.5rem;
+  --ws-btn-height-sm: 2.125rem;
+  --ws-btn-radius: 0.625rem;
+  --ws-btn-font-size: 0.8125rem;
+  --ws-btn-font-weight: 600;
+  --ws-btn-px: 0.85rem;
+}
+
+.ws-btn,
+.admin-btn,
+.owner-btn,
+.ts-workspace-light .btn-primary,
+.admin-command-center-shell .btn-primary,
+.owner-command-center-shell .btn-primary,
+.profile-page-light .btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: var(--ws-btn-height);
+  padding: 0.45rem var(--ws-btn-px);
+  border-radius: var(--ws-btn-radius);
+  border: 1px solid transparent;
+  font-size: var(--ws-btn-font-size);
+  font-weight: var(--ws-btn-font-weight);
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease,
+    transform 80ms ease,
+    box-shadow 120ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ws-btn:active:not(:disabled),
+.admin-btn:active:not(:disabled),
+.owner-btn:active:not(:disabled),
+.ts-workspace-light .btn-primary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.ws-btn--primary,
+.admin-btn--primary,
+.owner-btn--primary,
+.ts-workspace-light .btn-primary,
+.admin-command-center-shell .btn-primary,
+.owner-command-center-shell .btn-primary,
+.profile-page-light .btn-primary {
+  background: var(--ts-brand-primary, #15803d);
+  color: var(--ts-text-on-brand, #ffffff) !important;
+  border-color: var(--ts-brand-primary, #15803d);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+
+.ws-btn--primary:hover,
+.admin-btn--primary:hover,
+.owner-btn--primary:hover,
+.ts-workspace-light .btn-primary:hover {
+  background: var(--ts-brand-primary-hover, #166534);
+  border-color: var(--ts-brand-primary-hover, #166534);
+}
+
+.ws-btn--primary:active,
+.admin-btn--primary:active,
+.owner-btn--primary:active {
+  background: var(--ts-brand-primary-pressed, #14532d);
+}
+
+.ws-btn--secondary,
+.admin-btn--secondary,
+.owner-btn--secondary {
+  background: var(--ts-surface-primary, #ffffff);
+  color: var(--ts-text-secondary, #334155) !important;
+  border-color: var(--ts-border-default, #cbd5e1);
+}
+
+.ws-btn--secondary:hover,
+.admin-btn--secondary:hover,
+.owner-btn--secondary:hover {
+  background: var(--ts-surface-muted, #f4f6f5);
+  color: var(--ts-text-body, #1e293b) !important;
+}
+
+.ws-btn--danger,
+.admin-btn--danger {
+  background: var(--ts-semantic-danger, #dc2626);
+  color: var(--ts-text-on-brand, #ffffff) !important;
+  border-color: var(--ts-semantic-danger, #dc2626);
+}
+
+.ws-btn--sm,
+.admin-btn--sm {
+  min-height: var(--ws-btn-height-sm);
+  padding: 0.3rem 0.65rem;
+  font-size: 0.75rem;
+}
+
+.ws-btn:disabled,
+.admin-btn:disabled,
+.owner-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Raw Tailwind greens inside workspace shells */
+.admin-command-center-shell .bg-green-800,
+.admin-command-center-shell .bg-green-700,
+.owner-command-center-shell .bg-green-800,
+.owner-command-center-shell .bg-green-700,
+.profile-page-light .bg-green-800,
+.profile-page-light .bg-green-700 {
+  background: var(--ts-brand-primary, #15803d) !important;
+  color: var(--ts-text-on-brand, #ffffff) !important;
+}
+
+.admin-command-center-shell .bg-green-800:hover,
+.owner-command-center-shell .bg-green-800:hover {
+  background: var(--ts-brand-primary-hover, #166534) !important;
+}
