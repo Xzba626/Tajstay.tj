@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
   AlertTriangle,
@@ -17,6 +17,7 @@ import {
   Wallet
 } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { WorkspaceMobileDrawer } from "@/components/navigation/WorkspaceMobileDrawer";
 
 export type AdminSidebarLabels = {
   sectionTitle: string;
@@ -24,6 +25,7 @@ export type AdminSidebarLabels = {
   mobileNav: string;
   navHint: string;
   mobileMore: string;
+  drawerGroupSecondary?: string;
   items: {
     dashboard: string;
     content: string;
@@ -113,18 +115,9 @@ export function AdminMobileNav({ labels }: { labels: AdminSidebarLabels }) {
   const moreItems = items.filter((item) => !MOBILE_PRIMARY.includes(item.section as (typeof MOBILE_PRIMARY)[number]));
   const moreActive = moreItems.some((item) => item.section === section);
 
-  useEffect(() => {
-    if (!moreOpen) return;
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setMoreOpen(false);
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [moreOpen]);
-
   return (
     <>
-      <nav className="admin-mobile-bottom-nav lg:hidden" aria-label={labels.mobileNav}>
+      <nav className="workspace-mobile-bottom-nav admin-mobile-bottom-nav lg:hidden" aria-label={labels.mobileNav}>
         {primaryItems.map((item) => {
           const active = section === item.section;
           const shortLabel =
@@ -133,59 +126,56 @@ export function AdminMobileNav({ labels }: { labels: AdminSidebarLabels }) {
             <Link
               key={item.section}
               href={sectionHref(pathname, item.section)}
-              className={cn("admin-mobile-bottom-nav__link", active && "is-active")}
+              className={cn("workspace-mobile-bottom-nav__link admin-mobile-bottom-nav__link", active && "is-active")}
             >
-              <item.Icon className="admin-mobile-bottom-nav__icon" aria-hidden />
+              <item.Icon className="workspace-mobile-bottom-nav__icon admin-mobile-bottom-nav__icon" aria-hidden />
               <span>{shortLabel}</span>
             </Link>
           );
         })}
         <button
           type="button"
-          className={cn("admin-mobile-bottom-nav__link", (moreOpen || moreActive) && "is-active")}
+          className={cn(
+            "workspace-mobile-bottom-nav__link admin-mobile-bottom-nav__link",
+            (moreOpen || moreActive) && "is-active"
+          )}
           onClick={() => setMoreOpen(true)}
           aria-expanded={moreOpen}
           aria-haspopup="dialog"
         >
-          <Menu className="admin-mobile-bottom-nav__icon" aria-hidden />
+          <Menu className="workspace-mobile-bottom-nav__icon admin-mobile-bottom-nav__icon" aria-hidden />
           <span>{labels.mobileMore}</span>
         </button>
       </nav>
 
-      {moreOpen && (
-        <>
-          <button
-            type="button"
-            className="admin-mobile-more-backdrop lg:hidden"
-            aria-label={labels.mobileMore}
-            onClick={() => setMoreOpen(false)}
-          />
-          <div className="admin-mobile-more-sheet lg:hidden" role="dialog" aria-modal="true" aria-label={labels.mobileMore}>
-            <div className="admin-mobile-more-sheet__head">
-              <h2 className="admin-mobile-more-sheet__title">{labels.mobileMore}</h2>
-              <button type="button" className="admin-mobile-more-sheet__close" onClick={() => setMoreOpen(false)} aria-label="×">
-                ×
-              </button>
-            </div>
-            <div className="admin-mobile-more-sheet__grid">
-              {moreItems.map((item) => {
-                const active = section === item.section;
-                return (
-                  <Link
-                    key={item.section}
-                    href={sectionHref(pathname, item.section)}
-                    onClick={() => setMoreOpen(false)}
-                    className={cn("admin-mobile-more-sheet__link", active && "is-active")}
-                  >
-                    <item.Icon className="h-4 w-4 shrink-0" aria-hidden />
-                    <span>{item.label}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        </>
-      )}
+      <WorkspaceMobileDrawer
+        open={moreOpen}
+        title={labels.mobileMore}
+        ariaLabel={labels.mobileMore}
+        onClose={() => setMoreOpen(false)}
+      >
+        <div className="workspace-mobile-drawer__group">
+          <p className="workspace-mobile-drawer__group-title">
+            {labels.drawerGroupSecondary ?? labels.navHint}
+          </p>
+          {moreItems.map((item) => {
+            const active = section === item.section;
+            return (
+              <Link
+                key={item.section}
+                href={sectionHref(pathname, item.section)}
+                onClick={() => setMoreOpen(false)}
+                className={cn("workspace-mobile-drawer__link", active && "is-active")}
+              >
+                <span className="workspace-mobile-drawer__link-icon">
+                  <item.Icon size={18} aria-hidden />
+                </span>
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </WorkspaceMobileDrawer>
     </>
   );
 }

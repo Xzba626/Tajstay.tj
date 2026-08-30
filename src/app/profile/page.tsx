@@ -39,7 +39,7 @@ export default async function ProfilePage() {
   if (!full) return null;
 
   return (
-    <PageContainer width="default" className="pb-10 profile-page-light ts-workspace-light">
+    <PageContainer width="default" className="profile-page-light profile-workspace ts-workspace-light">
       <ProfileMockupView
         locale={locale}
         user={full}

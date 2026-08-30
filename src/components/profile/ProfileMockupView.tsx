@@ -1,6 +1,10 @@
+"use client";
+
 import Link from "next/link";
+import { useState, type ReactNode } from "react";
 import {
   Bell,
+  ChevronDown,
   ChevronRight,
   CircleHelp,
   FileText,
@@ -16,7 +20,8 @@ import {
   Send,
   Settings,
   Shield,
-  User
+  User,
+  type LucideIcon
 } from "lucide-react";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
@@ -49,54 +54,68 @@ type Props = {
   unreadNotifications?: number;
 };
 
-function MenuRow({
+function HubRow({
   href,
   icon: Icon,
   label,
   meta,
-  desc,
-  badge,
-  className
+  badge
 }: {
   href: string;
-  icon: typeof User;
+  icon: LucideIcon;
   label: string;
   meta?: string;
-  desc?: string;
   badge?: number;
-  className?: string;
 }) {
   return (
-    <Link href={href} className={`profile-center__row${className ? ` ${className}` : ""}`}>
-      <Icon size={17} className="profile-center__row-icon" aria-hidden />
-      <span className="profile-center__row-body">
-        <span className="profile-center__row-label">{label}</span>
-        {desc ? <span className="profile-center__row-desc">{desc}</span> : null}
-        {meta ? <span className="profile-center__row-meta">{meta}</span> : null}
+    <Link href={href} className="profile-hub__row">
+      <Icon size={17} className="profile-hub__row-icon" aria-hidden />
+      <span className="profile-hub__row-body">
+        <span className="profile-hub__row-label">{label}</span>
+        {meta ? <span className="profile-hub__row-meta">{meta}</span> : null}
       </span>
-      {badge && badge > 0 ? <span className="profile-center__row-badge">{badge > 99 ? "99+" : badge}</span> : null}
-      <ChevronRight size={15} className="profile-center__row-chevron" aria-hidden />
+      {badge && badge > 0 ? <span className="profile-hub__row-badge">{badge > 99 ? "99+" : badge}</span> : null}
+      <ChevronRight size={15} className="profile-hub__row-chevron" aria-hidden />
     </Link>
   );
 }
 
-function MenuGroup({
+function HubSection({
+  id,
   title,
-  ariaLabel,
-  className,
+  summary,
+  icon: Icon,
+  defaultOpen = false,
   children
 }: {
+  id: string;
   title: string;
-  ariaLabel: string;
-  className?: string;
-  children: React.ReactNode;
+  summary: string;
+  icon: LucideIcon;
+  defaultOpen?: boolean;
+  children: ReactNode;
 }) {
+  const [open, setOpen] = useState(defaultOpen);
+
   return (
-    <section className={`profile-center__group${className ? ` ${className}` : ""}`}>
-      <h3 className="profile-center__group-title">{title}</h3>
-      <nav className="profile-center__menu" aria-label={ariaLabel}>
+    <section className={`profile-hub__section${open ? " is-open" : ""}`} id={id}>
+      <button
+        type="button"
+        className="profile-hub__section-toggle"
+        aria-expanded={open}
+        aria-controls={`${id}-panel`}
+        onClick={() => setOpen((value) => !value)}
+      >
+        <Icon size={18} className="profile-hub__section-icon" aria-hidden />
+        <span className="profile-hub__section-copy">
+          <span className="profile-hub__section-title">{title}</span>
+          <span className="profile-hub__section-summary">{summary}</span>
+        </span>
+        <ChevronDown size={16} className="profile-hub__section-chevron" aria-hidden />
+      </button>
+      <div id={`${id}-panel`} className="profile-hub__section-panel" hidden={!open}>
         {children}
-      </nav>
+      </div>
     </section>
   );
 }
@@ -110,164 +129,144 @@ export function ProfileMockupView({ locale, user, logoutLabel, unreadNotificatio
     formatTelegram(user.telegramUsername, user.telegramId) ?? m(locale, "profile.telegramNotConnected");
   const emailOk = Boolean(user.email && user.emailVerified);
   const phoneOk = Boolean(hasPhone && user.phoneVerified);
+  const nameParts = user.name.trim().split(/\s+/);
+  const firstName = nameParts[0] ?? user.name;
+  const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "—";
+
+  const roleLabel =
+    user.role === "OWNER"
+      ? m(locale, "profile.roleOwner")
+      : user.role === "ADMIN"
+        ? m(locale, "profile.roleAdmin")
+        : user.role === "GUEST"
+          ? m(locale, "profile.roleGuest")
+          : null;
 
   return (
-    <div className="profile-center">
-      <h1 className="profile-center__title">{m(locale, "profile.title")}</h1>
-
-      <div className="profile-center__layout">
-        <aside className="profile-center__aside">
-          <header className="profile-center__identity-card">
-            <div className="profile-center__identity-row">
-              <ProfileAvatar
-                name={user.name}
-                imageUrl={user.image ?? user.telegramPhotoUrl}
-                size="md"
-                className="profile-center__avatar"
-              />
-              <div className="profile-center__identity-main">
-                <h2 className="profile-center__name">{user.name}</h2>
-                {user.role !== "GUEST" ? (
-                  <p className="profile-center__role">
-                    {user.role === "OWNER"
-                      ? m(locale, "profile.roleOwner")
-                      : user.role === "ADMIN"
-                        ? m(locale, "profile.roleAdmin")
-                        : null}
-                  </p>
-                ) : null}
-                <div className="profile-center__badges">
-                  {emailOk ? (
-                    <span className="profile-center__badge profile-center__badge--ok">
-                      {m(locale, "profile.emailVerifiedBadge")}
-                    </span>
-                  ) : (
-                    <Link href="/profile/email" className="profile-center__badge profile-center__badge--warn">
-                      {m(locale, "profile.emailVerifyPrompt")}
-                    </Link>
-                  )}
-                  {phoneOk ? (
-                    <span className="profile-center__badge profile-center__badge--ok">
-                      {m(locale, "profile.phoneVerified")}
-                    </span>
-                  ) : (
-                    <Link href="/profile/phone" className="profile-center__badge profile-center__badge--warn">
-                      {m(locale, "profile.phoneVerifyPrompt")}
-                    </Link>
-                  )}
-                </div>
-              </div>
-              <Link
-                href="/profile/personal"
-                className="profile-center__edit-btn"
-                aria-label={m(locale, "profile.editProfile")}
-              >
-                <Pencil size={16} aria-hidden />
-              </Link>
-            </div>
-          </header>
-
-          <div className="profile-center__summary" aria-label={m(locale, "profile.actionsTitle")}>
-            <Link href="/history" className="profile-center__summary-item">
-              <span className="profile-center__summary-value">{user.bookings.length}</span>
-              <span className="profile-center__summary-label">{m(locale, "profile.statBookings")}</span>
-            </Link>
-            <span className="profile-center__summary-divider" aria-hidden />
-            <Link href="/favorites" className="profile-center__summary-item">
-              <span className="profile-center__summary-value">{user.favorites.length}</span>
-              <span className="profile-center__summary-label">{m(locale, "profile.statFavorites")}</span>
-            </Link>
-          </div>
-        </aside>
-
-        <div className="profile-center__main">
-          <MenuGroup title={m(locale, "profile.sectionMain")} ariaLabel={m(locale, "profile.sectionMain")}>
-            <MenuRow href="/history" icon={History} label={m(locale, "profile.navHistory")} desc={m(locale, "profile.navBookingsDesc")} />
-            <MenuRow href="/favorites" icon={Heart} label={m(locale, "profile.navFavorites")} desc={m(locale, "profile.navFavoritesDesc")} />
-            <MenuRow
-              href="/notifications"
-              icon={Bell}
-              label={m(locale, "profile.actionsNotifications")}
-              desc={m(locale, "profile.subscriptionsSubtitle")}
-              badge={unreadNotifications}
-            />
-          </MenuGroup>
-
-          <MenuGroup
-            title={m(locale, "profile.sectionPersonal")}
-            ariaLabel={m(locale, "profile.sectionPersonal")}
-            className="profile-center__group--contacts"
-          >
-            <MenuRow href="/profile/personal" icon={User} label={m(locale, "profile.personalInfo")} />
-            <MenuRow
-              href="/profile/phone"
-              icon={Phone}
-              label={m(locale, "profile.phone")}
-              meta={`${phoneShort}${phoneOk ? ` · ${m(locale, "profile.statusVerified")}` : ""}`}
-            />
-            <MenuRow
-              href="/profile/email"
-              icon={Mail}
-              label={m(locale, "profile.email")}
-              meta={`${emailShort}${emailOk ? ` · ${m(locale, "profile.statusVerified")}` : ""}`}
-            />
-            <MenuRow
-              href="/profile/telegram"
-              icon={Send}
-              label={m(locale, "profile.telegram")}
-              meta={
-                tgConnected
-                  ? `${tgShort} · ${m(locale, "profile.telegramConnected")}`
-                  : m(locale, "profile.telegramNotConnected")
-              }
-            />
-          </MenuGroup>
-
-          <MenuGroup title={m(locale, "profile.sectionSettings")} ariaLabel={m(locale, "profile.sectionSettings")}>
-            <MenuRow href="/profile/settings" icon={Globe} label={m(locale, "profile.language")} />
-            <MenuRow href="/profile/security" icon={Shield} label={m(locale, "profile.security")} />
-            <MenuRow href="/profile/settings" icon={Settings} label={m(locale, "profile.settings")} />
-            <MenuRow href="/profile/subscriptions" icon={Megaphone} label={m(locale, "profile.subscriptions")} />
-          </MenuGroup>
-
-          <MenuGroup title={m(locale, "profile.sectionSupport")} ariaLabel={m(locale, "profile.sectionSupport")}>
-            <MenuRow href="/faq" icon={CircleHelp} label={m(locale, "footer.helpCenter")} />
-            <MenuRow href="/contacts" icon={MessageCircle} label={m(locale, "footer.contactUs")} />
-            <MenuRow href="/policy" icon={FileText} label={m(locale, "footer.policy")} />
-            <MenuRow href="/terms" icon={ScrollText} label={m(locale, "footer.terms")} />
-          </MenuGroup>
-
-          {user.role === "GUEST" ? (
-            <Link href="/profile/become-owner" className="profile-center__promo">
-              <span className="profile-center__promo-title">{m(locale, "profile.hostBannerTitle")}</span>
-              <span className="profile-center__promo-desc">{m(locale, "profile.hostBannerDesc")}</span>
-              <ChevronRight size={16} className="profile-center__promo-chevron" aria-hidden />
-            </Link>
-          ) : null}
-
-          {user.role === "OWNER" ? (
-            <Link href="/dashboard/owner" className="profile-center__promo">
-              <span className="profile-center__promo-title">{m(locale, "profile.navOwner")}</span>
-              <span className="profile-center__promo-desc">{m(locale, "profile.navOwnerDesc")}</span>
-              <ChevronRight size={16} className="profile-center__promo-chevron" aria-hidden />
-            </Link>
-          ) : null}
-
-          {user.role === "ADMIN" ? (
-            <Link href="/dashboard/admin" className="profile-center__promo">
-              <span className="profile-center__promo-title">{m(locale, "profile.navAdmin")}</span>
-              <span className="profile-center__promo-desc">{m(locale, "profile.navAdminDesc")}</span>
-              <ChevronRight size={16} className="profile-center__promo-chevron" aria-hidden />
-            </Link>
-          ) : null}
-
-          <ProfileLogoutConfirm
-            label={logoutLabel}
-            confirmText={m(locale, "profile.logoutConfirm")}
-            confirmYes={m(locale, "profile.logoutConfirmYes")}
-            confirmCancel={m(locale, "profile.logoutConfirmCancel")}
+    <div className="profile-hub profile-center">
+      <header className="profile-hub__identity">
+        <div className="profile-hub__identity-row">
+          <ProfileAvatar
+            name={user.name}
+            imageUrl={user.image ?? user.telegramPhotoUrl}
+            size="md"
+            className="profile-hub__avatar"
           />
+          <div className="profile-hub__identity-main">
+            <p className="profile-hub__name-line">
+              <span className="profile-hub__firstname">{firstName}</span>
+              {lastName !== "—" ? <span className="profile-hub__lastname">{lastName}</span> : null}
+            </p>
+            {roleLabel ? <p className="profile-hub__role">{roleLabel}</p> : null}
+            <div className="profile-hub__badges">
+              {emailOk ? (
+                <span className="profile-hub__badge profile-hub__badge--ok">{m(locale, "profile.emailVerifiedBadge")}</span>
+              ) : (
+                <Link href="/profile/email" className="profile-hub__badge profile-hub__badge--warn">
+                  {m(locale, "profile.emailVerifyPrompt")}
+                </Link>
+              )}
+              {phoneOk ? (
+                <span className="profile-hub__badge profile-hub__badge--ok">{m(locale, "profile.phoneVerified")}</span>
+              ) : (
+                <Link href="/profile/phone" className="profile-hub__badge profile-hub__badge--warn">
+                  {m(locale, "profile.phoneVerifyPrompt")}
+                </Link>
+              )}
+            </div>
+          </div>
+          <Link href="/profile/personal" className="profile-hub__edit" aria-label={m(locale, "profile.editProfile")}>
+            <Pencil size={16} aria-hidden />
+          </Link>
         </div>
+      </header>
+
+      <div className="profile-hub__stack">
+        <HubSection
+          id="profile-activity"
+          title={m(locale, "profile.sectionMain")}
+          summary={`${user.bookings.length} · ${user.favorites.length}`}
+          icon={History}
+          defaultOpen
+        >
+          <HubRow href="/history" icon={History} label={m(locale, "profile.navHistory")} meta={m(locale, "profile.statBookings")} />
+          <HubRow href="/favorites" icon={Heart} label={m(locale, "profile.navFavorites")} meta={m(locale, "profile.statFavorites")} />
+          <HubRow
+            href="/notifications"
+            icon={Bell}
+            label={m(locale, "profile.actionsNotifications")}
+            badge={unreadNotifications}
+          />
+        </HubSection>
+
+        <HubSection
+          id="profile-personal"
+          title={m(locale, "profile.sectionPersonal")}
+          summary={emailShort}
+          icon={User}
+        >
+          <HubRow href="/profile/personal" icon={User} label={m(locale, "profile.personalInfo")} />
+          <HubRow
+            href="/profile/phone"
+            icon={Phone}
+            label={m(locale, "profile.phone")}
+            meta={`${phoneShort}${phoneOk ? ` · ${m(locale, "profile.statusVerified")}` : ""}`}
+          />
+          <HubRow
+            href="/profile/email"
+            icon={Mail}
+            label={m(locale, "profile.email")}
+            meta={`${emailShort}${emailOk ? ` · ${m(locale, "profile.statusVerified")}` : ""}`}
+          />
+          <HubRow
+            href="/profile/telegram"
+            icon={Send}
+            label={m(locale, "profile.telegram")}
+            meta={tgConnected ? tgShort : m(locale, "profile.telegramNotConnected")}
+          />
+        </HubSection>
+
+        <HubSection id="profile-settings" title={m(locale, "profile.sectionSettings")} summary={m(locale, "profile.settingsSubtitle")} icon={Settings}>
+          <HubRow href="/profile/settings" icon={Globe} label={m(locale, "profile.language")} />
+          <HubRow href="/profile/security" icon={Shield} label={m(locale, "profile.security")} />
+          <HubRow href="/profile/settings" icon={Settings} label={m(locale, "profile.settings")} />
+          <HubRow href="/profile/subscriptions" icon={Megaphone} label={m(locale, "profile.subscriptions")} />
+        </HubSection>
+
+        <HubSection id="profile-help" title={m(locale, "profile.sectionSupport")} summary={m(locale, "footer.helpCenter")} icon={CircleHelp}>
+          <HubRow href="/faq" icon={CircleHelp} label={m(locale, "footer.helpCenter")} />
+          <HubRow href="/contacts" icon={MessageCircle} label={m(locale, "footer.contactUs")} />
+          <HubRow href="/policy" icon={FileText} label={m(locale, "footer.policy")} />
+          <HubRow href="/terms" icon={ScrollText} label={m(locale, "footer.terms")} />
+        </HubSection>
+
+        {user.role === "GUEST" ? (
+          <Link href="/profile/become-owner" className="profile-hub__promo">
+            <span className="profile-hub__promo-title">{m(locale, "profile.hostBannerTitle")}</span>
+            <ChevronRight size={16} aria-hidden />
+          </Link>
+        ) : null}
+
+        {user.role === "OWNER" ? (
+          <Link href="/dashboard/owner" className="profile-hub__promo">
+            <span className="profile-hub__promo-title">{m(locale, "profile.navOwner")}</span>
+            <ChevronRight size={16} aria-hidden />
+          </Link>
+        ) : null}
+
+        {user.role === "ADMIN" ? (
+          <Link href="/dashboard/admin" className="profile-hub__promo">
+            <span className="profile-hub__promo-title">{m(locale, "profile.navAdmin")}</span>
+            <ChevronRight size={16} aria-hidden />
+          </Link>
+        ) : null}
+
+        <ProfileLogoutConfirm
+          label={logoutLabel}
+          confirmText={m(locale, "profile.logoutConfirm")}
+          confirmYes={m(locale, "profile.logoutConfirmYes")}
+          confirmCancel={m(locale, "profile.logoutConfirmCancel")}
+        />
       </div>
     </div>
   );

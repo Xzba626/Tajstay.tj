@@ -12,6 +12,7 @@ export default function OwnerDashboardLayout({ children }: { children: ReactNode
     mobileNav: m(locale, "owner.mobileNav"),
     navHint: m(locale, "owner.navHint"),
     mobileMore: m(locale, "owner.mobileMore"),
+    drawerGroupSecondary: m(locale, "owner.drawerGroupSecondary"),
     items: {
       overview: m(locale, "owner.navOverview"),
       properties: m(locale, "owner.navProperties"),

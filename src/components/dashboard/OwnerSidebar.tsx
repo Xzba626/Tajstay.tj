@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
   BarChart3,
@@ -18,6 +18,7 @@ import {
   Wallet
 } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { WorkspaceMobileDrawer } from "@/components/navigation/WorkspaceMobileDrawer";
 
 export type OwnerSidebarLabels = {
   sectionTitle: string;
@@ -25,6 +26,7 @@ export type OwnerSidebarLabels = {
   mobileNav: string;
   navHint?: string;
   mobileMore: string;
+  drawerGroupSecondary?: string;
   items: {
     overview: string;
     properties: string;
@@ -130,18 +132,9 @@ export function OwnerMobileNav({ labels }: { labels: OwnerSidebarLabels }) {
   );
   const moreActive = moreItems.some((item) => isActive(pathname, section, item));
 
-  useEffect(() => {
-    if (!moreOpen) return;
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setMoreOpen(false);
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [moreOpen]);
-
   return (
     <>
-      <nav className="owner-mobile-bottom-nav lg:hidden" aria-label={labels.mobileNav}>
+      <nav className="workspace-mobile-bottom-nav owner-mobile-bottom-nav lg:hidden" aria-label={labels.mobileNav}>
         {primaryItems.map((item) => {
           const active = isActive(pathname, section, item);
           const href = resolveHref(pathname, item);
@@ -151,70 +144,57 @@ export function OwnerMobileNav({ labels }: { labels: OwnerSidebarLabels }) {
             <Link
               key={href}
               href={href}
-              className={cn("owner-mobile-bottom-nav__link", active && "is-active")}
+              className={cn("workspace-mobile-bottom-nav__link owner-mobile-bottom-nav__link", active && "is-active")}
             >
-              <item.Icon className="owner-mobile-bottom-nav__icon" aria-hidden />
+              <item.Icon className="workspace-mobile-bottom-nav__icon owner-mobile-bottom-nav__icon" aria-hidden />
               <span>{shortLabel}</span>
             </Link>
           );
         })}
         <button
           type="button"
-          className={cn("owner-mobile-bottom-nav__link", (moreOpen || moreActive) && "is-active")}
+          className={cn(
+            "workspace-mobile-bottom-nav__link owner-mobile-bottom-nav__link",
+            (moreOpen || moreActive) && "is-active"
+          )}
           onClick={() => setMoreOpen(true)}
           aria-expanded={moreOpen}
           aria-haspopup="dialog"
         >
-          <Menu className="owner-mobile-bottom-nav__icon" aria-hidden />
+          <Menu className="workspace-mobile-bottom-nav__icon owner-mobile-bottom-nav__icon" aria-hidden />
           <span>{labels.mobileMore}</span>
         </button>
       </nav>
 
-      {moreOpen && (
-        <>
-          <button
-            type="button"
-            className="owner-mobile-more-backdrop lg:hidden"
-            aria-label={labels.mobileMore}
-            onClick={() => setMoreOpen(false)}
-          />
-          <div
-            className="owner-mobile-more-sheet lg:hidden"
-            role="dialog"
-            aria-modal="true"
-            aria-label={labels.mobileMore}
-          >
-            <div className="owner-mobile-more-sheet__head">
-              <h2 className="owner-mobile-more-sheet__title">{labels.mobileMore}</h2>
-              <button
-                type="button"
-                className="owner-mobile-more-sheet__close"
+      <WorkspaceMobileDrawer
+        open={moreOpen}
+        title={labels.mobileMore}
+        ariaLabel={labels.mobileMore}
+        onClose={() => setMoreOpen(false)}
+      >
+        <div className="workspace-mobile-drawer__group">
+          <p className="workspace-mobile-drawer__group-title">
+            {labels.drawerGroupSecondary ?? labels.navHint ?? labels.mobileMore}
+          </p>
+          {moreItems.map((item) => {
+            const active = isActive(pathname, section, item);
+            const href = resolveHref(pathname, item);
+            return (
+              <Link
+                key={href + item.label}
+                href={href}
                 onClick={() => setMoreOpen(false)}
-                aria-label="×"
+                className={cn("workspace-mobile-drawer__link", active && "is-active")}
               >
-                ×
-              </button>
-            </div>
-            <div className="owner-mobile-more-sheet__grid">
-              {moreItems.map((item) => {
-                const active = isActive(pathname, section, item);
-                const href = resolveHref(pathname, item);
-                return (
-                  <Link
-                    key={href + item.label}
-                    href={href}
-                    onClick={() => setMoreOpen(false)}
-                    className={cn("owner-mobile-more-sheet__link", active && "is-active")}
-                  >
-                    <item.Icon className="h-4 w-4 shrink-0" aria-hidden />
-                    <span>{item.label}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        </>
-      )}
+                <span className="workspace-mobile-drawer__link-icon">
+                  <item.Icon size={18} aria-hidden />
+                </span>
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </WorkspaceMobileDrawer>
     </>
   );
 }

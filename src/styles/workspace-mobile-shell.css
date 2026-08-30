@@ -1,0 +1,232 @@
+/**
+ * TajStay workspace mobile shell — shared Fixed Mobile App Header geometry,
+ * Fixed Mobile Bottom Navigation, and right-side More drawer.
+ */
+
+:root {
+  --ws-nav-icon-size: 1.125rem;
+  --ws-nav-label-size: 0.625rem;
+  --ws-nav-item-min-height: 3.25rem;
+  --ws-nav-touch-min: 2.75rem;
+  --ws-drawer-width: min(18.5rem, 86vw);
+  --ws-drawer-z: 55;
+  --ws-nav-z: 50;
+  --ts-brand-green: #15803d;
+  --ts-brand-green-soft: #ecfdf5;
+  --ts-surface-page: #ffffff;
+}
+
+/* Fixed Mobile Bottom Navigation — Admin + Owner share identical chrome */
+.workspace-mobile-bottom-nav,
+.admin-mobile-bottom-nav,
+.owner-mobile-bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--ws-nav-z);
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0;
+  border-top: 1px solid var(--ts-border-subtle, #e2e8f0);
+  background: #ffffff;
+  box-shadow: 0 -1px 8px rgba(15, 23, 42, 0.06);
+  padding: 0.2rem 0 calc(0.3rem + env(safe-area-inset-bottom, 0px));
+}
+
+@media (min-width: 1024px) {
+  .workspace-mobile-bottom-nav,
+  .admin-mobile-bottom-nav,
+  .owner-mobile-bottom-nav {
+    display: none;
+  }
+}
+
+.workspace-mobile-bottom-nav__link,
+.admin-mobile-bottom-nav__link,
+.owner-mobile-bottom-nav__link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.12rem;
+  min-height: var(--ws-nav-item-min-height);
+  min-width: var(--ws-nav-touch-min);
+  padding: 0.2rem 0.1rem;
+  font-size: var(--ws-nav-label-size);
+  font-weight: 600;
+  line-height: 1.1;
+  text-align: center;
+  color: var(--ts-text-muted, #475569);
+  text-decoration: none;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.workspace-mobile-bottom-nav__link.is-active,
+.admin-mobile-bottom-nav__link.is-active,
+.owner-mobile-bottom-nav__link.is-active {
+  color: var(--ts-brand-green, #15803d);
+}
+
+.workspace-mobile-bottom-nav__icon,
+.admin-mobile-bottom-nav__icon,
+.owner-mobile-bottom-nav__icon {
+  width: var(--ws-nav-icon-size);
+  height: var(--ws-nav-icon-size);
+}
+
+.workspace-mobile-bottom-nav__link span,
+.admin-mobile-bottom-nav__link span,
+.owner-mobile-bottom-nav__link span {
+  max-width: 4.25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Right-side More drawer */
+.workspace-mobile-drawer__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--ws-drawer-z) - 1);
+  background: rgba(15, 23, 42, 0.4);
+}
+
+.workspace-mobile-drawer {
+  position: fixed;
+  top: calc(var(--workspace-header-height, 3.5rem) + env(safe-area-inset-top, 0px));
+  right: 0;
+  bottom: calc(var(--workspace-bottom-nav-height, 3.75rem) + env(safe-area-inset-bottom, 0px));
+  z-index: var(--ws-drawer-z);
+  width: var(--ws-drawer-width);
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--ts-border-subtle, #e2e8f0);
+  background: #ffffff;
+  box-shadow: -8px 0 24px rgba(15, 23, 42, 0.12);
+  animation: workspace-drawer-in 220ms ease-out;
+}
+
+@keyframes workspace-drawer-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0.6;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.workspace-mobile-drawer__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  padding: 0.75rem 0.85rem;
+  border-bottom: 1px solid var(--ts-border-subtle, #e2e8f0);
+}
+
+.workspace-mobile-drawer__title {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--ts-text-title, #0f172a);
+}
+
+.workspace-mobile-drawer__close {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--ts-text-muted, #475569);
+  cursor: pointer;
+}
+
+.workspace-mobile-drawer__close:hover {
+  background: var(--ts-surface-muted, #f1f5f3);
+}
+
+.workspace-mobile-drawer__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.65rem 0.75rem 1rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.workspace-mobile-drawer__group {
+  margin-bottom: 0.85rem;
+}
+
+.workspace-mobile-drawer__group-title {
+  margin: 0 0 0.35rem;
+  padding: 0 0.35rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ts-text-muted, #475569);
+}
+
+.workspace-mobile-drawer__link {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 2.65rem;
+  padding: 0.5rem 0.55rem;
+  border-radius: 0.625rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--ts-text-secondary, #334155);
+  text-decoration: none;
+}
+
+.workspace-mobile-drawer__link:hover {
+  background: var(--ts-surface-muted, #f1f5f3);
+}
+
+.workspace-mobile-drawer__link.is-active {
+  background: var(--ts-brand-green-soft, #ecfdf5);
+  color: var(--ts-brand-green, #15803d);
+  font-weight: 600;
+}
+
+.workspace-mobile-drawer__link-icon {
+  display: grid;
+  place-items: center;
+  width: 1.125rem;
+  height: 1.125rem;
+  flex-shrink: 0;
+}
+
+/* Scrollable workspace content offsets */
+@media (max-width: 1023px) {
+  body.app-shell--workspace .site-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 48;
+  }
+
+  body.app-shell--workspace main {
+    padding-top: calc(var(--workspace-header-height, 3.5rem) + env(safe-area-inset-top, 0px));
+  }
+
+  .workspace-shell__content,
+  .admin-command-center-shell .taj-dashboard-content,
+  .owner-command-center-shell .taj-dashboard-content,
+  .profile-page-light.profile-workspace {
+    padding-bottom: calc(var(--workspace-bottom-nav-height, 3.75rem) + env(safe-area-inset-bottom, 0px) + 0.5rem);
+  }
+
+  body.app-shell--hidden-nav.app-shell--workspace main {
+    padding-bottom: 0;
+  }
+}
