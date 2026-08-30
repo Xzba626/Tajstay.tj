@@ -55,6 +55,8 @@
   --ws-row-min-height: 2.65rem;
   --ws-card-radius: 0.75rem;
   --ws-drawer-width: min(18.5rem, 86vw);
+  --ws-drawer-z: 55;
+  --ws-nav-z: 50;
 
   /* Type scale */
   --ts-type-display-size: clamp(1.375rem, 4vw, 1.75rem);
