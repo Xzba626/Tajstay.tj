@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { TstAssistant } from "@/components/ai/TstAssistant";
-import { isShellHiddenRoute } from "@/constants/app-navigation";
+import { isShellHiddenRoute, isWorkspaceRoute } from "@/constants/app-navigation";
 import type { Locale } from "@/lib/i18n/locale";
 
 type Props = {
@@ -25,10 +25,12 @@ export function AppShell({ locale }: Props) {
 
   useEffect(() => {
     const shell = !isShellHiddenRoute(pathname);
+    const workspace = isWorkspaceRoute(pathname);
     document.body.classList.toggle("app-shell", shell);
     document.body.classList.toggle("app-shell--hidden-nav", !shell);
+    document.body.classList.toggle("app-shell--workspace", workspace);
     return () => {
-      document.body.classList.remove("app-shell", "app-shell--hidden-nav");
+      document.body.classList.remove("app-shell", "app-shell--hidden-nav", "app-shell--workspace");
     };
   }, [pathname]);
 

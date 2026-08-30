@@ -4,6 +4,9 @@ import { Compass, History, Home, Search, User } from "lucide-react";
 /** Routes where mobile bottom tab bar is hidden (auth + role dashboards). */
 export const SHELL_HIDDEN_PREFIXES = ["/auth", "/dashboard/admin", "/dashboard/owner"] as const;
 
+/** App-like hubs: hide marketing footer on mobile; use profile/settings for legal links. */
+export const WORKSPACE_PREFIXES = ["/profile", "/dashboard/admin", "/dashboard/owner"] as const;
+
 export type BottomTabId = "home" | "search" | "tours" | "history" | "profile";
 
 export type BottomTabConfig = {
@@ -52,6 +55,12 @@ export const BOTTOM_TABS: BottomTabConfig[] = [
 
 export function isShellHiddenRoute(pathname: string): boolean {
   return SHELL_HIDDEN_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+  );
+}
+
+export function isWorkspaceRoute(pathname: string): boolean {
+  return WORKSPACE_PREFIXES.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
   );
 }

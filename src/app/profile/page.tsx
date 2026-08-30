@@ -13,7 +13,7 @@ export default async function ProfilePage() {
   const user = await requireUser(["GUEST", "OWNER", "ADMIN"]);
   if (!user) {
     return (
-      <PageContainer width="default" className="pb-10 profile-page-light">
+      <PageContainer width="default" className="pb-10 profile-page-light ts-workspace-light">
         <div className="profile-center profile-center--guest">
           <h1 className="profile-center__title">{m(locale, "profile.title")}</h1>
           <p className="profile-center__signin-copy">{m(locale, "profile.signInPrompt")}</p>

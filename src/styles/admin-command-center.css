@@ -10,7 +10,7 @@
   --admin-border: #e2e8f0;
   --admin-text: #0f172a;
   --admin-text-secondary: #334155;
-  --admin-text-muted: #64748b;
+  --admin-text-muted: #475569;
   --admin-accent: #15803d;
   --admin-accent-soft: #ecfdf5;
   --admin-accent-border: rgba(21, 128, 61, 0.22);
@@ -1035,7 +1035,7 @@
 
 .admin-risk-chip--low {
   background: var(--admin-accent-soft);
-  color: var(--admin-accent);
+  color: #166534;
 }
 
 .admin-link {
@@ -1050,6 +1050,16 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+@media (max-width: 1023px) {
+  .admin-command-center .admin-page-header {
+    display: none;
+  }
+
+  .admin-command-center .admin-section {
+    scroll-margin-top: 4.5rem;
+  }
 }
 
 @media (max-width: 767px) {

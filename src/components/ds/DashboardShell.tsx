@@ -9,10 +9,14 @@ type Props = {
 };
 
 export function DashboardShell({ sidebar, children, mobileNav, className }: Props) {
+  const isLightWorkspace = className?.includes("admin-command-center-shell");
   return (
     <div
       className={cn(
-        "taj-dashboard-shell min-h-[calc(100vh-4rem)] bg-[var(--taj-color-bg)] font-[family-name:var(--taj-font-ui)] text-[var(--taj-color-text)]",
+        "taj-dashboard-shell min-h-[calc(100vh-4rem)] font-[family-name:var(--taj-font-ui)]",
+        isLightWorkspace
+          ? "ts-workspace-light admin-command-center-shell bg-[var(--ts-surface-page)] text-[var(--ts-text-body)]"
+          : "bg-[var(--taj-color-bg)] text-[var(--taj-color-text)]",
         className
       )}
     >

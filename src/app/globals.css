@@ -1,5 +1,6 @@
 @import "../styles/tokens.css";
 @import "../styles/tajstay-brand-tokens.css";
+@import "../styles/tajstay-design-system.css";
 @import "../styles/variables.css";
 @import "../styles/taj-theme.css";
 @import "../styles/ds-components.css";
@@ -27,22 +28,23 @@
   --app-vignette: radial-gradient(circle at 50% 28%, transparent 0%, rgba(0, 71, 36, 0.14) 72%, rgba(1, 47, 26, 0.32) 100%);
 }
 
-[data-theme="light"] .text-slate-100,
-[data-theme="light"] .text-slate-200,
-[data-theme="dark"] .text-slate-100,
-[data-theme="dark"] .text-slate-200 {
+/* Dark marketing canvas only — light workspaces override in tajstay-design-system.css */
+[data-theme="dark"] :where(body:not(.app-shell--workspace)) .text-slate-100,
+[data-theme="dark"] :where(body:not(.app-shell--workspace)) .text-slate-200,
+[data-theme="light"] :where(body:not(.app-shell--workspace)) .text-slate-100,
+[data-theme="light"] :where(body:not(.app-shell--workspace)) .text-slate-200 {
   color: var(--taj-text, #f8fafc) !important;
 }
 
-[data-theme="light"] .text-slate-300,
-[data-theme="light"] .text-slate-400,
-[data-theme="dark"] .text-slate-300,
-[data-theme="dark"] .text-slate-400 {
+[data-theme="dark"] :where(body:not(.app-shell--workspace)) .text-slate-300,
+[data-theme="dark"] :where(body:not(.app-shell--workspace)) .text-slate-400,
+[data-theme="light"] :where(body:not(.app-shell--workspace)) .text-slate-300,
+[data-theme="light"] :where(body:not(.app-shell--workspace)) .text-slate-400 {
   color: var(--taj-text-secondary, #d8f1e2) !important;
 }
 
-[data-theme="light"] .text-slate-500,
-[data-theme="dark"] .text-slate-500 {
+[data-theme="dark"] :where(body:not(.app-shell--workspace)) .text-slate-500,
+[data-theme="light"] :where(body:not(.app-shell--workspace)) .text-slate-500 {
   color: var(--taj-text-muted, #b7d8c4) !important;
 }
 

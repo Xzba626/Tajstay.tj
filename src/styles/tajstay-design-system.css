@@ -1,0 +1,164 @@
+/**
+ * TajStay Design System — Wave 1 foundation
+ * Shared tokens + light workspace isolation (profile, admin, owner hubs).
+ * One system; desktop/mobile compositions use these tokens, not duplicate colors.
+ */
+
+:root {
+  /* Surfaces */
+  --ts-surface-page: #ffffff;
+  --ts-surface-primary: #ffffff;
+  --ts-surface-secondary: #f8faf9;
+  --ts-surface-muted: #f1f5f3;
+  --ts-surface-elevated: #ffffff;
+  --ts-surface-nav: #ffffff;
+  --ts-surface-modal: #ffffff;
+
+  /* Typography colors — WCAG AA on white (#475569 ≈ 7:1 for small text) */
+  --ts-text-display: #0f172a;
+  --ts-text-title: #0f172a;
+  --ts-text-body: #1e293b;
+  --ts-text-secondary: #334155;
+  --ts-text-muted: #475569;
+  --ts-text-caption: #64748b;
+  --ts-text-on-brand: #ffffff;
+
+  /* Borders */
+  --ts-border-subtle: #e2e8f0;
+  --ts-border-default: #cbd5e1;
+  --ts-border-strong: #94a3b8;
+
+  /* Type scale */
+  --ts-type-display-size: clamp(1.375rem, 4vw, 1.75rem);
+  --ts-type-page-title-size: 1.375rem;
+  --ts-type-section-title-size: 0.8125rem;
+  --ts-type-card-title-size: 0.9375rem;
+  --ts-type-body-size: 0.875rem;
+  --ts-type-meta-size: 0.75rem;
+  --ts-type-caption-size: 0.6875rem;
+
+  --ts-type-display-weight: 700;
+  --ts-type-title-weight: 700;
+  --ts-type-section-weight: 700;
+  --ts-type-body-weight: 500;
+
+  --ts-type-section-tracking: 0.05em;
+}
+
+/* Light workspace — isolates readable UI from global dark marketing canvas */
+.ts-workspace-light,
+.profile-page-light,
+.admin-command-center-shell {
+  --taj-color-bg: var(--ts-surface-page);
+  --taj-color-text: var(--ts-text-body);
+  --taj-color-text-secondary: var(--ts-text-secondary);
+  --taj-color-text-muted: var(--ts-text-muted);
+  --taj-text: var(--ts-text-body);
+  --taj-text-secondary: var(--ts-text-secondary);
+  --taj-text-muted: var(--ts-text-muted);
+  --brand-bg: var(--ts-surface-page);
+  --brand-text: var(--ts-text-body);
+
+  background: var(--ts-surface-page);
+  color: var(--ts-text-body);
+}
+
+.ts-workspace-light .text-slate-100,
+.ts-workspace-light .text-slate-200,
+.profile-page-light .text-slate-100,
+.profile-page-light .text-slate-200,
+.admin-command-center-shell .text-slate-100,
+.admin-command-center-shell .text-slate-200 {
+  color: var(--ts-text-title) !important;
+}
+
+.ts-workspace-light .text-slate-300,
+.ts-workspace-light .text-slate-400,
+.ts-workspace-light .text-slate-500,
+.profile-page-light .text-slate-300,
+.profile-page-light .text-slate-400,
+.profile-page-light .text-slate-500,
+.admin-command-center-shell .text-slate-300,
+.admin-command-center-shell .text-slate-400,
+.admin-command-center-shell .text-slate-500 {
+  color: var(--ts-text-muted) !important;
+}
+
+.ts-workspace-light .text-slate-600,
+.ts-workspace-light .text-slate-700,
+.ts-workspace-light .text-slate-800,
+.ts-workspace-light .text-slate-900,
+.profile-page-light .text-slate-600,
+.profile-page-light .text-slate-700,
+.profile-page-light .text-slate-800,
+.profile-page-light .text-slate-900 {
+  color: var(--ts-text-body) !important;
+}
+
+/* Typography utilities */
+.ts-display {
+  margin: 0;
+  font-size: var(--ts-type-display-size);
+  font-weight: var(--ts-type-display-weight);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--ts-text-display);
+}
+
+.ts-page-title {
+  margin: 0;
+  font-size: var(--ts-type-page-title-size);
+  font-weight: var(--ts-type-title-weight);
+  line-height: 1.25;
+  color: var(--ts-text-title);
+}
+
+.ts-section-title {
+  margin: 0 0 0.35rem;
+  font-size: var(--ts-type-section-title-size);
+  font-weight: var(--ts-type-section-weight);
+  letter-spacing: var(--ts-type-section-tracking);
+  text-transform: uppercase;
+  color: var(--ts-text-muted);
+}
+
+.ts-body {
+  font-size: var(--ts-type-body-size);
+  line-height: 1.45;
+  color: var(--ts-text-body);
+}
+
+.ts-meta {
+  font-size: var(--ts-type-meta-size);
+  line-height: 1.4;
+  color: var(--ts-text-muted);
+}
+
+.ts-caption {
+  font-size: var(--ts-type-caption-size);
+  line-height: 1.35;
+  color: var(--ts-text-caption);
+}
+
+/* Mobile workspace: hide marketing footer (links live in Profile → Help) */
+@media (max-width: 767px) {
+  body.app-shell--workspace .site-footer {
+    display: none;
+  }
+}
+
+/* Workspace scroll area — content between header and bottom nav */
+.ts-workspace-scroll {
+  min-height: 0;
+  flex: 1;
+}
+
+@media (max-width: 1023px) {
+  body.app-shell--workspace main {
+    padding-bottom: calc(3.75rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  body.app-shell--hidden-nav main {
+    padding-bottom: calc(4.25rem + env(safe-area-inset-bottom, 0px));
+  }
+}

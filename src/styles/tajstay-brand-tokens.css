@@ -24,7 +24,7 @@
   /* ---- Text ---- */
   --text-primary: #0f172a;
   --text-secondary: #334155;
-  --text-muted: #64748b;
+  --text-muted: #475569;
   --text-on-primary: #ffffff;
 
   /* ---- Border ---- */
@@ -61,7 +61,7 @@
 .profile-page-light {
   --text-primary: #0f172a;
   --text-secondary: #334155;
-  --text-muted: #64748b;
+  --text-muted: #475569;
   --bg-card: #ffffff;
   --bg-elevated: #f8faf9;
   --border: #e2e8f0;

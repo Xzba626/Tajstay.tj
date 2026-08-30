@@ -211,7 +211,7 @@
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--ts-text-muted, #475569);
 }
 
 .profile-center__menu {
@@ -272,6 +272,7 @@
   font-size: 0.875rem;
   font-weight: 600;
   line-height: 1.25;
+  color: var(--text-primary, #0f172a);
 }
 
 .profile-center__row-meta {
