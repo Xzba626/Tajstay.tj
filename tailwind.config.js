@@ -11,16 +11,42 @@ module.exports = {
       },
       colors: {
         brand: {
-          50: "#d8f1e2",
-          100: "#b7d8c4",
+          50: "var(--color-brand-soft)",
+          100: "#d8f1e2",
           200: "#86c9a0",
           300: "#4ade80",
           400: "#22c55e",
-          500: "#006b38",
-          600: "#004724",
-          700: "#00351d",
+          500: "var(--color-brand)",
+          600: "var(--color-brand-hover)",
+          700: "var(--color-brand-active)",
           800: "#012f1a",
           900: "#012f1a"
+        },
+        page: "var(--color-page)",
+        surface: {
+          DEFAULT: "var(--color-surface)",
+          subtle: "var(--color-surface-subtle)",
+          elevated: "var(--color-surface-elevated)",
+          brand: "var(--color-brand)"
+        },
+        ink: {
+          primary: "var(--color-text-primary)",
+          secondary: "var(--color-text-secondary)",
+          muted: "var(--color-text-muted)",
+          disabled: "var(--color-text-disabled)",
+          onBrand: "var(--color-text-on-brand)"
+        },
+        semantic: {
+          success: "var(--color-success)",
+          "success-soft": "var(--color-success-soft)",
+          warning: "var(--color-warning)",
+          "warning-soft": "var(--color-warning-soft)",
+          danger: "var(--color-danger)",
+          "danger-soft": "var(--color-danger-soft)",
+          info: "var(--color-info)",
+          "info-soft": "var(--color-info-soft)",
+          gold: "var(--color-gold)",
+          "gold-soft": "var(--color-gold-soft)"
         }
       },
       boxShadow: {

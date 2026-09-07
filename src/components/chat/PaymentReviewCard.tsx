@@ -99,10 +99,10 @@ export function PaymentReviewCard(props: PaymentReviewCardProps) {
 
   return (
     <>
-      <section className="rounded-2xl border border-indigo-400/25 bg-indigo-500/[0.07] p-4 shadow-lg backdrop-blur-md">
+      <section className="rounded-2xl border border-blue-200 bg-blue-50 p-4 shadow-sm">
         <div className="flex items-start justify-between gap-2">
-          <h2 className="text-sm font-semibold text-indigo-100">{m(locale, "bookingRoom.review.cardTitle")}</h2>
-          <span className="rounded-full bg-indigo-500/20 px-2 py-0.5 text-[10px] font-bold uppercase text-indigo-100">
+          <h2 className="text-sm font-semibold text-blue-900">{m(locale, "bookingRoom.review.cardTitle")}</h2>
+          <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold uppercase text-blue-800">
             {m(locale, "status.ON_REVIEW")}
           </span>
         </div>
@@ -151,11 +151,11 @@ export function PaymentReviewCard(props: PaymentReviewCardProps) {
             <button
               type="button"
               onClick={() => setLightbox(paymentProofUrl)}
-              className="overflow-hidden rounded-xl ring-1 ring-white/15 transition hover:ring-indigo-400/40"
+              className="overflow-hidden rounded-xl ring-1 ring-blue-200 transition hover:ring-blue-400"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={paymentProofUrl} alt="" className="aspect-[4/3] w-full object-cover" />
-              <span className="block bg-black/40 py-1 text-center text-[10px] font-semibold text-indigo-100">
+              <span className="block bg-blue-50 py-1 text-center text-[10px] font-semibold text-blue-800">
                 {m(locale, "bookingRoom.review.openReceipt")}
               </span>
             </button>
@@ -168,7 +168,7 @@ export function PaymentReviewCard(props: PaymentReviewCardProps) {
             <button
               type="button"
               onClick={() => setLightbox(guestDocumentUrl)}
-              className="overflow-hidden rounded-xl ring-1 ring-white/15 transition hover:ring-indigo-400/40"
+              className="overflow-hidden rounded-xl ring-1 ring-blue-200 transition hover:ring-blue-400"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={guestDocumentUrl} alt="" className="aspect-[4/3] w-full object-cover" />
@@ -185,7 +185,7 @@ export function PaymentReviewCard(props: PaymentReviewCardProps) {
               type="button"
               disabled={busy}
               onClick={() => void confirmPayment()}
-              className="w-full rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 py-3.5 text-sm font-bold text-white shadow-lg shadow-emerald-900/25 disabled:opacity-55"
+              className="w-full rounded-xl bg-brand-500 py-3.5 text-sm font-bold text-white shadow-lg shadow-brand-500/20 disabled:opacity-55"
             >
               {busy ? "…" : m(locale, "bookingRoom.review.confirm")}
             </button>

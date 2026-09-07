@@ -33,7 +33,7 @@ export function SearchBar({ locale = "ru" }: Props) {
           <label className="home-search-item sm:col-span-2 lg:col-span-1">
             <span className="home-search-label">{m(locale, "search.placeholder")}</span>
             <div className="home-search-control home-search-control--with-icon">
-              <span className="home-search-control__icon text-emerald-400" aria-hidden>
+              <span className="home-search-control__icon text-white/90" aria-hidden>
                 {cityIcon}
               </span>
               <input

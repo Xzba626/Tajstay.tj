@@ -82,15 +82,15 @@ body {
   overscroll-behavior-x: none;
 }
 
-/* Per-page green/black animated backdrops (no blue) */
+/* Per-page subtle green accents on white canvas (no teal) */
 .page-backdrop {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(900px 520px at 18% 12%, rgba(34, 197, 94, 0.10), transparent 62%),
-    radial-gradient(900px 560px at 82% 18%, rgba(15, 118, 110, 0.12), transparent 66%),
-    radial-gradient(1000px 720px at 50% 85%, rgba(34, 197, 94, 0.06), transparent 70%);
-  filter: saturate(1.05);
+    radial-gradient(900px 520px at 18% 12%, rgba(15, 122, 77, 0.06), transparent 62%),
+    radial-gradient(900px 560px at 82% 18%, rgba(15, 122, 77, 0.05), transparent 66%),
+    radial-gradient(1000px 720px at 50% 85%, rgba(15, 122, 77, 0.03), transparent 70%);
+  filter: saturate(1.02);
 }
 
 .page-vignette {
@@ -103,44 +103,44 @@ body {
 
 .page-backdrop--home {
   background:
-    radial-gradient(980px 600px at 18% 8%, rgba(34, 197, 94, 0.13), transparent 62%),
-    radial-gradient(920px 620px at 84% 16%, rgba(15, 118, 110, 0.14), transparent 66%),
-    radial-gradient(980px 760px at 50% 88%, rgba(34, 197, 94, 0.07), transparent 70%);
+    radial-gradient(980px 600px at 18% 8%, rgba(15, 122, 77, 0.07), transparent 62%),
+    radial-gradient(920px 620px at 84% 16%, rgba(15, 122, 77, 0.05), transparent 66%),
+    radial-gradient(980px 760px at 50% 88%, rgba(15, 122, 77, 0.03), transparent 70%);
 }
 
 .page-backdrop--search {
   background:
-    radial-gradient(900px 520px at 14% 10%, rgba(34, 197, 94, 0.10), transparent 60%),
-    radial-gradient(900px 560px at 86% 22%, rgba(15, 118, 110, 0.12), transparent 66%),
-    radial-gradient(1000px 720px at 50% 90%, rgba(34, 197, 94, 0.05), transparent 70%);
+    radial-gradient(900px 520px at 14% 10%, rgba(15, 122, 77, 0.06), transparent 60%),
+    radial-gradient(900px 560px at 86% 22%, rgba(15, 122, 77, 0.05), transparent 66%),
+    radial-gradient(1000px 720px at 50% 90%, rgba(15, 122, 77, 0.03), transparent 70%);
 }
 
 .page-backdrop--hotel {
   background:
-    radial-gradient(1100px 620px at 16% 12%, rgba(34, 197, 94, 0.12), transparent 64%),
-    radial-gradient(1000px 680px at 82% 26%, rgba(15, 118, 110, 0.14), transparent 70%),
-    radial-gradient(900px 760px at 50% 92%, rgba(34, 197, 94, 0.06), transparent 72%);
+    radial-gradient(1100px 620px at 16% 12%, rgba(15, 122, 77, 0.07), transparent 64%),
+    radial-gradient(1000px 680px at 82% 26%, rgba(15, 122, 77, 0.05), transparent 70%),
+    radial-gradient(900px 760px at 50% 92%, rgba(15, 122, 77, 0.03), transparent 72%);
 }
 
 .page-backdrop--booking {
   background:
-    radial-gradient(900px 560px at 20% 12%, rgba(34, 197, 94, 0.10), transparent 62%),
-    radial-gradient(900px 640px at 78% 22%, rgba(15, 118, 110, 0.14), transparent 70%),
-    radial-gradient(1000px 820px at 50% 92%, rgba(34, 197, 94, 0.06), transparent 72%);
+    radial-gradient(900px 560px at 20% 12%, rgba(15, 122, 77, 0.06), transparent 62%),
+    radial-gradient(900px 640px at 78% 22%, rgba(15, 122, 77, 0.05), transparent 70%),
+    radial-gradient(1000px 820px at 50% 92%, rgba(15, 122, 77, 0.03), transparent 72%);
 }
 
 .page-backdrop--dashboard {
   background:
-    radial-gradient(900px 620px at 18% 12%, rgba(34, 197, 94, 0.08), transparent 62%),
-    radial-gradient(900px 680px at 86% 26%, rgba(15, 118, 110, 0.12), transparent 70%),
-    radial-gradient(1000px 820px at 50% 92%, rgba(34, 197, 94, 0.05), transparent 72%);
+    radial-gradient(900px 620px at 18% 12%, rgba(15, 122, 77, 0.05), transparent 62%),
+    radial-gradient(900px 680px at 86% 26%, rgba(15, 122, 77, 0.04), transparent 70%),
+    radial-gradient(1000px 820px at 50% 92%, rgba(15, 122, 77, 0.02), transparent 72%);
 }
 
 .page-backdrop--auth {
   background:
-    radial-gradient(900px 620px at 22% 18%, rgba(34, 197, 94, 0.10), transparent 62%),
-    radial-gradient(900px 680px at 78% 26%, rgba(15, 118, 110, 0.12), transparent 70%),
-    radial-gradient(1000px 820px at 50% 92%, rgba(34, 197, 94, 0.06), transparent 72%);
+    radial-gradient(900px 620px at 22% 18%, rgba(15, 122, 77, 0.06), transparent 62%),
+    radial-gradient(900px 680px at 78% 26%, rgba(15, 122, 77, 0.05), transparent 70%),
+    radial-gradient(1000px 820px at 50% 92%, rgba(15, 122, 77, 0.03), transparent 72%);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -335,7 +335,7 @@ canvas {
 }
 :root {
   --taj-primary: #0f766e;
-  --taj-accent: #22c55e;
+  --taj-accent: var(--color-brand, #0f7a4d);
   --taj-bg-main: #0b0f14;
   --taj-bg-secondary: #111827;
   --taj-surface: rgba(255, 255, 255, 0.05);
@@ -733,10 +733,10 @@ html.home-page-snap .home-chapter--snap {
   }
 
   :root {
-    --brand-bg: #004724;
-    --brand-bg-2: #006b38;
-    --brand-text-muted: #b7d8c4;
-    --brand-border: rgba(52, 211, 153, 0.18);
+    --brand-bg: var(--color-page, #f7faf8);
+    --brand-bg-2: var(--color-surface-subtle, #e8f4ee);
+    --brand-text-muted: var(--color-text-muted, #66756d);
+    --brand-border: var(--color-border, #dce7e1);
   }
 
   .page-vignette {
@@ -1193,15 +1193,13 @@ h1, h2 {
   pointer-events: none;
 }
 
-/* ---- Luxury header upgrade (site chrome only — not page ScreenHeader) ---- */
+/* ---- Site header — white canvas with brand accents ---- */
 header.site-header {
-  background: rgba(6, 24, 18, 0.58) !important;
-  backdrop-filter: blur(24px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
-  border-bottom: 1px solid rgba(255,255,255,0.07) !important;
-  box-shadow:
-    0 1px 0 rgba(255,255,255,0.04),
-    0 8px 32px rgba(2,6,23,0.4) !important;
+  background: var(--color-surface, #ffffff) !important;
+  backdrop-filter: blur(12px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(150%) !important;
+  border-bottom: 1px solid var(--color-border, #dce7e1) !important;
+  box-shadow: 0 1px 0 rgba(20, 35, 27, 0.04) !important;
 }
 
 /* ---- CTA section ---- */
@@ -1367,15 +1365,15 @@ footer {
 /* ========================================================================== */
 
 :root {
-  --ds-primary: #22c55e;
-  --ds-secondary: #006b38;
-  --ds-bg-main: #004724;
-  --ds-bg-section: #006b38;
-  --ds-glow: rgba(34, 197, 94, 0.18);
-  --ds-text-primary: #f8fafc;
-  --ds-text-secondary: #d8f1e2;
-  --ds-text-muted: #b7d8c4;
-  --ds-border: rgba(52, 211, 153, 0.18);
+  --ds-primary: var(--color-brand, #0f7a4d);
+  --ds-secondary: var(--color-brand-hover, #0b5d3b);
+  --ds-bg-main: var(--color-page, #f7faf8);
+  --ds-bg-section: var(--color-surface-subtle, #e8f4ee);
+  --ds-glow: color-mix(in srgb, var(--color-brand) 18%, transparent);
+  --ds-text-primary: var(--color-text-primary, #14231b);
+  --ds-text-secondary: var(--color-text-secondary, #66756d);
+  --ds-text-muted: var(--color-text-muted, #66756d);
+  --ds-border: var(--color-border, #dce7e1);
   --ds-shadow-soft: 0 10px 28px rgba(0, 0, 0, 0.28);
   --ds-radius: 16px;
   --ds-success-bg: rgba(20, 92, 67, 0.22);
@@ -1665,37 +1663,35 @@ footer.site-footer {
 }
 
 /* ==========================================================================
-   FINAL PREMIUM GREEN PASS (desktop + mobile)
-   - no blue/slate/navy blocks
-   - dark green theme only (day = lighter dark green)
+   DESIGN-01 GLOBAL CANVAS — white page + TajStay Green functional accents
    ========================================================================== */
 [data-theme="light"],
 :root {
-  --ds-bg-main: #004724;
-  --ds-bg-section: #006b38;
-  --ds-card: rgba(1, 47, 26, 0.72);
-  --ds-card-2: rgba(1, 47, 26, 0.86);
-  --ds-input-bg: rgba(1, 47, 26, 0.72);
-  --ds-border: rgba(52, 211, 153, 0.18);
-  --ds-primary: #22c55e;
-  --ds-text-primary: #f8fafc;
-  --ds-text-secondary: #d8f1e2;
-  --ds-text-muted: #b7d8c4;
-  --ds-glow: rgba(34, 197, 94, 0.2);
+  --ds-bg-main: var(--color-page, #f7faf8);
+  --ds-bg-section: var(--color-surface-subtle, #e8f4ee);
+  --ds-card: var(--color-surface, #ffffff);
+  --ds-card-2: var(--color-surface-elevated, #ffffff);
+  --ds-input-bg: var(--color-surface, #ffffff);
+  --ds-border: var(--color-border, #dce7e1);
+  --ds-primary: var(--color-brand, #0f7a4d);
+  --ds-text-primary: var(--color-text-primary, #14231b);
+  --ds-text-secondary: var(--color-text-secondary, #66756d);
+  --ds-text-muted: var(--color-text-muted, #66756d);
+  --ds-glow: color-mix(in srgb, var(--color-brand) 20%, transparent);
 }
 
 [data-theme="dark"] {
-  --ds-bg-main: #004724;
-  --ds-bg-section: #006b38;
-  --ds-card: rgba(1, 47, 26, 0.72);
-  --ds-card-2: rgba(1, 47, 26, 0.86);
-  --ds-input-bg: rgba(1, 47, 26, 0.72);
-  --ds-border: rgba(52, 211, 153, 0.18);
-  --ds-primary: #22c55e;
-  --ds-text-primary: #f8fafc;
-  --ds-text-secondary: #d8f1e2;
-  --ds-text-muted: #b7d8c4;
-  --ds-glow: rgba(34, 197, 94, 0.18);
+  --ds-bg-main: var(--color-page, #f7faf8);
+  --ds-bg-section: var(--color-surface-subtle, #e8f4ee);
+  --ds-card: var(--color-surface, #ffffff);
+  --ds-card-2: var(--color-surface-elevated, #ffffff);
+  --ds-input-bg: var(--color-surface, #ffffff);
+  --ds-border: var(--color-border, #dce7e1);
+  --ds-primary: var(--color-brand, #0f7a4d);
+  --ds-text-primary: var(--color-text-primary, #14231b);
+  --ds-text-secondary: var(--color-text-secondary, #66756d);
+  --ds-text-muted: var(--color-text-muted, #66756d);
+  --ds-glow: color-mix(in srgb, var(--color-brand) 18%, transparent);
 }
 
 html,
@@ -1722,7 +1718,7 @@ body {
 }
 
 .page-vignette {
-  background: radial-gradient(circle at 50% 35%, transparent 0%, rgba(0, 71, 36, 0.12) 72%, rgba(1, 47, 26, 0.3) 100%) !important;
+  background: radial-gradient(circle at 50% 35%, transparent 0%, rgba(15, 122, 77, 0.04) 72%, rgba(15, 122, 77, 0.08) 100%) !important;
 }
 
 main,
@@ -1822,8 +1818,9 @@ header.site-header,
 footer.site-footer,
 .footer,
 .footer-block {
-  background: var(--ds-bg-main) !important;
-  border-color: var(--ds-border) !important;
+  background: var(--color-surface, #ffffff) !important;
+  border-color: var(--color-border, #dce7e1) !important;
+  color: var(--color-text-primary, #14231b) !important;
 }
 
 /* cleaner spacing / less empty dark gaps */
@@ -2062,73 +2059,75 @@ select option {
 }
 
 /* ==========================================================================
-   TajStay brand palette lock — rich emerald #004724 (see src/lib/brand.ts)
+   DESIGN-01 brand palette — white canvas + TajStay Green (semantic tokens)
    ========================================================================== */
 :root,
 [data-theme="light"],
 [data-theme="dark"] {
-  --bg-base: #004724 !important;
-  --bg-deep: #012f1a !important;
-  --bg-soft: #006b38 !important;
-  --bg-surface: rgba(1, 47, 26, 0.72) !important;
-  --bg-elevated: rgba(1, 47, 26, 0.86) !important;
-  --bg-input: rgba(1, 47, 26, 0.72) !important;
+  --bg-base: var(--color-page, #f7faf8) !important;
+  --bg-deep: var(--color-surface, #ffffff) !important;
+  --bg-soft: var(--color-surface-subtle, #e8f4ee) !important;
+  --bg-surface: var(--color-surface, #ffffff) !important;
+  --bg-elevated: var(--color-surface-elevated, #ffffff) !important;
+  --bg-input: var(--color-surface, #ffffff) !important;
 
-  --green-primary: #22c55e !important;
-  --green-hover: #34d399 !important;
-  --green-dim: #16a34a !important;
-  --green-glow: rgba(34, 197, 94, 0.26) !important;
-  --green-border: rgba(52, 211, 153, 0.18) !important;
+  --green-primary: var(--color-brand, #0f7a4d) !important;
+  --green-hover: var(--color-brand-hover, #0b5d3b) !important;
+  --green-dim: var(--color-brand-active, #094d31) !important;
+  --green-glow: color-mix(in srgb, var(--color-brand) 26%, transparent) !important;
+  --green-border: var(--color-border, #dce7e1) !important;
 
-  --text-primary: #f8fafc !important;
-  --text-secondary: #d8f1e2 !important;
-  --text-muted: #b7d8c4 !important;
-  --border: rgba(52, 211, 153, 0.18) !important;
-  --border-focus: rgba(52, 211, 153, 0.55) !important;
+  --text-primary: var(--color-text-primary, #14231b) !important;
+  --text-secondary: var(--color-text-secondary, #66756d) !important;
+  --text-muted: var(--color-text-muted, #66756d) !important;
+  --border: var(--color-border, #dce7e1) !important;
+  --border-focus: var(--color-brand, #0f7a4d) !important;
 
-  --brand-bg: #004724 !important;
-  --brand-surface: rgba(1, 47, 26, 0.72) !important;
-  --brand-surface-2: rgba(1, 47, 26, 0.86) !important;
-  --taj-card: rgba(1, 47, 26, 0.72) !important;
-  --taj-card-border: rgba(52, 211, 153, 0.18) !important;
-  --taj-card-shadow: 0 24px 70px rgba(0, 0, 0, 0.22) !important;
-  --taj-card-strong: rgba(1, 47, 26, 0.86) !important;
-  --taj-card-strong-border: rgba(212, 175, 55, 0.18) !important;
-  --taj-section-bg: rgba(0, 71, 36, 0.38) !important;
-  --taj-section-border: rgba(52, 211, 153, 0.14) !important;
-  --taj-input: rgba(1, 47, 26, 0.72) !important;
-  --taj-input-border: rgba(183, 216, 196, 0.24) !important;
-  --taj-input-focus-border: rgba(52, 211, 153, 0.62) !important;
-  --taj-input-focus-ring: 0 0 0 3px rgba(52, 211, 153, 0.14) !important;
-  --taj-dropdown-bg: rgba(1, 47, 26, 0.94) !important;
-  --brand-green: #22c55e !important;
-  --brand-green-light: #34d399 !important;
-  --brand-green-dark: #16a34a !important;
-  --brand-border: var(--border) !important;
-  --brand-text: #f8fafc !important;
-  --brand-muted: #b7d8c4 !important;
-  --brand-star: #d4af37 !important;
+  --brand-bg: var(--color-page, #f7faf8) !important;
+  --brand-surface: var(--color-surface, #ffffff) !important;
+  --brand-surface-2: var(--color-surface-elevated, #ffffff) !important;
+  --taj-card: var(--color-surface, #ffffff) !important;
+  --taj-card-border: var(--color-border, #dce7e1) !important;
+  --taj-card-shadow: 0 8px 24px rgba(20, 35, 27, 0.08) !important;
+  --taj-card-strong: var(--color-brand, #0f7a4d) !important;
+  --taj-card-strong-border: color-mix(in srgb, var(--color-brand) 55%, #ffffff 45%) !important;
+  --taj-section-bg: var(--color-surface, #ffffff) !important;
+  --taj-section-border: var(--color-border, #dce7e1) !important;
+  --taj-input: var(--color-surface, #ffffff) !important;
+  --taj-input-border: var(--color-border, #dce7e1) !important;
+  --taj-input-focus-border: var(--color-brand, #0f7a4d) !important;
+  --taj-input-focus-ring: var(--focus-ring-semantic) !important;
+  --taj-dropdown-bg: var(--color-surface, #ffffff) !important;
+  --brand-green: var(--color-brand, #0f7a4d) !important;
+  --brand-green-light: var(--color-brand-hover, #0b5d3b) !important;
+  --brand-green-dark: var(--color-brand-active, #094d31) !important;
+  --brand-border: var(--color-border, #dce7e1) !important;
+  --brand-text: var(--color-text-primary, #14231b) !important;
+  --brand-muted: var(--color-text-muted, #66756d) !important;
+  --brand-star: var(--color-gold, #c6a15b) !important;
 
-  --taj-color-text: #f8fafc !important;
-  --taj-color-text-secondary: #d8f1e2 !important;
-  --taj-color-text-muted: #b7d8c4 !important;
-  --taj-color-border: rgba(52, 211, 153, 0.18) !important;
-  --taj-color-border-strong: rgba(52, 211, 153, 0.28) !important;
-  --taj-color-bg-card: rgba(1, 47, 26, 0.72) !important;
-  --taj-color-bg-card-solid: rgba(1, 47, 26, 0.86) !important;
-  --taj-public-surface: rgba(1, 47, 26, 0.72) !important;
-  --taj-public-surface-strong: rgba(1, 47, 26, 0.86) !important;
+  --taj-color-text: var(--color-text-primary, #14231b) !important;
+  --taj-color-text-secondary: var(--color-text-secondary, #66756d) !important;
+  --taj-color-text-muted: var(--color-text-muted, #66756d) !important;
+  --taj-color-border: var(--color-border, #dce7e1) !important;
+  --taj-color-border-strong: var(--color-border-strong, #c5d4cc) !important;
+  --taj-color-bg-card: var(--color-surface, #ffffff) !important;
+  --taj-color-bg-card-solid: var(--color-surface-elevated, #ffffff) !important;
+  --taj-public-surface: var(--color-surface, #ffffff) !important;
+  --taj-public-surface-strong: var(--color-brand, #0f7a4d) !important;
 
-  --taj-app-bg:
-    radial-gradient(circle at 20% 15%, rgba(34, 197, 94, 0.18), transparent 34%),
-    radial-gradient(circle at 85% 20%, rgba(212, 175, 55, 0.07), transparent 32%),
-    linear-gradient(135deg, #006b38 0%, #004724 45%, #012f1a 100%) !important;
+  --taj-app-bg: var(--color-page, #f7faf8) !important;
 
-  --ds-bg-main: #004724 !important;
-  --ds-bg-section: rgba(0, 71, 36, 0.38) !important;
-  --ds-card: rgba(1, 47, 26, 0.72) !important;
-  --ds-card-2: rgba(1, 47, 26, 0.86) !important;
-  --ds-input-bg: rgba(1, 47, 26, 0.72) !important;
+  --ds-bg-main: var(--color-page, #f7faf8) !important;
+  --ds-bg-section: var(--color-surface-subtle, #e8f4ee) !important;
+  --ds-card: var(--color-surface, #ffffff) !important;
+  --ds-card-2: var(--color-surface-elevated, #ffffff) !important;
+  --ds-input-bg: var(--color-surface, #ffffff) !important;
+  --ds-text-primary: var(--color-text-primary, #14231b) !important;
+  --ds-text-secondary: var(--color-text-secondary, #66756d) !important;
+  --ds-text-muted: var(--color-text-muted, #66756d) !important;
+  --ds-primary: var(--color-brand, #0f7a4d) !important;
+  --ds-border: var(--color-border, #dce7e1) !important;
 }
 
 body,
@@ -2160,8 +2159,20 @@ html,
 
 [data-theme="light"] header.site-header,
 [data-theme="dark"] header.site-header {
-  background: rgba(0, 53, 29, 0.94) !important;
-  border-bottom-color: rgba(52, 211, 153, 0.16) !important;
+  background: var(--color-surface, #ffffff) !important;
+  border-bottom-color: var(--color-border, #dce7e1) !important;
+  box-shadow: 0 1px 0 rgba(20, 35, 27, 0.04) !important;
+}
+
+body:not(.app-shell--workspace) header.site-header .brand-mark-name,
+body:not(.app-shell--workspace) header.site-header .header-nav a,
+body:not(.app-shell--workspace) header.site-header .locale-switcher {
+  color: var(--color-text-primary, #14231b) !important;
+}
+
+body:not(.app-shell--workspace) header.site-header .header-nav a.is-active,
+body:not(.app-shell--workspace) header.site-header .header-auth-signup {
+  color: var(--color-brand, #0f7a4d) !important;
 }
 
 [data-theme="light"] .glass-panel,
@@ -2390,11 +2401,11 @@ select:focus,
 
 .home-search-card {
   border-radius: 1.5rem;
-  border: 1px solid var(--taj-card-border);
-  background: var(--taj-card);
+  border: 1px solid color-mix(in srgb, var(--color-brand) 55%, #ffffff 45%);
+  background: var(--color-brand, #0f7a4d);
   padding: 1.25rem 1.5rem;
-  box-shadow: var(--taj-card-shadow);
-  backdrop-filter: blur(12px);
+  box-shadow: 0 12px 32px color-mix(in srgb, var(--color-brand) 28%, transparent);
+  backdrop-filter: none;
 }
 
 .home-search-label {
@@ -2402,7 +2413,7 @@ select:focus,
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--taj-text-secondary);
+  color: color-mix(in srgb, var(--color-text-on-brand) 88%, transparent);
 }
 
 .home-search-field,
@@ -2412,8 +2423,8 @@ select:focus,
   align-items: center;
   gap: 0.5rem;
   border-radius: 0.875rem;
-  border: 1px solid var(--taj-input-border);
-  background: var(--taj-input);
+  border: 1px solid color-mix(in srgb, #ffffff 35%, transparent);
+  background: color-mix(in srgb, #ffffff 14%, transparent);
   padding: 0 0.75rem;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
@@ -2447,12 +2458,12 @@ select:focus,
   background: transparent;
   font-size: 0.875rem;
   line-height: 1.25rem;
-  color: var(--taj-text);
+  color: var(--color-text-on-brand, #ffffff);
   outline: none;
 }
 
 .home-search-input::placeholder {
-  color: var(--taj-text-muted);
+  color: color-mix(in srgb, var(--color-text-on-brand) 65%, transparent);
 }
 
 .home-search-submit {
@@ -2463,13 +2474,13 @@ select:focus,
   justify-content: center;
   gap: 0.5rem;
   border-radius: 0.875rem;
-  background: var(--taj-btn-primary-bg);
+  background: var(--color-surface, #ffffff);
   font-size: 0.875rem;
   font-weight: 700;
   letter-spacing: 0.02em;
-  color: var(--taj-btn-primary-text);
-  border: 1px solid var(--taj-btn-primary-border);
-  box-shadow: var(--taj-btn-primary-shadow);
+  color: var(--color-brand, #0f7a4d);
+  border: 1px solid color-mix(in srgb, #ffffff 60%, transparent);
+  box-shadow: 0 4px 12px rgba(20, 35, 27, 0.12);
   transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
 }
 

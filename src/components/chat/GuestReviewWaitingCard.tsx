@@ -21,9 +21,9 @@ export function GuestReviewWaitingCard({
     : null;
 
   return (
-    <section className="rounded-2xl border border-indigo-400/20 bg-indigo-500/[0.06] p-4 text-sm backdrop-blur-md">
-      <h2 className="font-semibold text-indigo-100">{m(locale, "bookingRoom.review.bannerGuestTitle")}</h2>
-      <p className="mt-2 text-xs leading-relaxed text-slate-400">{m(locale, "bookingRoom.review.bannerGuestBody")}</p>
+    <section className="rounded-2xl border border-blue-200 bg-blue-50 p-4 text-sm">
+      <h2 className="font-semibold text-blue-900">{m(locale, "bookingRoom.review.bannerGuestTitle")}</h2>
+      <p className="mt-2 text-xs leading-relaxed text-ink-secondary">{m(locale, "bookingRoom.review.bannerGuestBody")}</p>
       {submittedLabel ? (
         <p className="mt-3 text-[11px] text-slate-500">
           {m(locale, "bookingRoom.review.submittedAt")}: {submittedLabel}

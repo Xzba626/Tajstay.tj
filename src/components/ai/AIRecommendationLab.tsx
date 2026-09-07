@@ -122,7 +122,7 @@ export function AIRecommendationLab({ hotels, labels, locale }: Props) {
           <button
             type="button"
             onClick={() => setBudget(Math.floor(300 + Math.random() * 900))}
-            className="rounded-xl bg-gradient-to-r from-emerald-700 via-emerald-500 to-teal-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-emerald-900/40 transition hover:scale-[1.03]"
+            className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-brand-500/25 transition hover:bg-brand-600 hover:scale-[1.03]"
           >
             {labels.surprise}
           </button>

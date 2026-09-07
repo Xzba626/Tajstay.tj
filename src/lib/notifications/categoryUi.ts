@@ -53,7 +53,7 @@ export function categoryStyle(cat: NotificationUiCategory): CategoryStyle {
     case "message":
       return { bg: "bg-sky-100", text: "text-sky-800", ring: "ring-sky-200", icon: "message" };
     case "payment":
-      return { bg: "bg-violet-100", text: "text-violet-800", ring: "ring-violet-200", icon: "payment" };
+      return { bg: "bg-blue-100", text: "text-blue-800", ring: "ring-blue-200", icon: "payment" };
     case "finance":
       return { bg: "bg-amber-100", text: "text-amber-900", ring: "ring-amber-200", icon: "finance" };
     case "moderation":
