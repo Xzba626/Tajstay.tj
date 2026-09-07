@@ -17,8 +17,11 @@ TajStay
 ```
 
 Desktop Owner/Admin → sidebar; mobile → bottom nav. **Do not** show consumer tabs in Admin/Owner.
+**Do not** show Public Website nav or consumer hotel assistant inside Admin/Owner CRM.
 
 **Do not** redesign pages one-by-one until MASTER BLOCK / P0 foundation. Screenshots enlarge **baseline evidence**, not a queue of isolated CSS patches. Prefer polish **after** security + data + contrast shells.
+
+Desktop visual baseline (Profile/Security light = reference; green Admin = anti-reference; Vercel Home = structure only) and **MOBILE WHITE/GREEN RUNTIME REFERENCE** (white canvas + deep-green functional blocks; Consumer deep-green nav OK if readable; Admin/Owner light nav) live in `tajstay-master-spec.mdc`. Screenshots enlarge baseline evidence — not a queue of isolated CSS patches. Evidence always includes **URL + SHA**.
 
 ## Priority (updated — security/data above polish)
 

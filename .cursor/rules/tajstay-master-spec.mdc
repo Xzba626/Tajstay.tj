@@ -33,3 +33,82 @@ Only the BLOCK named in the latest user message. Default if unclear: finish in-p
 ## Acceptance
 
 `PASS` requires evidence beyond grep/build. Statuses: PASS | FAIL | BLOCKED | UNKNOWN.
+
+Every visual/runtime claim must cite **deployment URL + exact commit SHA** (production `tajstay.site` ≠ Vercel preview — never mix as one baseline).
+
+## DESKTOP VISUAL BASELINE (screenshot review — evidence only)
+
+Do **not** redesign these screens until P0-S1+ security blocks are closed and Design System Foundation is authorized.
+
+1. **Vercel preview Home** — good **structural** baseline: keep hero hierarchy, desktop header concept, search composition; migrate Public Desktop from full-green canvas to light premium (green as accent/CTA/panel, not whole page).
+2. **Profile + Security desktop** — nearest existing **visual** reference for light surfaces, readable dark text, border density, calm green accents. Prefer this over green Admin for DS work later.
+3. **Admin desktop today** — **not** a visual target. Separate light CRM shell; remove public nav (`Главная / Поиск / О сервисе`) and consumer hotel assistant from Admin/Owner.
+4. **Admin Sidebar IA** — largely keep (Обзор / Люди / Отели / Контент / Финансы / Операции); later add Audit Log / analytics. Restyle to light sidebar + semantic active states.
+5. **Legacy delete (dependency audit first, do not redesign):** AI Concierge, «Случайный бюджет», fake/random recommendation UI/handlers/API/tests.
+6. **Popular hotels:** no one-card + empty vast desktop void — featured layout or responsive 3–4 card grid by count.
+7. Real hotel photos over TajStay-logo placeholders; empty photo = neutral «Фото пока не добавлено».
+8. Brand spelling **TajStay** only (not Tajstay in CMS banners).
+9. Trust («Почему нам доверяют») — keep idea, light presentation, no absolute unverified claims.
+10. Footer — OK structural base; deep green OK as single large dark band at bottom of Public Website only.
+11. Desktop search: prefer one-row booking bar on large desktop; two-row OK mid-desktop.
+12. Shell leak proof: PublicShell ≠ AdminShell ≠ OwnerShell ≠ ConsumerAccountShell.
+
+### Scores (baseline, not acceptance)
+
+Public Home structure ~7 · Public visual ~5 · Profile/Security ~7.5 · Old home/AI sections ~4 · Admin desktop ~3.5
+
+After security: Design System Foundation uses Profile/Security light logic as first visual reference — not current green Admin.
+
+## MOBILE WHITE/GREEN RUNTIME REFERENCE (screenshot review — evidence only)
+
+New mobile runtime screenshots confirm the final TajStay color composition. **Do not** treat this as authorization to redesign every screen yet — use as direction evidence after P0 security / when Design System Foundation is authorized. Prefer **systemic semantic tokens**, not page-by-page CSS.
+
+**Composition formula (project-wide):**
+
+```text
+background = white / near-white
+functional identity = deep green blocks, CTAs, selected states, icons
+content cards = white / light
+premium accents = controlled gold (Owner/role), not whole Owner CRM
+CRM analytics = green / amber / blue / red by meaning (allowed)
+```
+
+Search pattern (Home / Search) — keep as principle:
+
+```text
+WHITE BACKGROUND
+  → large DEEP-GREEN search component
+  → LIGHT inputs inside (not same dark green as panel — placeholders must remain readable)
+  → bright green Search CTA
+WHITE BACKGROUND
+```
+
+**Keep as reference:**
+
+- White main page background (Tours, History, Search, Profile, Admin Users, Admin Dashboard).
+- Large green functional / search blocks.
+- White/light content cards; green primary buttons; green icons / selected states.
+- Controlled semantic analytics colors; gold Owner/Premium accents.
+- Light Admin/CRM workspace (white KPI cards, green borders, light bottom nav + green active).
+- Mobile Profile structure (white page/cards, green icons, light-green info cards, dark text, role, verification) — polish details, no radical rewrite.
+- Tours category cards may stay deep green; fix **foreground** (title/icon → white or light on brand).
+- History support card may stay green functional card; main text white + bright link/CTA.
+- Consumer deep-green bottom nav is allowed **if** inactive labels/icons have sufficient light contrast; active = bright TajStay green; selected bg slightly lighter than bar.
+- Admin/Owner: white/light bottom/sidebar preferred; active = TajStay Green (Consumer and CRM nav backgrounds need not match).
+
+**Do not keep as reference:**
+
+- Low-contrast gray/mint text on deep green.
+- White/mint text on white (Admin KPI leftovers).
+- Duplicate second TajStay logo in Consumer header right (prefer notification / user avatar / action / nothing; Admin hamburger OK).
+- Oversized assistant speech bubble always visible; prefer small branded FAB → bottom sheet «Помощник TajStay».
+- Hotel-card TajStay-logo placeholders instead of real photos; empty → «Фото пока не добавлено».
+- Clipped History horizontal tabs (scroll+snap, compact chips, or collapsed filters).
+- Narrow half-width hotel result card on mobile (near full viewport width).
+- Consumer marketing footer / © inside mobile app chrome.
+- Inline Admin role dropdown + blocking checkbox as final UX (detail → confirm + reason + audit later).
+- Near-black unexplained floating chrome that fights white-green-gold system.
+
+**Provenance note (code, not guess):** Consumer right-header “second logo” risk = `BrandMark` (left) + `HeaderMobileActions` → `ProfileAvatar` (right when logged in) — avatar must not be the brand mark. Near-black mobile float + speech nudge = product `TstAssistant` (`.tst-assistant__fab` + `.tst-assistant__hint`), not Admin/Owner (FAB hidden on CRM shells). If a third black circle appears only in some browsers/tools, exclude from TajStay chrome.
+
+Do **not** copy current CSS hex values from screenshots. Screenshots = visual direction evidence only (always cite deployment URL + commit SHA when claiming runtime).

@@ -7,13 +7,18 @@ alwaysApply: false
 
 ## Direction
 
-- Light base: white / near-white backgrounds.
-- Text: near-black primary, muted secondary via `--text-muted`.
-- **Green** = brand, primary actions, positive state — not the entire canvas.
-- Premium but restrained — no decorative gradients, no glassmorphism for its own sake.
+- Light base: white / near-white backgrounds (**not** full-page green wall).
+- Text: near-black primary, muted secondary via `--text-muted`; on deep-green surfaces use **text-on-brand** (white/light), never gray-on-green.
+- **Green** = functional identity (search panels, CTAs, category cards, selected states, icons) — not simultaneous canvas + card + input + nav wash.
+- Inside green search blocks: **light inputs** + bright green CTA (placeholders must stay readable).
+- Premium but restrained — controlled gold for Owner/premium accents only; no decorative gradients / glassmorphism for their own sake.
+- CRM analytics may use amber / blue / red by meaning alongside green.
 - Strong hierarchy: title → section → row → meta.
-- Mobile-first: full-bleed lists, sticky headers where helpful, safe-area padding.
+- Mobile-first: full-bleed lists/cards, sticky headers where helpful, safe-area padding; History tabs must not clip.
+- Consumer: deep-green bottom nav allowed with light inactive contrast; Admin/Owner: light nav + green active.
 - Meaningful motion only (drawer, tab switch, confirmation) — respect `prefers-reduced-motion`.
+
+Binding screenshot reference: **MOBILE WHITE/GREEN RUNTIME REFERENCE** in `tajstay-master-spec.mdc`.
 
 ## Layout patterns (canonical)
 

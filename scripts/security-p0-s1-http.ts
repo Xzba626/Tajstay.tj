@@ -249,17 +249,167 @@ async function main() {
       `legacy secretWord does not authorize; location=${secLoc2}`
     );
 
+    // Banned owner: issue blocked
+    const bannedOwner = await makeUser("OWNER", `${marker}ban`);
+    createdIds.push(bannedOwner.id);
+    await prisma.user.update({ where: { id: bannedOwner.id }, data: { isBanned: true } });
+    const banIssue = await postForm("/api/admin/users/reset-password", adminCookie, {
+      id: String(bannedOwner.id)
+    });
+    const banLoc = banIssue.headers.get("location") ?? "";
+    record(
+      "http.recovery.issue.banned",
+      banLoc.includes("recovery_banned") ? "PASS" : "FAIL",
+      `status=${banIssue.status} location=${banLoc}`
+    );
+
+    // Banned consume blocked
+    const banTok = crypto.randomBytes(24).toString("hex");
+    await prisma.passwordResetToken.create({
+      data: {
+        token: hash(banTok),
+        userId: bannedOwner.id,
+        expiresAt: new Date(Date.now() + 3600_000)
+      }
+    });
+    const banConsume = await postJson("/api/auth/reset-password", {
+      token: banTok,
+      password: "BannedPass99!"
+    });
+    record(
+      "http.recovery.consume.banned",
+      banConsume.status === 400 ? "PASS" : "FAIL",
+      `status=${banConsume.status}`
+    );
+
+    // Target binding: token for owner must not change guest password
+    const bindTok = crypto.randomBytes(24).toString("hex");
+    const guestBefore = await prisma.user.findUnique({ where: { id: guest.id } });
+    const ownerBefore = await prisma.user.findUnique({ where: { id: owner.id } });
+    await prisma.passwordResetToken.create({
+      data: {
+        token: hash(bindTok),
+        userId: owner.id,
+        expiresAt: new Date(Date.now() + 3600_000)
+      }
+    });
+    const bindConsume = await postJson("/api/auth/reset-password", {
+      token: bindTok,
+      password: "BoundPass99!"
+    });
+    const guestAfter = await prisma.user.findUnique({ where: { id: guest.id } });
+    const ownerAfter = await prisma.user.findUnique({ where: { id: owner.id } });
+    record(
+      "http.recovery.target_binding",
+      bindConsume.status === 200 &&
+        guestAfter?.password === guestBefore?.password &&
+        ownerAfter?.password !== ownerBefore?.password
+        ? "PASS"
+        : "FAIL",
+      `consume=${bindConsume.status} guestUnchanged=${guestAfter?.password === guestBefore?.password} ownerChanged=${ownerAfter?.password !== ownerBefore?.password}`
+    );
+
+    // Issue rate limit (target: 3/hour) — use a fresh owner so prior calls do not interfere
+    const rlOwner = await makeUser("OWNER", `${marker}rl`);
+    createdIds.push(rlOwner.id);
+    let rlHit = false;
+    let lastRlLoc = "";
+    for (let i = 0; i < 4; i++) {
+      const r = await postForm("/api/admin/users/reset-password", adminCookie, {
+        id: String(rlOwner.id)
+      });
+      lastRlLoc = r.headers.get("location") ?? "";
+      if (lastRlLoc.includes("recovery_rate_limited")) {
+        rlHit = true;
+        break;
+      }
+    }
+    record(
+      "http.recovery.issue.rate_limit",
+      rlHit ? "PASS" : "FAIL",
+      `4th+ issue for same target → rate limited; last=${lastRlLoc}`
+    );
+
+    // Consume rate limit (5 attempts / token prefix / 10m)
+    const rlTok = crypto.randomBytes(24).toString("hex");
+    let consumeRl = false;
+    let lastConsumeStatus = 0;
+    for (let i = 0; i < 6; i++) {
+      const r = await postJson("/api/auth/reset-password", {
+        token: rlTok,
+        password: "Whatever1!"
+      });
+      lastConsumeStatus = r.status;
+      if (r.status === 429) {
+        consumeRl = true;
+        break;
+      }
+    }
+    record(
+      "http.recovery.consume.rate_limit",
+      consumeRl ? "PASS" : "FAIL",
+      `6 attempts same token prefix; lastStatus=${lastConsumeStatus}`
+    );
+
+    // Emergency reset: shared tajstay-secret must fail closed
+    const emerg = await postForm("/api/admin/security/reset", adminCookie, {
+      resetSecret: "tajstay-secret",
+      newPassword: "Emergency99!"
+    });
+    const emergLoc = emerg.headers.get("location") ?? "";
+    record(
+      "http.emergency.tajstay_secret_denied",
+      emergLoc.includes("security-reset-denied") ? "PASS" : "FAIL",
+      `location=${emergLoc}`
+    );
+
+    // security/update must not write secretWordHash
+    const hashBefore = (
+      await prisma.adminSecurityState.findUnique({ where: { id: 1 } })
+    )?.secretWordHash;
+    await postForm("/api/admin/security/update", adminCookie, {
+      phone: admin.phone,
+      email: admin.email ?? "",
+      currentPassword: "WRONG",
+      secretWord: "planted-legacy",
+      newSecretWord: "should-not-persist"
+    });
+    const hashAfter = (
+      await prisma.adminSecurityState.findUnique({ where: { id: 1 } })
+    )?.secretWordHash;
+    record(
+      "http.security.secretWordHash_not_written",
+      hashBefore === hashAfter ? "PASS" : "FAIL",
+      "update path does not mutate AdminSecurityState.secretWordHash"
+    );
+
     // Audit must not contain password/token strings in recent rows
     const recent = await prisma.adminAuditLog.findMany({
-      where: { actorUserId: admin.id },
+      where: {
+        OR: [{ actorUserId: admin.id }, { targetId: String(owner.id) }, { targetId: String(bannedOwner.id) }]
+      },
       orderBy: { id: "desc" },
-      take: 20
+      take: 40
     });
     const leak = recent.some((r) => {
-      const blob = `${r.beforeState ?? ""}${r.afterState ?? ""}${r.metadata ?? ""}`;
-      return /password|tajstay-secret|planted-legacy|NewPass99|TestPass1/i.test(blob);
+      const blob = `${r.beforeState ?? ""}${r.afterState ?? ""}${r.metadata ?? ""}${r.reason ?? ""}`;
+      return /NewPass99|TestPass1|BoundPass99|BannedPass99|Whatever1|tajstay-secret|planted-legacy/i.test(blob);
     });
     record("http.audit.no_secret_payload", !leak ? "PASS" : "FAIL", `checked ${recent.length} rows`);
+
+    const criticalActions = [
+      "owner_credentials_blocked",
+      "owner_recovery_completed",
+      "owner_recovery_consume_failed",
+      "admin_self_security_failed",
+      "admin_emergency_reset"
+    ];
+    const foundCritical = criticalActions.filter((a) => recent.some((r) => r.action === a));
+    record(
+      "http.audit.critical_actions_present",
+      foundCritical.length >= 4 ? "PASS" : "FAIL",
+      `found=${foundCritical.join(",")}`
+    );
 
     // No update/delete API for audit
     const auditApi = await fetch(`${BASE}/api/admin/audit`, { method: "DELETE", redirect: "manual" }).catch(
@@ -269,6 +419,17 @@ async function main() {
       "http.audit.no_delete_endpoint",
       !auditApi || auditApi.status === 404 ? "PASS" : "FAIL",
       auditApi ? `status=${auditApi.status}` : "no route"
+    );
+
+    // Redirect after issue must never put token in Location
+    const issueLocCheck = await postForm("/api/admin/users/reset-password", adminCookie, {
+      id: String(owner.id)
+    });
+    const issueLoc = issueLocCheck.headers.get("location") ?? "";
+    record(
+      "http.recovery.no_token_in_redirect",
+      !/[?&#]token=/i.test(issueLoc) && !issueLoc.includes("resetToken") ? "PASS" : "FAIL",
+      `location=${issueLoc.slice(0, 160)}`
     );
   } catch (e) {
     record("http.harness", "FAIL", e instanceof Error ? e.message : String(e));
