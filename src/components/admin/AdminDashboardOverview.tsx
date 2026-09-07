@@ -124,7 +124,7 @@ export function AdminDashboardOverview({ locale, stats, riskNotes, basePath }: P
       </div>
 
       <div className="admin-kpi-grid">
-        <article className="admin-kpi-card admin-kpi-card--visual">
+        <article className="admin-kpi-card admin-kpi-card--visual admin-kpi-card--brand">
           <div className="admin-kpi-card__label">{m(locale, "admin.hotelsTotal")}</div>
           <div className="admin-kpi-card__value">
             {stats.hotelApproved}
@@ -162,7 +162,7 @@ export function AdminDashboardOverview({ locale, stats, riskNotes, basePath }: P
           />
         </article>
 
-        <article className="admin-kpi-card admin-kpi-card--visual">
+        <article className="admin-kpi-card admin-kpi-card--visual admin-kpi-card--brand">
           <div className="admin-kpi-card__label">{m(locale, "admin.revenue30")}</div>
           <div className="admin-kpi-card__value">{formatMoney(stats.revenue30)}</div>
           <div className="admin-kpi-card__meta">

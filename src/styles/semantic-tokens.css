@@ -1,0 +1,99 @@
+/**
+ * TajStay semantic UI tokens — MOBILE UI FOUNDATION
+ *
+ * Canonical names for the light-first product system.
+ * Do not use brand green as default text color.
+ * Gold is premium accent only — never body/UI text on white.
+ *
+ * HEX values below are orientation targets from the mobile baseline audit.
+ * Legacy aliases (--ts-*, --taj-*, --ds-*) are bridged here; do not mass-replace
+ * screens until subsequent per-screen BLOCKs.
+ */
+
+:root {
+  /* ---- Surfaces ---- */
+  --background: #f7faf8;
+  --surface: #ffffff;
+  --surface-subtle: #e8f4ee;
+  --surface-elevated: #ffffff;
+  --surface-brand: #0b5d3b;
+
+  /* ---- Text (readable on light canvas) ---- */
+  --text-primary-semantic: #14231b;
+  --text-secondary-semantic: #66756d;
+  --text-muted-semantic: #66756d;
+  --text-on-brand: #ffffff;
+  --text-disabled: #94a3a0;
+
+  /* ---- Brand green ---- */
+  --brand-primary: #0f7a4d;
+  --brand-primary-hover: #0b5d3b;
+  --brand-primary-active: #094d31;
+  --brand-soft: #e8f4ee;
+  --brand-deep: #0b5d3b;
+
+  /* ---- Borders ---- */
+  --border-semantic: #dce7e1;
+  --border-strong-semantic: #c5d4cc;
+
+  /* ---- Status ---- */
+  --success: #0f7a4d;
+  --warning: #d97706;
+  --danger: #dc2626;
+  --info: #0284c7;
+
+  /* ---- Premium accent (decorative only) ---- */
+  --premium-gold: #c6a15b;
+  --premium-gold-soft: #f7f1e4;
+
+  /* ---- Interactive / state ---- */
+  --interactive: var(--brand-primary);
+  --selected: var(--brand-soft);
+  --selected-border: color-mix(in srgb, var(--brand-primary) 35%, transparent);
+  --disabled: #94a3a0;
+  --focus-ring-semantic: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 22%, transparent);
+
+  /* ---- Typography roles ---- */
+  --font-ui: "Inter", "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-editorial: "Playfair Display", Georgia, "Times New Roman", serif;
+}
+
+/**
+ * Bridge: map existing workspace --ts-* tokens onto the semantic foundation
+ * without forcing a global marketing-canvas rewrite in this BLOCK.
+ */
+:root {
+  --ts-surface-page: var(--background);
+  --ts-surface-primary: var(--surface);
+  --ts-surface-secondary: var(--surface);
+  --ts-surface-muted: var(--surface-subtle);
+  --ts-surface-elevated: var(--surface-elevated);
+  --ts-surface-nav: var(--surface);
+  --ts-surface-modal: var(--surface);
+  --ts-surface-brand: var(--brand-deep);
+
+  --ts-text-display: var(--text-primary-semantic);
+  --ts-text-title: var(--text-primary-semantic);
+  --ts-text-body: var(--text-primary-semantic);
+  --ts-text-secondary: var(--text-secondary-semantic);
+  --ts-text-muted: var(--text-muted-semantic);
+  --ts-text-caption: var(--text-muted-semantic);
+  --ts-text-on-brand: var(--text-on-brand);
+
+  --ts-brand-primary: var(--brand-primary);
+  --ts-brand-primary-hover: var(--brand-primary-hover);
+  --ts-brand-primary-pressed: var(--brand-primary-active);
+  --ts-brand-primary-soft: var(--brand-soft);
+  --ts-brand-primary-border: color-mix(in srgb, var(--brand-primary) 28%, transparent);
+  --ts-accent-gold: var(--premium-gold);
+  --ts-accent-gold-soft: var(--premium-gold-soft);
+
+  --ts-semantic-success: var(--success);
+  --ts-semantic-warning: var(--warning);
+  --ts-semantic-danger: var(--danger);
+  --ts-semantic-info: var(--info);
+
+  --ts-border-subtle: var(--border-semantic);
+  --ts-border-default: var(--border-semantic);
+  --ts-border-strong: var(--border-strong-semantic);
+}

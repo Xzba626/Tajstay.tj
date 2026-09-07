@@ -1,54 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { getAdminUser } from "@/lib/auth/requireAdmin";
 import { forbiddenJson } from "@/lib/auth/apiResponses";
-import { normalizePhone } from "@/lib/validation/phone";
 import { publicUrl } from "@/lib/http/publicOrigin";
+import { writeAdminAudit } from "@/lib/admin/auditLog";
+import { clientIp } from "@/lib/security/rateLimit";
 
+/**
+ * P0-S1: Direct admin phone/email mutation is fail-closed.
+ * Pending-verification flow is deferred; do not silently re-enable insecure CRM edit.
+ */
 export async function POST(req: NextRequest) {
   const admin = await getAdminUser();
   if (!admin) return forbiddenJson();
 
   const form = await req.formData();
   const id = Number(form.get("id"));
-  const phone = normalizePhone(String(form.get("phone") ?? ""));
-  const emailRaw = String(form.get("email") ?? "").trim();
+  const ip = clientIp(req);
+  const ua = req.headers.get("user-agent") ?? undefined;
+
+  await writeAdminAudit({
+    actorUserId: admin.id,
+    action: "owner_credentials_blocked",
+    targetType: "user",
+    targetId: Number.isFinite(id) ? id : null,
+    result: "blocked",
+    reason: "direct_credentials_edit_disabled_p0_s1",
+    ip,
+    userAgent: ua
+  }).catch(() => undefined);
 
   const redirectUrl = publicUrl(req, "/dashboard/admin");
   redirectUrl.searchParams.set("section", "owner-access");
-
-  if (!id || !phone) {
-    redirectUrl.searchParams.set("error", "owner-access");
-    return NextResponse.redirect(redirectUrl);
-  }
-
-  const user = await prisma.user.findUnique({ where: { id } });
-  if (!user || user.role !== "OWNER") {
-    return forbiddenJson();
-  }
-
-  const email = emailRaw.length ? emailRaw.toLowerCase() : null;
-
-  const data: {
-    phone: string;
-    email: string | null;
-  } = {
-    phone,
-    email
-  };
-
-  try {
-    await prisma.$transaction([
-      prisma.user.update({
-        where: { id },
-        data
-      }),
-      prisma.session.deleteMany({ where: { userId: id } })
-    ]);
-  } catch {
-    redirectUrl.searchParams.set("error", "owner-credentials");
-    return NextResponse.redirect(redirectUrl);
-  }
-
+  redirectUrl.searchParams.set("error", "credentials_disabled");
   return NextResponse.redirect(redirectUrl);
 }

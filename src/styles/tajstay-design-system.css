@@ -8,44 +8,44 @@
   --workspace-header-height: 3.5rem;
   --workspace-bottom-nav-height: 3.75rem;
 
-  /* Brand — single TajStay green (no emerald/teal/lime in workspace) */
-  --ts-brand-primary: #15803d;
-  --ts-brand-primary-hover: #166534;
-  --ts-brand-primary-pressed: #14532d;
-  --ts-brand-primary-soft: #ecfdf5;
-  --ts-brand-primary-border: rgba(21, 128, 61, 0.22);
-  --ts-accent-gold: #d97706;
-  --ts-accent-gold-soft: #fffbeb;
+  /* Brand — single TajStay green via semantic foundation */
+  --ts-brand-primary: var(--brand-primary, #0f7a4d);
+  --ts-brand-primary-hover: var(--brand-primary-hover, #0b5d3b);
+  --ts-brand-primary-pressed: var(--brand-primary-active, #094d31);
+  --ts-brand-primary-soft: var(--brand-soft, #e8f4ee);
+  --ts-brand-primary-border: color-mix(in srgb, var(--brand-primary, #0f7a4d) 28%, transparent);
+  --ts-accent-gold: var(--premium-gold, #c6a15b);
+  --ts-accent-gold-soft: var(--premium-gold-soft, #f7f1e4);
 
   /* Semantic colors — meaning only, not decoration */
-  --ts-semantic-success: #16a34a;
-  --ts-semantic-warning: #d97706;
-  --ts-semantic-danger: #dc2626;
-  --ts-semantic-info: #2563eb;
+  --ts-semantic-success: var(--success, #0f7a4d);
+  --ts-semantic-warning: var(--warning, #d97706);
+  --ts-semantic-danger: var(--danger, #dc2626);
+  --ts-semantic-info: var(--info, #0284c7);
 
-  /* Surfaces — workspace canvas is pure white */
-  --ts-surface-page: #ffffff;
-  --ts-surface-primary: #ffffff;
-  --ts-surface-secondary: #ffffff;
-  --ts-surface-muted: #f4f6f5;
-  --ts-surface-elevated: #ffffff;
-  --ts-surface-nav: #ffffff;
-  --ts-surface-modal: #ffffff;
-  --ts-surface-brand: var(--ts-brand-primary);
+  /* Surfaces — light canvas (not brand-green flood) */
+  --ts-surface-page: var(--background, #f7faf8);
+  --ts-surface-primary: var(--surface, #ffffff);
+  --ts-surface-secondary: var(--surface, #ffffff);
+  --ts-surface-muted: var(--surface-subtle, #e8f4ee);
+  --ts-surface-elevated: var(--surface-elevated, #ffffff);
+  --ts-surface-nav: var(--surface, #ffffff);
+  --ts-surface-modal: var(--surface, #ffffff);
+  --ts-surface-brand: var(--brand-deep, #0b5d3b);
 
-  /* Typography colors — WCAG AA on white (#475569 ≈ 7:1 for small text) */
-  --ts-text-display: #0f172a;
-  --ts-text-title: #0f172a;
-  --ts-text-body: #1e293b;
-  --ts-text-secondary: #334155;
-  --ts-text-muted: #475569;
-  --ts-text-caption: #64748b;
-  --ts-text-on-brand: #ffffff;
+  /* Typography — dark text on light; never light-green body text */
+  --ts-text-display: var(--text-primary-semantic, #14231b);
+  --ts-text-title: var(--text-primary-semantic, #14231b);
+  --ts-text-body: var(--text-primary-semantic, #14231b);
+  --ts-text-secondary: var(--text-secondary-semantic, #66756d);
+  --ts-text-muted: var(--text-muted-semantic, #66756d);
+  --ts-text-caption: var(--text-muted-semantic, #66756d);
+  --ts-text-on-brand: var(--text-on-brand, #ffffff);
 
   /* Borders */
-  --ts-border-subtle: #e2e8f0;
-  --ts-border-default: #cbd5e1;
-  --ts-border-strong: #94a3b8;
+  --ts-border-subtle: var(--border-semantic, #dce7e1);
+  --ts-border-default: var(--border-semantic, #dce7e1);
+  --ts-border-strong: var(--border-strong-semantic, #c5d4cc);
 
   /* Geometry — shared mobile/desktop workspace chrome */
   --ws-nav-icon-size: 1.125rem;
@@ -78,8 +78,21 @@
 /* Light workspace — isolates readable UI from global dark marketing canvas */
 .ts-workspace-light,
 .profile-page-light,
+.profile-center,
 .admin-command-center-shell,
 .owner-command-center-shell {
+  /* Remap dark-canvas DS tokens so global h1/p locks resolve correctly */
+  --ds-text-primary: var(--ts-text-title);
+  --ds-text-secondary: var(--ts-text-secondary);
+  --ds-text-muted: var(--ts-text-muted);
+  --ds-bg-main: var(--ts-surface-page);
+  --ds-bg-section: var(--ts-surface-muted);
+  --ds-card: var(--ts-surface-primary);
+  --ds-card-2: var(--ts-surface-elevated);
+  --ds-input-bg: var(--ts-surface-primary);
+  --ds-border: var(--ts-border-subtle);
+  --ds-primary: var(--ts-brand-primary);
+
   --taj-color-bg: var(--ts-surface-page);
   --taj-color-text: var(--ts-text-body);
   --taj-color-text-secondary: var(--ts-text-secondary);
@@ -87,11 +100,36 @@
   --taj-text: var(--ts-text-body);
   --taj-text-secondary: var(--ts-text-secondary);
   --taj-text-muted: var(--ts-text-muted);
+  --taj-input: var(--ts-surface-primary);
+  --taj-input-border: var(--ts-border-default);
   --brand-bg: var(--ts-surface-page);
   --brand-text: var(--ts-text-body);
+  --text-primary: var(--ts-text-title);
+  --text-secondary: var(--ts-text-secondary);
+  --text-muted: var(--ts-text-muted);
 
   background: var(--ts-surface-page);
   color: var(--ts-text-body);
+  font-family: var(--font-ui, Inter, system-ui, sans-serif);
+}
+
+/* Application UI titles: sans, not editorial serif */
+.ts-workspace-light h1,
+.ts-workspace-light h2,
+.ts-workspace-light h3,
+.profile-page-light h1,
+.profile-page-light h2,
+.profile-page-light h3,
+.profile-center h1,
+.profile-center h2,
+.profile-center h3,
+.admin-command-center-shell h1,
+.admin-command-center-shell h2,
+.admin-command-center-shell h3,
+.owner-command-center-shell h1,
+.owner-command-center-shell h2,
+.owner-command-center-shell h3 {
+  font-family: var(--font-ui, Inter, system-ui, sans-serif);
 }
 
 .ts-workspace-light .text-slate-100,
@@ -219,10 +257,30 @@
   color: var(--ts-text-caption);
 }
 
-/* Mobile workspace: hide marketing footer (links live in Profile → Help) */
-@media (max-width: 767px) {
-  body.app-shell--workspace .site-footer {
-    display: none;
+/* Workspace / Profile mobile+tablet: marketing footer must not sit under bottom nav.
+   Admin/Owner bottom nav is last chrome until lg; footer stays desktop/public only. */
+@media (max-width: 1023px) {
+  body.app-shell--workspace .site-footer,
+  body.app-shell--workspace footer.site-footer,
+  body.app-shell--workspace .footer,
+  body.app-shell--workspace .footer-block,
+  /* Foundation fallback: JS body flag can lag; page shells are the source of truth */
+  body:has(.profile-page-light) .site-footer,
+  body:has(.profile-page-light) footer.site-footer,
+  body:has(.ts-workspace-light) .site-footer,
+  body:has(.ts-workspace-light) footer.site-footer,
+  body:has(.admin-command-center-shell) .site-footer,
+  body:has(.admin-command-center-shell) footer.site-footer,
+  body:has(.admin-command-center-shell) .footer,
+  body:has(.owner-command-center-shell) .site-footer,
+  body:has(.owner-command-center-shell) footer.site-footer,
+  body:has(.owner-command-center-shell) .footer {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 }
 

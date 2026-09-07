@@ -7,9 +7,9 @@ export function OwnerHelpTips({ locale }: { locale: Locale }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       {TIP_KEYS.map((key) => (
-        <div key={key} className="rounded-2xl border border-emerald-200/30 bg-emerald-950/20 p-5">
-          <h3 className="text-sm font-semibold text-emerald-100">{m(locale, `owner.help.tips.${key}.title`)}</h3>
-          <p className="mt-2 text-sm leading-relaxed text-slate-300">{m(locale, `owner.help.tips.${key}.text`)}</p>
+        <div key={key} className="owner-panel owner-panel--accent">
+          <h3 className="owner-panel__title">{m(locale, `owner.help.tips.${key}.title`)}</h3>
+          <p className="owner-panel__body">{m(locale, `owner.help.tips.${key}.text`)}</p>
         </div>
       ))}
     </div>

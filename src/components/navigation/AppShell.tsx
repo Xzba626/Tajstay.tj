@@ -29,12 +29,12 @@ export function AppShell({ locale }: Props) {
     document.body.classList.toggle("app-shell", shell);
     document.body.classList.toggle("app-shell--hidden-nav", !shell);
     document.body.classList.toggle("app-shell--workspace", workspace);
-    return () => {
-      document.body.classList.remove("app-shell", "app-shell--hidden-nav", "app-shell--workspace");
-    };
   }, [pathname]);
 
   if (!mounted) return null;
+
+  /* Admin/Owner workspaces: no consumer assistant FAB over CRM chrome */
+  if (isWorkspaceRoute(pathname)) return null;
 
   return (
     <Suspense fallback={null}>

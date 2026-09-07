@@ -1,4 +1,4 @@
-import { addDays, subDays } from "date-fns";
+﻿import { addDays, subDays } from "date-fns";
 import { prisma } from "@/lib/prisma";
 import { requireOwner } from "@/lib/auth/requireOwner";
 import { OwnerEmptyState } from "@/components/dashboard/OwnerEmptyState";
@@ -412,32 +412,32 @@ export default async function OwnerDashboardPage({
     <form action="/api/owner/hotels" method="post" encType="multipart/form-data" className="space-y-6">
         <div className="grid gap-4 md:grid-cols-2">
           <div className="md:col-span-2">
-            <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.fieldName")}</label>
+            <label className="owner-field__label">{m(locale, "owner.fieldName")}</label>
             <input
               name="name"
               required
               placeholder={m(locale, "owner.fieldNamePh")}
-              className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20"
+              className="owner-input owner-input--lg"
             />
           </div>
           <div className="md:col-span-2">
-            <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.coverImage")}</label>
+            <label className="owner-field__label">{m(locale, "owner.coverImage")}</label>
             <input
               name="coverFile"
               type="file"
               required
               accept="image/jpeg,image/png,image/webp"
               capture="environment"
-              className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-green-800 file:px-3 file:py-1.5 file:text-white"
+              className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm file:mr-3 file:rounded-lg file:border-0 file:owner-btn file:owner-btn--primary file:px-3 file:py-1.5 file:text-white"
             />
-            <p className="mt-1.5 text-xs text-slate-500">{m(locale, "owner.coverImageHelp")}</p>
+            <p className="owner-field__hint">{m(locale, "owner.coverImageHelp")}</p>
           </div>
           <div className="md:col-span-2">
-            <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.fieldType")}</label>
+            <label className="owner-field__label">{m(locale, "owner.fieldType")}</label>
             <select
               name="propertyType"
               defaultValue="HOTEL"
-              className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20"
+              className="owner-input owner-input--lg"
             >
               {PROPERTY_TYPES.map((t) => (
                 <option key={t} value={t}>
@@ -447,7 +447,7 @@ export default async function OwnerDashboardPage({
             </select>
           </div>
           <div className="md:col-span-2">
-            <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.fieldDescription")}</label>
+            <label className="owner-field__label">{m(locale, "owner.fieldDescription")}</label>
             <textarea
               name="description"
               required
@@ -457,47 +457,47 @@ export default async function OwnerDashboardPage({
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.fieldCity")}</label>
+            <label className="owner-field__label">{m(locale, "owner.fieldCity")}</label>
             <input
               name="city"
               required
               placeholder={m(locale, "owner.fieldCityPh")}
-              className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20"
+              className="owner-input owner-input--lg"
             />
           </div>
           <div className="md:col-span-2">
-            <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.fieldAddress")}</label>
+            <label className="owner-field__label">{m(locale, "owner.fieldAddress")}</label>
             <input
               name="address"
               required
               placeholder={m(locale, "owner.fieldAddressPh")}
-              className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20"
+              className="owner-input owner-input--lg"
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">{m(locale, "owner.fieldLat")}</label>
+            <label className="owner-field__label owner-field__label--caps">{m(locale, "owner.fieldLat")}</label>
             <input
               name="latitude"
               type="number"
               step="any"
               placeholder="38.56"
-              className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20"
+              className="owner-input owner-input--lg"
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">{m(locale, "owner.fieldLng")}</label>
+            <label className="owner-field__label owner-field__label--caps">{m(locale, "owner.fieldLng")}</label>
             <input
               name="longitude"
               type="number"
               step="any"
               placeholder="68.78"
-              className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20"
+              className="owner-input owner-input--lg"
             />
           </div>
         </div>
       <button
         type="submit"
-        className="h-12 w-full rounded-2xl bg-green-800 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-green-700 md:w-auto"
+        className="owner-btn owner-btn--primary w-full md:w-auto md:w-auto"
       >
         {m(locale, "owner.saveHotel")}
       </button>
@@ -508,10 +508,10 @@ export default async function OwnerDashboardPage({
     <Card className="space-y-3">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 className="text-lg font-bold text-slate-100">{m(locale, "owner.createHotelTitle")}</h3>
-          <p className="mt-1 text-sm text-slate-300">{m(locale, "owner.createHotelLead")}</p>
+          <h3 className="owner-section-head__title">{m(locale, "owner.createHotelTitle")}</h3>
+          <p className="mt-1 owner-section-lead">{m(locale, "owner.createHotelLead")}</p>
         </div>
-        <div className="inline-flex rounded-full border border-emerald-300/25 bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-200">
+        <div className="owner-status-banner owner-status-banner--success">
           {m(locale, "owner.propertiesTitle")}
         </div>
       </div>
@@ -581,10 +581,10 @@ export default async function OwnerDashboardPage({
       {activeSection === "properties" && (
         <section id="properties" className="scroll-mt-28 space-y-4">
           <div className="flex items-center gap-2">
-            <span className="h-8 w-1 rounded-full bg-emerald-600" aria-hidden />
-            <h2 className="text-xl font-bold text-slate-100">{m(locale, "owner.propertiesTitle")}</h2>
+            <span className="owner-section-head__bar" aria-hidden />
+            <h2 className="owner-section-head__title">{m(locale, "owner.propertiesTitle")}</h2>
           </div>
-          <p className="text-sm text-slate-300">{m(locale, "owner.propertiesHint")}</p>
+          <p className="owner-section-lead">{m(locale, "owner.propertiesHint")}</p>
 
           {ownerError === "hotel_limit" && (
             <div className="rounded-xl border border-amber-400/40 bg-amber-500/15 px-4 py-3 text-sm text-amber-100" role="alert">
@@ -619,7 +619,7 @@ export default async function OwnerDashboardPage({
           )}
 
           {hasHotels && (
-            <div className="rounded-xl border border-emerald-400/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100" role="status">
+            <div className="owner-status-banner owner-status-banner--success" role="status">
               {m(locale, "owner.oneHotelRule")}
             </div>
           )}
@@ -631,7 +631,7 @@ export default async function OwnerDashboardPage({
               {hotels.map((h) => (
                 <div
                   key={h.id}
-                  className="glass-panel rounded-2xl p-6 shadow-2xl shadow-emerald-950/15 ring-1 ring-white/10 transition-shadow hover:shadow-emerald-950/25"
+                  className="owner-panel"
                 >
                   {h.coverImageUrl ? (
                     <div className="relative mb-4 aspect-video w-full overflow-hidden rounded-2xl bg-slate-900/40 ring-1 ring-white/10">
@@ -640,50 +640,48 @@ export default async function OwnerDashboardPage({
                   ) : null}
                   <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
                     <div className="min-w-0">
-                      <div className="truncate text-lg font-semibold text-slate-100">
+                      <div className="owner-record-card__title truncate">
                         {safeText(h.name, m(locale, "owner.demoHidden"))}
                       </div>
-                      <div className="mt-1 text-sm text-slate-300">{safeText(h.city, m(locale, "owner.fieldCityPh"))}</div>
+                      <div className="mt-1 owner-section-lead">{safeText(h.city, m(locale, "owner.fieldCityPh"))}</div>
                     </div>
                     <StatusBadge variant={hotelStatusVariant(h.status)}>{tStatus(locale, h.status)}</StatusBadge>
                   </div>
 
                   <form action={`/api/owner/hotels/${h.id}`} method="post" encType="multipart/form-data" className="space-y-6">
-                    <section className="rounded-2xl border border-white/10 bg-slate-950/30 p-5">
-                      <div className="mb-4 flex items-center justify-between gap-3">
-                        <div className="text-sm font-semibold text-slate-100">{m(locale, "owner.sectionBasic")}</div>
-                      </div>
+                    <section className="owner-form__section">
+                      <div className="owner-form__section-title">{m(locale, "owner.sectionBasic")}</div>
                       <div className="grid gap-4 md:grid-cols-2">
                         <div className="md:col-span-2">
-                          <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.fieldName")}</label>
+                          <label className="owner-field__label">{m(locale, "owner.fieldName")}</label>
                           <input
                             name="name"
                             defaultValue={looksLikeTestValue(h.name) ? "" : h.name}
                             placeholder={m(locale, "owner.fieldNamePh")}
                             required
-                            className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20"
+                            className="owner-input owner-input--lg"
                           />
-                          <div className="mt-1.5 text-xs text-slate-500">{m(locale, "owner.fieldNameHelp")}</div>
+                          <div className="owner-field__hint">{m(locale, "owner.fieldNameHelp")}</div>
                         </div>
 
                         <div className="md:col-span-2">
-                          <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.coverImage")}</label>
+                          <label className="owner-field__label">{m(locale, "owner.coverImage")}</label>
                           <input
                             name="coverFile"
                             type="file"
                             accept="image/jpeg,image/png,image/webp"
                             capture="environment"
-                            className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-green-800 file:px-3 file:py-1.5 file:text-white"
+                            className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm file:mr-3 file:rounded-lg file:border-0 file:owner-btn file:owner-btn--primary file:px-3 file:py-1.5 file:text-white"
                           />
-                          <div className="mt-1.5 text-xs text-slate-500">{m(locale, "owner.coverImageEditHelp")}</div>
+                          <div className="owner-field__hint">{m(locale, "owner.coverImageEditHelp")}</div>
                         </div>
 
                         <div className="md:col-span-2">
-                          <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.fieldType")}</label>
+                          <label className="owner-field__label">{m(locale, "owner.fieldType")}</label>
                           <select
                             name="propertyType"
                             defaultValue={h.propertyType}
-                            className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20"
+                            className="owner-input owner-input--lg"
                           >
                             {PROPERTY_TYPES.map((t) => (
                               <option key={t} value={t}>
@@ -691,11 +689,11 @@ export default async function OwnerDashboardPage({
                               </option>
                             ))}
                           </select>
-                          <div className="mt-1.5 text-xs text-slate-500">{m(locale, "owner.fieldTypeHelp")}</div>
+                          <div className="owner-field__hint">{m(locale, "owner.fieldTypeHelp")}</div>
                         </div>
 
                         <div className="md:col-span-2">
-                          <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.fieldDescription")}</label>
+                          <label className="owner-field__label">{m(locale, "owner.fieldDescription")}</label>
                           <textarea
                             name="description"
                             defaultValue={looksLikeTestValue(h.description) ? "" : h.description}
@@ -704,41 +702,41 @@ export default async function OwnerDashboardPage({
                             rows={4}
                             className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20"
                           />
-                          <div className="mt-1.5 text-xs text-slate-500">{m(locale, "owner.fieldDescriptionHelp")}</div>
+                          <div className="owner-field__hint">{m(locale, "owner.fieldDescriptionHelp")}</div>
                         </div>
                       </div>
                     </section>
 
-                    <section className="rounded-2xl border border-slate-200/70 bg-slate-50/40 p-5">
-                      <div className="mb-4 text-sm font-semibold text-slate-900">{m(locale, "owner.sectionLocation")}</div>
+                    <section className="owner-form__section">
+                      <div className="owner-form__section-title">{m(locale, "owner.sectionLocation")}</div>
                       <div className="grid gap-4 md:grid-cols-2">
                         <div>
-                          <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.fieldCity")}</label>
+                          <label className="owner-field__label">{m(locale, "owner.fieldCity")}</label>
                           <input
                             name="city"
                             defaultValue={looksLikeTestValue(h.city) ? "" : h.city}
                             placeholder={m(locale, "owner.fieldCityPh")}
                             required
-                            className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20"
+                            className="owner-input owner-input--lg"
                           />
                         </div>
                         <div className="md:col-span-2">
-                          <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.fieldAddress")}</label>
+                          <label className="owner-field__label">{m(locale, "owner.fieldAddress")}</label>
                           <input
                             name="address"
                             defaultValue={looksLikeTestValue(h.address) ? "" : h.address}
                             placeholder={m(locale, "owner.fieldAddressPh")}
                             required
-                            className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20"
+                            className="owner-input owner-input--lg"
                           />
-                          <div className="mt-1.5 text-xs text-slate-500">{m(locale, "owner.fieldAddressHelp")}</div>
+                          <div className="owner-field__hint">{m(locale, "owner.fieldAddressHelp")}</div>
                         </div>
 
                         <div className="md:col-span-2">
-                          <div className="mb-1.5 text-sm font-semibold text-slate-800">{m(locale, "owner.fieldCoords")}</div>
+                          <div className="owner-field__label">{m(locale, "owner.fieldCoords")}</div>
                           <div className="grid gap-4 md:grid-cols-2">
                             <div>
-                              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                              <label className="owner-field__label owner-field__label--caps">
                                 {m(locale, "owner.fieldLat")}
                               </label>
                               <input
@@ -746,11 +744,11 @@ export default async function OwnerDashboardPage({
                                 type="number"
                                 step="any"
                                 defaultValue={h.latitude}
-                                className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20"
+                                className="owner-input owner-input--lg"
                               />
                             </div>
                             <div>
-                              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                              <label className="owner-field__label owner-field__label--caps">
                                 {m(locale, "owner.fieldLng")}
                               </label>
                               <input
@@ -758,18 +756,18 @@ export default async function OwnerDashboardPage({
                                 type="number"
                                 step="any"
                                 defaultValue={h.longitude}
-                                className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20"
+                                className="owner-input owner-input--lg"
                               />
                             </div>
                           </div>
-                          <div className="mt-1.5 text-xs text-slate-500">{m(locale, "owner.fieldCoordsHelp")}</div>
+                          <div className="owner-field__hint">{m(locale, "owner.fieldCoordsHelp")}</div>
                         </div>
                       </div>
                     </section>
 
                     <button
                       type="submit"
-                      className="h-12 w-full rounded-2xl bg-green-800 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-green-700 active:scale-[0.99] md:w-auto"
+                      className="owner-btn owner-btn--primary w-full md:w-auto active:scale-[0.99] md:w-auto"
                     >
                       {m(locale, "owner.saveHotel")}
                     </button>
@@ -783,9 +781,9 @@ export default async function OwnerDashboardPage({
 
       {activeSection === "rooms" && (
         <section id="rooms" className="scroll-mt-28 space-y-4">
-          <div className="flex items-center gap-2">
-            <span className="h-8 w-1 rounded-full bg-emerald-500" aria-hidden />
-            <h2 className="text-xl font-bold text-slate-100">{m(locale, "owner.sectionRooms")}</h2>
+          <div className="owner-section-head">
+            <span className="owner-section-head__bar" aria-hidden />
+            <h2 className="owner-section-head__title">{m(locale, "owner.sectionRooms")}</h2>
           </div>
           <OwnerRoomTypesPanel locale={locale} hotels={hotels.map((h) => ({ id: h.id, name: h.name }))} />
 
@@ -821,7 +819,7 @@ export default async function OwnerDashboardPage({
           ) : (
             <div className="grid gap-6 lg:grid-cols-2">
               {rooms.map((r) => (
-                <div key={r.id} className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm ring-1 ring-slate-100">
+                <div key={r.id} className="owner-record-card">
                   <RoomPhotoCarousel
                     urls={(r.photos as { url: string }[] | undefined)?.map((p) => p.url) ?? []}
                     title={safeText(r.title, m(locale, "owner.roomCardTitle"))}
@@ -830,11 +828,11 @@ export default async function OwnerDashboardPage({
 
                   <div className="mt-4 flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <div className="truncate text-base font-semibold text-slate-900">
+                      <div className="owner-record-card__title truncate">
                         {r.roomNumber ? `${r.roomNumber} · ` : ""}
                         {safeText(r.title, m(locale, "owner.roomCardTitle"))}
                       </div>
-                      <div className="mt-1 text-sm text-slate-600">
+                      <div className="mt-1 owner-section-lead">
                         {safeText(r.hotel.name, m(locale, "owner.fieldNamePh"))} · {safeText(r.hotel.city, m(locale, "owner.fieldCityPh"))}
                         {r.roomType?.name ? ` · ${r.roomType.name}` : ""}
                       </div>
@@ -845,13 +843,13 @@ export default async function OwnerDashboardPage({
                   </div>
 
                   <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
-                    <div className="rounded-xl bg-slate-50 px-3 py-2">
-                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">{m(locale, "owner.priceNight")}</div>
-                      <div className="mt-0.5 font-semibold text-slate-900">{Number(r.price)} TJS</div>
+                    <div className="owner-stat-chip">
+                      <div className="owner-stat-chip__label">{m(locale, "owner.priceNight")}</div>
+                      <div className="owner-stat-chip__value">{Number(r.price)} TJS</div>
                     </div>
-                    <div className="rounded-xl bg-slate-50 px-3 py-2">
-                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">{m(locale, "owner.capacity")}</div>
-                      <div className="mt-0.5 font-semibold text-slate-900">{r.capacity}</div>
+                    <div className="owner-stat-chip">
+                      <div className="owner-stat-chip__label">{m(locale, "owner.capacity")}</div>
+                      <div className="owner-stat-chip__value">{r.capacity}</div>
                     </div>
                   </div>
 
@@ -884,16 +882,16 @@ export default async function OwnerDashboardPage({
                       <input type="hidden" name="intent" value="update" />
                       <div className="grid gap-4 md:grid-cols-2">
                         <div>
-                          <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.roomTitle")}</label>
+                          <label className="owner-field__label">{m(locale, "owner.roomTitle")}</label>
                           <input
                             name="title"
                             defaultValue={looksLikeTestValue(r.title) ? "" : r.title}
                             placeholder={m(locale, "owner.roomTitle")}
-                            className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20"
+                            className="owner-input owner-input--lg"
                           />
                         </div>
                         <div>
-                          <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.priceNight")}</label>
+                          <label className="owner-field__label">{m(locale, "owner.priceNight")}</label>
                           <input
                             name="price"
                             type="number"
@@ -901,59 +899,59 @@ export default async function OwnerDashboardPage({
                             step={1}
                             defaultValue={Number(r.price)}
                             placeholder={m(locale, "owner.priceNightPh")}
-                            className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20"
+                            className="owner-input owner-input--lg"
                           />
                         </div>
                         <div>
-                          <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.capacity")}</label>
+                          <label className="owner-field__label">{m(locale, "owner.capacity")}</label>
                           <input
                             name="capacity"
                             type="number"
                             min={1}
                             defaultValue={r.capacity}
-                            className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20"
+                            className="owner-input owner-input--lg"
                           />
                         </div>
                         <div>
-                          <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.weekendPrice")}</label>
+                          <label className="owner-field__label">{m(locale, "owner.weekendPrice")}</label>
                           <input
                             name="weekendPrice"
                             type="number"
                             min={0}
                             step={1}
                             defaultValue={r.weekendPrice != null ? Number(r.weekendPrice) : undefined}
-                            className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20"
+                            className="owner-input owner-input--lg"
                           />
                         </div>
                         <div>
-                          <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.minNights")}</label>
+                          <label className="owner-field__label">{m(locale, "owner.minNights")}</label>
                           <input
                             name="minNights"
                             type="number"
                             min={1}
                             defaultValue={Math.max(1, Number(r.minNights ?? 1) || 1)}
-                            className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20"
+                            className="owner-input owner-input--lg"
                           />
                         </div>
                         <div>
-                          <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.extraGuestPrice")}</label>
+                          <label className="owner-field__label">{m(locale, "owner.extraGuestPrice")}</label>
                           <input
                             name="extraGuestPrice"
                             type="number"
                             min={0}
                             step={1}
                             defaultValue={r.extraGuestPrice != null ? Number(r.extraGuestPrice) : undefined}
-                            className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20"
+                            className="owner-input owner-input--lg"
                           />
                         </div>
                         <div className="flex items-end">
-                          <label className="flex items-center gap-2 text-sm font-semibold text-slate-800">
-                            <input type="checkbox" name="availability" value="1" defaultChecked={r.availability} className="h-4 w-4 rounded border-slate-300 text-green-800" />
+                          <label className="owner-field__label flex items-center gap-2">
+                            <input type="checkbox" name="availability" value="1" defaultChecked={r.availability} className="h-4 w-4 rounded border-[var(--owner-border)] text-[var(--owner-accent)]" />
                             {m(locale, "owner.available")}
                           </label>
                         </div>
                         <div className="md:col-span-2">
-                          <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.amenities")}</label>
+                          <label className="owner-field__label">{m(locale, "owner.amenities")}</label>
                           <input
                             name="amenities"
                             defaultValue={(() => {
@@ -965,24 +963,24 @@ export default async function OwnerDashboardPage({
                               }
                             })()}
                             placeholder={m(locale, "owner.roomAmenitiesPh")}
-                            className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20"
+                            className="owner-input owner-input--lg"
                           />
                         </div>
                         <div className="md:col-span-2">
-                          <label className="mb-1.5 block text-sm font-semibold text-slate-800">Добавить фото номера</label>
+                          <label className="owner-field__label">Добавить фото номера</label>
                           <input
                             name="roomPhotos"
                             type="file"
                             accept="image/jpeg,image/png,image/webp"
                             multiple
                             capture="environment"
-                            className="w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-green-800 file:px-3 file:py-1.5 file:text-white"
+                            className="w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm file:mr-3 file:rounded-lg file:border-0 file:owner-btn file:owner-btn--primary file:px-3 file:py-1.5 file:text-white"
                           />
-                          <p className="mt-1 text-xs text-slate-500">Можно выбрать несколько файлов (до 5 МБ каждый).</p>
+                          <p className="owner-field__hint">Можно выбрать несколько файлов (до 5 МБ каждый).</p>
                         </div>
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        <button type="submit" className="h-11 rounded-2xl bg-green-800 px-5 text-sm font-semibold text-white hover:bg-green-700 active:scale-[0.99]">
+                        <button type="submit" className="owner-btn owner-btn--primary active:scale-[0.99]">
                           {m(locale, "owner.saveRoom")}
                         </button>
                         <button
@@ -1008,10 +1006,10 @@ export default async function OwnerDashboardPage({
               <summary className="cursor-pointer list-none text-sm font-semibold text-green-900">{m(locale, "owner.roomAddTitle")}</summary>
               <form action="/api/owner/rooms" method="post" encType="multipart/form-data" className="mt-4 grid gap-4 md:grid-cols-2">
                 <div className="md:col-span-2">
-                  <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.objects")}</label>
+                  <label className="owner-field__label">{m(locale, "owner.objects")}</label>
                   <select
                     name="hotelId"
-                    className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20"
+                    className="owner-input owner-input--lg"
                   >
                     {hotels.map((h) => (
                       <option key={h.id} value={h.id}>
@@ -1021,16 +1019,16 @@ export default async function OwnerDashboardPage({
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.roomTitle")}</label>
+                  <label className="owner-field__label">{m(locale, "owner.roomTitle")}</label>
                   <input
                     name="title"
                     required
                     placeholder={m(locale, "owner.roomTitle")}
-                    className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20"
+                    className="owner-input owner-input--lg"
                   />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.priceNight")}</label>
+                  <label className="owner-field__label">{m(locale, "owner.priceNight")}</label>
                   <input
                     name="price"
                     type="number"
@@ -1038,44 +1036,44 @@ export default async function OwnerDashboardPage({
                     step={1}
                     required
                     placeholder={m(locale, "owner.priceNightPh")}
-                    className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20"
+                    className="owner-input owner-input--lg"
                   />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.capacity")}</label>
-                  <input name="capacity" type="number" min={1} defaultValue={2} className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20" />
+                  <label className="owner-field__label">{m(locale, "owner.capacity")}</label>
+                  <input name="capacity" type="number" min={1} defaultValue={2} className="owner-input owner-input--lg" />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.weekendPrice")}</label>
+                  <label className="owner-field__label">{m(locale, "owner.weekendPrice")}</label>
                   <input name="weekendPrice" type="number" min={0} step={1} className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm" />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.minNights")}</label>
+                  <label className="owner-field__label">{m(locale, "owner.minNights")}</label>
                   <input name="minNights" type="number" min={1} defaultValue={1} className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm" />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.extraGuestPrice")}</label>
+                  <label className="owner-field__label">{m(locale, "owner.extraGuestPrice")}</label>
                   <input name="extraGuestPrice" type="number" min={0} step={1} className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm" />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="mb-1.5 block text-sm font-semibold text-slate-800">{m(locale, "owner.amenities")}</label>
-                  <input name="amenities" placeholder={m(locale, "owner.roomAmenitiesPh")} className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20" />
+                  <label className="owner-field__label">{m(locale, "owner.amenities")}</label>
+                  <input name="amenities" placeholder={m(locale, "owner.roomAmenitiesPh")} className="owner-input owner-input--lg" />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="mb-1.5 block text-sm font-semibold text-slate-800">Фото номера</label>
+                  <label className="owner-field__label">Фото номера</label>
                   <input
                     name="roomPhotos"
                     type="file"
                     accept="image/jpeg,image/png,image/webp"
                     multiple
                     capture="environment"
-                    className="w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-green-800 file:px-3 file:py-1.5 file:text-white"
+                    className="w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm file:mr-3 file:rounded-lg file:border-0 file:owner-btn file:owner-btn--primary file:px-3 file:py-1.5 file:text-white"
                   />
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="owner-field__hint">
                     Несколько фото — на карточке номера и на сайте показываются слайдером (стрелки и свайп на телефоне).
                   </p>
                 </div>
-                <button type="submit" className="h-12 rounded-2xl bg-green-800 px-6 text-sm font-semibold text-white shadow-sm transition hover:bg-green-700 active:scale-[0.99] md:col-span-2">
+                <button type="submit" className="owner-btn owner-btn--primary active:scale-[0.99] md:col-span-2">
                   {m(locale, "owner.addRoomCta")}
                 </button>
               </form>
@@ -1086,9 +1084,9 @@ export default async function OwnerDashboardPage({
 
       {activeSection === "bookings" && (
         <section id="bookings" className="scroll-mt-28 space-y-4">
-          <div className="flex items-center gap-2">
-            <span className="h-8 w-1 rounded-full bg-teal-500" aria-hidden />
-            <h2 className="text-xl font-bold text-slate-900">{m(locale, "owner.bookingsTitle")}</h2>
+          <div className="owner-section-head">
+            <span className="owner-section-head__bar" aria-hidden />
+            <h2 className="owner-section-head__title">{m(locale, "owner.bookingsTitle")}</h2>
           </div>
           <DataToolbar
             section="bookings"
@@ -1128,9 +1126,9 @@ export default async function OwnerDashboardPage({
           />
           <div className="space-y-3">
             {bookings.map((b) => (
-              <div key={b.id} className="rounded-2xl border border-slate-200/80 bg-white p-5 text-sm shadow-sm ring-1 ring-slate-100">
+              <div key={b.id} className="owner-record-card text-sm">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-semibold text-slate-900">{getBookingGuestLabel(b)}</span>
+                  <span className="owner-record-card__title">{getBookingGuestLabel(b)}</span>
                   <StatusBadge variant={b.source === BOOKING_SOURCE.OWNER_MANUAL ? "neutral" : bookingStatusVariant(b.status)}>
                     {b.source === BOOKING_SOURCE.OWNER_MANUAL
                       ? m(locale, "owner.bookingBadge.offline")
@@ -1139,7 +1137,7 @@ export default async function OwnerDashboardPage({
                   <StatusBadge variant={bookingStatusVariant(b.status)}>{tStatus(locale, b.status)}</StatusBadge>
                   <StatusBadge variant={paymentStatusVariant(b.paymentStatus)}>{tStatus(locale, b.paymentStatus)}</StatusBadge>
                 </div>
-                <div className="mt-2 text-slate-600">
+                <div className="owner-record-card__body">
                   {bookingHotel(b).name} · {bookingRoomTitle(b)} · {b.checkIn.toISOString().slice(0, 10)} — {b.checkOut.toISOString().slice(0, 10)} · {b.phone}
                 </div>
                 {b.roomTypeId ? (
@@ -1163,28 +1161,28 @@ export default async function OwnerDashboardPage({
                       </div>
                     ) : null}
                     {b.paymentProofUrl ? (
-                      <a href={b.paymentProofUrl} className="mt-1 block truncate text-sm font-semibold text-emerald-800 underline-offset-4 hover:underline">
+                      <a href={b.paymentProofUrl} className="mt-1 block truncate text-sm font-semibold owner-link underline-offset-4 hover:underline">
                         {b.paymentProofUrl}
                       </a>
                     ) : (
                       <div className="mt-1 text-sm text-amber-900/80">Ссылка не указана</div>
                     )}
-                    <div className="mt-3 rounded-lg border border-slate-200/70 bg-white/60 p-3">
-                      <div className="text-xs font-semibold text-slate-700">Документ гостя:</div>
+                    <div className="owner-subpanel">
+                      <div className="owner-subpanel__label">Документ гостя:</div>
                       {b.guestDocumentUrl ? (
                         <a
                           href={b.guestDocumentUrl}
-                          className="mt-1 block truncate text-sm font-semibold text-emerald-800 underline-offset-4 hover:underline"
+                          className="mt-1 block truncate text-sm font-semibold owner-link underline-offset-4 hover:underline"
                           target="_blank"
                           rel="noreferrer"
                         >
                           открыть документ
                         </a>
                       ) : (
-                        <div className="mt-1 text-sm text-slate-600">Документ не загружен</div>
+                        <div className="mt-1 owner-section-lead">Документ не загружен</div>
                       )}
                     </div>
-                    <div className="mt-3 rounded-lg border border-slate-200/80 bg-white/70 p-3 text-xs text-slate-700">
+                    <div className="owner-subpanel owner-section-lead">
                       Подтверждение или отклонение чека выполняет администратор TajStay. Вы можете обсудить детали с гостем в чате ниже.
                     </div>
                   </div>
@@ -1193,12 +1191,12 @@ export default async function OwnerDashboardPage({
                   <div className="mt-3">
                     {b.payOnArrival ? (
                       <div className="flex flex-wrap gap-2">
-                        <div className="w-full rounded-xl border border-slate-200/70 bg-slate-50/70 p-3 text-sm text-slate-700">
-                          <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Документ гостя</div>
+                        <div className="owner-subpanel w-full">
+                          <div className="owner-subpanel__label">Документ гостя</div>
                           {b.guestDocumentUrl ? (
                             <a
                               href={b.guestDocumentUrl}
-                              className="mt-1 inline-block font-semibold text-emerald-800 underline underline-offset-4"
+                              className="mt-1 inline-block font-semibold owner-link underline underline-offset-4"
                               target="_blank"
                               rel="noreferrer"
                             >
@@ -1216,15 +1214,15 @@ export default async function OwnerDashboardPage({
                         </form>
                       </div>
                     ) : (
-                      <div className="rounded-xl border border-slate-200/70 bg-slate-50/70 p-3 text-sm text-slate-700">
+                      <div className="owner-subpanel">
                         Ожидаем оплату и чек от гостя. Подтверждение доступно после проверки чека (статус: ON_REVIEW).
                       </div>
                     )}
                   </div>
                 )}
                 {b.userId ? (
-                  <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-slate-200/70 bg-slate-50/50 p-3">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-slate-600">Чат с гостем</span>
+                  <div className="owner-subpanel mt-3 flex flex-wrap items-center gap-2">
+                    <span className="owner-subpanel__label">Чат с гостем</span>
                     <BookingChatLauncher
                       bookingId={b.id}
                       currentUserId={user.id}
@@ -1253,11 +1251,11 @@ export default async function OwnerDashboardPage({
         <section id="offline-bookings" className="scroll-mt-28 space-y-4">
           <div className="flex items-center gap-2">
             <span className="h-8 w-1 rounded-full bg-orange-500" aria-hidden />
-            <h2 className="text-xl font-bold text-slate-100">{m(locale, "owner.offline.title")}</h2>
+            <h2 className="owner-section-head__title">{m(locale, "owner.offline.title")}</h2>
           </div>
-          <p className="text-sm text-slate-300">{m(locale, "owner.offline.hint")}</p>
+          <p className="owner-section-lead">{m(locale, "owner.offline.hint")}</p>
           {offlineUpdated ? (
-            <div className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-100" role="status">
+            <div className="owner-status-banner owner-status-banner--success" role="status">
               {m(locale, "owner.offline.updated")}
             </div>
           ) : null}
@@ -1288,29 +1286,29 @@ export default async function OwnerDashboardPage({
 
       {activeSection === "notifications" && (
         <section id="notifications" className="scroll-mt-28 space-y-4">
-          <h2 className="flex flex-wrap items-center justify-between gap-3 text-xl font-bold text-slate-900">
-            <span className="flex items-center gap-2">
-              <span className="h-8 w-1 rounded-full bg-cyan-500" aria-hidden />
+          <div className="owner-section-head">
+            <span className="owner-section-head__bar" aria-hidden />
+            <h2 className="owner-section-head__title">
               {m(locale, "owner.notifications")}
-            </span>
-            {unreadCount > 0 && (
-              <span className="rounded-full bg-emerald-700 px-3 py-1 text-xs font-semibold text-white">{unreadCount}</span>
-            )}
-          </h2>
+              {unreadCount > 0 ? (
+                <span className="owner-status-banner owner-status-banner--success ml-2 inline-flex">{unreadCount}</span>
+              ) : null}
+            </h2>
+          </div>
           <div className="space-y-2">
             {notes.map((n) => (
-              <div key={n.id} className="rounded-xl border bg-white p-4 text-sm">
+              <div key={n.id} className="owner-record-card text-sm">
                 {n.booking ? (
                   <>
                     {getBookingGuestLabel(n.booking)} · {bookingHotel(n.booking).name} · {n.booking.checkIn.toISOString().slice(0, 10)} —{" "}
                     {n.booking.checkOut.toISOString().slice(0, 10)} · {n.booking.phone} · {tStatus(locale, n.booking.paymentStatus)}
                   </>
                 ) : (
-                  <span className="text-slate-600">
+                  <span className="owner-record-card__meta">
                     [{n.type}] · {m(locale, "admin.systemNote")}
                   </span>
                 )}
-                <div className="mt-1 text-xs text-slate-500">{formatDateTimeShort(locale, n.createdAt)}</div>
+                <div className="owner-field__hint">{formatDateTimeShort(locale, n.createdAt)}</div>
               </div>
             ))}
           </div>
@@ -1321,26 +1319,26 @@ export default async function OwnerDashboardPage({
 
       {activeSection === "calendar" && (
         <section id="calendar" className="scroll-mt-28 space-y-4">
-          <div className="flex items-center gap-2">
-            <span className="h-8 w-1 rounded-full bg-violet-500" aria-hidden />
-            <h2 className="text-xl font-bold text-slate-900">{m(locale, "owner.calendarTitle")}</h2>
+          <div className="owner-section-head">
+            <span className="owner-section-head__bar" aria-hidden />
+            <h2 className="owner-section-head__title">{m(locale, "owner.calendarTitle")}</h2>
           </div>
-          <p className="text-sm text-slate-600">{m(locale, "owner.calendarHint")}</p>
+          <p className="owner-section-lead">{m(locale, "owner.calendarHint")}</p>
 
           {!rooms.length ? (
             <EmptyState title={m(locale, "owner.calendarEmpty")} />
           ) : (
             <>
-              <form action="/api/owner/overrides" method="post" className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-5">
-                <select name="roomId" className="rounded-xl border px-3 py-2 md:col-span-2">
+              <form action="/api/owner/overrides" method="post" className="owner-form__section grid gap-3 md:grid-cols-5">
+                <select name="roomId" className="owner-input md:col-span-2">
                   {rooms.map((r) => (
                     <option key={r.id} value={r.id}>
                       {r.hotel.name} · {r.title}
                     </option>
                   ))}
                 </select>
-                <input name="date" type="date" className="rounded-xl border px-3 py-2" required />
-                <label className="flex items-center gap-2 rounded-xl border px-3 py-2 text-sm md:col-span-1">
+                <input name="date" type="date" className="owner-input" required />
+                <label className="owner-field__label flex items-center gap-2 rounded-xl border border-[var(--owner-border)] px-3 py-2 md:col-span-1">
                   <input type="checkbox" name="isBlocked" defaultChecked={false} />
                   {m(locale, "owner.block")}
                 </label>
@@ -1350,58 +1348,58 @@ export default async function OwnerDashboardPage({
                   min={0}
                   step={1}
                   placeholder={m(locale, "owner.priceIfOpen")}
-                  className="rounded-xl border px-3 py-2 md:col-span-1"
+                  className="owner-input md:col-span-1"
                 />
-                <button type="submit" className="rounded-xl bg-emerald-700 px-4 py-2 font-medium text-white md:col-span-5">
+                <button type="submit" className="owner-btn owner-btn--primary md:col-span-5">
                   {m(locale, "owner.saveOverride")}
                 </button>
               </form>
 
-              <div className="rounded-2xl border bg-white p-4">
-                <div className="text-sm font-semibold">{m(locale, "owner.overridesTitle")}</div>
+              <div className="owner-panel">
+                <div className="owner-panel__title">{m(locale, "owner.overridesTitle")}</div>
                 <div className="mt-3 space-y-2">
                   {overrides.length ? (
                     overrides.map((o) => (
-                      <div key={o.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-white p-3 text-sm">
+                      <div key={o.id} className="owner-record-card flex flex-wrap items-center justify-between gap-3 text-sm">
                         <div>
-                          <div className="font-semibold">{o.room.hotel.name}</div>
-                          <div className="text-slate-500">{o.room.title}</div>
+                          <div className="owner-record-card__title">{o.room.hotel.name}</div>
+                          <div className="owner-record-card__meta">{o.room.title}</div>
                         </div>
                         <div className="text-right">
-                          <div>{o.date.toISOString().slice(0, 10)}</div>
-                          <div className="text-slate-700">
+                          <div className="owner-record-card__title">{o.date.toISOString().slice(0, 10)}</div>
+                          <div className="owner-record-card__meta">
                             {o.isBlocked ? m(locale, "owner.blocked") : `${m(locale, "owner.price")}: ${o.customPrice ?? "—"} TJS`}
                           </div>
                         </div>
                       </div>
                     ))
                   ) : (
-                    <p className="text-sm text-slate-500">{m(locale, "owner.overridesEmpty")}</p>
+                    <p className="owner-section-lead">{m(locale, "owner.overridesEmpty")}</p>
                   )}
                 </div>
               </div>
 
-              <div className="rounded-2xl border bg-white p-4">
-                <div className="text-sm font-semibold">{m(locale, "owner.calendarOccupiedTitle")}</div>
+              <div className="owner-panel">
+                <div className="owner-panel__title">{m(locale, "owner.calendarOccupiedTitle")}</div>
                 <div className="mt-3 space-y-2">
                   {calendarBookings.length ? (
                     calendarBookings.map((b) => (
-                      <div key={b.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-white p-3 text-sm">
+                      <div key={b.id} className="owner-record-card flex flex-wrap items-center justify-between gap-3 text-sm">
                         <div>
-                          <div className="font-semibold">{b.room?.hotel?.name ?? "—"}</div>
-                          <div className="text-slate-500">{b.room?.title ?? getBookingGuestLabel(b)}</div>
-                          <div className="mt-1 text-xs text-slate-500">{getBookingGuestLabel(b)} · {b.phone}</div>
+                          <div className="owner-record-card__title">{b.room?.hotel?.name ?? "—"}</div>
+                          <div className="owner-record-card__meta">{b.room?.title ?? getBookingGuestLabel(b)}</div>
+                          <div className="owner-field__hint">{getBookingGuestLabel(b)} · {b.phone}</div>
                         </div>
                         <div className="text-right">
-                          <div>
+                          <div className="owner-record-card__title">
                             {b.checkIn.toISOString().slice(0, 10)} — {b.checkOut.toISOString().slice(0, 10)}
                           </div>
-                          <div className="text-xs text-slate-600">{tStatus(locale, b.status)}</div>
+                          <div className="owner-record-card__meta">{tStatus(locale, b.status)}</div>
                         </div>
                       </div>
                     ))
                   ) : (
-                    <p className="text-sm text-slate-500">{m(locale, "owner.calendarOccupiedEmpty")}</p>
+                    <p className="owner-section-lead">{m(locale, "owner.calendarOccupiedEmpty")}</p>
                   )}
                 </div>
               </div>
@@ -1425,26 +1423,26 @@ export default async function OwnerDashboardPage({
         <section id="reviews" className="scroll-mt-28 space-y-4">
           <div className="flex items-center gap-2">
             <span className="h-8 w-1 rounded-full bg-amber-400" aria-hidden />
-            <h2 className="text-xl font-bold text-slate-900">{m(locale, "owner.reviewsSection.title")}</h2>
+            <h2 className="owner-section-head__title">{m(locale, "owner.reviewsSection.title")}</h2>
           </div>
-          <p className="text-sm text-slate-600">{m(locale, "owner.reviewsSection.hint")}</p>
+          <p className="owner-section-lead">{m(locale, "owner.reviewsSection.hint")}</p>
           <div className="space-y-4">
             {ownerReviews.map((r) => (
-              <div key={r.id} className="rounded-2xl border bg-white p-4 shadow-sm">
+              <div key={r.id} className="owner-record-card">
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div>
-                    <div className="font-semibold text-slate-900">{bookingHotel(r.booking).name}</div>
-                    <div className="text-sm text-slate-500">{bookingRoomTitle(r.booking)}</div>
+                    <div className="owner-record-card__title">{bookingHotel(r.booking).name}</div>
+                    <div className="owner-record-card__meta">{bookingRoomTitle(r.booking)}</div>
                   </div>
                   <div className="text-amber-500" aria-label={m(locale, "home.reviewsStarsAria", { n: r.rating })}>
                     {"★".repeat(r.rating)}
                   </div>
                 </div>
-                <p className="mt-3 text-sm text-slate-700">{r.comment}</p>
+                <p className="owner-record-card__body">{r.comment}</p>
                 {r.reply ? (
-                  <div className="mt-3 rounded-xl bg-slate-50 p-3 text-sm">
-                    <div className="font-semibold text-slate-800">{m(locale, "guestDash.ownerReply")}</div>
-                    <p className="mt-1 whitespace-pre-wrap text-slate-600">{r.reply}</p>
+                  <div className="owner-subpanel mt-3">
+                    <div className="owner-record-card__title">{m(locale, "guestDash.ownerReply")}</div>
+                    <p className="owner-record-card__meta-row whitespace-pre-wrap">{r.reply}</p>
                   </div>
                 ) : (
                   <ReviewReplyForm
@@ -1468,47 +1466,47 @@ export default async function OwnerDashboardPage({
       {activeSection === "finances" && (
         <section id="finances" className="scroll-mt-28 space-y-4">
           <div className="flex items-center gap-2">
-            <span className="h-8 w-1 rounded-full bg-emerald-500" aria-hidden />
-            <h2 className="text-xl font-bold text-slate-900">{m(locale, "owner.finances.title")}</h2>
+            <span className="owner-section-head__bar" aria-hidden />
+            <h2 className="owner-section-head__title">{m(locale, "owner.finances.title")}</h2>
           </div>
-          <p className="text-sm text-slate-600">{m(locale, "owner.finances.hint")}</p>
+          <p className="owner-section-lead">{m(locale, "owner.finances.hint")}</p>
           <OwnerPaymentMethodsPanel
             locale={locale}
             ownerPaymentMethods={ownerPaymentMethods}
             catalogMethods={content.paymentCatalog.methods}
           />
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-2xl border bg-white p-5 shadow-sm">
-              <div className="text-xs font-semibold uppercase text-slate-500">{m(locale, "owner.finances.revenueMonth")}</div>
-              <div className="mt-1 text-2xl font-bold text-slate-900">
+            <div className="owner-kpi-card">
+              <div className="owner-kpi-card__label">{m(locale, "owner.finances.revenueMonth")}</div>
+              <div className="owner-kpi-card__value">
                 {dashboardKpis?.revenueMonth ?? Number(revenueAgg._sum?.totalPrice ?? 0)} TJS
               </div>
             </div>
-            <div className="rounded-2xl border bg-white p-5 shadow-sm text-sm text-slate-600">
+            <div className="owner-panel owner-section-lead">
               {m(locale, "owner.finances.commissionNote")}
               {revenueAgg._sum?.commission != null ? (
-                <p className="mt-2 text-slate-800">
+                <p className="owner-record-card__title mt-2">
                   {m(locale, "owner.finances.commissionTotal")}: {Number(revenueAgg._sum.commission)} TJS
                 </p>
               ) : null}
             </div>
           </div>
-          <div className="rounded-2xl border bg-white p-4 shadow-sm">
-            <h3 className="text-sm font-semibold text-slate-900">{m(locale, "owner.finances.payoutsTitle")}</h3>
+          <div className="owner-panel">
+            <h3 className="owner-panel__title">{m(locale, "owner.finances.payoutsTitle")}</h3>
             <div className="mt-3 space-y-2">
               {ownerPayouts.map((po) => (
-                <div key={po.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border p-3 text-sm">
+                <div key={po.id} className="owner-record-card flex flex-wrap items-center justify-between gap-2 text-sm">
                   <div>
-                    <div className="font-semibold">{bookingHotel(po.booking).name}</div>
-                    <div className="text-slate-500">{bookingRoomTitle(po.booking)}</div>
+                    <div className="owner-record-card__title">{bookingHotel(po.booking).name}</div>
+                    <div className="owner-record-card__meta">{bookingRoomTitle(po.booking)}</div>
                   </div>
                   <div className="text-right">
-                    <div className="font-semibold">{Number(po.amount)} {po.currency}</div>
-                    <div className="text-xs text-slate-500">{po.status}</div>
+                    <div className="owner-record-card__title">{Number(po.amount)} {po.currency}</div>
+                    <div className="owner-record-card__meta">{po.status}</div>
                   </div>
                 </div>
               ))}
-              {!ownerPayouts.length && <p className="text-sm text-slate-500">{m(locale, "owner.finances.payoutsEmpty")}</p>}
+              {!ownerPayouts.length && <p className="owner-section-lead">{m(locale, "owner.finances.payoutsEmpty")}</p>}
             </div>
           </div>
         </section>
@@ -1516,15 +1514,15 @@ export default async function OwnerDashboardPage({
 
       {activeSection === "statistics" && (
         <section id="statistics" className="scroll-mt-28 space-y-4">
-          <div className="flex items-center gap-2">
-            <span className="h-8 w-1 rounded-full bg-indigo-500" aria-hidden />
-            <h2 className="text-xl font-bold text-slate-900">{m(locale, "owner.statisticsSection.title")}</h2>
+          <div className="owner-section-head">
+            <span className="owner-section-head__bar" aria-hidden />
+            <h2 className="owner-section-head__title">{m(locale, "owner.statisticsSection.title")}</h2>
           </div>
-          <p className="text-sm text-slate-600">{m(locale, "owner.statisticsSection.hint")}</p>
+          <p className="owner-section-lead">{m(locale, "owner.statisticsSection.hint")}</p>
           {dashboardKpis ? <OwnerDashboardKpis locale={locale} kpis={dashboardKpis} /> : null}
           <Card className="space-y-2">
-            <h3 className="text-base font-semibold text-slate-100">{m(locale, "owner.conversionTitle")}</h3>
-            <ul className="space-y-1 text-sm text-slate-300">
+            <h3 className="owner-panel__title">{m(locale, "owner.conversionTitle")}</h3>
+            <ul className="space-y-1 owner-section-lead">
               <li>{m(locale, "owner.viewsProxy")}: {hotels.length * 24}</li>
               <li>{m(locale, "owner.clicksProxy")}: {hotels.length * 7}</li>
               <li>{m(locale, "owner.pendingBookings")}: {pendingCount}</li>
@@ -1536,11 +1534,11 @@ export default async function OwnerDashboardPage({
 
       {activeSection === "help" && (
         <section id="help" className="scroll-mt-28 space-y-4">
-          <div className="flex items-center gap-2">
-            <span className="h-8 w-1 rounded-full bg-teal-500" aria-hidden />
-            <h2 className="text-xl font-bold text-slate-900">{m(locale, "owner.help.title")}</h2>
+          <div className="owner-section-head">
+            <span className="owner-section-head__bar" aria-hidden />
+            <h2 className="owner-section-head__title">{m(locale, "owner.help.title")}</h2>
           </div>
-          <p className="text-sm text-slate-600">{m(locale, "owner.help.hint")}</p>
+          <p className="owner-section-lead">{m(locale, "owner.help.hint")}</p>
           <OwnerHelpTips locale={locale} />
         </section>
       )}

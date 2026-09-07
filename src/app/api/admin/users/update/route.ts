@@ -16,6 +16,28 @@ export async function POST(req: NextRequest) {
     return NextResponse.redirect(publicUrl(req, "/dashboard/admin"));
   }
 
+  const target = await prisma.user.findUnique({
+    where: { id },
+    select: { id: true, role: true, isBanned: true }
+  });
+  if (!target) {
+    return NextResponse.redirect(publicUrl(req, "/dashboard/admin"));
+  }
+
+  /* Never leave the platform without an active ADMIN */
+  const demotingOrBanningAdmin =
+    target.role === "ADMIN" && (role !== "ADMIN" || isBanned);
+  if (demotingOrBanningAdmin) {
+    const activeAdmins = await prisma.user.count({
+      where: { role: "ADMIN", isBanned: false }
+    });
+    if (activeAdmins <= 1) {
+      return NextResponse.redirect(
+        publicUrl(req, "/dashboard/admin?usersError=last_admin")
+      );
+    }
+  }
+
   await prisma.user.update({
     where: { id },
     data: {

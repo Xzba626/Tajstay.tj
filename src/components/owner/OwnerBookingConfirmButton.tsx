@@ -49,15 +49,12 @@ export function OwnerBookingConfirmButton({ bookingId, locale, label, className 
         type="button"
         disabled={busy}
         onClick={() => void onConfirm()}
-        className={
-          className ??
-          "rounded-lg bg-emerald-700 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
-        }
+        className={className ?? "owner-btn owner-btn--primary"}
       >
         {busy ? m(locale, "owner.calendar.confirming") : (label ?? m(locale, "owner.confirm"))}
       </button>
-      {toast ? <span className="text-xs font-medium text-emerald-700">{toast}</span> : null}
-      {error ? <span className="text-xs font-medium text-red-600">{error}</span> : null}
+      {toast ? <span className="owner-toast--success">{toast}</span> : null}
+      {error ? <span className="owner-toast--error">{error}</span> : null}
     </div>
   );
 }

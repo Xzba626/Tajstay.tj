@@ -31,6 +31,23 @@ type Labels = {
   channelPush: string;
 };
 
+function ToggleRow({
+  label,
+  checked,
+  onChange
+}: {
+  label: string;
+  checked: boolean;
+  onChange: () => void;
+}) {
+  return (
+    <label className="profile-subpage-toggle">
+      <span className="profile-subpage-toggle__label">{label}</span>
+      <input type="checkbox" className="profile-subpage-toggle__input" checked={checked} onChange={onChange} />
+    </label>
+  );
+}
+
 export function SubscriptionsPrefsClient({ labels }: { labels: Labels }) {
   const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
   const [ready, setReady] = useState(false);
@@ -63,54 +80,28 @@ export function SubscriptionsPrefsClient({ labels }: { labels: Labels }) {
   if (!ready) return null;
 
   return (
-    <div className="space-y-5">
-      <section>
-        <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
-          {labels.topics}
-        </h2>
-        <div className="profile-center__menu">
+    <>
+      <section className="profile-subpage-group">
+        <h2 className="profile-subpage-group__title">{labels.topics}</h2>
+        <div className="profile-subpage-group__body">
           {labels.topicsList.map((row) => (
-            <label key={row.key} className="profile-center__row cursor-pointer">
-              <span className="profile-center__row-body">
-                <span className="profile-center__row-label">{row.label}</span>
-              </span>
-              <input
-                type="checkbox"
-                className="h-4 w-4 accent-[var(--green-accent)]"
-                checked={prefs[row.key]}
-                onChange={() => toggle(row.key)}
-              />
-            </label>
+            <ToggleRow key={row.key} label={row.label} checked={prefs[row.key]} onChange={() => toggle(row.key)} />
           ))}
         </div>
       </section>
 
-      <section>
-        <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
-          {labels.channels}
-        </h2>
-        <div className="profile-center__menu">
+      <section className="profile-subpage-group">
+        <h2 className="profile-subpage-group__title">{labels.channels}</h2>
+        <div className="profile-subpage-group__body">
           {labels.channelsList.map((row) => (
-            <label key={row.key} className="profile-center__row cursor-pointer">
-              <span className="profile-center__row-body">
-                <span className="profile-center__row-label">{row.label}</span>
-              </span>
-              <input
-                type="checkbox"
-                className="h-4 w-4 accent-[var(--green-accent)]"
-                checked={prefs[row.key]}
-                onChange={() => toggle(row.key)}
-              />
-            </label>
+            <ToggleRow key={row.key} label={row.label} checked={prefs[row.key]} onChange={() => toggle(row.key)} />
           ))}
-          <div className="profile-center__row">
-            <span className="profile-center__row-body">
-              <span className="profile-center__row-label">{labels.channelPush}</span>
-            </span>
+          <div className="profile-subpage-toggle profile-subpage-toggle--action">
+            <span className="profile-subpage-toggle__label">{labels.channelPush}</span>
             <PushSubscribeButton labels={labels.pushLabels} />
           </div>
         </div>
       </section>
-    </div>
+    </>
   );
 }

@@ -67,17 +67,35 @@ body.app-shell--workspace .header-workspace-menu {
   font-weight: 600;
   line-height: 1.1;
   text-align: center;
-  color: var(--ts-text-muted, #475569);
+  /* Beat global `button { emerald fill + white text }` — More is a <button> */
+  color: var(--ts-text-muted, #475569) !important;
   text-decoration: none;
-  border: none;
-  background: transparent;
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
   cursor: pointer;
 }
 
 .workspace-mobile-bottom-nav__link.is-active,
 .admin-mobile-bottom-nav__link.is-active,
 .owner-mobile-bottom-nav__link.is-active {
-  color: var(--ts-brand-primary, #15803d);
+  color: var(--ts-brand-primary, #15803d) !important;
+  background: transparent !important;
+  position: relative;
+}
+
+.workspace-mobile-bottom-nav__link.is-active::before,
+.admin-mobile-bottom-nav__link.is-active::before,
+.owner-mobile-bottom-nav__link.is-active::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 20%;
+  right: 20%;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--ts-brand-primary, #15803d);
 }
 
 .workspace-mobile-bottom-nav__icon,
@@ -89,11 +107,33 @@ body.app-shell--workspace .header-workspace-menu {
 
 .workspace-mobile-bottom-nav__link span,
 .admin-mobile-bottom-nav__link span,
-.owner-mobile-bottom-nav__link span {
+.owner-mobile-bottom-nav__link span,
+.workspace-mobile-bottom-nav__link svg,
+.admin-mobile-bottom-nav__link svg,
+.owner-mobile-bottom-nav__link svg {
   max-width: 4.25rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: inherit !important;
+  stroke: currentColor;
+}
+
+.workspace-mobile-bottom-nav__link:active,
+.admin-mobile-bottom-nav__link:active,
+.owner-mobile-bottom-nav__link:active {
+  background: var(--ts-surface-muted, #f4f6f5);
+  transform: scale(0.97);
+}
+
+.workspace-mobile-drawer__link:active {
+  background: var(--ts-surface-muted, #f1f5f3);
+  transform: scale(0.99);
+}
+
+.workspace-mobile-drawer__close:active {
+  background: var(--ts-surface-muted, #f1f5f3);
+  transform: scale(0.96);
 }
 
 /* Right-side More drawer */
@@ -229,14 +269,16 @@ body.app-shell--workspace .header-workspace-menu {
     padding-top: calc(var(--workspace-header-height, 3.5rem) + env(safe-area-inset-top, 0px));
   }
 
-  .workspace-shell__content,
-  .admin-command-center-shell .taj-dashboard-content,
-  .owner-command-center-shell .taj-dashboard-content,
-  .profile-page-light.profile-workspace {
-    padding-bottom: calc(var(--workspace-bottom-nav-height, 3.75rem) + env(safe-area-inset-bottom, 0px) + 0.5rem);
+  /* Admin / Owner — workspace bottom nav */
+  body.app-shell--hidden-nav.app-shell--workspace .workspace-shell__content,
+  body.app-shell--hidden-nav.app-shell--workspace .admin-command-center-shell .taj-dashboard-content,
+  body.app-shell--hidden-nav.app-shell--workspace .owner-command-center-shell .taj-dashboard-content {
+    padding-bottom: calc(var(--workspace-bottom-nav-height, 3.75rem) + env(safe-area-inset-bottom, 0px) + 0.75rem);
   }
 
-  body.app-shell--hidden-nav.app-shell--workspace main {
-    padding-bottom: 0;
+  /* Profile — global app tab bar (not workspace bottom nav) */
+  body.app-shell--workspace:not(.app-shell--hidden-nav) .profile-page-light.profile-workspace,
+  body.app-shell--workspace:not(.app-shell--hidden-nav) .profile-page-light.profile-workspace .profile-subpage__body {
+    padding-bottom: calc(4.25rem + env(safe-area-inset-bottom, 0px) + 0.5rem);
   }
 }

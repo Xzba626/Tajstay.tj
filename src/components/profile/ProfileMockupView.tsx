@@ -1,24 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type ReactNode } from "react";
 import {
   Bell,
-  ChevronDown,
   ChevronRight,
   CircleHelp,
   FileText,
   Globe,
   Heart,
   History,
-  Mail,
   Megaphone,
   MessageCircle,
   Pencil,
-  Phone,
   ScrollText,
-  Send,
-  Settings,
   Shield,
   User,
   type LucideIcon
@@ -28,7 +22,7 @@ import { m } from "@/lib/i18n/messages";
 import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
 import { ProfileLogoutConfirm } from "@/components/profile/ProfileLogoutConfirm";
 import { maskPhone } from "@/lib/format/maskPhone";
-import { maskEmail, formatTelegram } from "@/lib/format/maskEmail";
+import { maskEmail } from "@/lib/format/maskEmail";
 import { isPlaceholderAccountPhone } from "@/lib/auth/accountPhone";
 
 type UserFull = {
@@ -54,69 +48,33 @@ type Props = {
   unreadNotifications?: number;
 };
 
-function HubRow({
+function HubGroupLabel({ children }: { children: string }) {
+  return <p className="profile-hub__group-label">{children}</p>;
+}
+
+function HubNavBlock({
   href,
   icon: Icon,
-  label,
-  meta,
+  title,
+  summary,
   badge
 }: {
   href: string;
   icon: LucideIcon;
-  label: string;
-  meta?: string;
+  title: string;
+  summary: string;
   badge?: number;
 }) {
   return (
-    <Link href={href} className="profile-hub__row">
-      <Icon size={17} className="profile-hub__row-icon" aria-hidden />
-      <span className="profile-hub__row-body">
-        <span className="profile-hub__row-label">{label}</span>
-        {meta ? <span className="profile-hub__row-meta">{meta}</span> : null}
+    <Link href={href} className="profile-hub__nav-block">
+      <Icon size={18} className="profile-hub__nav-block-icon" aria-hidden />
+      <span className="profile-hub__nav-block-copy">
+        <span className="profile-hub__nav-block-title">{title}</span>
+        <span className="profile-hub__nav-block-summary">{summary}</span>
       </span>
       {badge && badge > 0 ? <span className="profile-hub__row-badge">{badge > 99 ? "99+" : badge}</span> : null}
-      <ChevronRight size={15} className="profile-hub__row-chevron" aria-hidden />
+      <ChevronRight size={16} className="profile-hub__nav-block-chevron" aria-hidden />
     </Link>
-  );
-}
-
-function HubSection({
-  id,
-  title,
-  summary,
-  icon: Icon,
-  defaultOpen = false,
-  children
-}: {
-  id: string;
-  title: string;
-  summary: string;
-  icon: LucideIcon;
-  defaultOpen?: boolean;
-  children: ReactNode;
-}) {
-  const [open, setOpen] = useState(defaultOpen);
-
-  return (
-    <section className={`profile-hub__section${open ? " is-open" : ""}`} id={id}>
-      <button
-        type="button"
-        className="profile-hub__section-toggle"
-        aria-expanded={open}
-        aria-controls={`${id}-panel`}
-        onClick={() => setOpen((value) => !value)}
-      >
-        <Icon size={18} className="profile-hub__section-icon" aria-hidden />
-        <span className="profile-hub__section-copy">
-          <span className="profile-hub__section-title">{title}</span>
-          <span className="profile-hub__section-summary">{summary}</span>
-        </span>
-        <ChevronDown size={16} className="profile-hub__section-chevron" aria-hidden />
-      </button>
-      <div id={`${id}-panel`} className="profile-hub__section-panel" hidden={!open}>
-        {children}
-      </div>
-    </section>
   );
 }
 
@@ -124,9 +82,6 @@ export function ProfileMockupView({ locale, user, logoutLabel, unreadNotificatio
   const hasPhone = Boolean(user.phone && !isPlaceholderAccountPhone(user.phone));
   const phoneShort = hasPhone ? maskPhone(user.phone) : m(locale, "profile.phoneNotSet");
   const emailShort = maskEmail(user.email) ?? m(locale, "profile.emailNotSet");
-  const tgConnected = Boolean(user.telegramId || user.telegramUsername);
-  const tgShort =
-    formatTelegram(user.telegramUsername, user.telegramId) ?? m(locale, "profile.telegramNotConnected");
   const emailOk = Boolean(user.email && user.emailVerified);
   const phoneOk = Boolean(hasPhone && user.phoneVerified);
   const nameParts = user.name.trim().split(/\s+/);
@@ -182,75 +137,89 @@ export function ProfileMockupView({ locale, user, logoutLabel, unreadNotificatio
       </header>
 
       <div className="profile-hub__stack">
-        <HubSection
-          id="profile-activity"
-          title={m(locale, "profile.sectionMain")}
-          summary={`${user.bookings.length} · ${user.favorites.length}`}
-          icon={History}
-          defaultOpen
-        >
-          <div className="profile-hub__activity-grid">
-            <Link href="/history" className="profile-hub__activity-tile">
-              <History size={18} aria-hidden />
-              <span className="profile-hub__activity-tile-label">{m(locale, "profile.navHistory")}</span>
-              <span className="profile-hub__activity-tile-value">{user.bookings.length}</span>
-            </Link>
-            <Link href="/favorites" className="profile-hub__activity-tile">
-              <Heart size={18} aria-hidden />
-              <span className="profile-hub__activity-tile-label">{m(locale, "profile.navFavorites")}</span>
-              <span className="profile-hub__activity-tile-value">{user.favorites.length}</span>
-            </Link>
-          </div>
-          <HubRow
+        <HubGroupLabel>{m(locale, "profile.sectionMain")}</HubGroupLabel>
+        <div className="profile-hub__activity-grid">
+          <Link href="/history" className="profile-hub__activity-tile">
+            <History size={18} aria-hidden />
+            <span className="profile-hub__activity-tile-label">{m(locale, "profile.navHistory")}</span>
+            <span className="profile-hub__activity-tile-value">{user.bookings.length}</span>
+          </Link>
+          <Link href="/favorites" className="profile-hub__activity-tile">
+            <Heart size={18} aria-hidden />
+            <span className="profile-hub__activity-tile-label">{m(locale, "profile.navFavorites")}</span>
+            <span className="profile-hub__activity-tile-value">{user.favorites.length}</span>
+          </Link>
+        </div>
+        <HubGroupLabel>{m(locale, "profile.sectionPersonal")}</HubGroupLabel>
+        <div className="profile-hub__nav-group">
+          <HubNavBlock
+            href="/profile/personal"
+            icon={User}
+            title={m(locale, "profile.personalInfo")}
+            summary={`${phoneShort} · ${emailShort}`}
+          />
+        </div>
+
+        <HubGroupLabel>{m(locale, "profile.security")}</HubGroupLabel>
+        <div className="profile-hub__nav-group">
+          <HubNavBlock
+            href="/profile/security"
+            icon={Shield}
+            title={m(locale, "profile.security")}
+            summary={m(locale, "profile.securitySubtitle")}
+          />
+        </div>
+
+        <HubGroupLabel>{m(locale, "profile.sectionSettings")}</HubGroupLabel>
+        <div className="profile-hub__nav-group">
+          <HubNavBlock
+            href="/profile/settings"
+            icon={Globe}
+            title={m(locale, "profile.settings")}
+            summary={m(locale, "profile.sectionApp")}
+          />
+          <HubNavBlock
             href="/notifications"
             icon={Bell}
-            label={m(locale, "profile.actionsNotifications")}
+            title={m(locale, "profile.actionsNotifications")}
+            summary={m(locale, "profile.settingsSubtitle")}
             badge={unreadNotifications}
           />
-        </HubSection>
-
-        <HubSection
-          id="profile-personal"
-          title={m(locale, "profile.sectionPersonal")}
-          summary={emailShort}
-          icon={User}
-        >
-          <HubRow href="/profile/personal" icon={User} label={m(locale, "profile.personalInfo")} />
-          <HubRow
-            href="/profile/phone"
-            icon={Phone}
-            label={m(locale, "profile.phone")}
-            meta={`${phoneShort}${phoneOk ? ` · ${m(locale, "profile.statusVerified")}` : ""}`}
+          <HubNavBlock
+            href="/profile/subscriptions"
+            icon={Megaphone}
+            title={m(locale, "profile.subscriptions")}
+            summary={m(locale, "profile.subscriptionsSubtitle")}
           />
-          <HubRow
-            href="/profile/email"
-            icon={Mail}
-            label={m(locale, "profile.email")}
-            meta={`${emailShort}${emailOk ? ` · ${m(locale, "profile.statusVerified")}` : ""}`}
-          />
-          <HubRow
-            href="/profile/telegram"
-            icon={Send}
-            label={m(locale, "profile.telegram")}
-            meta={tgConnected ? tgShort : m(locale, "profile.telegramNotConnected")}
-          />
-        </HubSection>
+        </div>
 
-        <HubSection id="profile-settings" title={m(locale, "profile.sectionSettings")} summary={m(locale, "profile.settingsSubtitle")} icon={Settings}>
-          <p className="profile-hub__subgroup-title">{m(locale, "profile.sectionAccount")}</p>
-          <HubRow href="/profile/security" icon={Shield} label={m(locale, "profile.security")} />
-          <p className="profile-hub__subgroup-title">{m(locale, "profile.sectionApp")}</p>
-          <HubRow href="/profile/settings" icon={Globe} label={m(locale, "profile.language")} />
-          <HubRow href="/profile/settings" icon={Settings} label={m(locale, "profile.settings")} />
-          <HubRow href="/profile/subscriptions" icon={Megaphone} label={m(locale, "profile.subscriptions")} />
-        </HubSection>
-
-        <HubSection id="profile-help" title={m(locale, "profile.sectionSupport")} summary={m(locale, "footer.helpCenter")} icon={CircleHelp}>
-          <HubRow href="/faq" icon={CircleHelp} label={m(locale, "footer.helpCenter")} />
-          <HubRow href="/contacts" icon={MessageCircle} label={m(locale, "footer.contactUs")} />
-          <HubRow href="/policy" icon={FileText} label={m(locale, "footer.policy")} />
-          <HubRow href="/terms" icon={ScrollText} label={m(locale, "footer.terms")} />
-        </HubSection>
+        <HubGroupLabel>{m(locale, "profile.sectionSupport")}</HubGroupLabel>
+        <div className="profile-hub__nav-group">
+        <HubNavBlock
+          href="/faq"
+          icon={CircleHelp}
+          title={m(locale, "footer.helpCenter")}
+          summary={m(locale, "profile.actionsHelp")}
+        />
+        <HubNavBlock
+          href="/contacts"
+          icon={MessageCircle}
+          title={m(locale, "footer.contactUs")}
+          summary={m(locale, "profile.actionsHelp")}
+        />
+        <HubNavBlock
+          href="/policy"
+          icon={FileText}
+          title={m(locale, "footer.policy")}
+          summary={m(locale, "profile.settingsPrivacy")}
+        />
+        <HubNavBlock
+          href="/terms"
+          icon={ScrollText}
+          title={m(locale, "footer.terms")}
+          summary={m(locale, "profile.consentManage")}
+        />
+        </div>
 
         {user.role === "GUEST" ? (
           <Link href="/profile/become-owner" className="profile-hub__promo">

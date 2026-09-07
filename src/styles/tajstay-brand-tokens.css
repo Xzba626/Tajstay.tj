@@ -6,42 +6,42 @@
 
 :root,
 [data-theme="light"] {
-  /* ---- Canvas ---- */
-  --ts-app-background: #ffffff;
-  --ts-surface: #ffffff;
-  --ts-surface-raised: #f8faf9;
-  --ts-surface-muted: #f1f5f3;
+  /* ---- Canvas (semantic foundation) ---- */
+  --ts-app-background: var(--background, #f7faf8);
+  --ts-surface: var(--surface, #ffffff);
+  --ts-surface-raised: var(--surface, #ffffff);
+  --ts-surface-muted: var(--surface-subtle, #e8f4ee);
 
-  /* ---- Brand green (primary) ---- */
-  --primary: #15803d;
-  --primary-hover: #166534;
-  --primary-pressed: #14532d;
-  --primary-soft: #ecfdf5;
-  --primary-border: rgba(21, 128, 61, 0.28);
-  --primary-foreground: #ffffff;
+  /* ---- Brand green (primary) — orient #0F7A4D ---- */
+  --primary: var(--brand-primary, #0f7a4d);
+  --primary-hover: var(--brand-primary-hover, #0b5d3b);
+  --primary-pressed: var(--brand-primary-active, #094d31);
+  --primary-soft: var(--brand-soft, #e8f4ee);
+  --primary-border: color-mix(in srgb, var(--brand-primary, #0f7a4d) 28%, transparent);
+  --primary-foreground: var(--text-on-brand, #ffffff);
   --primary-disabled: #86efac;
 
-  /* ---- Text ---- */
-  --text-primary: #0f172a;
-  --text-secondary: #334155;
-  --text-muted: #475569;
-  --text-on-primary: #ffffff;
+  /* ---- Text — never brand-green as body text ---- */
+  --text-primary: var(--text-primary-semantic, #14231b);
+  --text-secondary: var(--text-secondary-semantic, #66756d);
+  --text-muted: var(--text-muted-semantic, #66756d);
+  --text-on-primary: var(--text-on-brand, #ffffff);
 
   /* ---- Border ---- */
-  --border-default: #e2e8f0;
-  --border-strong: #cbd5e1;
+  --border-default: var(--border-semantic, #dce7e1);
+  --border-strong: var(--border-strong-semantic, #c5d4cc);
 
   /* ---- Interaction ---- */
-  --focus-ring: 0 0 0 3px rgba(21, 128, 61, 0.22);
+  --focus-ring: var(--focus-ring-semantic, 0 0 0 3px rgba(15, 122, 77, 0.22));
 
   /* ---- Semantic ---- */
-  --success: #15803d;
+  --success: var(--brand-primary, #0f7a4d);
   --warning: #d97706;
-  --destructive: #dc2626;
+  --destructive: var(--danger, #dc2626);
   --info: #0284c7;
 
   /* ---- Room / booking states ---- */
-  --state-available: #15803d;
+  --state-available: var(--brand-primary, #0f7a4d);
   --state-occupied: #dc2626;
   --state-reserved: #d97706;
   --state-pending: #0284c7;
@@ -59,15 +59,18 @@
 /* Profile & account surfaces use light tokens even on dark app shell */
 .profile-center,
 .profile-page-light {
-  --text-primary: #0f172a;
-  --text-secondary: #334155;
-  --text-muted: #475569;
-  --bg-card: #ffffff;
-  --bg-elevated: #f8faf9;
-  --border: #e2e8f0;
-  --green-accent: #15803d;
-  --green-muted: #ecfdf5;
-  color: var(--text-primary);
+  --text-primary: var(--text-primary-semantic, #14231b) !important;
+  --text-secondary: var(--text-secondary-semantic, #66756d) !important;
+  --text-muted: var(--text-muted-semantic, #66756d) !important;
+  --ds-text-primary: var(--text-primary-semantic, #14231b);
+  --ds-text-secondary: var(--text-secondary-semantic, #66756d);
+  --ds-text-muted: var(--text-muted-semantic, #66756d);
+  --bg-card: var(--surface, #ffffff);
+  --bg-elevated: var(--background, #f7faf8);
+  --border: var(--border-semantic, #dce7e1);
+  --green-accent: var(--brand-primary, #0f7a4d);
+  --green-muted: var(--brand-soft, #e8f4ee);
+  color: var(--text-primary-semantic, #14231b);
 }
 
 /* ---- Button grammar (Phase 2) ---- */

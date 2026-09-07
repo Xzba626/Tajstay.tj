@@ -6,6 +6,8 @@ import { verifyEmailResetOtp, PASSWORD_RESET_PURPOSE } from "@/lib/auth/emailRes
 import { hashPassword } from "@/lib/auth/password";
 import { clearSessionCookie } from "@/lib/auth/session";
 import { clientIp, rateLimit } from "@/lib/security/rateLimit";
+import { writeAdminAudit } from "@/lib/admin/auditLog";
+import { createNotification } from "@/lib/notifications/create";
 
 const tokenSchema = z.object({
   token: z.string().min(10),
@@ -87,15 +89,59 @@ export async function POST(req: Request) {
     where: { token: tokenHash }
   });
   if (!rec || rec.expiresAt.getTime() < Date.now()) {
+    await writeAdminAudit({
+      action: "owner_recovery_consume_failed",
+      targetType: "password_reset_token",
+      result: "fail",
+      reason: !rec ? "invalid_token" : "expired_token",
+      ip,
+      userAgent: req.headers.get("user-agent")
+    }).catch(() => undefined);
+    return NextResponse.json({ error: "Invalid or expired token" }, { status: 400 });
+  }
+
+  const targetUser = await prisma.user.findUnique({
+    where: { id: rec.userId },
+    select: { id: true, isBanned: true }
+  });
+  if (!targetUser || targetUser.isBanned) {
+    await prisma.passwordResetToken.delete({ where: { token: tokenHash } }).catch(() => undefined);
+    await writeAdminAudit({
+      action: "owner_recovery_consume_failed",
+      targetType: "user",
+      targetId: rec.userId,
+      result: "blocked",
+      reason: !targetUser ? "user_missing" : "user_banned",
+      ip,
+      userAgent: req.headers.get("user-agent")
+    }).catch(() => undefined);
     return NextResponse.json({ error: "Invalid or expired token" }, { status: 400 });
   }
 
   const passwordHash = await hashPassword(password);
-  await prisma.$transaction([
-    prisma.user.update({ where: { id: rec.userId }, data: { password: passwordHash } }),
-    prisma.session.deleteMany({ where: { userId: rec.userId } }),
-    prisma.passwordResetToken.delete({ where: { token: tokenHash } })
-  ]);
+  await prisma.$transaction(async (tx) => {
+    await tx.user.update({ where: { id: rec.userId }, data: { password: passwordHash } });
+    await tx.session.deleteMany({ where: { userId: rec.userId } });
+    await tx.passwordResetToken.delete({ where: { token: tokenHash } });
+    await writeAdminAudit({
+      tx,
+      action: "owner_recovery_completed",
+      targetType: "user",
+      targetId: rec.userId,
+      afterState: { passwordChanged: true, sessionsInvalidated: true },
+      ip,
+      userAgent: req.headers.get("user-agent"),
+      result: "ok"
+    });
+  });
+
+  await createNotification({
+    userId: rec.userId,
+    type: "SECURITY_PASSWORD_CHANGED",
+    title: "Пароль изменён",
+    message: "Пароль вашего аккаунта был изменён.",
+    link: "/auth/sign-in"
+  }).catch(() => undefined);
 
   const res = NextResponse.json({ ok: true });
   clearSessionCookie(res);

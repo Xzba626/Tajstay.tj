@@ -52,8 +52,8 @@ export default async function ProfilePersonalPage() {
       <div className="profile-panel flex items-center gap-4">
         <ProfileAvatar name={full.name} imageUrl={full.image ?? full.telegramPhotoUrl} />
         <div>
-          <p className="text-lg font-semibold text-[var(--text-primary)]">{full.name}</p>
-          <p className="text-sm text-[var(--text-muted)]">{m(locale, "profile.personalPhotoHint")}</p>
+          <p className="text-lg font-semibold text-[var(--ts-text-title,#0f172a)]">{full.name}</p>
+          <p className="text-sm text-[var(--ts-text-muted,#475569)]">{m(locale, "profile.personalPhotoHint")}</p>
         </div>
       </div>
 
@@ -78,7 +78,7 @@ export default async function ProfilePersonalPage() {
 
       <section id="reviews" className="profile-panel profile-panel--stack scroll-mt-24">
         <h2 className="profile-panel__title">{m(locale, "profile.reviewsTitle")}</h2>
-        <p className="text-sm text-[var(--text-muted)]">
+        <p className="text-sm text-[var(--ts-text-muted,#475569)]">
           {reviews > 0 ? m(locale, "profile.reviewsCount", { count: reviews }) : m(locale, "profile.reviewsEmpty")}
         </p>
       </section>

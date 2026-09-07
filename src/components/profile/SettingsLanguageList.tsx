@@ -23,7 +23,7 @@ export function SettingsLanguageList({ current }: { current: Locale }) {
   }
 
   return (
-    <div className="mockup-menu">
+    <div className="profile-subpage-lang">
       {locales.map((loc) => {
         const active = loc === current;
         return (
@@ -32,10 +32,10 @@ export function SettingsLanguageList({ current }: { current: Locale }) {
             type="button"
             disabled={pending}
             onClick={() => void change(loc)}
-            className={cn("mockup-menu__item w-full text-left", active && "border-[var(--green-accent)]/40")}
+            className={cn("profile-subpage-lang__item", active && "is-active")}
           >
             <span>{localeLabels[loc]}</span>
-            {active ? <Check size={18} className="ml-auto text-[var(--green-accent)]" aria-hidden /> : null}
+            {active ? <Check size={16} className="profile-subpage-lang__check" aria-hidden /> : null}
           </button>
         );
       })}

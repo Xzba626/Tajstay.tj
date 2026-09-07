@@ -1,0 +1,35 @@
+---
+description: TajStay MASTER product specification — shells, DS, security, block order. Do NOT implement all sections in one change; only the explicitly authorized BLOCK.
+alwaysApply: true
+---
+
+# TajStay MASTER SPEC (binding)
+
+One brand · four shells: **Public Desktop** · **Consumer Mobile/PWA** · **Owner CRM** · **Admin CRM**. Shared design system; different IA.
+
+## Hard stops
+
+- No one-shot rewrite of the whole app. After each authorized BLOCK: report CODE/TEST/DEPLOYED/REAL RUNTIME/EVIDENCE, then **STOP**.
+- No production DB wipe / destructive prod probes without explicit permission.
+- Frontend ≠ AuthZ. Backend must enforce.
+- No mint/light text on white; no website footer under mobile app/workspace nav; no Consumer tabs in Admin/Owner; no raw enums in Admin UI; no blank white panels; no fake AI.
+- Canonical brand: **TajStay**.
+
+## Visual direction (foundation later)
+
+Light canvas + deep green brand (`~#0F7A4D`) + restrained gold. Semantic tokens only. Sans for app/CRM; serif only marketing display.
+
+## Security priority (before redesign)
+
+1. **P0-S1** — remove secret-word primitive; harden owner recovery; fail-close insecure credentials; Admin Audit foundation.
+2. **P0-S2** — AuthZ / destructive ops / RBAC prep.
+3. **P0-R1** — 500 traces + blank panel root cause.
+4. Then Design System → Layout shells → screen blocks.
+
+## Current authorized work
+
+Only the BLOCK named in the latest user message. Default if unclear: finish in-progress P0 security remediation and stop — do **not** start Design System / Consumer redesign.
+
+## Acceptance
+
+`PASS` requires evidence beyond grep/build. Statuses: PASS | FAIL | BLOCKED | UNKNOWN.

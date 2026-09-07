@@ -34,6 +34,14 @@ export type AdminSidebarLabels = {
     operations: string;
     access: string;
   };
+  sidebarGroups: {
+    overview: string;
+    people: string;
+    hotelOps: string;
+    platform: string;
+    finance: string;
+    operations: string;
+  };
   items: {
     dashboard: string;
     content: string;
@@ -68,6 +76,15 @@ const DRAWER_GROUP_SECTIONS = [
   { key: "access" as const, sections: ["owner-access"] }
 ];
 
+const SIDEBAR_GROUPS = [
+  { key: "overview" as const, sections: ["dashboard"] },
+  { key: "people" as const, sections: ["applications", "users", "owner-access"] },
+  { key: "hotelOps" as const, sections: ["hotels", "bookings"] },
+  { key: "platform" as const, sections: ["content"] },
+  { key: "finance" as const, sections: ["finance"] },
+  { key: "operations" as const, sections: ["complaints", "notifications"] }
+];
+
 function buildItems(labels: AdminSidebarLabels): SidebarItem[] {
   return [
     { section: "dashboard", label: labels.items.dashboard, Icon: LayoutDashboard },
@@ -94,25 +111,38 @@ export function AdminSidebar({ labels }: { labels: AdminSidebarLabels }) {
   const search = useSearchParams();
   const section = search.get("section") ?? "dashboard";
   const items = buildItems(labels);
+  const itemsBySection = new Map(items.map((item) => [item.section, item]));
 
   return (
     <aside className="admin-sidebar" aria-label={labels.navLabel}>
       <p className="admin-sidebar__title">{labels.sectionTitle}</p>
       <nav className="admin-sidebar__nav">
-        {items.map((item) => {
-          const active = section === item.section;
+        {SIDEBAR_GROUPS.map((group) => {
+          const groupItems = group.sections
+            .map((sectionKey) => itemsBySection.get(sectionKey))
+            .filter((item): item is SidebarItem => Boolean(item));
+          if (groupItems.length === 0) return null;
+
           return (
-            <Link
-              key={item.section}
-              href={sectionHref(pathname, item.section)}
-              scroll
-              className={cn("admin-sidebar__link", active && "is-active")}
-            >
-              <span className="admin-sidebar__link-icon">
-                <item.Icon className="h-[1.125rem] w-[1.125rem]" aria-hidden />
-              </span>
-              {item.label}
-            </Link>
+            <div key={group.key} className="admin-sidebar__group">
+              <p className="admin-sidebar__group-label">{labels.sidebarGroups[group.key]}</p>
+              {groupItems.map((item) => {
+                const active = section === item.section;
+                return (
+                  <Link
+                    key={item.section}
+                    href={sectionHref(pathname, item.section)}
+                    scroll
+                    className={cn("admin-sidebar__link", active && "is-active")}
+                  >
+                    <span className="admin-sidebar__link-icon">
+                      <item.Icon className="h-[1.125rem] w-[1.125rem]" aria-hidden />
+                    </span>
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </div>
           );
         })}
       </nav>

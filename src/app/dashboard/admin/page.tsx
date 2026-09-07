@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { cookies } from "next/headers";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { AdminBookingPayCountdown } from "@/components/admin/AdminBookingPayCountdown";
 import { AdminOwnerApplicationActions } from "@/components/admin/AdminOwnerApplicationActions";
@@ -24,6 +23,7 @@ import { scoreHotelRisk } from "@/lib/services/riskScoring";
 import { deriveEscrowState } from "@/lib/domain/booking";
 import { notificationText } from "@/lib/notifications/text";
 import { AdminDashboardOverview } from "@/components/admin/AdminDashboardOverview";
+import { AdminFinanceSection } from "@/components/admin/AdminFinanceSection";
 import { AdminSectionHead } from "@/components/admin/AdminSectionHead";
 import { AdminSectionStats } from "@/components/admin/AdminSectionStats";
 import { AdminRecordCard } from "@/components/admin/AdminRecordCard";
@@ -79,53 +79,53 @@ export default async function AdminDashboardPage({
   const status = (params?.status ?? "").trim();
   const role = (params?.role ?? "").trim();
   const paymentStatus = (params?.paymentStatus ?? "").trim();
-  const resetToken = (params?.resetToken ?? "").trim();
-  const resetUser = Number(params?.resetUser ?? "") || 0;
-  const cookieStore = cookies();
-  const cookieResetToken = (cookieStore.get("tajstay_admin_reset_token")?.value ?? "").trim();
-  const cookieResetUser = Number(cookieStore.get("tajstay_admin_reset_user")?.value ?? "") || 0;
-  const effectiveResetToken = cookieResetToken || resetToken;
-  const effectiveResetUser = cookieResetUser || resetUser;
   const securityError = (params?.error ?? "").trim();
   const securityOk = (params?.ok ?? "").trim();
-  const isDev = process.env.NODE_ENV !== "production";
   const adminSecurityResetAvailable = isAdminSecurityResetConfigured();
   const securityMessage =
     securityError === "security-required"
-      ? "Введите текущий пароль и secret word."
+      ? m(locale, "admin.securityRequiredMsg")
       : securityError === "security-password"
-        ? "Текущий пароль неверный."
-        : securityError === "security-secret"
-          ? "Secret word неверный."
-          : securityError === "security-update"
-            ? "Не удалось сохранить изменения."
-            : securityError === "security-update-unique"
-              ? "Не удалось сохранить: телефон или email уже используется другим пользователем."
-              : securityError === "security-update-notfound"
-                ? "Не удалось сохранить: администратор не найден."
-                : securityError === "security-reset-denied"
-                  ? "Неверный reset secret. Проверьте ADMIN_SECURITY_RESET_SECRET в Vercel."
-                  : securityError === "security-reset-password"
-                    ? "Укажите новый пароль (минимум 6 символов)."
-                    : securityError === "security-reset-secret"
-                      ? "Укажите новый secret word (минимум 4 символа)."
-                      : securityError === "security-reset-failed"
-                        ? "Не удалось выполнить emergency reset."
-                        : securityError === "content-save"
-                          ? "Не удалось сохранить контент сайта. Проверьте DATABASE_URL и выполните prisma migrate deploy на Vercel."
-                          : securityError === "content-required"
-                            ? "Заполните обязательные поля баннера."
-                            : securityError
-                              ? `Security update failed: ${securityError}`
-                              : "";
+        ? m(locale, "admin.securityPasswordMsg")
+        : securityError === "security-update"
+          ? m(locale, "admin.securityUpdateMsg")
+          : securityError === "security-update-unique"
+            ? m(locale, "admin.securityUniqueMsg")
+            : securityError === "security-update-notfound"
+              ? m(locale, "admin.securityNotFoundMsg")
+              : securityError === "security-reset-denied"
+                ? m(locale, "admin.securityResetDeniedMsg")
+                : securityError === "security-reset-password"
+                  ? m(locale, "admin.securityResetPasswordMsg")
+                  : securityError === "security-reset-failed"
+                    ? m(locale, "admin.securityResetFailedMsg")
+                    : securityError === "recovery_rate_limited"
+                      ? m(locale, "admin.recoveryRateLimitedMsg")
+                      : securityError === "recovery_no_email"
+                        ? m(locale, "admin.recoveryNoEmailMsg")
+                        : securityError === "recovery_delivery"
+                          ? m(locale, "admin.recoveryDeliveryMsg")
+                          : securityError === "recovery_banned"
+                            ? m(locale, "admin.recoveryBannedMsg")
+                            : securityError === "credentials_disabled"
+                              ? m(locale, "admin.credentialsDisabledMsg")
+                              : securityError === "content-save"
+                                ? "Не удалось сохранить контент сайта. Проверьте DATABASE_URL и выполните prisma migrate deploy на Vercel."
+                                : securityError === "content-required"
+                                  ? "Заполните обязательные поля баннера."
+                                  : securityError
+                                    ? `Security update failed: ${securityError}`
+                                    : "";
   const securityOkMessage =
     securityOk === "security-reset"
-      ? "Emergency reset выполнен. Войдите снова с новым паролем и secret word."
+      ? m(locale, "admin.securityResetOkMsg")
       : securityOk === "security-updated"
-        ? "Security updated successfully."
-        : securityOk === "content-saved"
-          ? "Контент сайта сохранён."
-          : "";
+        ? m(locale, "admin.securityUpdatedOkMsg")
+        : securityOk === "recovery_sent"
+          ? m(locale, "admin.recoverySentOkMsg")
+          : securityOk === "content-saved"
+            ? "Контент сайта сохранён."
+            : "";
 
   // We keep list item typing flexible because each section uses different Prisma includes.
   let hotels: any[] = [];
@@ -524,22 +524,13 @@ export default async function AdminDashboardPage({
               {m(locale, "admin.securityNewEmail")}
               <input name="email" type="email" defaultValue={admin.email ?? ""} />
             </label>
-            <label className="admin-field">
+            <label className="admin-field md:col-span-2">
               {m(locale, "admin.securityCurrentPassword")}
-              <input name="currentPassword" type="password" required />
+              <input name="currentPassword" type="password" required autoComplete="current-password" />
             </label>
-            <label className="admin-field">
-              {m(locale, "admin.securitySecretWord")}
-              <input name="secretWord" type="password" required={!isDev} />
-              {isDev && <div className="mt-1 text-xs">{m(locale, "admin.securityDevSecretHint")}</div>}
-            </label>
-            <label className="admin-field">
+            <label className="admin-field md:col-span-2">
               {m(locale, "admin.securityNewPassword")}
-              <input name="newPassword" type="password" minLength={6} />
-            </label>
-            <label className="admin-field">
-              {m(locale, "admin.securityNewSecretWord")}
-              <input name="newSecretWord" type="password" />
+              <input name="newPassword" type="password" minLength={6} autoComplete="new-password" />
             </label>
             <AdminSubmitButton className="md:col-span-2" loadingLabel={m(locale, "admin.processing")}>
               {m(locale, "admin.securitySave")}
@@ -563,13 +554,9 @@ export default async function AdminDashboardPage({
                   {m(locale, "admin.securityNewEmail")}
                   <input name="email" type="email" defaultValue={admin.email ?? ""} />
                 </label>
-                <label className="admin-field">
+                <label className="admin-field md:col-span-2">
                   {m(locale, "admin.securityNewPassword")}
                   <input name="newPassword" type="password" required minLength={6} />
-                </label>
-                <label className="admin-field">
-                  {m(locale, "admin.securityNewSecretWord")}
-                  <input name="newSecretWord" type="password" required minLength={4} />
                 </label>
                 <AdminSubmitButton variant="warning" className="md:col-span-2" loadingLabel={m(locale, "admin.processing")}>
                   {m(locale, "admin.securityEmergencyCta")}
@@ -759,55 +746,39 @@ export default async function AdminDashboardPage({
             }
           ]}
         />
-        <div className="admin-data-table" style={{ ["--admin-table-cols" as string]: "1.2fr 1fr 1fr 1.4fr" }}>
-          <div className="admin-data-table__head">
-            <div>{m(locale, "admin.name")}</div>
-            <div>{m(locale, "profile.email")}</div>
-            <div>{m(locale, "profile.phone")}</div>
-            <div>{m(locale, "admin.management")}</div>
-          </div>
-          <ul className="admin-data-table__body">
-            {users.map((u) => (
-              <li key={u.id} className="admin-data-table__row">
-                <div className="admin-data-table__cells">
-                  <div>
-                    <span className="admin-data-table__cell-label">{m(locale, "admin.name")}</span>
-                    <div className="admin-chip-row">
-                      <span className="font-medium">{u.name}</span>
-                      <StatusBadge variant={roleVariant(u.role)}>{tRole(u.role)}</StatusBadge>
-                      {u.isBanned && <StatusBadge variant="danger">{m(locale, "admin.ban")}</StatusBadge>}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="admin-data-table__cell-label">{m(locale, "profile.email")}</span>
-                    <div className="text-sm">{u.email ?? "—"}</div>
-                  </div>
-                  <div>
-                    <span className="admin-data-table__cell-label">{m(locale, "profile.phone")}</span>
-                    <div className="text-sm">{u.phone}</div>
-                  </div>
-                  <div>
-                    <span className="admin-data-table__cell-label">{m(locale, "admin.management")}</span>
-                    <AdminNativeForm action="/api/admin/users/update" method="post" className="admin-record-card__actions">
-                      <input type="hidden" name="id" value={u.id} />
-                      <select name="role" defaultValue={u.role} className="admin-field min-w-[6rem]">
-                        <option value="GUEST">{tRole("GUEST")}</option>
-                        <option value="OWNER">{tRole("OWNER")}</option>
-                        <option value="ADMIN">{tRole("ADMIN")}</option>
-                      </select>
-                      <label className="flex items-center gap-1.5 text-xs">
-                        <input type="checkbox" name="isBanned" defaultChecked={u.isBanned} />
-                        {m(locale, "admin.ban")}
-                      </label>
-                      <AdminSubmitButton variant="primary" className="admin-btn--sm" loadingLabel={m(locale, "admin.processing")}>
-                        {m(locale, "admin.save")}
-                      </AdminSubmitButton>
-                    </AdminNativeForm>
-                  </div>
+        <div className="admin-record-grid admin-users-grid">
+          {users.map((u) => (
+            <AdminRecordCard key={u.id} highlight={u.isBanned ? "danger" : "default"}>
+              <div className="admin-record-card__title-row">
+                <span className="admin-record-card__title">{u.name}</span>
+                <div className="admin-chip-row">
+                  <StatusBadge variant={roleVariant(u.role)}>{tRole(u.role)}</StatusBadge>
+                  {u.isBanned ? <StatusBadge variant="danger">{m(locale, "admin.ban")}</StatusBadge> : null}
                 </div>
-              </li>
-            ))}
-          </ul>
+              </div>
+              <div className="admin-record-card__meta">
+                {u.email ?? "—"} · {u.phone}
+              </div>
+              <AdminNativeForm action="/api/admin/users/update" method="post" className="admin-record-card__actions admin-form-grid admin-form-grid--2 mt-3">
+                <input type="hidden" name="id" value={u.id} />
+                <label className="admin-field">
+                  {m(locale, "admin.filterRole")}
+                  <select name="role" defaultValue={u.role}>
+                    <option value="GUEST">{tRole("GUEST")}</option>
+                    <option value="OWNER">{tRole("OWNER")}</option>
+                    <option value="ADMIN">{tRole("ADMIN")}</option>
+                  </select>
+                </label>
+                <label className="admin-field flex items-end gap-2 pb-1">
+                  <input type="checkbox" name="isBanned" defaultChecked={u.isBanned} />
+                  {m(locale, "admin.ban")}
+                </label>
+                <AdminSubmitButton variant="primary" className="admin-btn--sm md:col-span-2" loadingLabel={m(locale, "admin.processing")}>
+                  {m(locale, "admin.save")}
+                </AdminSubmitButton>
+              </AdminNativeForm>
+            </AdminRecordCard>
+          ))}
         </div>
         {!users.length && <EmptyState title={m(locale, "admin.emptyResults")} description={m(locale, "admin.emptyResultsHint")} />}
         <Pagination page={page} totalPages={totalPages} />
@@ -815,13 +786,16 @@ export default async function AdminDashboardPage({
 
       {activeSection === "owner-access" && <section id="owner-access" className="admin-section scroll-mt-28">
         <AdminSectionHead title={m(locale, "admin.ownerAccessSection")} subtitle={m(locale, "admin.ownerAccessHint")} />
-        {effectiveResetToken && effectiveResetUser ? (
-          <div className="admin-alert admin-alert--success">
-            <div className="font-semibold">{m(locale, "admin.resetLinkReady")}</div>
-            <div className="mt-2 break-all rounded-lg bg-white px-3 py-2 font-mono text-[12px] ring-1 ring-[var(--admin-accent-border)]">
-              {`/auth/reset-password#token=${effectiveResetToken}`}
-            </div>
-          </div>
+        {(securityError === "credentials_disabled" ||
+          securityError === "recovery_delivery" ||
+          securityError === "recovery_no_email" ||
+          securityError === "recovery_rate_limited" ||
+          securityError === "recovery_banned" ||
+          securityError === "recovery_failed") && securityMessage ? (
+          <div className="admin-alert admin-alert--error">{securityMessage}</div>
+        ) : null}
+        {securityOk === "recovery_sent" && securityOkMessage ? (
+          <div className="admin-alert admin-alert--success">{securityOkMessage}</div>
         ) : null}
         <AdminDataToolbar
           section="owner-access"
@@ -835,20 +809,15 @@ export default async function AdminDashboardPage({
                 <div className="admin-record-card__title">{u.name}</div>
                 <StatusBadge variant={roleVariant(u.role)}>{tRole(u.role)}</StatusBadge>
               </div>
-              <AdminNativeForm action="/api/admin/users/credentials" method="post" className="admin-form-grid admin-form-grid--2 mt-3">
-                <input type="hidden" name="id" value={u.id} />
-                <label className="admin-field">
-                  {m(locale, "admin.loginPhone")}
-                  <input name="phone" type="text" defaultValue={u.phone} required />
-                </label>
-                <label className="admin-field">
-                  {m(locale, "profile.email")}
-                  <input name="email" type="email" defaultValue={u.email ?? ""} placeholder="owner@example.com" />
-                </label>
-                <AdminSubmitButton className="md:col-span-2" loadingLabel={m(locale, "admin.processing")}>
-                  {m(locale, "admin.saveOwnerAccess")}
-                </AdminSubmitButton>
-              </AdminNativeForm>
+              <div className="admin-record-card__meta mt-2 space-y-1">
+                <div>
+                  {m(locale, "admin.loginPhone")}: {u.phone || "—"}
+                </div>
+                <div>
+                  {m(locale, "profile.email")}: {u.email?.trim() ? u.email : m(locale, "admin.emailNotSet")}
+                </div>
+              </div>
+              <p className="mt-3 text-xs text-[var(--admin-text-muted)]">{m(locale, "admin.credentialsDisabledHint")}</p>
               <AdminNativeForm action="/api/admin/users/reset-password" method="post" className="mt-3">
                 <input type="hidden" name="id" value={u.id} />
                 <AdminSubmitButton variant="secondary" className="admin-btn--sm" loadingLabel={m(locale, "admin.processing")}>
@@ -915,7 +884,7 @@ export default async function AdminDashboardPage({
             }
           ]}
         />
-        <div className="admin-record-grid">
+        <div className="admin-record-grid admin-record-grid--2">
           {bookings.map((b) => (
             <AdminRecordCard
               key={b.id}
@@ -988,79 +957,7 @@ export default async function AdminDashboardPage({
       </section>}
 
       {activeSection === "finance" && (
-        <section id="finance" className="admin-section scroll-mt-28">
-          <AdminSectionHead title={m(locale, "admin.financeSection")} subtitle={m(locale, "admin.financeSubtitle")} />
-          <AdminSectionStats
-            stats={[
-              { label: m(locale, "admin.financePayments"), value: payments.length, tone: "accent" },
-              { label: m(locale, "admin.financePayouts"), value: payouts.length, tone: "info" },
-              { label: m(locale, "admin.financeRefunds"), value: refunds.length, tone: "warning" }
-            ]}
-          />
-
-          <div className="admin-finance-grid">
-            <div className="admin-finance-column">
-              <h3 className="admin-finance-column__title">{m(locale, "admin.financePayments")}</h3>
-              {payments.map((p) => (
-                <div key={p.id} className="admin-finance-entry">
-                  <div className="admin-finance-entry__top">
-                    <div className="admin-finance-entry__amount">
-                      {p.amount} {p.currency}
-                    </div>
-                    <StatusBadge variant={paymentStatusVariant(p.status)}>{p.status}</StatusBadge>
-                  </div>
-                  <div className="mt-1">{p.booking?.room?.hotel?.name ?? "—"} · {p.provider}/{p.method}</div>
-                  <div className="mt-1 text-[var(--admin-text-muted)]">
-                    {m(locale, "admin.financeGuest")}: {p.booking?.user?.name ?? "—"} · #{p.bookingId}
-                  </div>
-                </div>
-              ))}
-              {!payments.length && <div className="admin-empty-inline">{m(locale, "admin.financeEmptyPayments")}</div>}
-            </div>
-
-            <div className="admin-finance-column">
-              <h3 className="admin-finance-column__title">{m(locale, "admin.financePayouts")}</h3>
-              {payouts.map((po) => (
-                <div key={po.id} className="admin-finance-entry">
-                  <div className="admin-finance-entry__top">
-                    <div className="admin-finance-entry__amount">
-                      {po.amount} {po.currency}
-                    </div>
-                    <span>{po.status}</span>
-                  </div>
-                  <div className="mt-1">
-                    {m(locale, "admin.financeOwner")}: {po.owner?.name ?? "—"} · {po.booking?.room?.hotel?.name ?? "—"}
-                  </div>
-                  <div className="mt-1 text-[var(--admin-text-muted)]">
-                    {m(locale, "admin.financeBooking")} #{po.bookingId}
-                  </div>
-                </div>
-              ))}
-              {!payouts.length && <div className="admin-empty-inline">{m(locale, "admin.financeEmptyPayouts")}</div>}
-            </div>
-
-            <div className="admin-finance-column">
-              <h3 className="admin-finance-column__title">{m(locale, "admin.financeRefunds")}</h3>
-              {refunds.map((r) => (
-                <div key={r.id} className="admin-finance-entry">
-                  <div className="admin-finance-entry__top">
-                    <div className="admin-finance-entry__amount">
-                      {r.amount} {r.currency}
-                    </div>
-                    <span>{r.status}</span>
-                  </div>
-                  <div className="mt-1">
-                    {m(locale, "admin.financePayment")} #{r.paymentId}
-                  </div>
-                  <div className="mt-1 text-[var(--admin-text-muted)]">
-                    {m(locale, "admin.financeReason")}: {r.reason ?? "—"}
-                  </div>
-                </div>
-              ))}
-              {!refunds.length && <div className="admin-empty-inline">{m(locale, "admin.financeEmptyRefunds")}</div>}
-            </div>
-          </div>
-        </section>
+        <AdminFinanceSection locale={locale} payments={payments} payouts={payouts} refunds={refunds} />
       )}
 
       {activeSection === "notifications" && <section id="notifications" className="admin-section scroll-mt-28">

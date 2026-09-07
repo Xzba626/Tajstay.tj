@@ -1,4 +1,4 @@
-import type { Locale } from "@/lib/i18n/locale";
+﻿import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
 import { getBookingGuestLabel, OFFLINE_STATUS } from "@/lib/domain/booking";
 import { formatDateTimeShort } from "@/lib/i18n/format";
@@ -29,28 +29,28 @@ export function OfflineBookingsList({ locale, bookings }: { locale: Locale; book
   return (
     <div className="space-y-3">
       {bookings.map((b) => (
-        <div key={b.id} className="rounded-2xl border border-slate-200/80 bg-white p-5 text-sm shadow-sm">
+        <div key={b.id} className="owner-record-card">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="font-semibold text-slate-900">{getBookingGuestLabel(b)}</span>
+            <span className="owner-record-card__title">{getBookingGuestLabel(b)}</span>
             <StatusBadge variant="neutral">{m(locale, "owner.bookingBadge.offline")}</StatusBadge>
             {b.offlineStatus ? (
               <StatusBadge variant="success">{m(locale, `owner.offline.status.${b.offlineStatus}`)}</StatusBadge>
             ) : null}
-            {b.publicCode ? <span className="text-xs text-slate-500">{b.publicCode}</span> : null}
+            {b.publicCode ? <span className="owner-record-card__meta">{b.publicCode}</span> : null}
           </div>
-          <div className="mt-2 text-slate-600">
+          <div className="owner-record-card__body">
             {b.room?.hotel?.name ?? b.roomType?.hotel?.name ?? "—"} ·{" "}
             {b.assignedRoom?.roomNumber ?? b.room?.title ?? b.roomType?.name ?? "—"} · {b.checkIn.toISOString().slice(0, 10)} —{" "}
             {b.checkOut.toISOString().slice(0, 10)} · {b.guestPhone}
           </div>
-          <div className="mt-1 text-slate-500">
+          <div className="owner-record-card__meta-row">
             {Number(b.totalPrice)} TJS · {m(locale, "owner.offline.prepayment")}: {Number(b.prepayment ?? 0)} ·{" "}
             {m(locale, "owner.offline.remaining")}: {Number(b.remainingAmount ?? 0)}
           </div>
-          <form action={`/api/owner/offline-bookings/${b.id}`} method="post" className="mt-3 flex flex-wrap items-end gap-2">
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">{m(locale, "owner.offline.statusLabel")}</label>
-              <select name="offlineStatus" defaultValue={b.offlineStatus ?? OFFLINE_STATUS.CONFIRMED} className="rounded-lg border px-2 py-1.5 text-sm">
+          <form action={`/api/owner/offline-bookings/${b.id}`} method="post" className="owner-inline-panel">
+            <div className="min-w-[10rem] flex-1">
+              <label className="owner-field__label owner-field__label--caps">{m(locale, "owner.offline.statusLabel")}</label>
+              <select name="offlineStatus" defaultValue={b.offlineStatus ?? OFFLINE_STATUS.CONFIRMED} className="owner-select">
                 {Object.values(OFFLINE_STATUS).map((s) => (
                   <option key={s} value={s}>
                     {m(locale, `owner.offline.status.${s}`)}
@@ -58,14 +58,13 @@ export function OfflineBookingsList({ locale, bookings }: { locale: Locale; book
                 ))}
               </select>
             </div>
-            <button type="submit" className="rounded-lg bg-emerald-700 px-3 py-1.5 text-white">
+            <button type="submit" className="owner-btn owner-btn--primary">
               {m(locale, "owner.offline.saveStatus")}
             </button>
           </form>
-          <div className="mt-1 text-xs text-slate-400">{formatDateTimeShort(locale, b.checkIn)}</div>
+          <div className="owner-record-card__meta-row">{formatDateTimeShort(locale, b.checkIn)}</div>
         </div>
       ))}
     </div>
   );
 }
-

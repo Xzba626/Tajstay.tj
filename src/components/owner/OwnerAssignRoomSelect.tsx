@@ -48,14 +48,10 @@ export function OwnerAssignRoomSelect({
   if (!roomTypeId && assignedRoomId) return null;
 
   return (
-    <div className="mt-3 flex flex-wrap items-end gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
+    <div className="owner-inline-panel">
       <div className="min-w-[12rem] flex-1">
-        <label className="mb-1 block text-xs font-semibold text-slate-600">{m(locale, "owner.pms.assignRoom")}</label>
-        <select
-          value={roomId}
-          onChange={(e) => setRoomId(e.target.value)}
-          className="h-10 w-full rounded-lg border border-slate-200 px-2 text-sm"
-        >
+        <label className="owner-field__label owner-field__label--caps">{m(locale, "owner.pms.assignRoom")}</label>
+        <select value={roomId} onChange={(e) => setRoomId(e.target.value)} className="owner-select">
           <option value="">{m(locale, "owner.pms.unassigned")}</option>
           {options.map((r) => (
             <option key={r.id} value={r.id}>
@@ -69,11 +65,11 @@ export function OwnerAssignRoomSelect({
         type="button"
         disabled={busy || !roomId}
         onClick={() => void assign()}
-        className="h-10 rounded-lg bg-emerald-800 px-4 text-sm font-semibold text-white disabled:opacity-50"
+        className="owner-btn owner-btn--primary"
       >
         {busy ? "…" : m(locale, "owner.pms.assignCta")}
       </button>
-      {error ? <p className="w-full text-xs text-red-700">{error}</p> : null}
+      {error ? <p className="owner-toast--error w-full">{error}</p> : null}
     </div>
   );
 }

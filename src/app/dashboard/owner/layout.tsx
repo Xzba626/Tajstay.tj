@@ -13,6 +13,18 @@ export default function OwnerDashboardLayout({ children }: { children: ReactNode
     navHint: m(locale, "owner.navHint"),
     mobileMore: m(locale, "owner.mobileMore"),
     drawerGroupSecondary: m(locale, "owner.drawerGroupSecondary"),
+    drawerGroups: {
+      operations: m(locale, "owner.drawerGroupOperations"),
+      insights: m(locale, "owner.drawerGroupInsights"),
+      support: m(locale, "owner.drawerGroupSupport")
+    },
+    sidebarGroups: {
+      overview: m(locale, "owner.sidebarGroupOverview"),
+      properties: m(locale, "owner.sidebarGroupProperties"),
+      operations: m(locale, "owner.sidebarGroupOperations"),
+      insights: m(locale, "owner.sidebarGroupInsights"),
+      support: m(locale, "owner.sidebarGroupSupport")
+    },
     items: {
       overview: m(locale, "owner.navOverview"),
       properties: m(locale, "owner.navProperties"),

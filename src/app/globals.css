@@ -1,4 +1,5 @@
 @import "../styles/tokens.css";
+@import "../styles/semantic-tokens.css";
 @import "../styles/tajstay-brand-tokens.css";
 @import "../styles/tajstay-design-system.css";
 @import "../styles/variables.css";
@@ -762,7 +763,7 @@ html.home-page-snap .home-chapter--snap {
     text-shadow: none;
   }
 
-  header {
+  header.site-header {
     background: rgba(15, 23, 42, 0.52) !important;
     border-color: rgba(255, 255, 255, 0.18) !important;
   }
@@ -1192,8 +1193,8 @@ h1, h2 {
   pointer-events: none;
 }
 
-/* ---- Luxury header upgrade ---- */
-header {
+/* ---- Luxury header upgrade (site chrome only — not page ScreenHeader) ---- */
+header.site-header {
   background: rgba(6, 24, 18, 0.58) !important;
   backdrop-filter: blur(24px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
@@ -1422,6 +1423,9 @@ h6,
   color: var(--ds-text-primary) !important;
 }
 
+/* Light workspaces remap --ds-text-* (see foundation isolation at file end).
+   Prefer class-level tokens; keep this rule for marketing canvas only when possible. */
+
 p,
 .text-slate-300,
 .text-slate-400 {
@@ -1496,8 +1500,8 @@ button[class*="border"][class*="text-slate"]:hover {
   background-color: transparent !important;
 }
 
-header,
-footer {
+header.site-header,
+footer.site-footer {
   background: rgba(11, 15, 14, 0.86) !important;
   border-color: rgba(42, 74, 64, 0.9) !important;
 }
@@ -1775,11 +1779,10 @@ h6,
   color: var(--ds-text-primary) !important;
 }
 
+/* Marketing-canvas text lock — DO NOT target bare `span`/`label`/`li` globally.
+   That rule was the Profile/Settings/Security contrast FAIL: every list label
+   became mint-on-white via --ds-text-secondary (#d8f1e2). */
 p,
-small,
-span,
-li,
-label,
 .text-brand-100,
 .text-brand-200,
 [class*="text-slate-"],
@@ -1788,6 +1791,14 @@ label,
 [class*="text-sky-"],
 [class*="text-emerald-"],
 [class*="text-amber-"] {
+  color: var(--ds-text-secondary) !important;
+}
+
+/* Dark marketing surfaces may still need muted copy on spans */
+body:not(.app-shell--workspace) :where(.glass-panel, .quiet-card, .surface-1, .liquid-glass, .hotel-card-premium) span,
+body:not(.app-shell--workspace) :where(.glass-panel, .quiet-card, .surface-1, .liquid-glass, .hotel-card-premium) small,
+body:not(.app-shell--workspace) :where(.glass-panel, .quiet-card, .surface-1, .liquid-glass, .hotel-card-premium) label,
+body:not(.app-shell--workspace) :where(.glass-panel, .quiet-card, .surface-1, .liquid-glass, .hotel-card-premium) li {
   color: var(--ds-text-secondary) !important;
 }
 
@@ -1807,8 +1818,8 @@ button[type="submit"]:hover {
   box-shadow: 0 10px 22px var(--ds-glow) !important;
 }
 
-header,
-footer,
+header.site-header,
+footer.site-footer,
 .footer,
 .footer-block {
   background: var(--ds-bg-main) !important;
@@ -2147,8 +2158,8 @@ html,
   background: radial-gradient(circle at 50% 28%, transparent 0%, rgba(0, 71, 36, 0.14) 72%, rgba(1, 47, 26, 0.32) 100%) !important;
 }
 
-[data-theme="light"] header,
-[data-theme="dark"] header {
+[data-theme="light"] header.site-header,
+[data-theme="dark"] header.site-header {
   background: rgba(0, 53, 29, 0.94) !important;
   border-bottom-color: rgba(52, 211, 153, 0.16) !important;
 }
@@ -3058,5 +3069,313 @@ body.app-shell--hidden-nav .cookie-consent {
   background: linear-gradient(135deg, #10b981 0%, #047857 100%) !important;
   border: 0 !important;
   color: #ecfdf5 !important;
+}
+
+/* ==========================================================================
+   MOBILE UI FOUNDATION — light workspace isolation (must stay LAST)
+   Root cause: global h1/p + --ds-text-* light-on-dark locks paint mint text
+   onto white Profile/Settings. Remap tokens + beat !important color locks.
+   Scope: light shells only — not entire body.app-shell--workspace (desktop
+   header still uses dark marketing chrome).
+   Does NOT rewrite marketing Home/Search/Tours/History canvases in this BLOCK.
+   ========================================================================== */
+
+.ts-workspace-light,
+.profile-page-light,
+.profile-center,
+.admin-command-center-shell,
+.owner-command-center-shell {
+  --ds-text-primary: var(--text-primary-semantic, #14231b) !important;
+  --ds-text-secondary: var(--text-secondary-semantic, #66756d) !important;
+  --ds-text-muted: var(--text-muted-semantic, #66756d) !important;
+  --text-primary: var(--text-primary-semantic, #14231b) !important;
+  --text-secondary: var(--text-secondary-semantic, #66756d) !important;
+  --text-muted: var(--text-muted-semantic, #66756d) !important;
+  --taj-color-text: var(--text-primary-semantic, #14231b) !important;
+  --taj-color-text-secondary: var(--text-secondary-semantic, #66756d) !important;
+  --taj-color-text-muted: var(--text-muted-semantic, #66756d) !important;
+  --taj-text: var(--text-primary-semantic, #14231b) !important;
+  --taj-text-secondary: var(--text-secondary-semantic, #66756d) !important;
+  --taj-text-muted: var(--text-muted-semantic, #66756d) !important;
+  --taj-input: var(--surface, #ffffff) !important;
+  --taj-input-border: var(--border-semantic, #dce7e1) !important;
+  --taj-card: var(--surface, #ffffff) !important;
+  --bg-card: var(--surface, #ffffff) !important;
+  --bg-elevated: var(--background, #f7faf8) !important;
+  --border: var(--border-semantic, #dce7e1) !important;
+  --brand-text: var(--text-primary-semantic, #14231b) !important;
+  --brand-muted: var(--text-muted-semantic, #66756d) !important;
+  color: var(--text-primary-semantic, #14231b) !important;
+  background-color: var(--background, #f7faf8);
+}
+
+.profile-page-light h1,
+.profile-page-light h2,
+.profile-page-light h3,
+.profile-page-light h4,
+.profile-page-light h5,
+.profile-page-light h6,
+.profile-center h1,
+.profile-center h2,
+.profile-center h3,
+.ts-workspace-light h1,
+.ts-workspace-light h2,
+.ts-workspace-light h3,
+.admin-command-center-shell h1,
+.admin-command-center-shell h2,
+.admin-command-center-shell h3,
+.owner-command-center-shell h1,
+.owner-command-center-shell h2,
+.owner-command-center-shell h3 {
+  color: var(--text-primary-semantic, #14231b) !important;
+  font-family: var(--font-ui, Inter, system-ui, sans-serif) !important;
+}
+
+.profile-page-light p,
+.profile-center p,
+.ts-workspace-light p,
+.admin-command-center-shell p,
+.owner-command-center-shell p {
+  color: var(--text-secondary-semantic, #66756d) !important;
+}
+
+.profile-page-light .text-muted,
+.profile-center .text-muted,
+.ts-workspace-light .text-muted {
+  color: var(--text-muted-semantic, #66756d) !important;
+}
+
+/* Keep light cards white inside workspace — undo marketing bg-white→emerald remap */
+.profile-page-light [class*="bg-white"],
+.profile-center [class*="bg-white"],
+.ts-workspace-light [class*="bg-white"],
+.admin-command-center-shell [class*="bg-white"],
+.owner-command-center-shell [class*="bg-white"] {
+  background-color: var(--surface, #ffffff) !important;
+  background-image: none !important;
+}
+
+/* Readable form controls on light Profile/Settings */
+.profile-page-light input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+.profile-page-light textarea,
+.profile-page-light select,
+.profile-center input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+.profile-center textarea,
+.profile-center select,
+.ts-workspace-light input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+.ts-workspace-light textarea,
+.ts-workspace-light select {
+  background: var(--surface, #ffffff) !important;
+  border: 1px solid var(--border-semantic, #dce7e1) !important;
+  color: var(--text-primary-semantic, #14231b) !important;
+}
+
+.profile-page-light input::placeholder,
+.profile-page-light textarea::placeholder,
+.profile-center input::placeholder,
+.profile-center textarea::placeholder,
+.ts-workspace-light input::placeholder,
+.ts-workspace-light textarea::placeholder {
+  color: var(--text-muted-semantic, #66756d) !important;
+}
+
+/* Primary CTAs in light workspace keep brand green */
+.profile-page-light .btn-ts-primary,
+.profile-page-light .btn-primary,
+.profile-center .btn-ts-primary,
+.profile-center .btn-primary,
+.ts-workspace-light .btn-ts-primary,
+.ts-workspace-light .btn-primary {
+  background: var(--brand-primary, #0f7a4d) !important;
+  color: var(--text-on-brand, #ffffff) !important;
+  border-color: transparent !important;
+}
+
+/* Beat any remaining inherited mint text on profile/admin list surfaces */
+.profile-page-light span,
+.profile-page-light label,
+.profile-page-light small,
+.profile-page-light li,
+.profile-center span,
+.profile-center label,
+.profile-center small,
+.profile-center li,
+.ts-workspace-light span,
+.ts-workspace-light label,
+.ts-workspace-light small,
+.ts-workspace-light li,
+.admin-command-center-shell span,
+.admin-command-center-shell label,
+.admin-command-center-shell small,
+.admin-command-center-shell li,
+.owner-command-center-shell span,
+.owner-command-center-shell label,
+.owner-command-center-shell small,
+.owner-command-center-shell li {
+  color: inherit;
+}
+
+.profile-page-light .profile-subpage-row__label,
+.profile-page-light .profile-subpage-row__value,
+.profile-page-light .profile-subpage-group__title,
+.profile-page-light .profile-info-row__label,
+.profile-page-light .profile-info-row__value,
+.profile-page-light .profile-info-row__hint,
+.profile-page-light .profile-subpage-lang__item,
+.profile-center .profile-subpage-row__label,
+.profile-center .profile-subpage-row__value,
+.profile-center .profile-info-row__label,
+.profile-center .profile-info-row__value,
+.ts-workspace-light .profile-subpage-row__label,
+.ts-workspace-light .profile-subpage-row__value,
+.ts-workspace-light .profile-info-row__label,
+.ts-workspace-light .profile-info-row__value {
+  color: var(--text-primary-semantic, #14231b) !important;
+}
+
+.profile-page-light .profile-subpage-row__value,
+.profile-page-light .profile-subpage-group__title,
+.profile-page-light .profile-info-row__label,
+.profile-page-light .profile-info-row__hint,
+.profile-page-light .profile-subpage-row__chevron,
+.profile-page-light .profile-subpage-row__badge,
+.ts-workspace-light .profile-subpage-row__value,
+.ts-workspace-light .profile-subpage-group__title,
+.ts-workspace-light .profile-info-row__label,
+.ts-workspace-light .profile-info-row__hint {
+  color: var(--text-secondary-semantic, #66756d) !important;
+}
+
+.profile-page-light .profile-subpage-row__icon,
+.ts-workspace-light .profile-subpage-row__icon {
+  color: var(--brand-primary, #0f7a4d) !important;
+}
+
+.profile-page-light a.profile-subpage-row,
+.ts-workspace-light a.profile-subpage-row {
+  color: var(--text-primary-semantic, #14231b) !important;
+}
+
+.profile-page-light .profile-subpage__back,
+.ts-workspace-light .profile-subpage__back {
+  color: var(--brand-primary, #0f7a4d) !important;
+}
+
+/* ScreenHeader is a <header> — global site-header lock paints it deep green.
+   Inside light workspaces it must stay transparent on the light canvas. */
+.profile-page-light .app-screen-header,
+.ts-workspace-light .app-screen-header,
+.admin-command-center-shell .app-screen-header,
+.owner-command-center-shell .app-screen-header {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+.profile-page-light .app-screen-header__title,
+.ts-workspace-light .app-screen-header__title {
+  color: var(--text-primary-semantic, #14231b) !important;
+}
+
+.profile-page-light .app-screen-header__subtitle,
+.ts-workspace-light .app-screen-header__subtitle {
+  color: var(--text-secondary-semantic, #66756d) !important;
+}
+
+/* Language rows: undo global `button { emerald fill }` lock */
+.profile-page-light .profile-subpage-lang__item,
+.ts-workspace-light .profile-subpage-lang__item {
+  background: var(--surface, #ffffff) !important;
+  color: var(--text-primary-semantic, #14231b) !important;
+  border: none !important;
+  border-bottom: 1px solid var(--border-semantic, #dce7e1) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.profile-page-light .profile-subpage-lang__item.is-active,
+.ts-workspace-light .profile-subpage-lang__item.is-active {
+  background: var(--brand-soft, #e8f4ee) !important;
+  color: var(--brand-primary, #0f7a4d) !important;
+}
+
+.profile-page-light .profile-subpage-lang__check,
+.ts-workspace-light .profile-subpage-lang__check {
+  color: var(--brand-primary, #0f7a4d) !important;
+}
+
+.profile-page-light .profile-subpage-group__body,
+.ts-workspace-light .profile-subpage-group__body,
+.profile-page-light .profile-subpage-lang {
+  background: var(--surface, #ffffff) !important;
+  border-color: var(--border-semantic, #dce7e1) !important;
+}
+
+/* Admin/Owner white operational surfaces — force readable ink (not brand-soft) */
+.admin-command-center-shell .admin-kpi-card,
+.admin-command-center-shell .admin-kpi-card__label,
+.admin-command-center-shell .admin-kpi-card__value,
+.admin-command-center-shell .admin-kpi-card__hint,
+.admin-command-center-shell .admin-empty-inline,
+.admin-command-center-shell .admin-record-card,
+.admin-command-center-shell .admin-record-card__body,
+.admin-command-center-shell .admin-attention-panel,
+.admin-command-center-shell .admin-filter-card,
+.owner-command-center-shell .owner-kpi-card,
+.owner-command-center-shell .owner-empty {
+  color: var(--text-primary-semantic, #14231b) !important;
+}
+
+.admin-command-center-shell .admin-kpi-card__label,
+.admin-command-center-shell .admin-kpi-card__hint,
+.admin-command-center-shell .admin-empty-inline,
+.admin-command-center-shell .admin-text-muted,
+.admin-command-center-shell .admin-page-header__subtitle,
+.admin-command-center-shell .admin-section-head__desc {
+  color: var(--text-secondary-semantic, #66756d) !important;
+}
+
+.admin-command-center-shell .admin-kpi-card__value,
+.admin-command-center-shell .admin-record-card__title,
+.admin-command-center-shell .admin-user-name {
+  color: var(--text-primary-semantic, #14231b) !important;
+}
+
+/* Beat global button emerald lock on workspace bottom nav (More = <button>) */
+.workspace-mobile-bottom-nav__link,
+.admin-mobile-bottom-nav__link,
+.owner-mobile-bottom-nav__link,
+.workspace-mobile-bottom-nav button.workspace-mobile-bottom-nav__link,
+.admin-mobile-bottom-nav button.admin-mobile-bottom-nav__link,
+.owner-mobile-bottom-nav button.owner-mobile-bottom-nav__link {
+  background: transparent !important;
+  color: #475569 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.workspace-mobile-bottom-nav__link.is-active,
+.admin-mobile-bottom-nav__link.is-active,
+.owner-mobile-bottom-nav__link.is-active {
+  color: var(--brand-primary, #0f7a4d) !important;
+  background: transparent !important;
+}
+
+.workspace-mobile-bottom-nav__link span,
+.admin-mobile-bottom-nav__link span,
+.owner-mobile-bottom-nav__link span,
+.workspace-mobile-bottom-nav__link svg,
+.admin-mobile-bottom-nav__link svg,
+.owner-mobile-bottom-nav__link svg {
+  color: inherit !important;
+}
+
+/* Hide consumer assistant FAB if it still mounts over CRM shells */
+body:has(.admin-command-center-shell) .tst-assistant__fab,
+body:has(.owner-command-center-shell) .tst-assistant__fab,
+body.app-shell--workspace.app-shell--hidden-nav .tst-assistant__fab {
+  display: none !important;
 }
 

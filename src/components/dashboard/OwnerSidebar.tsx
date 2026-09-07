@@ -28,6 +28,18 @@ export type OwnerSidebarLabels = {
   navHint?: string;
   mobileMore: string;
   drawerGroupSecondary?: string;
+  drawerGroups?: {
+    operations: string;
+    insights: string;
+    support: string;
+  };
+  sidebarGroups?: {
+    overview: string;
+    properties: string;
+    operations: string;
+    insights: string;
+    support: string;
+  };
   items: {
     overview: string;
     properties: string;
@@ -76,6 +88,20 @@ function buildItems(labels: OwnerSidebarLabels): SidebarItem[] {
 
 const MOBILE_PRIMARY = ["overview", "properties", "bookings", "finances"] as const;
 
+const OWNER_DRAWER_GROUPS = [
+  { key: "operations" as const, sections: ["rooms", "offline-bookings", "calendar"] },
+  { key: "insights" as const, sections: ["reviews", "statistics", "notifications"] },
+  { key: "support" as const, hrefs: ["/dashboard/messages"], sections: ["help"] as string[] }
+];
+
+const OWNER_SIDEBAR_GROUPS = [
+  { key: "overview" as const, sections: ["overview"] },
+  { key: "properties" as const, sections: ["properties", "rooms"] },
+  { key: "operations" as const, sections: ["bookings", "offline-bookings", "calendar"] },
+  { key: "insights" as const, sections: ["finances", "statistics", "reviews", "notifications"] },
+  { key: "support" as const, sections: ["help"], hrefs: ["/dashboard/messages"] as string[] }
+];
+
 function resolveHref(pathname: string, item: SidebarItem): string {
   if (item.href) return item.href;
   return `${pathname}?section=${item.section ?? "overview"}`;
@@ -91,26 +117,42 @@ export function OwnerSidebar({ labels }: { labels: OwnerSidebarLabels }) {
   const search = useSearchParams();
   const section = search.get("section") ?? "overview";
   const items = buildItems(labels);
+  const itemsBySection = new Map(items.filter((i) => i.section).map((item) => [item.section!, item]));
 
   return (
     <aside className="owner-sidebar" aria-label={labels.navLabel}>
       <p className="owner-sidebar__title">{labels.sectionTitle}</p>
       <nav className="owner-sidebar__nav">
-        {items.map((item) => {
-          const active = isActive(pathname, section, item);
-          const href = resolveHref(pathname, item);
+        {OWNER_SIDEBAR_GROUPS.map((group) => {
+          const groupItems = [
+            ...group.sections.map((s) => itemsBySection.get(s)).filter(Boolean),
+            ...(group.hrefs?.map((href) => items.find((i) => i.href === href)).filter(Boolean) ?? [])
+          ] as SidebarItem[];
+          if (groupItems.length === 0) return null;
+
           return (
-            <Link
-              key={href + item.label}
-              href={href}
-              scroll={!item.href}
-              className={cn("owner-sidebar__link", active && "is-active")}
-            >
-              <span className="owner-sidebar__link-icon">
-                <item.Icon className="h-[1.125rem] w-[1.125rem]" aria-hidden />
-              </span>
-              {item.label}
-            </Link>
+            <div key={group.key} className="owner-sidebar__group">
+              {labels.sidebarGroups ? (
+                <p className="owner-sidebar__group-label">{labels.sidebarGroups[group.key]}</p>
+              ) : null}
+              {groupItems.map((item) => {
+                const active = isActive(pathname, section, item);
+                const href = resolveHref(pathname, item);
+                return (
+                  <Link
+                    key={href + item.label}
+                    href={href}
+                    scroll={!item.href}
+                    className={cn("owner-sidebar__link", active && "is-active")}
+                  >
+                    <span className="owner-sidebar__link-icon">
+                      <item.Icon className="h-[1.125rem] w-[1.125rem]" aria-hidden />
+                    </span>
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </div>
           );
         })}
       </nav>
@@ -134,6 +176,8 @@ export function OwnerMobileNav({ labels }: { labels: OwnerSidebarLabels }) {
     (item) => !item.section || !MOBILE_PRIMARY.includes(item.section as (typeof MOBILE_PRIMARY)[number])
   );
   const moreActive = moreItems.some((item) => isActive(pathname, section, item));
+  const moreBySection = new Map(moreItems.filter((i) => i.section).map((item) => [item.section!, item]));
+  const moreByHref = new Map(moreItems.filter((i) => i.href).map((item) => [item.href!, item]));
 
   return (
     <>
@@ -175,6 +219,38 @@ export function OwnerMobileNav({ labels }: { labels: OwnerSidebarLabels }) {
         ariaLabel={labels.mobileMore}
         onClose={() => setMoreOpen(false)}
       >
+        {labels.drawerGroups
+          ? OWNER_DRAWER_GROUPS.map((group) => {
+              const groupItems = [
+                ...group.sections.map((s) => moreBySection.get(s)).filter(Boolean),
+                ...(group.hrefs?.map((h) => moreByHref.get(h)).filter(Boolean) ?? [])
+              ] as SidebarItem[];
+              if (groupItems.length === 0) return null;
+
+              return (
+                <div key={group.key} className="workspace-mobile-drawer__group">
+                  <p className="workspace-mobile-drawer__group-title">{labels.drawerGroups![group.key]}</p>
+                  {groupItems.map((item) => {
+                    const active = isActive(pathname, section, item);
+                    const href = resolveHref(pathname, item);
+                    return (
+                      <Link
+                        key={href + item.label}
+                        href={href}
+                        onClick={() => setMoreOpen(false)}
+                        className={cn("workspace-mobile-drawer__link", active && "is-active")}
+                      >
+                        <span className="workspace-mobile-drawer__link-icon">
+                          <item.Icon size={18} aria-hidden />
+                        </span>
+                        <span>{item.label}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              );
+            })
+          : (
         <div className="workspace-mobile-drawer__group">
           <p className="workspace-mobile-drawer__group-title">
             {labels.drawerGroupSecondary ?? labels.navHint ?? labels.mobileMore}
@@ -197,6 +273,7 @@ export function OwnerMobileNav({ labels }: { labels: OwnerSidebarLabels }) {
             );
           })}
         </div>
+          )}
       </WorkspaceMobileDrawer>
     </>
   );

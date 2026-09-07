@@ -18,17 +18,17 @@ export function ProfileSubpageShell({
   children: React.ReactNode;
 }) {
   return (
-    <PageContainer width="narrow" className="space-y-5 pb-10 profile-page-light">
+    <PageContainer width="narrow" className="profile-page-light profile-workspace ts-workspace-light pb-10">
       <ScreenHeader
         title={title}
         subtitle={subtitle}
         action={
-          <Link href={backHref} className="text-sm font-medium text-[var(--green-accent)]">
+          <Link href={backHref} className="profile-subpage__back">
             {m(locale, "common.back")}
           </Link>
         }
       />
-      {children}
+      <div className="profile-subpage__body">{children}</div>
     </PageContainer>
   );
 }

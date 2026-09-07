@@ -20,6 +20,14 @@ export default function AdminDashboardLayout({ children }: { children: ReactNode
       operations: m(locale, "admin.drawerGroupOperations"),
       access: m(locale, "admin.drawerGroupAccess")
     },
+    sidebarGroups: {
+      overview: m(locale, "admin.sidebarGroupOverview"),
+      people: m(locale, "admin.sidebarGroupPeople"),
+      hotelOps: m(locale, "admin.sidebarGroupHotelOps"),
+      platform: m(locale, "admin.sidebarGroupPlatform"),
+      finance: m(locale, "admin.sidebarGroupFinance"),
+      operations: m(locale, "admin.sidebarGroupOperations")
+    },
     items: {
       dashboard: m(locale, "adminNav.dashboard"),
       content: m(locale, "adminNav.content"),

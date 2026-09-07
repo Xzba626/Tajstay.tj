@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { FileText, ScrollText, Trash2 } from "lucide-react";
 import { requireUser } from "@/lib/auth/requireAuth";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
 import { ProfileSubpageShell } from "@/components/profile/ProfileSubpageShell";
+import { ProfileSubpageGroup, ProfileSubpageRow } from "@/components/profile/ProfileSubpageRow";
 
 export const dynamic = "force-dynamic";
 
@@ -14,24 +16,20 @@ export default async function ProfileDataPage() {
 
   return (
     <ProfileSubpageShell locale={locale} title={m(locale, "profile.myData")} subtitle={m(locale, "profile.myDataSubtitle")}>
-      <div className="profile-actions">
-        <div className="profile-actions__item opacity-60">
-          <span className="flex-1 text-sm font-medium">{m(locale, "profile.downloadData")}</span>
-          <span className="premium-badge text-[10px]">{m(locale, "profile.comingSoon")}</span>
-        </div>
-        <Link href="/contacts" className="profile-actions__item">
-          <span className="flex-1 text-sm font-medium">{m(locale, "profile.deleteAccount")}</span>
-          <span className="text-[var(--text-muted)]">›</span>
-        </Link>
-        <Link href="/policy" className="profile-actions__item">
-          <span className="flex-1 text-sm font-medium">{m(locale, "profile.actionsPolicy")}</span>
-          <span className="text-[var(--text-muted)]">›</span>
-        </Link>
-        <Link href="/terms" className="profile-actions__item">
-          <span className="flex-1 text-sm font-medium">{m(locale, "profile.consentManage")}</span>
-          <span className="text-[var(--text-muted)]">›</span>
-        </Link>
-      </div>
+      <ProfileSubpageGroup title={m(locale, "profile.sectionAccount")}>
+        <ProfileSubpageRow
+          icon={FileText}
+          label={m(locale, "profile.downloadData")}
+          badge={m(locale, "profile.comingSoon")}
+          disabled
+        />
+        <ProfileSubpageRow href="/contacts" icon={Trash2} label={m(locale, "profile.deleteAccount")} />
+      </ProfileSubpageGroup>
+
+      <ProfileSubpageGroup title={m(locale, "profile.sectionSupport")}>
+        <ProfileSubpageRow href="/policy" icon={FileText} label={m(locale, "profile.actionsPolicy")} />
+        <ProfileSubpageRow href="/terms" icon={ScrollText} label={m(locale, "profile.consentManage")} />
+      </ProfileSubpageGroup>
     </ProfileSubpageShell>
   );
 }

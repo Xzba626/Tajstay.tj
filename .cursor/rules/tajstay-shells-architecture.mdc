@@ -1,0 +1,156 @@
+---
+description: TajStay shells + design-system foundation — Admin/Owner/Consumer modes; P0 SECURITY/DATA before visual polish; no screen-by-screen redesign until MASTER BLOCK.
+alwaysApply: true
+---
+
+# TajStay shells architecture (requirements freeze)
+
+One **TajStay Product System** (shared tokens, type, radius, buttons, badges, charts).
+Three **modes** with different IA — not three random UIs.
+
+```text
+TajStay
+├── Public Desktop — hotels, tours, search, marketing (+ website footer OK)
+├── Consumer Mobile — Главная · Поиск · Туры · История · Профиль
+├── Owner Workspace — Обзор · Отели · Номера · Брони · Аналитика · Ещё
+└── Admin Workspace — Обзор · Заявки · Пользователи · Бронирования · Ещё
+```
+
+Desktop Owner/Admin → sidebar; mobile → bottom nav. **Do not** show consumer tabs in Admin/Owner.
+
+**Do not** redesign pages one-by-one until MASTER BLOCK / P0 foundation. Screenshots enlarge **baseline evidence**, not a queue of isolated CSS patches. Prefer polish **after** security + data + contrast shells.
+
+## Priority (updated — security/data above polish)
+
+### 🔴 P0 SECURITY
+1. Investigate/remove unsafe default **secret word** model (UI leak alone is not a fix).
+2. **Owner Access:** forbid admin inventing/setting owner working passwords; only secure recovery initiation.
+3. Owner phone/email change = separate confirmed flows + Audit Log + owner security notification — not inline CRM text fields.
+4. Backend AuthZ for critical ops (roles, ban, moderation, security updates, credentials).
+5. Split email / phone / password into separate verified flows — no mono «Сохранить безопасность».
+6. Protect role change / blocking / hotel moderation (confirm + reason).
+7. **Audit Log** for admin mutations (incl. owner access + complaint resolution).
+8. Do not architect forever as `if role === ADMIN → allow all` — leave room for Super Admin / Ops / Moderator / Support / Finance.
+
+### 🔴 P0 DATA / RUNTIME
+9. Investigate finance outlier amounts (e.g. `1081500` TJS) — real vs test vs unit bug.
+10. KPI breakdowns must cover **100%** of the sample (no silent remainder).
+11. Forbid blank white panel / dead-end empty chrome — diagnose: no data vs crash vs off-viewport vs **invisible via contrast**.
+12. State matrix on every data-driven route: loading · content · empty · error · 401/403 · offline · partial.
+13. Recurring Admin **500**: reproduce exact user action → request → endpoint → log → exception (do not only restyle `/500`).
+14. Scrub demo/fake values in production UI/DB (e.g. repeated `owner@example.com` if stored as real data; empty → «Email не указан»).
+
+### 🔴 P0 UI FOUNDATION
+15. Semantic colors/contrast (systemic — not `.page { color }`).
+16. Full Admin UI localization (ru primary) via presentation maps — no raw enums.
+17. Separate Admin / Consumer / Owner shells; no marketing footer under mobile workspace nav.
+18. Readable Admin bottom nav; More drawer as proper mobile sheet.
+19. Strip internal strings: `MEDIUM`, `needs moderation`, `PENDING`, `CAPTURED`, `MANUAL/DC`, etc.
+
+### 🟠 P1
+Complaint **case** management · Hotel moderation workflow · Finance CRM · CMS draft/preview/publish · Admin action queues · User / Owner Access list→detail · Assistant · Profile grouped lists · coarse permission roles.
+
+### ⚪ P2
+Motion, advanced charts, premium gold, richer imagery.
+
+## Hard layout rules
+
+- Admin/Owner mobile: bottom nav = **last** chrome; no `site-footer` / © under it.
+- Admin header: `[TajStay] … [☰]`; drawer = secondary tools (not duplicate of primary five).
+- Errors use **mode shell**; do not collapse all failures into marketing fullscreen 500.
+- Canonical brand spelling: **TajStay** (not Tajstay / TAJSTAY / Taj Stay unless intentional marketing art).
+
+## Semantic color (contrast) — systemic only
+
+```text
+text-primary | text-secondary | text-tertiary | text-disabled | text-on-brand
+icon-primary | icon-secondary | icon-disabled
+surface-page | surface-card | surface-brand | surface-selected | surface-disabled
+```
+
+**Forbidden:** local contrast patches; deriving readable text from brand green / mint `#d8f1e2`.
+
+## Admin Overview
+
+- KPI visuals must account for full distribution (bookings remainder; hotel: approved / in review / rejected / blocked as applicable).
+- Keep **Требует внимания** → evolve into **action queues** (applications, moderation, support, payment issues) with deep links.
+
+## Localization / presentation mapping
+
+All backend enums/statuses/risk reasons/payment methods go through i18n maps before UI.
+Admin UI must not show raw English technical values in production.
+
+## Hotel moderation
+
+Detail-first workflow (photos, map, owner, history, risk reasons) → Approve / Request info / Reject(+reason).
+Risk score = **moderator signal only** — not auto-reject if heuristic.
+
+## CMS (homepage content)
+
+Prefer Draft → Preview (desktop + mobile) → Publish.
+Validate CTA URLs (https / internal routes; block `javascript:` and open-redirect abuse).
+
+## Finance
+
+Human labels for status/method; locale money formatter; immutable-ish ledger + audit; anomaly flags for outliers.
+P1 KPI set: turnover, received, pending, refunds, commission, payable, paid.
+
+## Complaints (case management — P1 UX, P0 if PII/auth gaps)
+
+List = compact summary (no unnecessary full phones in list). Detail case view requires:
+complaint ID · reporter · target · booking · category · created · status · priority · assignee · attachments · resolution history.
+Close requires **reason + who + when** — status «РЕШЕНО» alone is insufficient.
+User/hotel free text may stay in source language; **all Admin chrome/statuses/filters/errors = Russian**.
+
+## Owner Access (P0 SECURITY)
+
+- **Forbidden:** admin sets owner password as a CRM field.
+- **Allowed:** «Отправить восстановление доступа» → one-time short-lived token (hashed at rest), invalidate previous tokens, no token in logs, rate limit, Audit Log, invalidate sessions after success / critical change.
+- Phone/email: detail flows with permission check, previous value retained in audit, notify owner.
+- List UX: compact rows → «Управление доступом ›» sheet (contacts · recovery · sessions · history) — not full forms on every card.
+- CODE today: `/api/admin/users/credentials` updates phone/email + deletes sessions (no audit/reason/notify); reset uses hashed token + 1h expiry + httpOnly cookie handoff (`reset-password/route.ts`) but MASTER must still verify single-use, prior-token invalidation, rate limits, audit, and UI that still exposes reset link + placeholder `owner@example.com`.
+
+## State matrix (all data UIs)
+
+| State | User sees |
+| --- | --- |
+| Loading | skeleton/progress |
+| Success + data | content |
+| Success + empty | real empty state |
+| 4xx / 401/403 | clear access message |
+| 5xx | retry + correlation id |
+| Offline | network message |
+| Partial | working part + local error |
+
+**Forbidden:** huge blank white rectangle with no explanation.
+When blank repeats: inspect DOM — missing data vs thrown error vs off-canvas drawer vs content present but **white-on-white** (extreme contrast FAIL).
+
+## CODE evidence already on baseline (do not treat UI copy removal as remediations)
+
+### Secret word (P0 SECURITY — CONFIRMED IN CODE)
+- Default plaintext: `ADMIN_SECRET_WORD ?? "tajstay-secret"` in `src/lib/admin-security.ts` (`defaultSecretWord` / verify fallback when no hash).
+- Dev empty field → default in `src/app/api/admin/security/update/route.ts`.
+- UI discloses default in `messages.ts` (`securityCurrentPasswordHint` / `securityDevSecretHint` ru/tg/en).
+- MASTER BLOCK must remediate storage model + AuthZ + rate limits + prefer standard re-auth/MFA — not only delete hint text.
+
+### Localization leaks
+- Risk reasons English strings from `src/lib/services/riskScoring.ts` (`needs moderation`, `low rating`); level `HIGH|MEDIUM|LOW` interpolated raw into UI.
+- Payment statuses/methods shown as backend enums (`PENDING`, `CAPTURED`, `MANUAL`/…).
+
+## Profile / Settings / Support (P1 IA)
+
+Grouped lists (not heavy accordions); rename Settings→Settings inner to **Приложение**; verification badges; support config single source; language = choice rows.
+
+## Assistant
+
+«Помощник TajStay» — guided, contextual; no fake NLU textbox; no FAB over Admin/Owner CRM.
+
+## Latest P0-S1 remediation (LOCAL — stop here)
+
+Implemented: secret-word removed as AuthN factor; owner recovery invalidate+RL+email-only (no plaintext UI token); credentials fail-closed; `AdminAuditLog` + writes on recovery/credentials/admin self-security/emergency.
+
+Tests: `npx tsx scripts/security-p0-s1-tests.ts` (15/15 PASS on LOCAL TEST DB).
+
+**Do not start P0-S2 / Design System / redesign without explicit user authorization.**
+
+Open gaps for later blocks: production secret-hash state UNKNOWN; HTTP E2E Guest/Owner→admin 403 suite; email delivery depends on Resend (else recovery_delivery BLOCKED at runtime); pending phone/email verification not built (intentionally fail-closed).

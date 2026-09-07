@@ -30,16 +30,16 @@ export function ProfileContactMockup({
 }: Props) {
   return (
     <ProfileSubpageShell locale={locale} title={title} subtitle={subtitle}>
-      <div className="mockup-contact">
-        <div className="mockup-contact__icon" aria-hidden>
+      <div className="profile-subpage-contact">
+        <div className="profile-subpage-contact__icon" aria-hidden>
           <Icon size={32} strokeWidth={1.5} />
         </div>
-        <div className="mockup-contact__value">{value}</div>
+        <div className="profile-subpage-contact__value">{value}</div>
         {verified && verifiedLabel ? (
-          <div className="mockup-contact__badge">{verifiedLabel}</div>
+          <div className="profile-subpage-contact__badge">{verifiedLabel}</div>
         ) : null}
-        <p className="mockup-contact__hint">{hint}</p>
-        <Link href={actionHref} className="btn-primary mt-2 inline-flex !w-full max-w-xs">
+        <p className="profile-subpage-contact__hint">{hint}</p>
+        <Link href={actionHref} className="profile-subpage-contact__action">
           {actionLabel}
         </Link>
       </div>
