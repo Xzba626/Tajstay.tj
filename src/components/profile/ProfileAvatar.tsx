@@ -1,5 +1,6 @@
 import { AppImage } from "@/components/ui/AppImage";
 import { cn } from "@/lib/cn";
+import { isBrandAssetUrl } from "@/lib/brand";
 
 type Props = {
   name: string;
@@ -17,7 +18,7 @@ const SIZE_PX = { sm: 36, md: 56, lg: 64, xl: 88 } as const;
 
 export function ProfileAvatar({ name, imageUrl, size = "lg", className }: Props) {
   const px = SIZE_PX[size];
-  const src = imageUrl?.trim() || null;
+  const src = imageUrl?.trim() && !isBrandAssetUrl(imageUrl) ? imageUrl.trim() : null;
   const fontSize = size === "sm" ? "0.875rem" : size === "xl" ? "1.75rem" : undefined;
 
   if (src) {

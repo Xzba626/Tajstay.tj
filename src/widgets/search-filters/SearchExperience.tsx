@@ -147,7 +147,7 @@ export function SearchExperience({ initialHotels, initialFilters, locale, mobile
         />
       </div>
       <div className="hidden md:block">
-      <div className="grid gap-3 rounded-[2rem] border border-white/10 bg-[rgba(18,31,20,0.9)] p-4 shadow-[0_20px_60px_rgba(0,0,0,0.35)] md:grid-cols-6">
+      <div className="grid gap-3 rounded-[2rem] border-0 bg-[#0f7a4d] p-4 shadow-[0_12px_32px_rgba(15,23,42,0.12)] md:grid-cols-6">
         <input
           name="q"
           value={filters.q}

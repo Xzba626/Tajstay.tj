@@ -10,7 +10,7 @@
   font-family: var(--taj-font-display);
   font-size: 1.75rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: #14231b;
   line-height: 1.15;
 }
 
@@ -32,34 +32,33 @@
   gap: 0.35rem;
   padding: 0.25rem;
   border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border);
+  background: #ffffff;
+  border: 1px solid #e4e4e7;
   overflow-x: auto;
   -ms-overflow-style: none;
   scrollbar-width: none;
-}
-
-.mockup-segment::-webkit-scrollbar {
-  display: none;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
 }
 
 .mockup-segment__item {
-  flex: 1 0 auto;
+  flex: 0 0 auto;
   min-width: fit-content;
   padding: 0.55rem 0.85rem;
   border-radius: calc(var(--radius-md) - 4px);
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--text-muted);
+  color: #52525b;
   text-decoration: none;
   text-align: center;
   white-space: nowrap;
+  scroll-snap-align: start;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
 .mockup-segment__item.is-active {
-  background: var(--green-accent);
-  color: var(--bg-base);
+  background: #0f7a4d !important;
+  color: #ffffff !important;
 }
 
 .mockup-list-card {
@@ -364,17 +363,34 @@
   margin-top: 1.5rem;
   padding: 1rem;
   border-radius: var(--radius-md);
-  background: var(--bg-card);
-  border: 1px solid var(--border);
+  background: #0f7a4d !important;
+  border: none;
   text-align: center;
   font-size: 0.8125rem;
-  color: var(--text-muted);
+  color: #ffffff !important;
 }
 
 .mockup-support-footer a {
-  color: var(--green-accent);
-  font-weight: 600;
-  text-decoration: none;
+  color: #ffffff;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.tours-category-card {
+  background: #0f7a4d;
+  border: none;
+  min-height: 6.5rem;
+  color: #ffffff !important;
+}
+
+.tours-category-card p,
+.tours-category-card svg {
+  color: #ffffff !important;
+  stroke: currentColor;
+}
+
+.tours-category-card:active {
+  transform: scale(0.98);
 }
 
 .mockup-contact {

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { BRAND } from "@/lib/brand";
+import { isBrandAssetUrl } from "@/lib/brand";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
 import type { InboxFilter } from "@/lib/chat/inbox";
@@ -115,7 +115,7 @@ export function MessagesInbox({ locale, role }: { locale: Locale; role: string }
           {items.map((item) => {
             const preview =
               item.lastMessage.length > 80 ? `${item.lastMessage.slice(0, 80)}…` : item.lastMessage;
-            const cover = item.coverImageUrl || BRAND.logoMark;
+            const cover = item.coverImageUrl && !isBrandAssetUrl(item.coverImageUrl) ? item.coverImageUrl : null;
             const statusLabel =
               m(locale, `status.${item.status}`) !== `status.${item.status}`
                 ? m(locale, `status.${item.status}`)
@@ -127,9 +127,11 @@ export function MessagesInbox({ locale, role }: { locale: Locale; role: string }
                   href={`/chat/booking/${item.bookingId}`}
                   className="flex gap-3 rounded-2xl border border-white/[0.08] bg-[rgba(15,23,42,0.5)] p-3 backdrop-blur-xl transition hover:border-emerald-500/25 hover:bg-[rgba(15,23,42,0.7)]"
                 >
-                  <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-2xl ring-1 ring-white/10">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={cover} alt="" className="h-full w-full object-cover" loading="lazy" />
+                  <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-2xl ring-1 ring-[#e4e4e7] bg-[#f4f4f5]">
+                    {cover ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={cover} alt="" className="h-full w-full object-cover" loading="lazy" />
+                    ) : null}
                     {item.unreadCount > 0 ? (
                       <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-bold text-white">
                         {item.unreadCount > 9 ? "9+" : item.unreadCount}

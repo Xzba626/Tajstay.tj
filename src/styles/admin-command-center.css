@@ -11,8 +11,8 @@
   --admin-text: var(--ts-text-title, #0f172a);
   --admin-text-secondary: var(--ts-text-secondary, #334155);
   --admin-text-muted: var(--ts-text-muted, #475569);
-  --admin-accent: var(--ts-brand-primary, #15803d);
-  --admin-accent-soft: var(--ts-brand-primary-soft, #ecfdf5);
+  --admin-accent: var(--ts-brand-primary, #0f7a4d);
+  --admin-accent-soft: var(--ts-brand-primary-soft, #f4f4f5);
   --admin-accent-border: var(--ts-brand-primary-border, rgba(21, 128, 61, 0.22));
   --admin-warning-soft: var(--ts-accent-gold-soft, #fffbeb);
   --admin-danger-soft: #fef2f2;
@@ -190,7 +190,7 @@
 }
 
 .admin-kpi-bar__seg--success {
-  background: #16a34a;
+  background: #0f7a4d;
 }
 
 .admin-kpi-bar__seg--warning {
@@ -235,7 +235,7 @@
 }
 
 .admin-kpi-legend__dot--success {
-  background: #16a34a;
+  background: #0f7a4d;
 }
 
 .admin-kpi-legend__dot--warning {

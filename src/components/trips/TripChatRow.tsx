@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BRAND } from "@/lib/brand";
+import { isBrandAssetUrl } from "@/lib/brand";
 import { BookingChatLauncher } from "@/components/chat/BookingChatPanel";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
@@ -35,14 +35,18 @@ export function TripChatRow({ locale, user, booking: b, showAdminGuest }: Props)
   const roomTitle = b.room?.title ?? b.roomType?.name ?? "—";
   const last = b.chatMessages[0]?.body?.trim() || m(locale, "tripsHub.noMessages");
   const preview = last.length > 72 ? `${last.slice(0, 72)}…` : last;
-  const cover = hotel?.coverImageUrl || BRAND.logoMark;
+  const cover = hotel?.coverImageUrl && !isBrandAssetUrl(hotel.coverImageUrl) ? hotel.coverImageUrl : null;
   const rowHref = `/chat/booking/${b.id}`;
 
   return (
     <div className="trip-chat-row">
       <Link href={rowHref} className="trip-chat-row__thumb">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={cover} alt="" className="h-full w-full object-cover" loading="lazy" />
+        {cover ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={cover} alt="" className="h-full w-full object-cover" loading="lazy" />
+        ) : (
+          <span className="grid h-full w-full place-items-center bg-[#f4f4f5] text-[10px] text-[#71717a]">Фото</span>
+        )}
       </Link>
       <div className="min-w-0 flex-1">
         <Link href={rowHref} className="block min-w-0">

@@ -55,9 +55,9 @@
 .admin-command-center-shell .btn-primary,
 .owner-command-center-shell .btn-primary,
 .profile-page-light .btn-primary {
-  background: var(--ts-brand-primary, #15803d);
+  background: var(--ts-brand-primary, #0f7a4d);
   color: var(--ts-text-on-brand, #ffffff) !important;
-  border-color: var(--ts-brand-primary, #15803d);
+  border-color: var(--ts-brand-primary, #0f7a4d);
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
 }
 
@@ -65,14 +65,15 @@
 .admin-btn--primary:hover,
 .owner-btn--primary:hover,
 .ts-workspace-light .btn-primary:hover {
-  background: var(--ts-brand-primary-hover, #166534);
-  border-color: var(--ts-brand-primary-hover, #166534);
+  background: #0f7a4d;
+  border-color: #0f7a4d;
+  transform: translateY(-1px);
 }
 
 .ws-btn--primary:active,
 .admin-btn--primary:active,
 .owner-btn--primary:active {
-  background: var(--ts-brand-primary-pressed, #14532d);
+  background: #0f7a4d;
 }
 
 .ws-btn--secondary,
@@ -119,7 +120,7 @@
 .owner-command-center-shell .bg-green-700,
 .profile-page-light .bg-green-800,
 .profile-page-light .bg-green-700 {
-  background: var(--ts-brand-primary, #15803d) !important;
+  background: var(--ts-brand-primary, #0f7a4d) !important;
   color: var(--ts-text-on-brand, #ffffff) !important;
 }
 

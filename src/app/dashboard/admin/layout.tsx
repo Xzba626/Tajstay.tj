@@ -3,8 +3,10 @@ import { AdminMobileNav, AdminSidebar, type AdminSidebarLabels } from "@/compone
 import { DashboardShell } from "@/components/ds";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
+import { requireAdmin } from "@/lib/auth/requireAdmin";
 
-export default function AdminDashboardLayout({ children }: { children: ReactNode }) {
+export default async function AdminDashboardLayout({ children }: { children: ReactNode }) {
+  await requireAdmin();
   const locale = getLocale();
   const labels: AdminSidebarLabels = {
     sectionTitle: m(locale, "admin.navAdmin"),

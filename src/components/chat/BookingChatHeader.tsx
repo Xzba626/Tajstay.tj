@@ -1,6 +1,6 @@
 "use client";
 
-import { BRAND } from "@/lib/brand";
+import { isBrandAssetUrl } from "@/lib/brand";
 import type { Locale } from "@/lib/i18n/locale";
 import { formatMoney, formatStayDateRange } from "@/lib/i18n/format";
 import { formatCountLabel } from "@/lib/i18n/plural";
@@ -56,7 +56,7 @@ export function BookingChatHeader({
   const checkOut = new Date(checkOutIso);
   const dateLabel = formatStayDateRange(locale, checkIn, checkOut);
   const guestsLabel = formatCountLabel(locale, guestCount, "people");
-  const cover = coverImageUrl || BRAND.logoMark;
+  const cover = coverImageUrl && !isBrandAssetUrl(coverImageUrl) ? coverImageUrl : null;
   const statusLabel =
     m(locale, `status.${bookingStatus}`) !== `status.${bookingStatus}` ? m(locale, `status.${bookingStatus}`) : bookingStatus;
   const paymentLabel =
@@ -66,8 +66,12 @@ export function BookingChatHeader({
     <section className={`chat-header ${compact ? "chat-header--compact" : ""}`}>
       <div className="chat-header__row">
         <div className={`chat-header__thumb ${compact ? "" : "h-16 w-16"}`}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={cover} alt="" className="h-full w-full object-cover" />
+          {cover ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={cover} alt="" className="h-full w-full object-cover" />
+          ) : (
+            <span className="grid h-full w-full place-items-center bg-[#f4f4f5] text-[10px] text-[#71717a]">Фото</span>
+          )}
         </div>
         <div className="min-w-0 flex-1">
           <h1 className="chat-header__title truncate">{hotelName}</h1>

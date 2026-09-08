@@ -3,8 +3,10 @@ import { OwnerMobileNav, OwnerSidebar, type OwnerSidebarLabels } from "@/compone
 import { DashboardShell } from "@/components/ds";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
+import { requireOwner } from "@/lib/auth/requireOwner";
 
-export default function OwnerDashboardLayout({ children }: { children: ReactNode }) {
+export default async function OwnerDashboardLayout({ children }: { children: ReactNode }) {
+  await requireOwner();
   const locale = getLocale();
   const labels: OwnerSidebarLabels = {
     sectionTitle: m(locale, "roles.OWNER"),

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AppImage } from "@/components/ui/AppImage";
 import { PhotoPlaceholder } from "@/components/ui/PhotoPlaceholder";
+import { isBrandAssetUrl } from "@/lib/brand";
 import { Hotel, Room } from "@prisma/client";
 import { t, type Locale } from "@/lib/i18n/dictionaries";
 import { m } from "@/lib/i18n/messages";
@@ -63,14 +64,15 @@ export function HotelCard({ hotel, locale = "ru", variant = "accent", hrefQuery 
   };
   const cityLabel = cityMap[hotel.city.toLowerCase()] ?? hotel.city;
   const showRating = hotel.rating > 0.05;
+  const coverSrc = hotel.coverImageUrl && !isBrandAssetUrl(hotel.coverImageUrl) ? hotel.coverImageUrl : null;
 
   if (variant === "compact") {
     return (
       <article className="hotel-card-premium hotel-card-premium--compact group">
         <Link href={`/hotel/${hotel.id}${query}`} className="block">
           <div className="hotel-img-wrap relative w-full">
-            {hotel.coverImageUrl ? (
-              <AppImage src={hotel.coverImageUrl} alt={hotel.name} fill className="object-cover" sizes="(max-width:768px) 50vw, 220px" />
+            {coverSrc ? (
+              <AppImage src={coverSrc} alt={hotel.name} fill className="object-cover" sizes="(max-width:768px) 100vw, 220px" />
             ) : (
               <PhotoPlaceholder locale={locale ?? "ru"} variant="hotel" className="absolute inset-0" />
             )}
@@ -94,7 +96,7 @@ export function HotelCard({ hotel, locale = "ru", variant = "accent", hrefQuery 
               <span className="relative flex h-1.5 w-1.5">
                 <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-brand-500" />
               </span>
-              <span className="truncate text-[10px] font-medium text-brand-100">
+              <span className="truncate text-[10px] font-medium text-[var(--text-secondary-semantic,#52525b)]">
                 {availableRooms} {availableRooms === 1 ? "номер" : "номера"}
               </span>
             </div>
@@ -115,8 +117,8 @@ export function HotelCard({ hotel, locale = "ru", variant = "accent", hrefQuery 
       {/* Image */}
       <Link href={`/hotel/${hotel.id}${query}`} className="block">
         <div className="hotel-img-wrap relative w-full">
-          {hotel.coverImageUrl ? (
-            <AppImage src={hotel.coverImageUrl} alt={hotel.name} fill className="object-cover" sizes="(max-width:640px) 100vw, 400px" />
+          {coverSrc ? (
+            <AppImage src={coverSrc} alt={hotel.name} fill className="object-cover" sizes="(max-width:640px) 100vw, 400px" />
           ) : (
             <PhotoPlaceholder locale={locale ?? "ru"} variant="hotel" className="absolute inset-0" />
           )}

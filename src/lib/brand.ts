@@ -12,3 +12,19 @@ export const BRAND = {
 } as const;
 
 export type BrandAssets = typeof BRAND;
+
+/** True when a URL is a TajStay brand asset — never use as a hotel/user photo. */
+export function isBrandAssetUrl(url: string | null | undefined): boolean {
+  if (!url) return true;
+  const value = url.trim().toLowerCase();
+  if (!value) return true;
+  return (
+    value.includes("/brand/") ||
+    value.includes("tajstay-mark") ||
+    value.includes("tajstay-logo") ||
+    value.includes("tajstay-icon") ||
+    value === BRAND.logoMark.toLowerCase() ||
+    value === BRAND.logoFull.toLowerCase() ||
+    value === BRAND.favicon.toLowerCase()
+  );
+}

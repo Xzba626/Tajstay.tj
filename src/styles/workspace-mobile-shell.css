@@ -12,7 +12,7 @@
   border: none;
   border-radius: 0.625rem;
   background: transparent;
-  color: var(--ts-text-title, #0f172a);
+  color: #14231b !important;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
@@ -30,18 +30,29 @@ body.app-shell--workspace .header-workspace-menu {
 .workspace-mobile-bottom-nav,
 .admin-mobile-bottom-nav,
 .owner-mobile-bottom-nav {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: var(--ws-nav-z);
+  position: fixed !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  top: auto !important;
+  inset-inline: 0;
+  z-index: var(--ws-nav-z, 110) !important;
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 0;
-  border-top: 1px solid var(--ts-border-subtle, #e2e8f0);
+  width: 100%;
+  height: auto;
+  min-height: calc(var(--workspace-bottom-nav-height, 3.75rem) + env(safe-area-inset-bottom, 0px));
+  margin: 0;
+  transform: none !important;
+  translate: none !important;
+  border-top: 1px solid var(--ts-border-subtle, #e4e4e7);
   background: #ffffff;
   box-shadow: 0 -1px 8px rgba(15, 23, 42, 0.06);
   padding: 0.2rem 0 calc(0.3rem + env(safe-area-inset-bottom, 0px));
+  pointer-events: auto;
+  isolation: isolate;
+  contain: layout style;
 }
 
 @media (min-width: 1024px) {
@@ -80,7 +91,7 @@ body.app-shell--workspace .header-workspace-menu {
 .workspace-mobile-bottom-nav__link.is-active,
 .admin-mobile-bottom-nav__link.is-active,
 .owner-mobile-bottom-nav__link.is-active {
-  color: var(--ts-brand-primary, #15803d) !important;
+  color: #0f7a4d !important;
   background: transparent !important;
   position: relative;
 }
@@ -95,7 +106,7 @@ body.app-shell--workspace .header-workspace-menu {
   right: 20%;
   height: 2px;
   border-radius: 999px;
-  background: var(--ts-brand-primary, #15803d);
+  background: #0f7a4d;
 }
 
 .workspace-mobile-bottom-nav__icon,
@@ -139,24 +150,31 @@ body.app-shell--workspace .header-workspace-menu {
 /* Right-side More drawer */
 .workspace-mobile-drawer__backdrop {
   position: fixed;
-  inset: 0;
-  z-index: calc(var(--ws-drawer-z) - 1);
-  background: rgba(15, 23, 42, 0.4);
+  top: calc(var(--workspace-header-height, 4.5rem) + env(safe-area-inset-top, 0px));
+  right: 0;
+  left: 0;
+  bottom: calc(var(--workspace-bottom-nav-height, 3.75rem) + env(safe-area-inset-bottom, 0px));
+  z-index: calc(var(--ws-drawer-z, 85) - 1);
+  background: rgba(15, 23, 42, 0.28);
+  pointer-events: auto;
 }
 
 .workspace-mobile-drawer {
   position: fixed;
-  top: calc(var(--workspace-header-height, 3.5rem) + env(safe-area-inset-top, 0px));
+  top: calc(var(--workspace-header-height, 4.5rem) + env(safe-area-inset-top, 0px));
   right: 0;
   bottom: calc(var(--workspace-bottom-nav-height, 3.75rem) + env(safe-area-inset-bottom, 0px));
-  z-index: var(--ws-drawer-z);
+  z-index: var(--ws-drawer-z, 85);
   width: var(--ws-drawer-width);
+  max-width: 92vw;
   display: flex;
   flex-direction: column;
-  border-left: 1px solid var(--ts-border-subtle, #e2e8f0);
+  border-left: 1px solid var(--ts-border-subtle, #e4e4e7);
   background: #ffffff;
   box-shadow: -8px 0 24px rgba(15, 23, 42, 0.12);
   animation: workspace-drawer-in 220ms ease-out;
+  overscroll-behavior: contain;
+  pointer-events: auto;
 }
 
 @keyframes workspace-drawer-in {
@@ -242,9 +260,10 @@ body.app-shell--workspace .header-workspace-menu {
 }
 
 .workspace-mobile-drawer__link.is-active {
-  background: var(--ts-brand-primary-soft, #ecfdf5);
-  color: var(--ts-brand-primary, #15803d);
+  background: #f4f4f5;
+  color: #0f7a4d;
   font-weight: 600;
+  box-shadow: inset 3px 0 0 #0f7a4d;
 }
 
 .workspace-mobile-drawer__link-icon {
@@ -257,16 +276,24 @@ body.app-shell--workspace .header-workspace-menu {
 
 /* Scrollable workspace content offsets */
 @media (max-width: 1023px) {
-  body.app-shell--workspace .site-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 48;
+  body.app-shell--workspace .site-header,
+  body.app-shell--workspace .site-header.site-header--workspace-fixed,
+  body.app-shell--workspace .site-header.site-header--scroll-hidden,
+  body.app-shell--workspace .site-header.site-header--locked {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: var(--ws-header-z, 100) !important;
+    transform: none !important;
+    translate: none !important;
+    will-change: auto;
+    background: #ffffff !important;
+    border-bottom: 1px solid #e4e4e7 !important;
   }
 
   body.app-shell--workspace main {
-    padding-top: calc(var(--workspace-header-height, 3.5rem) + env(safe-area-inset-top, 0px));
+    padding-top: calc(var(--workspace-header-height, 4.5rem) + env(safe-area-inset-top, 0px));
   }
 
   /* Admin / Owner — workspace bottom nav */

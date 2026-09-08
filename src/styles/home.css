@@ -107,8 +107,9 @@
 
   .home-search-card {
     padding: 0.875rem 1rem;
-    border-color: rgba(110, 231, 183, 0.2);
+    border: none;
     border-radius: 1.25rem;
+    background: #0f7a4d;
   }
 
   .home-search-form {
@@ -178,19 +179,18 @@
   height: 2.25rem;
   padding: 0 0.75rem;
   border-radius: 9999px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.05);
-  color: #ecfdf5;
+  border: none;
+  background: #0f7a4d;
+  color: #ffffff;
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.01em;
   white-space: nowrap;
-  transition: background 0.18s ease, border-color 0.18s ease;
 }
 
 .header-auth-signin-mobile:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(110, 231, 183, 0.32);
+  background: #0f7a4d;
+  transform: translateY(-1px);
 }
 
 .home-section--search {
@@ -338,7 +338,7 @@
   font-size: 0.5625rem;
   font-weight: 700;
   font-family: ui-monospace, monospace;
-  color: #6ee7b7;
+  color: #ffffff;
   letter-spacing: 0.04em;
 }
 
@@ -374,7 +374,7 @@
   font-size: 0.5rem;
   font-weight: 700;
   text-transform: uppercase;
-  color: #6ee7b7;
+  color: #ffffff;
   background: rgba(34, 197, 94, 0.16);
   padding: 0.12rem 0.4rem;
   border-radius: 9999px;
@@ -410,13 +410,13 @@
   background: rgba(34, 197, 94, 0.18);
   font-size: 0.625rem;
   font-weight: 800;
-  color: #4ade80;
+  color: #0f7a4d;
 }
 
 .hero-travel-preview__float-title {
   font-size: 0.5625rem;
   font-weight: 700;
-  color: #6ee7b7;
+  color: #ffffff;
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
@@ -458,7 +458,7 @@
   gap: 0.15rem;
   font-size: 0.5625rem;
   font-weight: 600;
-  color: #86efac;
+  color: #71717a;
 }
 
 /* ---- Sticky mobile search CTA ---- */
@@ -580,11 +580,11 @@
 
 /* ---- Site header ---- */
 .site-header {
-  border-bottom: 1px solid rgba(52, 211, 153, 0.16);
-  background: rgba(0, 53, 29, 0.94);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
+  border-bottom: 1px solid #e4e4e7;
+  background: #ffffff;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
 }
 
 .site-header__logo-badge {
@@ -606,14 +606,11 @@
 
 @media (max-width: 1023px) {
   .site-header {
-    will-change: transform;
-    transition:
-      transform 220ms ease,
-      background-color 220ms ease;
+    will-change: auto;
   }
 
   .site-header.site-header--scroll-hidden {
-    transform: translateY(-100%);
+    transform: none;
   }
 }
 
@@ -691,7 +688,7 @@
 }
 
 .locale-switcher--icon-only .locale-switcher-trigger--icon svg {
-  color: #6ee7b7;
+  color: #ffffff;
 }
 
 .site-header .header-nav-link {

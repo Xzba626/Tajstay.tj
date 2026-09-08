@@ -213,9 +213,8 @@ export function TstAssistant({ locale }: Props) {
   }, []);
 
   useEffect(() => {
-    if (hidden || readHintSeen()) return;
-    const timer = window.setTimeout(() => setShowHint(true), 700);
-    return () => window.clearTimeout(timer);
+    if (hidden) return;
+    setShowHint(false);
   }, [hidden]);
 
   useEffect(() => {
@@ -1002,7 +1001,7 @@ export function TstAssistant({ locale }: Props) {
       ) : null}
 
       <div className={`tst-assistant__anchor${open ? " is-hidden" : ""}`}>
-        {showHint && !open ? (
+        {false && showHint && !open ? (
           <button type="button" className="tst-assistant__hint" onClick={openPanel}>
             {m(locale, "tstAssistant.hint")}
           </button>

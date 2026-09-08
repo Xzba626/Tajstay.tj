@@ -42,10 +42,10 @@ export default function ToursPage() {
           {CATEGORIES.map(({ icon: Icon, key }) => (
             <div
               key={key}
-              className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] px-3 py-3"
+              className="tours-category-card rounded-xl px-3 py-4"
             >
-              <Icon size={18} className="text-[var(--green-accent)]" aria-hidden />
-              <p className="mt-2 text-sm font-semibold text-[var(--text-primary)]">
+              <Icon size={18} className="text-white" aria-hidden />
+              <p className="mt-2 text-sm font-semibold text-white">
                 {m(locale, `toursPage.categories.${key}`)}
               </p>
             </div>

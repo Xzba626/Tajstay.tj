@@ -1,40 +1,34 @@
 /**
- * TajStay semantic UI tokens — MOBILE UI FOUNDATION
- *
- * Canonical names for the light-first product system.
- * Do not use brand green as default text color.
- * Gold is premium accent only — never body/UI text on white.
- *
- * HEX values below are orientation targets from the mobile baseline audit.
- * Legacy aliases (--ts-*, --taj-*, --ds-*) are bridged here; do not mass-replace
- * screens until subsequent per-screen BLOCKs.
+ * TajStay semantic UI tokens — canonical product system.
+ * Brand green is exactly #0F7A4D. Hover/press keep the same green (motion only).
+ * Soft surfaces are neutral gray — not mint/faded green.
  */
 
 :root {
   /* ---- Surfaces ---- */
-  --background: #f7faf8;
+  --background: #ffffff;
   --surface: #ffffff;
-  --surface-subtle: #e8f4ee;
+  --surface-subtle: #f4f4f5;
   --surface-elevated: #ffffff;
-  --surface-brand: #0b5d3b;
+  --surface-brand: #0f7a4d;
 
   /* ---- Text (readable on light canvas) ---- */
   --text-primary-semantic: #14231b;
-  --text-secondary-semantic: #66756d;
-  --text-muted-semantic: #66756d;
+  --text-secondary-semantic: #52525b;
+  --text-muted-semantic: #71717a;
   --text-on-brand: #ffffff;
-  --text-disabled: #94a3a0;
+  --text-disabled: #a1a1aa;
 
-  /* ---- Brand green ---- */
+  /* ---- Brand green — one value ---- */
   --brand-primary: #0f7a4d;
-  --brand-primary-hover: #0b5d3b;
-  --brand-primary-active: #094d31;
-  --brand-soft: #e8f4ee;
-  --brand-deep: #0b5d3b;
+  --brand-primary-hover: #0f7a4d;
+  --brand-primary-active: #0f7a4d;
+  --brand-soft: #f4f4f5;
+  --brand-deep: #0f7a4d;
 
   /* ---- Borders ---- */
-  --border-semantic: #dce7e1;
-  --border-strong-semantic: #c5d4cc;
+  --border-semantic: #e4e4e7;
+  --border-strong-semantic: #d4d4d8;
 
   /* ---- Status ---- */
   --success: #0f7a4d;
@@ -48,20 +42,16 @@
 
   /* ---- Interactive / state ---- */
   --interactive: var(--brand-primary);
-  --selected: var(--brand-soft);
-  --selected-border: color-mix(in srgb, var(--brand-primary) 35%, transparent);
-  --disabled: #94a3a0;
-  --focus-ring-semantic: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 22%, transparent);
+  --selected: #f4f4f5;
+  --selected-border: #0f7a4d;
+  --disabled: #a1a1aa;
+  --focus-ring-semantic: 0 0 0 3px rgba(15, 122, 77, 0.22);
 
   /* ---- Typography roles ---- */
   --font-ui: "Inter", "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-editorial: "Playfair Display", Georgia, "Times New Roman", serif;
 }
 
-/**
- * Bridge: map existing workspace --ts-* tokens onto the semantic foundation
- * without forcing a global marketing-canvas rewrite in this BLOCK.
- */
 :root {
   --ts-surface-page: var(--background);
   --ts-surface-primary: var(--surface);
@@ -81,10 +71,10 @@
   --ts-text-on-brand: var(--text-on-brand);
 
   --ts-brand-primary: var(--brand-primary);
-  --ts-brand-primary-hover: var(--brand-primary-hover);
-  --ts-brand-primary-pressed: var(--brand-primary-active);
+  --ts-brand-primary-hover: var(--brand-primary);
+  --ts-brand-primary-pressed: var(--brand-primary);
   --ts-brand-primary-soft: var(--brand-soft);
-  --ts-brand-primary-border: color-mix(in srgb, var(--brand-primary) 28%, transparent);
+  --ts-brand-primary-border: var(--brand-primary);
   --ts-accent-gold: var(--premium-gold);
   --ts-accent-gold-soft: var(--premium-gold-soft);
 

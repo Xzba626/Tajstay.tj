@@ -7,19 +7,19 @@
 :root,
 [data-theme="light"] {
   /* ---- Canvas (semantic foundation) ---- */
-  --ts-app-background: var(--background, #f7faf8);
+  --ts-app-background: var(--background, #ffffff);
   --ts-surface: var(--surface, #ffffff);
   --ts-surface-raised: var(--surface, #ffffff);
-  --ts-surface-muted: var(--surface-subtle, #e8f4ee);
+  --ts-surface-muted: var(--surface-subtle, #f4f4f5);
 
-  /* ---- Brand green (primary) — orient #0F7A4D ---- */
-  --primary: var(--brand-primary, #0f7a4d);
-  --primary-hover: var(--brand-primary-hover, #0b5d3b);
-  --primary-pressed: var(--brand-primary-active, #094d31);
-  --primary-soft: var(--brand-soft, #e8f4ee);
-  --primary-border: color-mix(in srgb, var(--brand-primary, #0f7a4d) 28%, transparent);
-  --primary-foreground: var(--text-on-brand, #ffffff);
-  --primary-disabled: #86efac;
+  /* ---- Brand green (primary) — exactly #0F7A4D ---- */
+  --primary: #0f7a4d;
+  --primary-hover: #0f7a4d;
+  --primary-pressed: #0f7a4d;
+  --primary-soft: #f4f4f5;
+  --primary-border: #0f7a4d;
+  --primary-foreground: #ffffff;
+  --primary-disabled: #d4d4d8;
 
   /* ---- Text — never brand-green as body text ---- */
   --text-primary: var(--text-primary-semantic, #14231b);
@@ -97,13 +97,15 @@
 
 .btn-ts-primary:hover:not(:disabled),
 .btn-primary:hover:not(:disabled) {
-  background: var(--primary-hover);
+  background: #0f7a4d;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.12);
 }
 
 .btn-ts-primary:active:not(:disabled),
 .btn-primary:active:not(:disabled) {
-  background: var(--primary-pressed);
-  transform: scale(0.985);
+  background: #0f7a4d;
+  transform: scale(0.98);
 }
 
 .btn-ts-primary:focus-visible,
@@ -114,8 +116,8 @@
 
 .btn-ts-primary:disabled,
 .btn-primary:disabled {
-  background: var(--primary-disabled);
-  color: rgba(255, 255, 255, 0.92);
+  background: #e4e4e7;
+  color: #71717a;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;

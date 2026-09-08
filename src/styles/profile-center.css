@@ -646,7 +646,7 @@
   height: 2rem;
   border-radius: 0.5rem;
   border: 1px solid var(--border, #e2e8f0);
-  color: #15803d;
+  color: #0f7a4d;
   text-decoration: none;
 }
 
@@ -679,7 +679,7 @@
 
 .profile-hub__section-icon {
   flex-shrink: 0;
-  color: #15803d;
+  color: #0f7a4d;
 }
 
 .profile-hub__section-copy {
@@ -766,7 +766,7 @@
   height: 1.25rem;
   padding: 0 0.35rem;
   border-radius: 999px;
-  background: #15803d;
+  background: #0f7a4d;
   color: #ffffff;
   font-size: 0.625rem;
   font-weight: 700;
@@ -924,7 +924,7 @@
 
 .profile-hub__nav-block-icon {
   flex-shrink: 0;
-  color: var(--ts-brand-primary, #15803d);
+  color: var(--ts-brand-primary, #0f7a4d);
 }
 
 .profile-hub__nav-block-copy {
@@ -958,7 +958,7 @@
 .profile-subpage__back {
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--ts-brand-primary, #15803d);
+  color: var(--ts-brand-primary, #0f7a4d);
   text-decoration: none;
 }
 
@@ -1074,7 +1074,7 @@
 
 .profile-subpage-row__icon {
   flex-shrink: 0;
-  color: var(--ts-brand-primary, #15803d);
+  color: var(--ts-brand-primary, #0f7a4d);
 }
 
 .profile-subpage-row__label {
@@ -1128,12 +1128,12 @@
 }
 
 .profile-subpage-lang__item.is-active {
-  color: var(--ts-brand-primary, #15803d);
+  color: var(--ts-brand-primary, #0f7a4d);
 }
 
 .profile-subpage-lang__check {
   margin-left: auto;
-  color: var(--ts-brand-primary, #15803d);
+  color: var(--ts-brand-primary, #0f7a4d);
 }
 
 .profile-subpage-contact {
@@ -1155,7 +1155,7 @@
   height: 3.25rem;
   border-radius: 999px;
   background: var(--ts-brand-primary-soft, #ecfdf5);
-  color: var(--ts-brand-primary, #15803d);
+  color: var(--ts-brand-primary, #0f7a4d);
 }
 
 .profile-subpage-contact__value {
@@ -1172,7 +1172,7 @@
   font-size: 0.6875rem;
   font-weight: 600;
   background: var(--ts-brand-primary-soft, #ecfdf5);
-  color: var(--ts-brand-primary, #15803d);
+  color: var(--ts-brand-primary, #0f7a4d);
 }
 
 .profile-subpage-contact__hint {
@@ -1192,7 +1192,7 @@
   min-height: 2.75rem;
   margin-top: 0.35rem;
   border-radius: 0.625rem;
-  background: var(--ts-brand-primary, #15803d);
+  background: var(--ts-brand-primary, #0f7a4d);
   color: #ffffff;
   font-size: 0.875rem;
   font-weight: 600;
@@ -1246,7 +1246,7 @@
 .profile-subpage-toggle__input {
   width: 1.125rem;
   height: 1.125rem;
-  accent-color: var(--ts-brand-primary, #15803d);
+  accent-color: var(--ts-brand-primary, #0f7a4d);
   flex-shrink: 0;
 }
 
@@ -1296,7 +1296,7 @@
   padding: 0.25rem 0.65rem;
   font-size: 0.6875rem;
   font-weight: 700;
-  color: var(--ts-brand-primary, #15803d);
+  color: var(--ts-brand-primary, #0f7a4d);
 }
 
 .profile-owner-card__badge--pending {
@@ -1353,7 +1353,7 @@
   background: var(--ts-brand-primary-soft, #ecfdf5);
   font-size: 0.75rem;
   font-weight: 700;
-  color: var(--ts-brand-primary, #15803d);
+  color: var(--ts-brand-primary, #0f7a4d);
 }
 
 .profile-owner-card__reason {

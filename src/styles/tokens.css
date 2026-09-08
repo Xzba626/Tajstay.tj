@@ -69,31 +69,31 @@
   /* ---- Brand palette ---- */
   --taj-emerald-50: #ecfdf5;
   --taj-emerald-100: #d1fae5;
-  --taj-emerald-400: #34d399;
-  --taj-emerald-500: #22c55e;
-  --taj-emerald-600: #16a34a;
-  --taj-emerald-700: #15803d;
+  --taj-emerald-400: #0f7a4d;
+  --taj-emerald-500: #0f7a4d;
+  --taj-emerald-600: #0f7a4d;
+  --taj-emerald-700: #0f7a4d;
   --taj-emerald-800: #166534;
   --taj-jade-900: #0f3d2e;
   --taj-sand-400: #d4b87a;
   --taj-sand-500: #c9a227;
 
-  /* Public surfaces — rich emerald #004724 */
-  --taj-color-bg: #004724;
-  --taj-color-bg-elevated: rgba(1, 47, 26, 0.86);
-  --taj-color-bg-card: rgba(1, 47, 26, 0.72);
-  --taj-color-bg-card-solid: rgba(1, 47, 26, 0.86);
-  --taj-color-border: rgba(52, 211, 153, 0.18);
-  --taj-color-border-strong: rgba(52, 211, 153, 0.28);
-  --taj-color-text: #f8fafc;
-  --taj-color-text-secondary: #d8f1e2;
-  --taj-color-text-muted: #b7d8c4;
-  --taj-color-primary: #16a34a;
-  --taj-color-primary-hover: #22c55e;
-  --taj-color-primary-active: #15803d;
+  /* Public surfaces — white canvas */
+  --taj-color-bg: #ffffff;
+  --taj-color-bg-elevated: #ffffff;
+  --taj-color-bg-card: #ffffff;
+  --taj-color-bg-card-solid: #ffffff;
+  --taj-color-border: #e4e4e7;
+  --taj-color-border-strong: #d4d4d8;
+  --taj-color-text: #14231b;
+  --taj-color-text-secondary: #52525b;
+  --taj-color-text-muted: #71717a;
+  --taj-color-primary: #0f7a4d;
+  --taj-color-primary-hover: #0f7a4d;
+  --taj-color-primary-active: #0f7a4d;
   --taj-color-accent: var(--taj-sand-500);
   --taj-color-danger: #dc2626;
-  --taj-color-success: #16a34a;
+  --taj-color-success: #0f7a4d;
   --taj-color-warning: #d97706;
 
   /* Dark depth — accents only (headers, hero depth, chat host bubbles) */
@@ -107,7 +107,7 @@
 
   /* Chat */
   --taj-chat-bg: #f7fcf9;
-  --taj-chat-bubble-guest: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  --taj-chat-bubble-guest: linear-gradient(135deg, #0f7a4d 0%, #0f7a4d 100%);
   --taj-chat-bubble-host: #ffffff;
   --taj-chat-input-bg: #ffffff;
 

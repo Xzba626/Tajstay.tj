@@ -3,6 +3,7 @@
 import { useEffect, type ReactNode } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { BodyPortal } from "@/components/navigation/BodyPortal";
 
 type Props = {
   open: boolean;
@@ -13,26 +14,21 @@ type Props = {
   className?: string;
 };
 
-/** Right-to-left mobile navigation drawer for workspace secondary routes. */
+/** Right-side More drawer: sits between fixed header and bottom nav; does not lock body scroll. */
 export function WorkspaceMobileDrawer({ open, title, ariaLabel, onClose, children, className }: Props) {
   useEffect(() => {
     if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
     };
     document.addEventListener("keydown", onKey);
-    return () => {
-      document.body.style.overflow = prev;
-      document.removeEventListener("keydown", onKey);
-    };
+    return () => document.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
   if (!open) return null;
 
   return (
-    <>
+    <BodyPortal>
       <button
         type="button"
         className="workspace-mobile-drawer__backdrop lg:hidden"
@@ -53,6 +49,6 @@ export function WorkspaceMobileDrawer({ open, title, ariaLabel, onClose, childre
         </div>
         <div className="workspace-mobile-drawer__body">{children}</div>
       </aside>
-    </>
+    </BodyPortal>
   );
 }

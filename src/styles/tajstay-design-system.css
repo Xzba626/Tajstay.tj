@@ -5,15 +5,15 @@
  */
 
 :root {
-  --workspace-header-height: 3.5rem;
+  --workspace-header-height: 4.5rem;
   --workspace-bottom-nav-height: 3.75rem;
 
   /* Brand — single TajStay green via semantic foundation */
   --ts-brand-primary: var(--brand-primary, #0f7a4d);
-  --ts-brand-primary-hover: var(--brand-primary-hover, #0b5d3b);
-  --ts-brand-primary-pressed: var(--brand-primary-active, #094d31);
-  --ts-brand-primary-soft: var(--brand-soft, #e8f4ee);
-  --ts-brand-primary-border: color-mix(in srgb, var(--brand-primary, #0f7a4d) 28%, transparent);
+  --ts-brand-primary-hover: #0f7a4d;
+  --ts-brand-primary-pressed: #0f7a4d;
+  --ts-brand-primary-soft: #f4f4f5;
+  --ts-brand-primary-border: #0f7a4d;
   --ts-accent-gold: var(--premium-gold, #c6a15b);
   --ts-accent-gold-soft: var(--premium-gold-soft, #f7f1e4);
 
@@ -24,14 +24,14 @@
   --ts-semantic-info: var(--info, #0284c7);
 
   /* Surfaces — light canvas (not brand-green flood) */
-  --ts-surface-page: var(--background, #f7faf8);
-  --ts-surface-primary: var(--surface, #ffffff);
-  --ts-surface-secondary: var(--surface, #ffffff);
-  --ts-surface-muted: var(--surface-subtle, #e8f4ee);
-  --ts-surface-elevated: var(--surface-elevated, #ffffff);
-  --ts-surface-nav: var(--surface, #ffffff);
-  --ts-surface-modal: var(--surface, #ffffff);
-  --ts-surface-brand: var(--brand-deep, #0b5d3b);
+  --ts-surface-page: #ffffff;
+  --ts-surface-primary: #ffffff;
+  --ts-surface-secondary: #ffffff;
+  --ts-surface-muted: #f4f4f5;
+  --ts-surface-elevated: #ffffff;
+  --ts-surface-nav: #ffffff;
+  --ts-surface-modal: #ffffff;
+  --ts-surface-brand: #0f7a4d;
 
   /* Typography — dark text on light; never light-green body text */
   --ts-text-display: var(--text-primary-semantic, #14231b);
@@ -54,9 +54,10 @@
   --ws-nav-touch-min: 2.75rem;
   --ws-row-min-height: 2.65rem;
   --ws-card-radius: 0.75rem;
-  --ws-drawer-width: min(18.5rem, 86vw);
-  --ws-drawer-z: 55;
-  --ws-nav-z: 50;
+  --ws-drawer-width: min(22rem, 92vw);
+  --ws-header-z: 100;
+  --ws-drawer-z: 85;
+  --ws-nav-z: 110;
 
   /* Type scale */
   --ts-type-display-size: clamp(1.375rem, 4vw, 1.75rem);
@@ -351,7 +352,7 @@
   height: 100%;
 }
 
-.workspace-kpi-bar__seg--success { background: #16a34a; }
+.workspace-kpi-bar__seg--success { background: #0f7a4d; }
 .workspace-kpi-bar__seg--warning { background: #d97706; }
 .workspace-kpi-bar__seg--danger { background: #dc2626; }
 .workspace-kpi-bar__seg--info { background: #2563eb; }
@@ -382,7 +383,7 @@
   flex-shrink: 0;
 }
 
-.workspace-kpi-legend__dot--success { background: #16a34a; }
+.workspace-kpi-legend__dot--success { background: #0f7a4d; }
 .workspace-kpi-legend__dot--warning { background: #d97706; }
 .workspace-kpi-legend__dot--danger { background: #dc2626; }
 .workspace-kpi-legend__dot--info { background: #2563eb; }

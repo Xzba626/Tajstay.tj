@@ -28,28 +28,27 @@
 :root,
 [data-theme="light"],
 [data-theme="dark"] {
-  --app-bg: var(--taj-app-bg);
-  --app-vignette: radial-gradient(circle at 50% 28%, transparent 0%, rgba(0, 71, 36, 0.14) 72%, rgba(1, 47, 26, 0.32) 100%);
+  --app-bg: #ffffff;
+  --app-vignette: none;
 }
 
-/* Dark marketing canvas only — light workspaces override in tajstay-design-system.css */
 [data-theme="dark"] :where(body:not(.app-shell--workspace)) .text-slate-100,
 [data-theme="dark"] :where(body:not(.app-shell--workspace)) .text-slate-200,
 [data-theme="light"] :where(body:not(.app-shell--workspace)) .text-slate-100,
 [data-theme="light"] :where(body:not(.app-shell--workspace)) .text-slate-200 {
-  color: var(--taj-text, #f8fafc) !important;
+  color: #14231b !important;
 }
 
 [data-theme="dark"] :where(body:not(.app-shell--workspace)) .text-slate-300,
 [data-theme="dark"] :where(body:not(.app-shell--workspace)) .text-slate-400,
 [data-theme="light"] :where(body:not(.app-shell--workspace)) .text-slate-300,
 [data-theme="light"] :where(body:not(.app-shell--workspace)) .text-slate-400 {
-  color: var(--taj-text-secondary, #d8f1e2) !important;
+  color: #52525b !important;
 }
 
 [data-theme="dark"] :where(body:not(.app-shell--workspace)) .text-slate-500,
 [data-theme="light"] :where(body:not(.app-shell--workspace)) .text-slate-500 {
-  color: var(--taj-text-muted, #b7d8c4) !important;
+  color: #71717a !important;
 }
 
 body {
@@ -70,15 +69,15 @@ a[role="button"],
 
 [data-theme="light"] button,
 [data-theme="light"] a[role="button"] {
-  color: #ffffff;
-  border-color: rgba(15, 23, 42, 0.22);
+  color: inherit;
+  border-color: #e4e4e7;
 }
 
 html,
 body {
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden;
+  overflow-x: clip;
   overscroll-behavior-x: none;
 }
 
@@ -334,13 +333,13 @@ canvas {
   color: rgba(236, 253, 245, 0.96);
 }
 :root {
-  --taj-primary: #0f766e;
-  --taj-accent: #22c55e;
-  --taj-bg-main: #0b0f14;
-  --taj-bg-secondary: #111827;
-  --taj-surface: rgba(255, 255, 255, 0.05);
-  --taj-text-main: #e5e7eb;
-  --taj-text-secondary: #94a3b8;
+  --taj-primary: #0f7a4d;
+  --taj-accent: #0f7a4d;
+  --taj-bg-main: #ffffff;
+  --taj-bg-secondary: #f4f4f5;
+  --taj-surface: #ffffff;
+  --taj-text-main: #14231b;
+  --taj-text-secondary: #52525b;
 }
 
 .taj-border {
@@ -714,7 +713,7 @@ html.home-page-snap .home-chapter--snap {
 }
 
 .home-chapter--band-a {
-  background: linear-gradient(180deg, rgba(0, 107, 56, 0.22) 0%, transparent 50%);
+  background: #ffffff;
 }
 
 .home-chapter--band-b {
@@ -729,14 +728,14 @@ html.home-page-snap .home-chapter--snap {
 
 @media (max-width: 767px) {
   body {
-    background: var(--taj-app-bg, var(--app-bg)) !important;
+    background: #ffffff !important;
   }
 
   :root {
-    --brand-bg: #004724;
-    --brand-bg-2: #006b38;
-    --brand-text-muted: #b7d8c4;
-    --brand-border: rgba(52, 211, 153, 0.18);
+    --brand-bg: #ffffff;
+    --brand-bg-2: #f4f4f5;
+    --brand-text-muted: #71717a;
+    --brand-border: #e4e4e7;
   }
 
   .page-vignette {
@@ -888,17 +887,12 @@ h1, h2 {
 .hotel-card-premium {
   position: relative;
   overflow: hidden;
-  border-radius: 1.75rem;
-  border: 1px solid rgba(255,255,255,0.08);
-  background: linear-gradient(145deg,
-    rgba(15,23,42,0.95) 0%,
-    rgba(12,19,36,0.9) 100%
-  );
-  box-shadow: var(--shadow-card);
-  transition: transform 0.35s cubic-bezier(0.22,1,0.36,1),
-              box-shadow 0.35s cubic-bezier(0.22,1,0.36,1),
-              border-color 0.3s ease;
-  will-change: transform, box-shadow;
+  border-radius: 1.25rem;
+  border: 1px solid #e4e4e7;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  will-change: auto;
 }
 
 .hotel-card-premium::before {
@@ -970,8 +964,8 @@ h1, h2 {
 
 /* ---- Luxury button upgrade ---- */
 .ds-primary-btn {
-  background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%) !important;
-  box-shadow: var(--shadow-btn) !important;
+  background: #0f7a4d !important;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12) !important;
   border: none !important;
   position: relative;
   overflow: hidden;
@@ -1367,15 +1361,15 @@ footer {
 /* ========================================================================== */
 
 :root {
-  --ds-primary: #22c55e;
-  --ds-secondary: #006b38;
-  --ds-bg-main: #004724;
-  --ds-bg-section: #006b38;
-  --ds-glow: rgba(34, 197, 94, 0.18);
-  --ds-text-primary: #f8fafc;
-  --ds-text-secondary: #d8f1e2;
-  --ds-text-muted: #b7d8c4;
-  --ds-border: rgba(52, 211, 153, 0.18);
+  --ds-primary: #0f7a4d;
+  --ds-secondary: #0f7a4d;
+  --ds-bg-main: #ffffff;
+  --ds-bg-section: #f4f4f5;
+  --ds-glow: rgba(15, 122, 77, 0.16);
+  --ds-text-primary: #14231b;
+  --ds-text-secondary: #52525b;
+  --ds-text-muted: #71717a;
+  --ds-border: #e4e4e7;
   --ds-shadow-soft: 0 10px 28px rgba(0, 0, 0, 0.28);
   --ds-radius: 16px;
   --ds-success-bg: rgba(20, 92, 67, 0.22);
@@ -1437,25 +1431,23 @@ p,
   color: var(--ds-text-muted) !important;
 }
 
-/* Primary button system */
-button,
 .ds-primary-btn,
 .brand-gradient,
 a.ds-primary-btn {
-  background: var(--ds-secondary) !important;
+  background: #0f7a4d !important;
   color: #fff !important;
-  border: 1px solid color-mix(in srgb, var(--ds-secondary) 68%, white 32%) !important;
+  border: 1px solid #0f7a4d !important;
   border-radius: var(--ds-radius) !important;
-  box-shadow: var(--ds-shadow-soft), 0 0 0 1px rgba(255, 255, 255, 0.06) inset !important;
-  transition: all 0.3s ease !important;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12) !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
 }
 
-button:hover,
 .ds-primary-btn:hover,
 .brand-gradient:hover,
 a.ds-primary-btn:hover {
-  background: color-mix(in srgb, var(--ds-secondary) 82%, #1f8c66 18%) !important;
-  box-shadow: var(--ds-shadow-soft), 0 0 22px var(--ds-glow) !important;
+  background: #0f7a4d !important;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.16) !important;
 }
 
 /* Secondary button system */
@@ -1671,28 +1663,28 @@ footer.site-footer {
    ========================================================================== */
 [data-theme="light"],
 :root {
-  --ds-bg-main: #004724;
-  --ds-bg-section: #006b38;
-  --ds-card: rgba(1, 47, 26, 0.72);
-  --ds-card-2: rgba(1, 47, 26, 0.86);
-  --ds-input-bg: rgba(1, 47, 26, 0.72);
-  --ds-border: rgba(52, 211, 153, 0.18);
-  --ds-primary: #22c55e;
-  --ds-text-primary: #f8fafc;
-  --ds-text-secondary: #d8f1e2;
-  --ds-text-muted: #b7d8c4;
-  --ds-glow: rgba(34, 197, 94, 0.2);
+  --ds-bg-main: #ffffff;
+  --ds-bg-section: #f4f4f5;
+  --ds-card: #ffffff;
+  --ds-card-2: #f4f4f5;
+  --ds-input-bg: #ffffff;
+  --ds-border: #e4e4e7;
+  --ds-primary: #0f7a4d;
+  --ds-text-primary: #14231b;
+  --ds-text-secondary: #52525b;
+  --ds-text-muted: #71717a;
+  --ds-glow: rgba(15, 122, 77, 0.16);
 }
 
 [data-theme="dark"] {
-  --ds-bg-main: #004724;
-  --ds-bg-section: #006b38;
-  --ds-card: rgba(1, 47, 26, 0.72);
-  --ds-card-2: rgba(1, 47, 26, 0.86);
-  --ds-input-bg: rgba(1, 47, 26, 0.72);
-  --ds-border: rgba(52, 211, 153, 0.18);
-  --ds-primary: #22c55e;
-  --ds-text-primary: #f8fafc;
+  --ds-bg-main: #ffffff;
+  --ds-bg-section: #f4f4f5;
+  --ds-card: #ffffff;
+  --ds-card-2: #f4f4f5;
+  --ds-input-bg: #ffffff;
+  --ds-border: #e4e4e7;
+  --ds-primary: #0f7a4d;
+  --ds-text-primary: #14231b;
   --ds-text-secondary: #d8f1e2;
   --ds-text-muted: #b7d8c4;
   --ds-glow: rgba(34, 197, 94, 0.18);
@@ -1774,8 +1766,7 @@ h2,
 h3,
 h4,
 h5,
-h6,
-.text-white {
+h6 {
   color: var(--ds-text-primary) !important;
 }
 
@@ -1805,24 +1796,30 @@ body:not(.app-shell--workspace) :where(.glass-panel, .quiet-card, .surface-1, .l
 .ds-primary-btn,
 .brand-gradient,
 button[type="submit"] {
-  background: var(--ds-primary) !important;
+  background: #0f7a4d !important;
   color: #fff !important;
-  border: 1px solid color-mix(in srgb, var(--ds-border) 70%, #fff 30%) !important;
-  box-shadow: 0 8px 20px rgba(20, 92, 67, 0.26) !important;
+  border: 1px solid #0f7a4d !important;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12) !important;
 }
 
 .ds-primary-btn:hover,
 .brand-gradient:hover,
 button[type="submit"]:hover {
-  background: color-mix(in srgb, var(--ds-primary) 82%, #1e7a5a 18%) !important;
-  box-shadow: 0 10px 22px var(--ds-glow) !important;
+  background: #0f7a4d !important;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.16) !important;
 }
 
-header.site-header,
+header.site-header {
+  background: #ffffff !important;
+  color: #14231b !important;
+  border-bottom: 1px solid #e4e4e7 !important;
+}
+
 footer.site-footer,
 .footer,
 .footer-block {
-  background: var(--ds-bg-main) !important;
+  background: #0f7a4d !important;
   border-color: var(--ds-border) !important;
 }
 
@@ -1917,50 +1914,7 @@ textarea {
   --brand-star: var(--taj-gold);
 }
 
-/* Remap accidental light Tailwind surfaces to emerald cards */
-[class*="bg-white"],
-[class*="bg-slate-50"],
-[class*="bg-slate-100"],
-[class*="bg-slate-200"],
-[class*="bg-slate-300"],
-[class*="bg-brand-900"],
-[class*="bg-brand-800"],
-[class*="bg-brand-700"],
-[class*="bg-brand-600"] {
-  background-color: var(--taj-card) !important;
-  background-image: none !important;
-}
-
-[class*="bg-slate-900"],
-[class*="bg-slate-950"],
-[class*="bg-black"] {
-  background-color: var(--taj-card-strong) !important;
-  background-image: none !important;
-}
-
-[class*="border-white/"],
-[class*="border-slate-"],
-[class*="border-brand-"] {
-  border-color: var(--taj-card-border) !important;
-}
-
-[class*="text-white"],
-[class*="text-slate-100"] {
-  color: var(--taj-text) !important;
-}
-
-[class*="text-slate-200"],
-[class*="text-slate-300"],
-[class*="text-slate-400"],
-[class*="text-brand-200"] {
-  color: var(--taj-text-secondary) !important;
-}
-
-[class*="text-slate-500"],
-[class*="text-slate-600"],
-[class*="text-brand-300"] {
-  color: var(--taj-text-muted) !important;
-}
+/* Tailwind utility remaps disabled — light canvas is the product default. */
 
 /* Unified form controls (legacy .ds-* + native fields) */
 input,
@@ -1990,8 +1944,8 @@ select:focus,
 }
 
 select option {
-  color: var(--taj-text) !important;
-  background-color: #012f1a !important;
+  color: #14231b !important;
+  background-color: #ffffff !important;
 }
 
 /* Legacy button aliases */
@@ -2062,80 +2016,94 @@ select option {
 }
 
 /* ==========================================================================
-   TajStay brand palette lock — rich emerald #004724 (see src/lib/brand.ts)
+   TajStay brand palette lock — white canvas + exact #0F7A4D
    ========================================================================== */
 :root,
 [data-theme="light"],
 [data-theme="dark"] {
-  --bg-base: #004724 !important;
-  --bg-deep: #012f1a !important;
-  --bg-soft: #006b38 !important;
-  --bg-surface: rgba(1, 47, 26, 0.72) !important;
-  --bg-elevated: rgba(1, 47, 26, 0.86) !important;
-  --bg-input: rgba(1, 47, 26, 0.72) !important;
+  --bg-base: #ffffff !important;
+  --bg-deep: #ffffff !important;
+  --bg-soft: #f4f4f5 !important;
+  --bg-surface: #ffffff !important;
+  --bg-elevated: #ffffff !important;
+  --bg-input: #ffffff !important;
 
-  --green-primary: #22c55e !important;
-  --green-hover: #34d399 !important;
-  --green-dim: #16a34a !important;
-  --green-glow: rgba(34, 197, 94, 0.26) !important;
-  --green-border: rgba(52, 211, 153, 0.18) !important;
+  --green-primary: #0f7a4d !important;
+  --green-hover: #0f7a4d !important;
+  --green-dim: #0f7a4d !important;
+  --green-glow: rgba(15, 122, 77, 0.16) !important;
+  --green-border: #e4e4e7 !important;
 
-  --text-primary: #f8fafc !important;
-  --text-secondary: #d8f1e2 !important;
-  --text-muted: #b7d8c4 !important;
-  --border: rgba(52, 211, 153, 0.18) !important;
-  --border-focus: rgba(52, 211, 153, 0.55) !important;
+  --text-primary: #14231b !important;
+  --text-secondary: #52525b !important;
+  --text-muted: #71717a !important;
+  --border: #e4e4e7 !important;
+  --border-focus: #0f7a4d !important;
 
-  --brand-bg: #004724 !important;
-  --brand-surface: rgba(1, 47, 26, 0.72) !important;
-  --brand-surface-2: rgba(1, 47, 26, 0.86) !important;
-  --taj-card: rgba(1, 47, 26, 0.72) !important;
-  --taj-card-border: rgba(52, 211, 153, 0.18) !important;
-  --taj-card-shadow: 0 24px 70px rgba(0, 0, 0, 0.22) !important;
-  --taj-card-strong: rgba(1, 47, 26, 0.86) !important;
-  --taj-card-strong-border: rgba(212, 175, 55, 0.18) !important;
-  --taj-section-bg: rgba(0, 71, 36, 0.38) !important;
-  --taj-section-border: rgba(52, 211, 153, 0.14) !important;
-  --taj-input: rgba(1, 47, 26, 0.72) !important;
-  --taj-input-border: rgba(183, 216, 196, 0.24) !important;
-  --taj-input-focus-border: rgba(52, 211, 153, 0.62) !important;
-  --taj-input-focus-ring: 0 0 0 3px rgba(52, 211, 153, 0.14) !important;
-  --taj-dropdown-bg: rgba(1, 47, 26, 0.94) !important;
-  --brand-green: #22c55e !important;
-  --brand-green-light: #34d399 !important;
-  --brand-green-dark: #16a34a !important;
-  --brand-border: var(--border) !important;
-  --brand-text: #f8fafc !important;
-  --brand-muted: #b7d8c4 !important;
-  --brand-star: #d4af37 !important;
+  --brand-bg: #ffffff !important;
+  --brand-surface: #ffffff !important;
+  --brand-surface-2: #ffffff !important;
+  --taj-card: #ffffff !important;
+  --taj-card-border: #e4e4e7 !important;
+  --taj-card-shadow: 0 10px 28px rgba(15, 23, 42, 0.06) !important;
+  --taj-card-strong: #ffffff !important;
+  --taj-card-strong-border: #e4e4e7 !important;
+  --taj-section-bg: #ffffff !important;
+  --taj-section-border: #e4e4e7 !important;
+  --taj-input: #ffffff !important;
+  --taj-input-border: #e4e4e7 !important;
+  --taj-input-focus-border: #0f7a4d !important;
+  --taj-input-focus-ring: 0 0 0 3px rgba(15, 122, 77, 0.22) !important;
+  --taj-dropdown-bg: #ffffff !important;
+  --brand-green: #0f7a4d !important;
+  --brand-green-light: #0f7a4d !important;
+  --brand-green-dark: #0f7a4d !important;
+  --brand-border: #e4e4e7 !important;
+  --brand-text: #14231b !important;
+  --brand-muted: #71717a !important;
+  --brand-star: #c6a15b !important;
 
-  --taj-color-text: #f8fafc !important;
-  --taj-color-text-secondary: #d8f1e2 !important;
-  --taj-color-text-muted: #b7d8c4 !important;
-  --taj-color-border: rgba(52, 211, 153, 0.18) !important;
-  --taj-color-border-strong: rgba(52, 211, 153, 0.28) !important;
-  --taj-color-bg-card: rgba(1, 47, 26, 0.72) !important;
-  --taj-color-bg-card-solid: rgba(1, 47, 26, 0.86) !important;
-  --taj-public-surface: rgba(1, 47, 26, 0.72) !important;
-  --taj-public-surface-strong: rgba(1, 47, 26, 0.86) !important;
+  --taj-color-text: #14231b !important;
+  --taj-color-text-secondary: #52525b !important;
+  --taj-color-text-muted: #71717a !important;
+  --taj-color-border: #e4e4e7 !important;
+  --taj-color-border-strong: #d4d4d8 !important;
+  --taj-color-bg-card: #ffffff !important;
+  --taj-color-bg-card-solid: #ffffff !important;
+  --taj-public-surface: #ffffff !important;
+  --taj-public-surface-strong: #ffffff !important;
 
-  --taj-app-bg:
-    radial-gradient(circle at 20% 15%, rgba(34, 197, 94, 0.18), transparent 34%),
-    radial-gradient(circle at 85% 20%, rgba(212, 175, 55, 0.07), transparent 32%),
-    linear-gradient(135deg, #006b38 0%, #004724 45%, #012f1a 100%) !important;
+  --taj-app-bg: #ffffff !important;
+  --taj-bg: #ffffff !important;
+  --taj-bg-light: #f4f4f5 !important;
+  --taj-header: #ffffff !important;
+  --taj-text: #14231b !important;
+  --taj-text-secondary: #52525b !important;
+  --taj-text-muted: #71717a !important;
+  --taj-primary: #0f7a4d !important;
+  --taj-dropdown-border: #e4e4e7 !important;
+  --taj-dropdown-item: #14231b !important;
+  --taj-dropdown-item-hover-bg: #f4f4f5 !important;
+  --taj-dropdown-item-hover-text: #14231b !important;
+  --taj-icon: #52525b !important;
 
-  --ds-bg-main: #004724 !important;
-  --ds-bg-section: rgba(0, 71, 36, 0.38) !important;
-  --ds-card: rgba(1, 47, 26, 0.72) !important;
-  --ds-card-2: rgba(1, 47, 26, 0.86) !important;
-  --ds-input-bg: rgba(1, 47, 26, 0.72) !important;
+  --ds-bg-main: #ffffff !important;
+  --ds-bg-section: #f4f4f5 !important;
+  --ds-card: #ffffff !important;
+  --ds-card-2: #ffffff !important;
+  --ds-input-bg: #ffffff !important;
+
+  --taj-btn-primary-bg: #0f7a4d !important;
+  --taj-btn-primary-bg-hover: #0f7a4d !important;
+  --taj-btn-primary-text: #ffffff !important;
+  --taj-btn-primary-border: #0f7a4d !important;
 }
 
 body,
 html,
 #__next {
-  background: var(--taj-app-bg) !important;
-  color: var(--text-primary) !important;
+  background: #ffffff !important;
+  color: #14231b !important;
 }
 
 .page-backdrop,
@@ -2151,17 +2119,25 @@ html,
 .page-backdrop--particles,
 .page-backdrop--subtle,
 .page-backdrop--default {
-  background: var(--taj-app-bg) !important;
+  background: #ffffff !important;
 }
 
 .page-vignette {
-  background: radial-gradient(circle at 50% 28%, transparent 0%, rgba(0, 71, 36, 0.14) 72%, rgba(1, 47, 26, 0.32) 100%) !important;
+  background: none !important;
 }
 
 [data-theme="light"] header.site-header,
-[data-theme="dark"] header.site-header {
-  background: rgba(0, 53, 29, 0.94) !important;
-  border-bottom-color: rgba(52, 211, 153, 0.16) !important;
+[data-theme="dark"] header.site-header,
+header.site-header,
+header.site-header.site-header--locked,
+header.site-header.site-header--scroll-hidden {
+  position: sticky;
+  top: 0;
+  z-index: 100 !important;
+  background: #ffffff !important;
+  border-bottom: 1px solid #e4e4e7 !important;
+  box-shadow: none !important;
+  transform: none !important;
 }
 
 [data-theme="light"] .glass-panel,
@@ -2190,22 +2166,22 @@ html,
 }
 
 /* Palette lock — forms, dropdowns, modals (wins over legacy .ds-* layers) */
-input,
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="hidden"]),
 textarea,
 select,
 .ds-input,
 .taj-input,
 .search-input-premium {
-  background: var(--taj-input) !important;
-  border: 1px solid var(--taj-input-border) !important;
-  color: var(--taj-text) !important;
+  background: #ffffff !important;
+  border: 1px solid #e4e4e7 !important;
+  color: #14231b !important;
 }
 
 input::placeholder,
 textarea::placeholder,
 .ds-input::placeholder,
 .taj-input::placeholder {
-  color: var(--taj-text-muted) !important;
+  color: #71717a !important;
   opacity: 1 !important;
 }
 
@@ -2268,34 +2244,12 @@ select:focus,
 
 /* ---- Home hero premium polish ---- */
 .home-chapter--band-hero {
-  background:
-    radial-gradient(circle at 20% 30%, rgba(34, 197, 94, 0.16), transparent 34%),
-    radial-gradient(circle at 75% 25%, rgba(212, 175, 55, 0.07), transparent 32%),
-    linear-gradient(135deg, #083528 0%, #06281f 48%, #031b15 100%);
+  background: #ffffff;
 }
 
-.home-chapter--band-hero::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    linear-gradient(90deg, rgba(6, 40, 31, 0.28) 0%, transparent 42%, transparent 58%, rgba(3, 31, 24, 0.18) 100%),
-    linear-gradient(180deg, transparent 0%, rgba(2, 26, 20, 0.28) 100%);
-  z-index: 0;
-}
-
+.home-chapter--band-hero::before,
 .home-chapter--band-hero::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background-image:
-    linear-gradient(rgba(52, 211, 153, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(52, 211, 153, 0.04) 1px, transparent 1px);
-  background-size: 48px 48px;
-  mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, black 20%, transparent 75%);
-  z-index: 0;
+  display: none;
 }
 
 .home-hero-badge {
@@ -2303,24 +2257,24 @@ select:focus,
   align-items: center;
   gap: 0.35rem;
   border-radius: 9999px;
-  border: 1px solid rgba(52, 211, 153, 0.28);
-  background: rgba(12, 36, 25, 0.75);
+  border: 1px solid #e4e4e7;
+  background: #ffffff;
   padding: 0.35rem 0.75rem;
   font-size: 0.68rem;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #6ee7b7;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  color: #0f7a4d;
+  box-shadow: none;
 }
 
 .home-hero-title {
-  color: #ffffff;
-  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.35);
+  color: #14231b;
+  text-shadow: none;
 }
 
 .home-hero-subtitle {
-  color: #cde7da;
+  color: #52525b;
   line-height: 1.55;
 }
 
@@ -2385,16 +2339,16 @@ select:focus,
 .home-hero-search-wrap {
   margin-top: 2rem;
   padding-top: 1.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 0;
 }
 
 .home-search-card {
   border-radius: 1.5rem;
-  border: 1px solid var(--taj-card-border);
-  background: var(--taj-card);
+  border: none;
+  background: #0f7a4d;
   padding: 1.25rem 1.5rem;
-  box-shadow: var(--taj-card-shadow);
-  backdrop-filter: blur(12px);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+  backdrop-filter: none;
 }
 
 .home-search-label {
@@ -2402,7 +2356,7 @@ select:focus,
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--taj-text-secondary);
+  color: #ffffff;
 }
 
 .home-search-field,
@@ -2412,10 +2366,10 @@ select:focus,
   align-items: center;
   gap: 0.5rem;
   border-radius: 0.875rem;
-  border: 1px solid var(--taj-input-border);
-  background: var(--taj-input);
+  border: 1px solid #e4e4e7;
+  background: #ffffff;
   padding: 0 0.75rem;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .home-search-field:focus-within,
@@ -2447,12 +2401,12 @@ select:focus,
   background: transparent;
   font-size: 0.875rem;
   line-height: 1.25rem;
-  color: var(--taj-text);
+  color: #14231b;
   outline: none;
 }
 
 .home-search-input::placeholder {
-  color: var(--taj-text-muted);
+  color: #71717a;
 }
 
 .home-search-submit {
@@ -2463,20 +2417,20 @@ select:focus,
   justify-content: center;
   gap: 0.5rem;
   border-radius: 0.875rem;
-  background: var(--taj-btn-primary-bg);
+  background: #0f7a4d;
   font-size: 0.875rem;
   font-weight: 700;
   letter-spacing: 0.02em;
-  color: var(--taj-btn-primary-text);
-  border: 1px solid var(--taj-btn-primary-border);
-  box-shadow: var(--taj-btn-primary-shadow);
-  transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+  color: #ffffff;
+  border: 1px solid #ffffff;
+  box-shadow: none;
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
 }
 
 .home-search-submit:hover {
-  background: var(--taj-btn-primary-bg-hover);
+  background: #0f7a4d;
   transform: translateY(-1px);
-  box-shadow: var(--taj-btn-primary-shadow-hover);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
 }
 
 .home-search-submit:focus-visible {
@@ -2484,8 +2438,13 @@ select:focus,
   box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.45), 0 10px 28px rgba(34, 197, 94, 0.32);
 }
 
-.home-search-submit:active {
-  transform: scale(0.98);
+.home-search-card .home-search-submit,
+.home-search-card .home-search-submit--mobile,
+.home-search-card button[type="submit"] {
+  background: #ffffff !important;
+  color: #0f7a4d !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 .home-hero-float-card {
@@ -2563,7 +2522,7 @@ select:focus,
 /* ---- Cookie consent banner (premium glass) ---- */
 .cookie-consent {
   position: fixed;
-  z-index: 120;
+  z-index: 40;
   bottom: max(1rem, env(safe-area-inset-bottom));
   left: max(1rem, env(safe-area-inset-left));
   right: max(1rem, env(safe-area-inset-right));
@@ -2710,7 +2669,8 @@ select:focus,
 }
 
 body.app-shell--hidden-nav .cookie-consent {
-  bottom: max(1rem, env(safe-area-inset-bottom));
+  z-index: 40;
+  bottom: calc(var(--workspace-bottom-nav-height, 3.75rem) + env(safe-area-inset-bottom, 0px) + 0.75rem);
 }
 
 /* ---- Photo placeholder (premium empty state) ---- */
@@ -2722,8 +2682,9 @@ body.app-shell--hidden-nav .cookie-consent {
   gap: 0.35rem;
   padding: 1.25rem;
   text-align: center;
-  background: linear-gradient(145deg, rgba(236, 253, 245, 0.06), rgba(6, 78, 59, 0.12));
-  border: 1px dashed rgba(110, 231, 183, 0.22);
+  background: #f4f4f5;
+  border: 1px dashed #d4d4d8;
+  color: #52525b;
 }
 
 .photo-placeholder__icon {
@@ -2736,7 +2697,7 @@ body.app-shell--hidden-nav .cookie-consent {
   margin: 0;
   font-size: 0.8125rem;
   font-weight: 650;
-  color: rgba(236, 253, 245, 0.88);
+  color: #52525b;
 }
 
 .photo-placeholder__hint {
@@ -2744,7 +2705,7 @@ body.app-shell--hidden-nav .cookie-consent {
   max-width: 22ch;
   font-size: 0.6875rem;
   line-height: 1.45;
-  color: rgba(167, 211, 184, 0.72);
+  color: #71717a;
 }
 
 .photo-placeholder--room {

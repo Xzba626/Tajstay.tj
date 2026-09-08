@@ -63,7 +63,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#004724"
+  themeColor: "#0F7A4D"
 };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
@@ -74,7 +74,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const pendingTripsCount =
     user?.role === "GUEST" ? await getPendingTripsCount(user.id) : 0;
   return (
-    <html lang={locale} className="scroll-smooth" data-theme="dark" suppressHydrationWarning>
+    <html lang={locale} className="scroll-smooth" data-theme="light" suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.webmanifest" />
         <link rel="icon" href="/favicon.ico" sizes="48x48" />
@@ -83,7 +83,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-title" content={BRAND.name} />
       </head>
-      <body className="min-h-screen bg-[var(--brand-bg)] text-[var(--brand-text)] antialiased font-sans" suppressHydrationWarning>
+      <body className="min-h-screen bg-white text-[var(--text-primary-semantic,#14231b)] antialiased font-sans" suppressHydrationWarning>
         <AuthProvider>
           <AppShell locale={locale} />
           <SplashScreen />

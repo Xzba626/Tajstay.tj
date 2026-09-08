@@ -319,8 +319,8 @@
 }
 
 .profile-avatar--initial {
-  background: linear-gradient(145deg, #065f46 0%, #16a34a 45%, #d4a843 100%);
-  color: #f0fdf4;
+  background: #0f7a4d;
+  color: #ffffff;
   font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -631,8 +631,17 @@ body:not(.app-shell) .hotel-sticky-bar {
 }
 
 /* ---- Mobile Search (compact) ---- */
-.hotel-card-premium--compact {
-  border-radius: 1rem;
+@media (max-width: 767px) {
+  .mobile-search-results {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 0.75rem;
+  }
+
+  .mobile-search-results .hotel-card-premium {
+    width: 100%;
+    max-width: 100%;
+  }
 }
 
 .hotel-card-premium--compact .hotel-img-wrap {
@@ -646,8 +655,8 @@ body:not(.app-shell) .hotel-sticky-bar {
   min-height: 2.75rem;
   padding: 0.3rem 0.35rem 0.3rem 0.7rem;
   border-radius: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(18, 31, 20, 0.94);
+  border: none;
+  background: #0f7a4d;
 }
 
 .mobile-search-bar__input {
@@ -655,10 +664,12 @@ body:not(.app-shell) .hotel-sticky-bar {
   flex: 1;
   height: 2.15rem;
   border: 0;
-  background: transparent;
-  color: #fff;
+  background: #ffffff;
+  color: #14231b;
   font-size: 0.9rem;
   outline: none;
+  border-radius: 0.75rem;
+  padding: 0 0.7rem;
 }
 
 .mobile-search-bar__go {
@@ -666,8 +677,8 @@ body:not(.app-shell) .hotel-sticky-bar {
   padding: 0 0.7rem;
   border: 0;
   border-radius: 0.75rem;
-  background: var(--green-accent, #22c55e);
-  color: #062013;
+  background: #ffffff;
+  color: #0f7a4d;
   font-size: 0.75rem;
   font-weight: 700;
 }
@@ -680,15 +691,15 @@ body:not(.app-shell) .hotel-sticky-bar {
   height: 2.15rem;
   border: 0;
   border-radius: 0.75rem;
-  background: rgba(255, 255, 255, 0.06);
-  color: #ecfdf5;
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
 }
 
 .mobile-search-filters {
   padding: 0.75rem;
   border-radius: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(14, 28, 22, 0.96);
+  border: 1px solid #e4e4e7;
+  background: #ffffff;
 }
 
 .mobile-search-filters__field {
@@ -699,7 +710,7 @@ body:not(.app-shell) .hotel-sticky-bar {
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.55);
+  color: #71717a;
 }
 
 .mobile-search-filters__field input,
@@ -707,9 +718,9 @@ body:not(.app-shell) .hotel-sticky-bar {
   height: 2.35rem;
   padding: 0 0.65rem;
   border-radius: 0.7rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(0, 0, 0, 0.22);
-  color: #fff;
+  border: 1px solid #e4e4e7;
+  background: #ffffff;
+  color: #14231b;
   font-size: 0.875rem;
   font-weight: 600;
   text-transform: none;
@@ -720,17 +731,17 @@ body:not(.app-shell) .hotel-sticky-bar {
   height: 1.85rem;
   padding: 0 0.7rem;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: transparent;
-  color: #d8f1e2;
+  border: 1px solid #e4e4e7;
+  background: #ffffff;
+  color: #52525b;
   font-size: 0.75rem;
   font-weight: 600;
 }
 
 .mobile-search-chip.is-on {
-  border-color: rgba(34, 197, 94, 0.45);
-  background: rgba(34, 197, 94, 0.16);
-  color: #bbf7d0;
+  border-color: #0f7a4d;
+  background: #f4f4f5;
+  color: #0f7a4d;
 }
 
 .mobile-search-filters__reset,
@@ -743,15 +754,15 @@ body:not(.app-shell) .hotel-sticky-bar {
 }
 
 .mobile-search-filters__reset {
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: transparent;
-  color: #ecfdf5;
+  border: 1px solid #e4e4e7;
+  background: #ffffff;
+  color: #14231b;
 }
 
 .mobile-search-filters__apply {
   border: 0;
-  background: var(--green-accent, #22c55e);
-  color: #062013;
+  background: #0f7a4d;
+  color: #ffffff;
 }
 
 .mobile-search-map-cta {
@@ -762,9 +773,9 @@ body:not(.app-shell) .hotel-sticky-bar {
   width: 100%;
   min-height: 2.4rem;
   border-radius: 0.9rem;
-  border: 1px solid rgba(52, 211, 153, 0.28);
-  background: rgba(34, 197, 94, 0.08);
-  color: #ecfdf5;
+  border: 1px solid #0f7a4d;
+  background: #0f7a4d;
+  color: #ffffff;
   font-size: 0.8125rem;
   font-weight: 700;
 }

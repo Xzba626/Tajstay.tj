@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { WorkspaceMobileDrawer } from "@/components/navigation/WorkspaceMobileDrawer";
+import { BodyPortal } from "@/components/navigation/BodyPortal";
 import { subscribeWorkspaceDrawerOpen } from "@/lib/workspace/workspace-nav-bridge";
 
 export type OwnerSidebarLabels = {
@@ -181,6 +182,7 @@ export function OwnerMobileNav({ labels }: { labels: OwnerSidebarLabels }) {
 
   return (
     <>
+      <BodyPortal>
       <nav className="workspace-mobile-bottom-nav owner-mobile-bottom-nav lg:hidden" aria-label={labels.mobileNav}>
         {primaryItems.map((item) => {
           const active = isActive(pathname, section, item);
@@ -212,6 +214,7 @@ export function OwnerMobileNav({ labels }: { labels: OwnerSidebarLabels }) {
           <span>{labels.mobileMore}</span>
         </button>
       </nav>
+      </BodyPortal>
 
       <WorkspaceMobileDrawer
         open={moreOpen}

@@ -11,7 +11,7 @@
   --owner-text: var(--ts-text-title, #0f172a);
   --owner-text-secondary: var(--ts-text-secondary, #334155);
   --owner-text-muted: var(--ts-text-muted, #475569);
-  --owner-accent: var(--ts-brand-primary, #15803d);
+  --owner-accent: var(--ts-brand-primary, #0f7a4d);
   --owner-accent-soft: var(--ts-brand-primary-soft, #ecfdf5);
   --owner-accent-border: var(--ts-brand-primary-border, rgba(21, 128, 61, 0.22));
 

@@ -274,13 +274,13 @@ export function MobileSearchPanel({
       ) : null}
 
       {hotels.length ? (
-        <div className="grid grid-cols-2 gap-2.5">
+        <div className="mobile-search-results grid grid-cols-1 gap-3">
           {hotels.map((hotel) => (
             <HotelCard
               key={hotel.id}
               hotel={hotel as any}
               locale={locale}
-              variant="compact"
+              variant="list"
               hrefQuery={{
                 checkIn: filters.checkIn || undefined,
                 checkOut: filters.checkOut || undefined,
@@ -290,15 +290,15 @@ export function MobileSearchPanel({
           ))}
         </div>
       ) : loading ? (
-        <div className="grid grid-cols-2 gap-2.5">
-          {Array.from({ length: 6 }).map((_, idx) => (
-            <div key={idx} className="skeleton h-44 rounded-2xl" />
+        <div className="grid grid-cols-1 gap-3">
+          {Array.from({ length: 4 }).map((_, idx) => (
+            <div key={idx} className="skeleton h-52 rounded-2xl" />
           ))}
         </div>
       ) : (
-        <div className="rounded-2xl border border-dashed border-white/15 px-4 py-8 text-center">
-          <div className="font-semibold text-white">{m(locale, "search.emptyTitle")}</div>
-          <p className="mt-2 text-sm text-brand-200">{m(locale, "search.emptyHint")}</p>
+        <div className="rounded-2xl border border-dashed border-[#e4e4e7] bg-white px-4 py-8 text-center">
+          <div className="font-semibold text-[#14231b]">{m(locale, "search.emptyTitle")}</div>
+          <p className="mt-2 text-sm text-[#52525b]">{m(locale, "search.emptyHint")}</p>
         </div>
       )}
 

@@ -74,8 +74,8 @@ export default async function SearchPage({ searchParams }: Props) {
         </div>
       )}
       <div className="hidden md:block" data-reveal data-stagger="30">
-        <h1 className="text-[clamp(1.7rem,6vw,2.2rem)] font-bold tracking-tight text-white">{m(locale, "header.search")}</h1>
-        <p className="mt-2 text-brand-200">{m(locale, "search.filters")}</p>
+        <h1 className="text-[clamp(1.7rem,6vw,2.2rem)] font-bold tracking-tight text-[#14231b]">{m(locale, "header.search")}</h1>
+        <p className="mt-2 text-[#52525b]">{m(locale, "search.filters")}</p>
       </div>
       <div className="p-0 md:rounded-3xl md:p-5" data-reveal data-stagger="70">
         <SearchExperience
