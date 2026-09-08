@@ -1,57 +1,82 @@
 /**
- * TajStay semantic UI tokens — MOBILE UI FOUNDATION
+ * TajStay semantic UI tokens — DESIGN-01 canonical color system
  *
- * Canonical names for the light-first product system.
- * Do not use brand green as default text color.
- * Gold is premium accent only — never body/UI text on white.
- *
- * HEX values below are orientation targets from the mobile baseline audit.
- * Legacy aliases (--ts-*, --taj-*, --ds-*) are bridged here; do not mass-replace
- * screens until subsequent per-screen BLOCKs.
+ * GREEN + WHITE product language. Brand green for actions/search/nav accents;
+ * white/near-white page canvas. Gold/red/amber/blue only for semantic meaning.
  */
 
 :root {
-  /* ---- Surfaces ---- */
-  --background: #f7faf8;
-  --surface: #ffffff;
-  --surface-subtle: #e8f4ee;
-  --surface-elevated: #ffffff;
-  --surface-brand: #0b5d3b;
+  /* ---- Canonical --color-* tokens (DESIGN-01) ---- */
+  --color-page: #f7faf8;
+  --color-surface: #ffffff;
+  --color-surface-subtle: #e8f4ee;
+  --color-surface-elevated: #ffffff;
 
-  /* ---- Text (readable on light canvas) ---- */
-  --text-primary-semantic: #14231b;
-  --text-secondary-semantic: #66756d;
-  --text-muted-semantic: #66756d;
-  --text-on-brand: #ffffff;
-  --text-disabled: #94a3a0;
+  --color-text-primary: #14231b;
+  --color-text-secondary: #66756d;
+  --color-text-muted: #66756d;
+  --color-text-disabled: #94a3a0;
+  --color-text-on-brand: #ffffff;
 
-  /* ---- Brand green ---- */
-  --brand-primary: #0f7a4d;
-  --brand-primary-hover: #0b5d3b;
-  --brand-primary-active: #094d31;
-  --brand-soft: #e8f4ee;
-  --brand-deep: #0b5d3b;
+  --color-brand: #0f7a4d;
+  --color-brand-hover: #0b5d3b;
+  --color-brand-active: #094d31;
+  --color-brand-soft: #e8f4ee;
 
-  /* ---- Borders ---- */
-  --border-semantic: #dce7e1;
-  --border-strong-semantic: #c5d4cc;
+  --color-border: #dce7e1;
+  --color-border-strong: #c5d4cc;
 
-  /* ---- Status ---- */
-  --success: #0f7a4d;
-  --warning: #d97706;
-  --danger: #dc2626;
-  --info: #0284c7;
+  --color-success: #0f7a4d;
+  --color-success-soft: #e8f4ee;
 
-  /* ---- Premium accent (decorative only) ---- */
-  --premium-gold: #c6a15b;
-  --premium-gold-soft: #f7f1e4;
+  --color-warning: #d97706;
+  --color-warning-soft: #fef3c7;
+
+  --color-danger: #dc2626;
+  --color-danger-soft: #fee2e2;
+
+  --color-info: #0284c7;
+  --color-info-soft: #e0f2fe;
+
+  --color-gold: #c6a15b;
+  --color-gold-soft: #f7f1e4;
+
+  /* ---- Legacy semantic aliases (bridged to --color-*) ---- */
+  --background: var(--color-page);
+  --surface: var(--color-surface);
+  --surface-subtle: var(--color-surface-subtle);
+  --surface-elevated: var(--color-surface-elevated);
+  --surface-brand: var(--color-brand-active);
+
+  --text-primary-semantic: var(--color-text-primary);
+  --text-secondary-semantic: var(--color-text-secondary);
+  --text-muted-semantic: var(--color-text-muted);
+  --text-on-brand: var(--color-text-on-brand);
+  --text-disabled: var(--color-text-disabled);
+
+  --brand-primary: var(--color-brand);
+  --brand-primary-hover: var(--color-brand-hover);
+  --brand-primary-active: var(--color-brand-active);
+  --brand-soft: var(--color-brand-soft);
+  --brand-deep: var(--color-brand-active);
+
+  --border-semantic: var(--color-border);
+  --border-strong-semantic: var(--color-border-strong);
+
+  --success: var(--color-success);
+  --warning: var(--color-warning);
+  --danger: var(--color-danger);
+  --info: var(--color-info);
+
+  --premium-gold: var(--color-gold);
+  --premium-gold-soft: var(--color-gold-soft);
 
   /* ---- Interactive / state ---- */
-  --interactive: var(--brand-primary);
-  --selected: var(--brand-soft);
-  --selected-border: color-mix(in srgb, var(--brand-primary) 35%, transparent);
-  --disabled: #94a3a0;
-  --focus-ring-semantic: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 22%, transparent);
+  --interactive: var(--color-brand);
+  --selected: var(--color-brand-soft);
+  --selected-border: color-mix(in srgb, var(--color-brand) 35%, transparent);
+  --disabled: var(--color-text-disabled);
+  --focus-ring-semantic: 0 0 0 3px color-mix(in srgb, var(--color-brand) 22%, transparent);
 
   /* ---- Typography roles ---- */
   --font-ui: "Inter", "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;

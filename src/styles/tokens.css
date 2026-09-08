@@ -78,19 +78,19 @@
   --taj-sand-400: #d4b87a;
   --taj-sand-500: #c9a227;
 
-  /* Public surfaces — rich emerald #004724 */
-  --taj-color-bg: #004724;
-  --taj-color-bg-elevated: rgba(1, 47, 26, 0.86);
-  --taj-color-bg-card: rgba(1, 47, 26, 0.72);
-  --taj-color-bg-card-solid: rgba(1, 47, 26, 0.86);
-  --taj-color-border: rgba(52, 211, 153, 0.18);
-  --taj-color-border-strong: rgba(52, 211, 153, 0.28);
-  --taj-color-text: #f8fafc;
-  --taj-color-text-secondary: #d8f1e2;
-  --taj-color-text-muted: #b7d8c4;
-  --taj-color-primary: #16a34a;
-  --taj-color-primary-hover: #22c55e;
-  --taj-color-primary-active: #15803d;
+  /* Public surfaces — white canvas + brand green accents */
+  --taj-color-bg: var(--color-page, #f7faf8);
+  --taj-color-bg-elevated: var(--color-surface-elevated, #ffffff);
+  --taj-color-bg-card: var(--color-surface, #ffffff);
+  --taj-color-bg-card-solid: var(--color-surface, #ffffff);
+  --taj-color-border: var(--color-border, #dce7e1);
+  --taj-color-border-strong: var(--color-border-strong, #c5d4cc);
+  --taj-color-text: var(--color-text-primary, #14231b);
+  --taj-color-text-secondary: var(--color-text-secondary, #66756d);
+  --taj-color-text-muted: var(--color-text-muted, #66756d);
+  --taj-color-primary: var(--color-brand, #0f7a4d);
+  --taj-color-primary-hover: var(--color-brand-hover, #0b5d3b);
+  --taj-color-primary-active: var(--color-brand-active, #094d31);
   --taj-color-accent: var(--taj-sand-500);
   --taj-color-danger: #dc2626;
   --taj-color-success: #16a34a;
@@ -102,12 +102,12 @@
   --taj-color-on-dark: #f0fdf4;
   --taj-color-on-dark-muted: #a7d4bc;
 
-  --taj-public-surface: rgba(1, 47, 26, 0.72);
-  --taj-public-surface-strong: rgba(1, 47, 26, 0.86);
+  --taj-public-surface: var(--color-surface, #ffffff);
+  --taj-public-surface-strong: var(--color-brand, #0f7a4d);
 
   /* Chat */
-  --taj-chat-bg: #f7fcf9;
-  --taj-chat-bubble-guest: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  --taj-chat-bg: var(--color-page, #f7faf8);
+  --taj-chat-bubble-guest: linear-gradient(135deg, var(--color-brand, #0f7a4d) 0%, var(--color-brand-hover, #0b5d3b) 100%);
   --taj-chat-bubble-host: #ffffff;
   --taj-chat-input-bg: #ffffff;
 

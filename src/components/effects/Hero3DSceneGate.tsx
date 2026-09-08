@@ -9,7 +9,7 @@ const Hero3DLazy = dynamic(
     ssr: false,
     loading: () => (
       <div
-        className="absolute inset-0 animate-pulse rounded-[2rem] bg-gradient-to-br from-emerald-950/30 via-slate-900/20 to-cyan-950/25"
+        className="absolute inset-0 animate-pulse rounded-[2rem] bg-gradient-to-br from-brand-50/40 via-slate-100/30 to-brand-100/25"
         aria-hidden
       />
     )

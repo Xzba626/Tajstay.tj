@@ -33,7 +33,7 @@ function statusPill(status: string): string {
   if (status === "CONFIRMED" || status === "CHECKED_IN" || status === "COMPLETED") {
     return "bg-emerald-500/20 text-emerald-100";
   }
-  if (status === "ON_REVIEW") return "bg-indigo-500/20 text-indigo-100";
+  if (status === "ON_REVIEW") return "bg-blue-100 text-blue-800";
   if (status === "WAITING_PAYMENT" || status === "WAIT_PROOF") return "bg-amber-500/20 text-amber-100";
   return "bg-white/10 text-slate-300";
 }

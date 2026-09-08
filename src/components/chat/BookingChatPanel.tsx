@@ -101,16 +101,16 @@ function isOnOrAfterLocalDay(now: Date, checkIn: Date): boolean {
 
 function statusPillClass(status: string): string {
   if (status === "CONFIRMED") {
-    return "bg-gradient-to-r from-emerald-500/25 via-emerald-400/15 to-teal-400/15 text-emerald-100 ring-emerald-300/25";
+    return "bg-emerald-500/20 text-emerald-800 ring-emerald-300/40";
   }
   if (status === "WAITING_PAYMENT" || status === "WAIT_PROOF") {
-    return "bg-[rgba(255,184,48,0.14)] text-[#ffe9b8] ring-[rgba(255,184,48,0.25)]";
+    return "bg-amber-100 text-amber-900 ring-amber-200";
   }
   if (status === "ON_REVIEW") {
-    return "bg-[rgba(99,102,241,0.14)] text-[#dbe3ff] ring-[rgba(99,102,241,0.26)]";
+    return "bg-blue-100 text-blue-800 ring-blue-200";
   }
   if (status === "CHECKED_IN") {
-    return "bg-[rgba(54,207,201,0.14)] text-[#d7fffb] ring-[rgba(54,207,201,0.28)]";
+    return "bg-emerald-100 text-emerald-800 ring-emerald-200";
   }
   if (status === "REJECTED" || status === "CANCELLED" || status === "EXPIRED") {
     return "bg-[rgba(255,77,106,0.14)] text-[#ffd6dc] ring-[rgba(255,77,106,0.25)]";
@@ -597,7 +597,7 @@ export function BookingChatPanel({
         </div>
       ) : (
       <header className="sticky top-0 z-20 flex shrink-0 items-center gap-3 border-b border-white/[0.08] bg-slate-950/90 px-4 py-3 shadow-[0_8px_24px_rgba(0,0,0,0.35)] backdrop-blur-xl supports-[backdrop-filter]:bg-slate-950/75">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500/30 to-teal-600/20 text-lg font-bold text-emerald-100 ring-1 ring-white/10">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand-500/20 text-lg font-bold text-brand-700 ring-1 ring-brand-500/25">
           {avatarLetter(title)}
         </div>
         <div className="min-w-0 flex-1">
@@ -734,14 +734,14 @@ export function BookingChatPanel({
               if (system) {
                 return (
                   <div key={row.key} className="mx-auto my-1 max-w-[92%]">
-                    <div className="rounded-xl border border-violet-400/20 bg-violet-500/10 px-3 py-2 text-center">
-                      <p className="text-[11px] leading-snug text-violet-100/90">
+                    <div className="rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-center">
+                      <p className="text-[11px] leading-snug text-blue-800">
                         <span aria-hidden className="mr-1">
                           🛡️
                         </span>
                         {msg.message.replace(/^🛡️\s*/, "")}
                       </p>
-                      <p className="mt-1 text-[9px] text-violet-300/50">{timeLabel(msg.createdAt)}</p>
+                      <p className="mt-1 text-[9px] text-blue-600/70">{timeLabel(msg.createdAt)}</p>
                     </div>
                   </div>
                 );
@@ -818,7 +818,7 @@ export function BookingChatPanel({
             type="button"
             disabled={actionBusy}
             onClick={() => void adminConfirmPaymentFromChat()}
-            className="w-full rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 py-4 text-base font-bold text-white shadow-[0_0_28px_rgba(16,185,129,0.35)] transition hover:brightness-105 disabled:opacity-55"
+            className="w-full rounded-2xl bg-brand-500 py-4 text-base font-bold text-white shadow-lg shadow-brand-500/25 transition hover:bg-brand-600 disabled:opacity-55"
           >
             {actionBusy ? "…" : m(locale, "chat.confirmPayBig")}
           </button>
@@ -946,7 +946,7 @@ export function BookingChatPanel({
                   disabled={sending}
                   title={label}
                   onClick={() => void sendQuickReply(label)}
-                  className="max-w-[220px] truncate rounded-full border border-indigo-400/25 bg-indigo-500/10 px-3 py-2 text-[11px] font-semibold text-indigo-100 disabled:opacity-50"
+                  className="max-w-[220px] truncate rounded-full border border-blue-200 bg-blue-50 px-3 py-2 text-[11px] font-semibold text-blue-800 disabled:opacity-50"
                 >
                   {label}
                 </button>

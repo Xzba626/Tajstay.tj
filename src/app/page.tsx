@@ -104,11 +104,11 @@ export default async function HomePage() {
       {content.homeBanner.enabled ? (
         <section className="home-section home-section--compact hidden md:block" data-reveal>
           <PageContainer publicPage className="!py-0">
-            <div className="rounded-2xl border border-emerald-400/20 bg-gradient-to-r from-emerald-950/90 to-teal-900/80 p-5 sm:p-6">
+            <div className="rounded-2xl border border-brand-500/25 bg-gradient-to-r from-brand-600 to-brand-700 p-5 sm:p-6">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h2 className="text-lg font-bold text-white sm:text-xl">{content.homeBanner.title}</h2>
-                  <p className="mt-2 max-w-2xl text-sm text-emerald-100/90">{content.homeBanner.subtitle}</p>
+                  <p className="mt-2 max-w-2xl text-sm text-white/90">{content.homeBanner.subtitle}</p>
                 </div>
                 <Link href={content.homeBanner.ctaHref} className="taj-btn taj-btn--primary shrink-0">
                   {content.homeBanner.ctaText}

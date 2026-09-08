@@ -8,14 +8,14 @@ const DOT: Record<string, string> = {
   BOOKING_CREATED: "bg-slate-400",
   PAYMENT_PENDING: "bg-amber-400",
   PROOF_SUBMITTED: "bg-sky-400",
-  ON_REVIEW: "bg-indigo-400",
-  CONFIRMED: "bg-emerald-400",
+  ON_REVIEW: "bg-blue-400",
+  CONFIRMED: "bg-emerald-500",
   REJECTED: "bg-red-400",
-  CHECKED_IN: "bg-teal-400",
+  CHECKED_IN: "bg-emerald-600",
   COMPLETED: "bg-slate-500",
   CANCELLED: "bg-red-400",
   EXPIRED: "bg-red-400",
-  SYSTEM: "bg-violet-400"
+  SYSTEM: "bg-slate-400"
 };
 
 export function BookingTimeline({
@@ -36,9 +36,9 @@ export function BookingTimeline({
         {events.map((ev) => {
           const active = highlightKind && ev.kind === highlightKind;
           return (
-          <li key={ev.id} className={`relative ${active ? "rounded-lg bg-indigo-500/10 -ml-2 pl-2 pr-1 py-1" : ""}`}>
+          <li key={ev.id} className={`relative ${active ? "rounded-lg bg-blue-50 -ml-2 pl-2 pr-1 py-1" : ""}`}>
             <span
-              className={`absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full ring-2 ring-[#050a0e] ${DOT[ev.kind] ?? "bg-slate-500"} ${active ? "scale-125 ring-indigo-300/40" : ""}`}
+              className={`absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full ring-2 ring-white ${DOT[ev.kind] ?? "bg-slate-500"} ${active ? "scale-125 ring-blue-300/40" : ""}`}
             />
             <div className="text-xs font-medium text-slate-200">
               {ev.kind === "SYSTEM" && ev.detail ? ev.detail : m(locale, ev.labelKey)}

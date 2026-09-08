@@ -4,9 +4,9 @@ import type { TrustBadge } from "@/lib/auth/trustBadges";
 import { cn } from "@/lib/cn";
 
 const STYLES: Record<string, string> = {
-  phoneVerified: "bg-emerald-500/15 text-emerald-200 ring-emerald-400/30",
-  emailVerified: "bg-teal-500/15 text-teal-200 ring-teal-400/30",
-  ownerVerified: "bg-amber-500/15 text-amber-100 ring-amber-400/30"
+  phoneVerified: "bg-emerald-500/15 text-emerald-700 ring-emerald-400/30",
+  emailVerified: "bg-emerald-500/12 text-emerald-700 ring-emerald-400/25",
+  ownerVerified: "bg-amber-500/15 text-amber-800 ring-amber-400/30"
 };
 
 type Props = {
