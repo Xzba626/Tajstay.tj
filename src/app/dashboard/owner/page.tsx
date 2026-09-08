@@ -1523,8 +1523,6 @@ export default async function OwnerDashboardPage({
           <Card className="space-y-2">
             <h3 className="owner-panel__title">{m(locale, "owner.conversionTitle")}</h3>
             <ul className="space-y-1 owner-section-lead">
-              <li>{m(locale, "owner.viewsProxy")}: {hotels.length * 24}</li>
-              <li>{m(locale, "owner.clicksProxy")}: {hotels.length * 7}</li>
               <li>{m(locale, "owner.pendingBookings")}: {pendingCount}</li>
               <li>{m(locale, "owner.conversionProxy")}: {bookingConversion}%</li>
             </ul>

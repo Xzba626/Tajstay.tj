@@ -17,6 +17,8 @@ export { PageContainer } from "./PageContainer";
 export { SectionContainer } from "./SectionContainer";
 export { DashboardShell } from "./DashboardShell";
 export { WorkspaceKpiBar } from "./WorkspaceKpiBar";
+export { AnalyticsDonut } from "./AnalyticsDonut";
+export type { AnalyticsSegment } from "./AnalyticsDonut";
 export { DashboardSection } from "./DashboardSection";
 export { ContentGrid } from "./ContentGrid";
 export { StickyActions } from "./StickyActions";

@@ -33,7 +33,7 @@ export function SearchBar({ locale = "ru" }: Props) {
           <label className="home-search-item sm:col-span-2 lg:col-span-1">
             <span className="home-search-label">{m(locale, "search.placeholder")}</span>
             <div className="home-search-control home-search-control--with-icon">
-              <span className="home-search-control__icon text-emerald-400" aria-hidden>
+              <span className="home-search-control__icon" aria-hidden>
                 {cityIcon}
               </span>
               <input
@@ -102,12 +102,12 @@ export function SearchBar({ locale = "ru" }: Props) {
         </div>
 
         <div className="home-search-popular mt-4 hidden flex-wrap items-center gap-2 md:flex">
-          <span className="text-xs font-semibold text-emerald-200/90">{m(locale, "search.popular")}</span>
+          <span className="home-search-popular__label">{m(locale, "search.popular")}</span>
           {popularCities.map((city, i) => (
             <Link
               key={city}
               href={`/search?city=${encodeURIComponent(popularCityValues[i])}`}
-              className="inline-flex min-h-[2.25rem] items-center rounded-full border border-emerald-400/25 bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-100 transition hover:border-emerald-300/45 hover:bg-emerald-500/18"
+              className="home-search-popular__chip"
             >
               {city}
             </Link>

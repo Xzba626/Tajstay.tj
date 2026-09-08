@@ -63,9 +63,9 @@ export function HomeSearchExtras({ locale, banner }: Props) {
 
       {banner.enabled ? (
         <section className="search-moved-block">
-          <div className="rounded-2xl border border-emerald-400/20 bg-gradient-to-r from-emerald-950/90 to-teal-900/80 p-5">
+          <div className="rounded-2xl border border-[#0F7A4D]/25 bg-[#0F7A4D] p-5">
             <h2 className="text-lg font-bold text-white">{banner.title}</h2>
-            <p className="mt-2 text-sm text-emerald-100/90">{banner.subtitle}</p>
+            <p className="mt-2 text-sm text-white/90">{banner.subtitle}</p>
             <Link href={banner.ctaHref} className="taj-btn taj-btn--primary mt-4 inline-flex">
               {banner.ctaText}
             </Link>

@@ -106,7 +106,7 @@ export default function MapClient({
             <CircleMarker
               center={[userLocation.lat, userLocation.lng]}
               radius={10}
-              pathOptions={{ color: "#22c55e", fillColor: "#4ade80", fillOpacity: 0.9 }}
+              pathOptions={{ color: "#0f7a4d", fillColor: "#0f7a4d", fillOpacity: 0.85 }}
             />
           ) : null}
           {visibleHotels.map((h) => (

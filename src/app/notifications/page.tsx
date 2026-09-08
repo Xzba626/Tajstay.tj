@@ -67,7 +67,7 @@ export default async function NotificationsPage({
           </p>
         </div>
         <form action="/api/notifications/read-all" method="post">
-          <button type="submit" className="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-600">
+          <button type="submit" className="rounded-xl bg-[#0f7a4d] px-4 py-2 text-sm font-semibold text-white">
             {m(locale, "userMenu.markReadAll")}
           </button>
         </form>

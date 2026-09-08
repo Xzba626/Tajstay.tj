@@ -11,6 +11,7 @@ import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
 import { formatDateTimeShort } from "@/lib/i18n/format";
 import { WorkspaceKpiBar } from "@/components/ds/WorkspaceKpiBar";
+import { AnalyticsDonut } from "@/components/ds/AnalyticsDonut";
 
 export type AdminDashboardStats = {
   hotelTotal: number;
@@ -130,7 +131,10 @@ export function AdminDashboardOverview({ locale, stats, riskNotes, basePath }: P
             {stats.hotelApproved}
             <span className="admin-kpi-card__value-sub"> / {stats.hotelTotal}</span>
           </div>
-          <WorkspaceKpiBar
+          <AnalyticsDonut
+            ariaLabel={m(locale, "admin.hotelsTotal")}
+            centerValue={String(stats.hotelApproved)}
+            centerLabel={m(locale, "admin.kpiHotelsApproved")}
             segments={[
               { value: stats.hotelApproved, tone: "success", label: m(locale, "admin.kpiHotelsApproved") },
               { value: hotelPending, tone: "warning", label: m(locale, "admin.kpiHotelsPending") }
@@ -141,7 +145,10 @@ export function AdminDashboardOverview({ locale, stats, riskNotes, basePath }: P
         <article className="admin-kpi-card admin-kpi-card--visual">
           <div className="admin-kpi-card__label">{m(locale, "admin.users")}</div>
           <div className="admin-kpi-card__value">{stats.userTotal.toLocaleString()}</div>
-          <WorkspaceKpiBar
+          <AnalyticsDonut
+            ariaLabel={m(locale, "admin.users")}
+            centerValue={stats.userTotal.toLocaleString()}
+            centerLabel={m(locale, "admin.users")}
             segments={[
               { value: stats.usersGuest, tone: "info", label: m(locale, "admin.kpiUsersGuests") },
               { value: stats.usersOwner, tone: "success", label: m(locale, "admin.kpiUsersOwners") },
@@ -153,7 +160,10 @@ export function AdminDashboardOverview({ locale, stats, riskNotes, basePath }: P
         <article className="admin-kpi-card admin-kpi-card--visual admin-kpi-card--brand">
           <div className="admin-kpi-card__label">{m(locale, "admin.bookingsTotal")}</div>
           <div className="admin-kpi-card__value">{stats.bookingTotal.toLocaleString()}</div>
-          <WorkspaceKpiBar
+          <AnalyticsDonut
+            ariaLabel={m(locale, "admin.bookingsTotal")}
+            centerValue={stats.bookingTotal.toLocaleString()}
+            centerLabel={m(locale, "admin.bookingsTotal")}
             segments={[
               { value: stats.bookingConfirmed, tone: "success", label: m(locale, "admin.kpiBookingsConfirmed") },
               { value: stats.bookingPending, tone: "warning", label: m(locale, "admin.kpiBookingsPending") },
@@ -170,14 +180,21 @@ export function AdminDashboardOverview({ locale, stats, riskNotes, basePath }: P
             {commissionShare > 0 ? ` · ${commissionShare}%` : ""}
           </div>
           {stats.revenue30 > 0 ? (
-            <WorkspaceKpiBar
-              single
+            <AnalyticsDonut
+              ariaLabel={m(locale, "admin.revenue30")}
+              centerValue={formatMoney(stats.revenue30)}
+              centerLabel={m(locale, "admin.revenue30")}
               segments={[
-                { value: stats.revenue30 - stats.commission30, tone: "success", label: m(locale, "admin.kpiRevenueGross") },
+                { value: Math.max(0, stats.revenue30 - stats.commission30), tone: "success", label: m(locale, "admin.kpiRevenueGross") },
                 { value: stats.commission30, tone: "info", label: m(locale, "admin.commission") }
               ]}
             />
-          ) : null}
+          ) : (
+            <WorkspaceKpiBar
+              single
+              segments={[{ value: 0, tone: "neutral", label: m(locale, "admin.revenue30") }]}
+            />
+          )}
         </article>
       </div>
 

@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { safeDbQuery } from "@/lib/db/safeDb";
 import { scoreHotelByIntent } from "@/lib/services/searchIntent";
+import { serializeHotelForClient } from "@/lib/money/serializeDecimal";
 
 const CITY_ALIASES: Array<{ canonical: string; aliases: string[] }> = [
   { canonical: "Dushanbe", aliases: ["dushanbe", "душанбе"] },
@@ -105,7 +106,7 @@ async function searchApprovedHotelsQuery(input: SearchInput) {
       })
       .filter((item) => item.matched)
       .sort((a, b) => (a.score === b.score ? b.hotel.rating - a.hotel.rating : b.score - a.score));
-    return ranked.map((item) => item.hotel);
+    return ranked.map((item) => serializeHotelForClient(item.hotel));
   }
 
   if (input.sortBy === "PRICE_ASC") {
@@ -116,6 +117,6 @@ async function searchApprovedHotelsQuery(input: SearchInput) {
     });
   }
 
-  return hotels;
+  return hotels.map((hotel) => serializeHotelForClient(hotel));
 }
 

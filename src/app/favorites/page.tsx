@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/requireAuth";
 import { HotelCard } from "@/components/HotelCard";
+import { serializeHotelForClient } from "@/lib/money/serializeDecimal";
 import { FavoritesTabs } from "@/components/favorites/FavoritesTabs";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
@@ -65,7 +66,7 @@ export default async function FavoritesPage({
         >
           <div className="space-y-3">
             {favorites.map((f) => (
-              <HotelCard key={f.id} hotel={f.hotel} locale={locale} variant="list" />
+              <HotelCard key={f.id} hotel={serializeHotelForClient(f.hotel)} locale={locale} variant="list" />
             ))}
             {!favorites.length ? (
               <div className="rounded-xl border border-dashed border-[var(--border)] p-8 text-center">

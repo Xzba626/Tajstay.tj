@@ -83,19 +83,19 @@ export function MobileSearchPanel({
 
   return (
     <div className="space-y-3">
-      <div className="mobile-search-bar">
-        <Search size={18} className="shrink-0 text-brand-100" aria-hidden />
+      <div className="home-search-card ts-search-panel ts-search-panel--compact mobile-search-bar">
+        <Search size={18} className="shrink-0 text-white" aria-hidden />
         <input
           value={draftQ}
           onChange={(e) => setDraftQ(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") applyQuery();
           }}
-          className="mobile-search-bar__input"
+          className="home-search-input mobile-search-bar__input"
           placeholder={m(locale, "search.placeholderQuery")}
           aria-label={m(locale, "search.search")}
         />
-        <button type="button" className="mobile-search-bar__go" onClick={applyQuery}>
+        <button type="button" className="home-search-submit mobile-search-bar__go" onClick={applyQuery}>
           {m(locale, "search.search")}
         </button>
         <button

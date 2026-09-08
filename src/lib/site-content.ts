@@ -98,6 +98,13 @@ function normalizeBrandUrl(url: string, fallback: string): string {
   return trimmed;
 }
 
+function canonicalizeSiteName(name: string): string {
+  const trimmed = name.trim();
+  if (!trimmed) return BRAND.name;
+  if (/^taj\s*stay$/i.test(trimmed)) return BRAND.name;
+  return trimmed.replace(/\bTajstay\b/g, "TajStay").replace(/\bTAJSTAY\b/g, "TajStay");
+}
+
 function mergeWithDefaults(parsed: Partial<SiteContent> | null | undefined): SiteContent {
   const brand = {
     ...defaultContent.brand,
@@ -110,7 +117,7 @@ function mergeWithDefaults(parsed: Partial<SiteContent> | null | undefined): Sit
       ...parsed?.homeBanner
     },
     brand: {
-      siteName: brand.siteName.trim() || defaultContent.brand.siteName,
+      siteName: canonicalizeSiteName(brand.siteName) || defaultContent.brand.siteName,
       logoMainUrl: normalizeBrandUrl(brand.logoMainUrl, defaultContent.brand.logoMainUrl),
       logoMarkUrl: normalizeBrandUrl(brand.logoMarkUrl, defaultContent.brand.logoMarkUrl),
       faviconUrl: normalizeBrandUrl(brand.faviconUrl, defaultContent.brand.faviconUrl)
