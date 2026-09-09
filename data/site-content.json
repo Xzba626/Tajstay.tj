@@ -1,10 +1,10 @@
 {
   "homeBanner": {
     "enabled": true,
-    "title": "Tajstay",
+    "title": "TajStay Premium",
     "subtitle": "Спецпредложения и лучшие объекты недели по Таджикистану.",
     "ctaText": "Смотреть предложения",
-    "ctaHref": "https://Tajstay.site"
+    "ctaHref": "/search"
   },
   "brand": {
     "siteName": "TajStay",

@@ -2145,8 +2145,15 @@ header.site-header.site-header--scroll-hidden {
   position: sticky;
   top: 0;
   z-index: 100 !important;
+  background: #0f7a4d !important;
+  border-bottom: 1px solid #0f7a4d !important;
+}
+
+/* Admin/Owner workspaces stay light even though Header currently also renders there
+   (see .agent/STATE.md "shell leak" note) — defense in depth until that's fixed properly. */
+body:has(.ts-workspace-light) header.site-header {
   background: #ffffff !important;
-  border-bottom: 1px solid #e4e4e7 !important;
+  border-bottom-color: #e4e4e7 !important;
   box-shadow: none !important;
   transform: none !important;
 }
@@ -2505,17 +2512,17 @@ select:focus,
 .header-auth-signin {
   display: none;
   border-radius: 0.875rem;
-  border: 1px solid #d4d4d8;
+  border: 1px solid rgba(255, 255, 255, 0.45);
   padding: 0.5rem 0.875rem;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #14231b;
+  color: #ffffff;
   transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .header-auth-signin:hover {
-  background: #f4f4f5;
-  border-color: #a1a1aa;
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.7);
 }
 
 .header-auth-signup {
@@ -2523,21 +2530,49 @@ select:focus,
   align-items: center;
   justify-content: center;
   border-radius: 0.875rem;
-  background: #0f7a4d;
+  background: #ffffff;
   padding: 0.55rem 1.1rem;
   font-size: 0.875rem;
   font-weight: 700;
-  color: #ffffff;
+  color: #0f7a4d;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .header-auth-signup:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(15, 122, 77, 0.25);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
 }
 
 .header-auth-signup:active {
   transform: translateY(1px);
+}
+
+/* Admin/Owner workspaces: Header still light there (see shell-leak note above) */
+body:has(.ts-workspace-light) .header-auth-signin {
+  border-color: #d4d4d8;
+  color: #14231b;
+}
+
+body:has(.ts-workspace-light) .header-auth-signin:hover {
+  background: #f4f4f5;
+  border-color: #a1a1aa;
+}
+
+body:has(.ts-workspace-light) .header-auth-signup {
+  background: #0f7a4d;
+  color: #ffffff;
+}
+
+body:has(.ts-workspace-light) .header-auth-signup:hover {
+  box-shadow: 0 4px 12px rgba(15, 122, 77, 0.25);
+}
+
+.site-header .brand-mark-name {
+  color: #ffffff !important;
+}
+
+body:has(.ts-workspace-light) .site-header .brand-mark-name {
+  color: var(--taj-text) !important;
 }
 
 @media (min-width: 768px) {

@@ -72,9 +72,7 @@ export default async function HomePage() {
           <HomeHeroMobile locale={locale} />
           <div className="hidden md:block">
             <TajstayHero3D
-              heroBadge={m(locale, "home.heroBadge")}
               heroTitle={t(locale, "heroTitle")}
-              heroSubtitle={t(locale, "heroSubtitle")}
               trustPoints={heroTrustPoints}
               trustHighlightsAriaLabel={m(locale, "home.trustHighlightsAria")}
             />

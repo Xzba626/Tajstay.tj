@@ -675,21 +675,21 @@
   min-width: 2.5rem;
   padding: 0;
   border-radius: var(--taj-radius-lg);
-  border: 1px solid #e4e4e7;
-  background: #ffffff;
-  color: #3f3f46;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
   box-shadow: none;
 }
 
 .locale-switcher--icon-only .locale-switcher-trigger--icon:hover,
 .locale-switcher--icon-only .locale-switcher-trigger--icon[aria-expanded="true"] {
-  background: #f4f4f5;
-  border-color: #0f7a4d;
-  color: #0f7a4d;
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.6);
+  color: #ffffff;
 }
 
 .locale-switcher--icon-only .locale-switcher-trigger--icon svg {
-  color: #3f3f46;
+  color: #ffffff;
 }
 
 .site-header .header-nav-link {
@@ -697,16 +697,48 @@
   padding: 0.5rem 0.75rem;
   font-size: var(--taj-text-sm);
   font-weight: 600;
-  color: #3f3f46;
+  color: rgba(255, 255, 255, 0.85);
   transition: background 0.15s ease, color 0.15s ease;
 }
 
 .site-header .header-nav-link:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.site-header .header-nav-link.is-active {
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+}
+
+/* Admin/Owner workspaces: Header still light there (see globals.css shell-leak note) */
+body:has(.ts-workspace-light) .locale-switcher--icon-only .locale-switcher-trigger--icon {
+  border-color: #e4e4e7;
+  background: #ffffff;
+  color: #3f3f46;
+}
+
+body:has(.ts-workspace-light) .locale-switcher--icon-only .locale-switcher-trigger--icon:hover,
+body:has(.ts-workspace-light) .locale-switcher--icon-only .locale-switcher-trigger--icon[aria-expanded="true"] {
+  background: #f4f4f5;
+  border-color: #0f7a4d;
+  color: #0f7a4d;
+}
+
+body:has(.ts-workspace-light) .locale-switcher--icon-only .locale-switcher-trigger--icon svg {
+  color: inherit;
+}
+
+body:has(.ts-workspace-light) .site-header .header-nav-link {
+  color: #3f3f46;
+}
+
+body:has(.ts-workspace-light) .site-header .header-nav-link:hover {
   background: #f4f4f5;
   color: #14231b;
 }
 
-.site-header .header-nav-link.is-active {
+body:has(.ts-workspace-light) .site-header .header-nav-link.is-active {
   background: rgba(15, 122, 77, 0.1);
   color: #0f7a4d;
 }

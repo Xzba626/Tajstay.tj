@@ -1,25 +1,19 @@
 import Link from "next/link";
 
 type Props = {
-  heroBadge: string;
   heroTitle: string;
-  heroSubtitle: string;
   trustPoints: string[];
   trustHighlightsAriaLabel: string;
 };
 
-/** Premium travel hero — clean white canvas, single headline + search only, no decorative visual layer, no duplicate CTA */
-export function TajstayHero3D({ heroBadge, heroTitle, heroSubtitle, trustPoints, trustHighlightsAriaLabel }: Props) {
+/** Premium travel hero — clean white canvas, single headline + search only, no eyebrow badge, no subtitle, no duplicate CTA */
+export function TajstayHero3D({ heroTitle, trustPoints, trustHighlightsAriaLabel }: Props) {
   return (
     <div className="home-hero-layout relative z-[1] flex w-full flex-1 items-center">
       <div className="mx-auto max-w-3xl text-center lg:text-left">
-        <div className="home-hero-badge mb-1.5 inline-flex md:mb-3">{heroBadge}</div>
-        <h1 className="home-hero-title font-[family-name:var(--taj-font-ui)] text-[clamp(1.625rem,6.5vw,2.75rem)] font-bold leading-[1.08] tracking-tight lg:font-[family-name:var(--taj-font-display)] lg:text-[clamp(1.875rem,5.2vw,2.875rem)]">
+        <h1 className="home-hero-title font-[family-name:var(--taj-font-ui)] text-[clamp(1.5rem,5vw,2.25rem)] font-bold leading-[1.15] tracking-tight lg:font-[family-name:var(--taj-font-display)] lg:text-[clamp(1.75rem,4vw,2.375rem)]">
           {heroTitle}
         </h1>
-        <p className="home-hero-subtitle mx-auto mt-3 hidden max-w-xl text-base leading-relaxed sm:text-lg md:block lg:mx-0">
-          {heroSubtitle}
-        </p>
 
         <p className="home-hero-trust-compact mt-2 md:hidden" aria-label={trustHighlightsAriaLabel}>
           {trustPoints.join(" · ")}
