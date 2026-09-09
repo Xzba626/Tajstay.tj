@@ -10,7 +10,9 @@ export async function Footer() {
   const year = new Date().getFullYear();
 
   const links = [
+    { href: "/about", label: m(locale, "footer.about") },
     { href: "/faq", label: m(locale, "footer.helpCenter") },
+    { href: "/apply/owner", label: m(locale, "footer.forOwners") },
     { href: "/contacts", label: m(locale, "footer.contactUs") },
     { href: "/policy", label: m(locale, "footer.policy") },
     { href: "/terms", label: m(locale, "footer.terms") }
@@ -42,7 +44,7 @@ export async function Footer() {
           </nav>
         </div>
 
-        <p className="mt-4 border-t border-white/10 pt-4 text-center text-xs text-[var(--taj-text-muted)] sm:text-left">
+        <p className="mt-4 border-t border-[var(--taj-section-border)] pt-4 text-center text-xs text-[var(--taj-text-muted)] sm:text-left">
           © {year} {m(locale, "footer.rights")}
         </p>
       </div>

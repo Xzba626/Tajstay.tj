@@ -2492,17 +2492,17 @@ select:focus,
 .header-auth-signin {
   display: none;
   border-radius: 0.875rem;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid #d4d4d8;
   padding: 0.5rem 0.875rem;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #e2e8f0;
-  transition: background 0.2s ease, color 0.2s ease;
+  color: #14231b;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .header-auth-signin:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
+  background: #f4f4f5;
+  border-color: #a1a1aa;
 }
 
 .header-auth-signup {
@@ -2510,17 +2510,21 @@ select:focus,
   align-items: center;
   justify-content: center;
   border-radius: 0.875rem;
-  background: linear-gradient(180deg, #34d399, #059669);
+  background: #0f7a4d;
   padding: 0.55rem 1.1rem;
   font-size: 0.875rem;
   font-weight: 700;
-  color: #052e1c;
-  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.28);
-  transition: filter 0.2s ease, transform 0.15s ease;
+  color: #ffffff;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .header-auth-signup:hover {
-  filter: brightness(1.06);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(15, 122, 77, 0.25);
+}
+
+.header-auth-signup:active {
+  transform: translateY(1px);
 }
 
 @media (min-width: 768px) {

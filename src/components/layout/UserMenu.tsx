@@ -5,7 +5,6 @@ import { useEffect, useRef, useState } from "react";
 import type { OwnerAppNavState } from "@/lib/navigation/getNavContext";
 import { cn } from "@/lib/cn";
 import { normalizeLocale, type Locale, LOCALE_COOKIE } from "@/lib/i18n/locale";
-import { notificationText } from "@/lib/notifications/text";
 import { TrustBadges } from "@/components/auth/TrustBadges";
 import type { TrustBadge } from "@/lib/auth/trustBadges";
 
@@ -48,36 +47,6 @@ function initials(name: string) {
 
 import { NOTIFICATION_NEW_EVENT } from "@/lib/pwa/notificationEvents";
 
-type NotificationItem = {
-  id: number;
-  type: string;
-  isRead: boolean;
-  createdAt: string;
-  bookingId: number | null;
-  bookingCode: string | null;
-  hotelName: string | null;
-  guestName: string | null;
-  link: string;
-};
-
-function relativeTime(iso: string): string {
-  const t = new Date(iso).getTime();
-  if (!Number.isFinite(t)) return "";
-  const d = Date.now() - t;
-  const min = Math.floor(d / 60000);
-  if (min < 1) return "только что";
-  if (min < 60) return `${min} мин назад`;
-  const hr = Math.floor(min / 60);
-  if (hr < 24) return `${hr} ч назад`;
-  const days = Math.floor(hr / 24);
-  return `${days} дн назад`;
-}
-
-function prettyNotificationText(n: NotificationItem): string {
-  const locale = getClientLocale();
-  return notificationText(locale, n.type, n.bookingCode);
-}
-
 function allNotificationsLink(_role: string): string {
   return "/notifications";
 }
@@ -108,8 +77,6 @@ export function UserMenu({
   const [open, setOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const [unreadCount, setUnreadCount] = useState(initialUnreadCount);
-  const [items, setItems] = useState<NotificationItem[]>([]);
-  const [markingReadAll, setMarkingReadAll] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     function close(e: MouseEvent) {
@@ -128,31 +95,6 @@ export function UserMenu({
     return () => window.removeEventListener(NOTIFICATION_NEW_EVENT, onNew);
   }, []);
 
-  useEffect(() => {
-    if (!open) return;
-    void fetch("/api/notifications/list", { credentials: "include", cache: "no-store" })
-      .then((r) => r.json())
-      .then((data: { items?: NotificationItem[] }) => {
-        setItems(Array.isArray(data.items) ? data.items : []);
-      })
-      .catch(() => undefined);
-  }, [open]);
-
-  async function readAllNotifications() {
-    if (markingReadAll) return;
-    setMarkingReadAll(true);
-    try {
-      const res = await fetch("/api/notifications/read-all", { method: "POST", credentials: "include" });
-      if (!res.ok) throw new Error("read-all failed");
-      setUnreadCount(0);
-      setItems((prev) => prev.map((i) => ({ ...i, isRead: true })));
-    } catch {
-      // keep previous state
-    } finally {
-      setMarkingReadAll(false);
-    }
-  }
-
   async function logout() {
     setLoggingOut(true);
     try {
@@ -166,8 +108,6 @@ export function UserMenu({
     }
   }
 
-  const hasNotifications = unreadCount > 0 || items.length > 0;
-
   return (
     <div className="relative" ref={ref}>
       <button
@@ -178,12 +118,12 @@ export function UserMenu({
         aria-haspopup="true"
         aria-label={`${L.account}. ${L.unreadNotifications}: ${unreadCount}`}
       >
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#166534] to-green-900 text-xs font-bold text-white shadow-inner">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#0f7a4d] text-xs font-bold text-white">
           {initials(userName)}
         </span>
         <span className="hidden max-w-[7.5rem] truncate sm:inline">{userName}</span>
         <svg
-          className={cn("h-4 w-4 shrink-0 text-[#d1fae5]/70 transition-transform duration-200", open && "rotate-180")}
+          className={cn("h-4 w-4 shrink-0 text-current/70 transition-transform duration-200", open && "rotate-180")}
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -211,64 +151,22 @@ export function UserMenu({
         aria-hidden={!open}
       >
         <div className="border-b border-[#0f7a4d]/15 px-4 py-3">
-          <div className="truncate font-semibold text-white">{userName}</div>
-          <div className="text-xs text-[#d1fae5]/60">{L.account}</div>
+          <div className="truncate font-semibold text-[var(--taj-text)]">{userName}</div>
+          <div className="text-xs text-[var(--taj-text-muted)]">{L.account}</div>
           <TrustBadges locale={menuLocale} badges={trustBadges} size="sm" className="mt-2" />
         </div>
 
         <nav className="flex max-h-[min(70vh,28rem)] flex-col overflow-y-auto py-1">
-          {hasNotifications ? (
-            <div className="mx-2 mb-2 rounded-xl border border-[#0f7a4d]/15 bg-[#0f2920]/40 p-2.5">
-              <div className="mb-1 flex items-center justify-between gap-2">
-                <div className="text-xs font-semibold text-[#d1fae5]">{L.notificationsTitle}</div>
-                {unreadCount > 0 ? (
-                  <span className="rounded-full bg-[#0f7a4d] px-2 py-0.5 text-[10px] font-semibold text-white">{unreadCount}</span>
-                ) : null}
-              </div>
-              {items.length === 0 ? (
-                <div className="text-xs text-[#d1fae5]/50">{L.noNotifications}</div>
-              ) : (
-                <div className="space-y-1.5">
-                  {items.slice(0, 4).map((n) => (
-                    <Link
-                      key={n.id}
-                      href={n.link}
-                      onClick={() => setOpen(false)}
-                      className={cn(
-                        "block rounded-lg border px-2 py-1.5 text-xs transition",
-                        n.isRead
-                          ? "border-[#0f7a4d]/10 bg-black/20 text-[#d1fae5]/70"
-                          : "border-[#0f7a4d]/30 bg-[#0f7a4d]/15 text-[#ecfdf5]"
-                      )}
-                    >
-                      <div className="font-semibold">{prettyNotificationText(n)}</div>
-                      <div className="mt-0.5 text-[11px] opacity-80">{relativeTime(n.createdAt)}</div>
-                    </Link>
-                  ))}
-                </div>
-              )}
-              <div className="mt-2 flex items-center justify-between gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    readAllNotifications().catch(() => undefined);
-                  }}
-                  disabled={markingReadAll || unreadCount === 0}
-                  className="text-[11px] font-semibold text-[#0f7a4d] disabled:opacity-50"
-                >
-                  {L.markReadAll}
-                </button>
-                <Link href={allNotificationsLink(role)} onClick={() => setOpen(false)} className="text-[11px] font-semibold text-[#d1fae5]/80">
-                  {L.openAllNotifications}
-                </Link>
-              </div>
-            </div>
-          ) : (
-            <p className="user-menu-notifications-compact">{L.noNotifications}</p>
-          )}
-
           <Link href="/profile" className="user-menu-item mx-1" role="menuitem" onClick={() => setOpen(false)}>
             {L.profile}
+          </Link>
+          <Link href={allNotificationsLink(role)} className="user-menu-item mx-1" role="menuitem" onClick={() => setOpen(false)}>
+            {L.openAllNotifications}
+            {unreadCount > 0 ? (
+              <span className="ml-auto rounded-full bg-[#0f7a4d] px-2 py-0.5 text-[10px] font-semibold text-white">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            ) : null}
           </Link>
           <Link
             href={role === "OWNER" ? "/dashboard/owner" : "/dashboard/bookings"}
@@ -290,7 +188,7 @@ export function UserMenu({
             </Link>
           )}
           {role === "GUEST" && ownerApp.kind === "pending" && (
-            <Link href="/profile/become-owner" className="user-menu-item mx-1 text-amber-200/90" onClick={() => setOpen(false)}>
+            <Link href="/profile/become-owner" className="user-menu-item mx-1 text-amber-700" onClick={() => setOpen(false)}>
               {L.ownerPending}
             </Link>
           )}
@@ -301,7 +199,7 @@ export function UserMenu({
           )}
           {role === "GUEST" && ownerApp.kind === "rejected" && (
             <>
-              <div className="mx-3 px-1 py-1.5 text-xs leading-snug text-red-300/90">
+              <div className="mx-3 px-1 py-1.5 text-xs leading-snug text-red-700">
                 {L.ownerRejected}
                 {ownerApp.comment ? `: ${ownerApp.comment}` : ""}
               </div>

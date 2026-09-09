@@ -197,6 +197,7 @@ const ru: Tree = {
     contacts: "Контакты",
     contactUs: "Связаться с нами",
     helpCenter: "Центр помощи",
+    forOwners: "Для владельцев",
     policy: "Политика конфиденциальности",
     terms: "Условия использования",
     faq: "Помощь / FAQ"
@@ -306,9 +307,9 @@ const ru: Tree = {
   },
   home: {
     heroBadge: "Жильё в Таджикистане",
-    heroTitle: "Найди идеальное жильё",
-    heroSubtitle: "Жильё в одном поиске",
-    ctaSearch: "Начать поиск",
+    heroTitle: "Найдите жильё в Таджикистане",
+    heroSubtitle: "Проверенные объекты. Безопасное бронирование.",
+    ctaSearch: "Найти жильё",
     ctaOwners: "Для владельцев",
     trustHighlightsAria: "Преимущества TajStay",
     primaryActionsAria: "Основные действия",
@@ -2077,6 +2078,7 @@ const tg: Tree = {
     contacts: "Тамос",
     contactUs: "Бо мо тамос гиред",
     helpCenter: "Маркази кӯмак",
+    forOwners: "Барои соҳибон",
     policy: "Сиёсати махфият",
     terms: "Шартҳои истифода",
     faq: "Кумак / FAQ"
@@ -3918,6 +3920,7 @@ const en: Tree = {
     contacts: "Contact",
     contactUs: "Contact us",
     helpCenter: "Help center",
+    forOwners: "For owners",
     policy: "Privacy policy",
     terms: "Terms of use",
     faq: "Help / FAQ"

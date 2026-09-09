@@ -4,22 +4,12 @@ type Props = {
   heroBadge: string;
   heroTitle: string;
   heroSubtitle: string;
-  ctaSearch: string;
   trustPoints: string[];
   trustHighlightsAriaLabel: string;
-  primaryActionsAriaLabel: string;
 };
 
-/** Premium travel hero — clean white canvas, text + search only, no decorative visual layer */
-export function TajstayHero3D({
-  heroBadge,
-  heroTitle,
-  heroSubtitle,
-  ctaSearch,
-  trustPoints,
-  trustHighlightsAriaLabel,
-  primaryActionsAriaLabel
-}: Props) {
+/** Premium travel hero — clean white canvas, single headline + search only, no decorative visual layer, no duplicate CTA */
+export function TajstayHero3D({ heroBadge, heroTitle, heroSubtitle, trustPoints, trustHighlightsAriaLabel }: Props) {
   return (
     <div className="home-hero-layout relative z-[1] flex w-full flex-1 items-center">
       <div className="mx-auto max-w-3xl text-center lg:text-left">
@@ -30,12 +20,6 @@ export function TajstayHero3D({
         <p className="home-hero-subtitle mx-auto mt-3 hidden max-w-xl text-base leading-relaxed sm:text-lg md:block lg:mx-0">
           {heroSubtitle}
         </p>
-
-        <div className="mt-6 hidden justify-center md:flex lg:justify-start" role="group" aria-label={primaryActionsAriaLabel}>
-          <Link href="#home-search" className="taj-btn taj-btn--primary taj-btn--lg sm:w-auto sm:min-w-[14rem]">
-            {ctaSearch}
-          </Link>
-        </div>
 
         <p className="home-hero-trust-compact mt-2 md:hidden" aria-label={trustHighlightsAriaLabel}>
           {trustPoints.join(" · ")}
