@@ -1,0 +1,30 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/block-destructive-bash.mjs",
+            "timeout": 10,
+            "statusMessage": "Checking command against TajStay protected-domain guard..."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/lint-touched-file.mjs",
+            "timeout": 30,
+            "statusMessage": "Linting touched file..."
+          }
+        ]
+      }
+    ]
+  }
+}
