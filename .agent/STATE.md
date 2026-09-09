@@ -6,10 +6,51 @@ Do not re-read old audit reports or the full MASTER spec unless the task needs t
 ## Branch / SHA
 
 - Branch: `feature/tajstay-full-ui-ux-rebuild`
-- Base SHA (as of this file, session start of the continuation pass): `a54c1eb`
-- Final SHA (this pass): `aaec9c0` (auto-committed by an external tool under the user's git identity —
-  not a Claude Code commit, but confirmed to contain exactly this pass's intended changes: see
-  `git show --stat aaec9c0`)
+- Base SHA (this corrective pass): `d2971da`
+- Final SHA (this pass): `7974712`
+- Changed files this pass: `data/site-content.json`, `src/app/globals.css`, `src/app/page.tsx`,
+  `src/components/landing/TajstayHero3D.tsx`, `src/styles/ds-components.css`, `src/styles/home.css`
+- Preview/deployment: none — local dev server only (`localhost:3000`), not deployed
+- Note: a prior commit `aaec9c0` in this branch's history was auto-committed by an external tool
+  under the user's git identity (not by Claude Code) — confirmed via `git show --stat` to contain
+  only the previous pass's intended changes, no data loss.
+
+### FULL PRODUCT CORRECTIVE PASS — this session (2026-09-09)
+
+| AREA | CODE | TEST | REAL RUNTIME | EVIDENCE | STATUS |
+|---|---|---|---|---|---|
+| Admin chart FAIL (black circles, glued %) | Root cause found: `AnalyticsDonut.tsx`'s SVG/legend classes had zero CSS anywhere in the repo. Added full stylesheet to `ds-components.css` | tsc clean | Verified `/dashboard/admin` mobile (469px) + desktop (1440px), logged in as real admin | Screenshots | **PASS (local only)** |
+| Public header → green `#0F7A4D` | Flipped `header.site-header` background; updated nav/language/auth-button/wordmark contrast for white-on-green; scoped light-header override to `body:has(.ts-workspace-light)` so Admin/Owner don't go green via the still-open shell-leak bug | tsc/eslint clean | Verified `/` mobile + desktop, unauth and authed (Admin) | Screenshots | **PASS (local only)** |
+| Home hero cleanup | Removed eyebrow badge + subtitle (desktop), single headline + search, no duplicate CTA, trimmed heading size | tsc clean | Verified `/` mobile + desktop | Screenshots | **PASS (local only)** |
+| Promo banner casing/link | "Tajstay" → "TajStay Premium"; CTA was linking to external `https://Tajstay.site` → fixed to internal `/search` | tsc clean | Verified `/` desktop | Screenshot | **PASS (local + local DB only) — production DB/CMS still has the old wrong values, not fixed here** |
+| Cookie consent redesign (essential vs non-essential, Accept/Reject/Customize) | Not started | — | — | — | **NOT DONE** |
+| PWA install (manifest/theme_color, in-app prompt correctness) | Not started this pass | — | — | — | **NOT DONE** — note: browser-native "Install" button chrome (Chrome toolbar) is browser UI, out of TajStay's control by design, not a bug to fix |
+| Auth screens (`/auth/sign-in` still legacy dark-emerald) | Not started this pass — confirmed still FAIL via screenshot two passes ago | — | — | — | **FAIL, not started** |
+| Admin user-menu mint verification badges | Not touched this pass | — | — | — | **NOT DONE** |
+| Admin nav vs Public nav visual separation | Not touched — **and now more urgent**: with the header now green, the still-open shell-leak bug (Admin showing Consumer Header) would make Admin's topbar green too if not for the light-workspace CSS override added this pass (verified holding) | n/a | Verified `/dashboard/admin` topbar stayed white after the header color change | Screenshot | Shell-leak itself: **BLOCKED**, see reason below |
+| Mobile Admin "Меню"/"Ещё" duplication | Not investigated this pass | — | — | — | **NOT DONE** |
+| Floating black vertical panel (reported alongside Assistant FAB) | Could not reproduce locally — a thin dark line appeared at the same fixed viewport-edge position across unrelated routes/screenshots in this session's browser tool, suggesting a tool/rendering artifact rather than app code; did not find any second floating-panel component in source | n/a | Checked `/`, `/history`, `/dashboard/admin` — only the single green Assistant FAB found, correctly gated off Admin/Owner | Screenshots | **UNCONFIRMED — could not reproduce, not fixed blindly per the instruction not to remove unknown dev tools without ID'ing them first** |
+| Computed-style green audit (not just grep) | Not done this pass — still grep-based from earlier passes | — | — | — | **NOT DONE** |
+| Full viewport matrix (360/390/412/768/1024/1280/1440+) | Only 375px and 1440px checked this pass | — | Partial | Screenshots at 2 of 7 breakpoints | **NOT DONE** |
+| Full human-like click walkthrough (§22 of this block) | Not done — this pass was fix-and-spot-check, not a full click-through of every control | — | — | — | **NOT DONE** |
+
+**Remaining FAIL:**
+- Auth screens still legacy dark-emerald theme (confirmed via screenshot, not touched this pass)
+- Admin user-menu mint verification badges (not touched)
+
+**Remaining BLOCKED:**
+- **Shell leak (Admin/Owner rendering Consumer Header/Footer/MobileBottomNav)** — reason: an attempted
+  fix last pass (`PublicShellChrome` client wrapper) broke the entire dev server (webpack module
+  resolution errors, survived a full `.next` wipe); reverted. This pass's CSS-scoped light-header
+  override is a mitigation, not the fix — Admin still shows the wrong nav items (Главная/Поиск/
+  О сервисе, consumer account-popover items) even though the color is now correct. Needs the
+  safer CSS-hide-by-ancestor-class approach proposed in the previous STATE.md entry, tried fresh.
+- **Cookie consent rework** — reason: not started, needs its own audit of which cookies are actually
+  essential vs analytics/marketing before the UI can correctly gate non-essential ones (didn't want
+  to guess at consent categories without checking what's actually set).
+- **Production site-content values** (banner casing/URL) — reason: only the local dev DB was fixed;
+  the equivalent production fix needs to go through the admin CMS UI or a reviewed prod-safe update,
+  not a direct prod DB write from this session.
 
 ## Current authorized block
 
@@ -200,27 +241,30 @@ addendum to `docs/TAJSTAY_ARCHITECTURE_V2.md`. Still pending — see NEXT.
 ## NEXT
 
 Block is still NOT closed — continue without asking for new permission, these are all inside the
-already-authorized PRODUCT/UX/ROLE ARCHITECTURE CONSOLIDATION block. Priority order for next session:
+already-authorized block. Priority order for next session:
 
-1. **Shell leak fix (Admin/Owner showing Consumer header/footer/bottom-nav)** — highest priority,
-   confirmed FAIL at runtime this pass. Try the CSS-scoped-hide approach noted above instead of the
-   RSC-into-client-wrapper pattern that broke the dev server. Verify on both `/dashboard/admin` and
-   `/dashboard/owner` after.
-2. `/profile/personal` IA redesign (raw bordered-row list → structured editable cards) — confirmed
-   FAIL via screenshot, still not started.
-3. `guestDocumentUrl` / passport-scan-link feature in `TripBookingCard.tsx` contradicts the new V2
-   §29 decision — flag to the user for direction (remove display? migrate data? out of this block's
-   safe scope to decide unilaterally since it's a data-model question, not pure visual).
-4. Auth screens (`/auth/sign-in`, `/register`) — confirmed via screenshot this pass to still be the
-   legacy dark-emerald theme (`auth-premium.css`, ~30 off-brand-green occurrences), not yet fixed.
-5. Settings/Security/Notifications/Help IA de-duplication audit — not started.
-6. Full responsive matrix (360/390/412/768/1024/1280/1440+) with click/scroll/dropdown/focus/empty/
-   error/loading checks per spec §10 — only partial mobile evidence gathered so far (`/history` only).
-7. Owner entry browser QA — not done at all this pass (only Admin entry done).
+1. **Shell leak fix** (Admin/Owner rendering Consumer Header/Footer/bottom-nav) — highest priority,
+   confirmed FAIL again this pass, now also visually worse since the header is green (mitigated by a
+   CSS override this pass, but the nav items themselves are still wrong on Admin/Owner). Try: give
+   `AdminSidebar`/`OwnerSidebar`'s `DashboardShell` wrapper a rule that hides `.site-header`/
+   `.site-footer`/`.app-tab-bar` via `body:has(.ts-workspace-light) { }` (pure CSS, same pattern
+   already proven safe in this pass for color overrides) instead of the RSC-into-client-wrapper
+   pattern that broke the dev server last time — do not retry that pattern without understanding why
+   it failed first.
+2. Auth screens (`/auth/sign-in`, `/register`) — confirmed still legacy dark-emerald, not yet touched.
+3. Cookie consent rework — audit actual cookies first (session/auth vs analytics/marketing), then
+   build Accept/Reject-non-essential/Customize UI.
+4. `/profile/personal` IA redesign (raw bordered-row list → structured editable cards) — still FAIL.
+5. `guestDocumentUrl` passport-scan-link in `TripBookingCard.tsx` contradicts V2 §29 — flag to user
+   for direction before touching (data-model question, not visual).
+6. Admin user-menu mint verification badges, Admin-vs-Public nav separation, mobile Admin
+   Меню/Ещё duplication check, computed-style green audit, full viewport matrix, full click
+   walkthrough — none started.
+7. Production site-content fix (banner casing/URL) via admin CMS, not direct DB write.
 8. Deployed preview-URL + SHA evidence pass — all evidence so far is local dev server only.
 
 Do not mark the block fully closed on build/tsc/lint alone, and do not re-touch the already-fixed
-Header/Hero/Footer/UserMenu/role-CTA areas without a found regression.
+Header color/Hero/Footer/UserMenu/role-CTA/Admin-charts areas without a found regression.
 
 **Do not start P0-S2 (AuthZ/RBAC) even once the visual block is fully closed** — get separate
 explicit authorization for it first. Only after P0-S2 is authorized and closed should Owner Hotel
