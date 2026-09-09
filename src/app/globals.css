@@ -1821,6 +1821,19 @@ footer.site-footer,
   border-color: var(--ds-border) !important;
 }
 
+footer.site-footer,
+footer.site-footer p {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+footer.site-footer a {
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+footer.site-footer a:hover {
+  color: #ffffff !important;
+}
+
 /* cleaner spacing / less empty dark gaps */
 .home-chapter {
   min-height: auto !important;

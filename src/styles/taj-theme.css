@@ -326,17 +326,19 @@
 }
 
 /* ---- Footer ---- */
+/* Canonical brand green background + light text overrides are forced in globals.css
+   (footer.site-footer !important rules) — keep those two in sync if either changes. */
 .site-footer {
   border-top: 1px solid var(--taj-section-border);
-  background: #ffffff;
+  background: #0f7a4d;
 }
 
 .site-footer a {
-  color: var(--taj-text-secondary);
+  color: rgba(255, 255, 255, 0.92);
 }
 
 .site-footer a:hover {
-  color: var(--taj-text);
+  color: #ffffff;
 }
 
 /* ---- Dashboard ---- */

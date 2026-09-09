@@ -1,6 +1,5 @@
 /**
  * TajStay — public homepage
- * Premium dark emerald · mobile-first
  */
 
 /* ---- Page rhythm ---- */
@@ -10,7 +9,8 @@
 }
 
 @media (max-width: 767px) {
-  body:has(.home-page) .site-footer {
+  /* Consumer app/PWA shell (bottom tab bar present) never shows the desktop website footer */
+  body:has(.app-tab-bar) .site-footer {
     display: none;
   }
 }

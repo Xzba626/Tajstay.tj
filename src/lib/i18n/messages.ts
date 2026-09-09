@@ -910,7 +910,7 @@ const ru: Tree = {
       "TajStay — первый национальный сервис бронирования жилья в Таджикистане. Мы соединяем путешественников с проверенными отелями, квартирами и эко-домиками по всей стране.",
     block2Title: "Какие данные мы используем",
     block2Text:
-      "Мы собираем: имя, номер телефона, email (необязательно) и историю бронирований. Данные используются только для обеспечения работы сервиса и не передаются третьим лицам. Фото документов, загруженные при бронировании, хранятся зашифровано и удаляются после заезда.",
+      "Мы собираем: имя, номер телефона, email (необязательно) и историю бронирований. Данные используются только для обеспечения работы сервиса и не передаются третьим лицам. TajStay не хранит сканы или фото паспортов и документов, удостоверяющих личность.",
     block3Title: "Для чего мы это используем",
     block3Text:
       "• Подтверждение бронирований\n• Связь между гостем и владельцем\n• Поддержка и разрешение споров\n• Улучшение качества сервиса"
@@ -4625,7 +4625,7 @@ const en: Tree = {
       "TajStay is Tajikistan's first national accommodation booking service, connecting travelers with verified hotels, apartments, and eco-homes across the country.",
     block2Title: "What data we use",
     block2Text:
-      "We collect: name, phone number, email (optional), and booking history. Data is used solely to operate the service and is never shared with third parties. Document photos uploaded during booking are stored encrypted and deleted after check-in.",
+      "We collect: name, phone number, email (optional), and booking history. Data is used solely to operate the service and is never shared with third parties. TajStay does not store passport scans or photos of identity documents.",
     block3Title: "Why we use it",
     block3Text:
       "• Booking confirmations\n• Communication between guest and host\n• Support and dispute resolution\n• Service quality improvement"
