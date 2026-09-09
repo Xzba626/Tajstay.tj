@@ -109,7 +109,7 @@ export function PwaInstallPrompt({ labels }: { labels: PwaInstallLabels }) {
         <button
           type="button"
           onClick={dismiss}
-          className="rounded-xl border border-white/15 px-3 py-2.5 text-xs font-semibold text-slate-300 transition hover:bg-white/8 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50"
+          className="rounded-xl border border-white/15 px-3 py-2.5 text-xs font-semibold text-slate-300 transition hover:bg-white/8 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f7a4d]/50"
         >
           {labels.dismiss}
         </button>

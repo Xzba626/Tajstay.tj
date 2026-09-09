@@ -18,7 +18,7 @@ export default async function ContactsPage() {
         <div className="mt-2">
           Email:{" "}
           <a
-            className="text-emerald-300 underline underline-offset-2"
+            className="text-[#0f7a4d] underline underline-offset-2"
             href={`mailto:${SUPPORT_EMAIL}`}
           >
             {SUPPORT_EMAIL}
@@ -28,7 +28,7 @@ export default async function ContactsPage() {
         {s.whatsapp ? (
           <div className="mt-1">
             WhatsApp:{" "}
-            <a className="text-emerald-300 underline underline-offset-2" href={s.whatsapp} target="_blank" rel="noreferrer">
+            <a className="text-[#0f7a4d] underline underline-offset-2" href={s.whatsapp} target="_blank" rel="noreferrer">
               {s.whatsapp}
             </a>
           </div>
@@ -36,7 +36,7 @@ export default async function ContactsPage() {
         {s.telegram ? (
           <div className="mt-1">
             Telegram:{" "}
-            <a className="text-emerald-300 underline underline-offset-2" href={s.telegram} target="_blank" rel="noreferrer">
+            <a className="text-[#0f7a4d] underline underline-offset-2" href={s.telegram} target="_blank" rel="noreferrer">
               {s.telegram}
             </a>
           </div>

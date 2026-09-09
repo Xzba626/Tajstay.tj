@@ -26,8 +26,8 @@ export function PaymentMethodsBlock({ locale, methods }: { locale: Locale; metho
   }
 
   return (
-    <section className="rounded-2xl border border-emerald-400/20 bg-emerald-500/[0.06] p-4 backdrop-blur-md">
-      <h2 className="text-sm font-semibold text-emerald-100">{m(locale, "bookingRoom.payment.title")}</h2>
+    <section className="rounded-2xl border border-[#0f7a4d]/20 bg-[#0f7a4d]/[0.06] p-4 backdrop-blur-md">
+      <h2 className="text-sm font-semibold text-[#d1fae5]">{m(locale, "bookingRoom.payment.title")}</h2>
       <p className="mt-1 text-xs text-slate-400">{m(locale, "bookingRoom.payment.hint")}</p>
       <ul className="mt-3 space-y-2">
         {methods.map((method) => (
@@ -39,7 +39,7 @@ export function PaymentMethodsBlock({ locale, methods }: { locale: Locale; metho
             <button
               type="button"
               onClick={() => void copyText(method)}
-              className="shrink-0 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-500"
+              className="shrink-0 rounded-lg bg-[#0f7a4d] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#0f7a4d]"
             >
               {copied === method ? m(locale, "bookingRoom.payment.copied") : m(locale, "bookingRoom.payment.copy")}
             </button>

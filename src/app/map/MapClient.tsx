@@ -132,7 +132,7 @@ export default function MapClient({
                   <div>
                     {labels.fromPrice} <span className="font-semibold">{h.fromPrice} TJS</span>
                   </div>
-                  <Link className="text-emerald-700 hover:underline" href={`/hotel/${h.id}`}>
+                  <Link className="text-[#0f7a4d] hover:underline" href={`/hotel/${h.id}`}>
                     {labels.details}
                   </Link>
                 </div>

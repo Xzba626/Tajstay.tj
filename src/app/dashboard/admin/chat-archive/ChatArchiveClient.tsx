@@ -41,7 +41,7 @@ export function ChatArchiveClient() {
           value={bookingId}
           onChange={(e) => setBookingId(e.target.value)}
           inputMode="numeric"
-          className="rounded-2xl border border-white/10 bg-slate-900/80 px-4 py-3 text-white outline-none focus:border-emerald-500/50"
+          className="rounded-2xl border border-white/10 bg-slate-900/80 px-4 py-3 text-white outline-none focus:border-[#0f7a4d]/50"
           placeholder="например 12"
         />
       </label>
@@ -49,7 +49,7 @@ export function ChatArchiveClient() {
         type="button"
         disabled={busy}
         onClick={() => download()}
-        className="w-full rounded-2xl bg-gradient-to-b from-emerald-500 to-emerald-700 py-3 text-sm font-semibold text-white shadow-lg disabled:opacity-50"
+        className="w-full rounded-2xl bg-gradient-to-b from-[#0f7a4d] to-[#0f7a4d] py-3 text-sm font-semibold text-white shadow-lg disabled:opacity-50"
       >
         {busy ? "Выгрузка…" : "Скачать JSON (архив + метаданные)"}
       </button>

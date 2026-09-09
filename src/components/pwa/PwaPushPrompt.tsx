@@ -71,7 +71,7 @@ export function PwaPushPrompt({ labels, enabled }: { labels: PwaPushLabels; enab
           type="button"
           disabled={busy}
           onClick={() => void enablePush()}
-          className="flex-1 rounded-lg bg-emerald-600 px-2 py-1.5 text-[11px] font-semibold text-white disabled:opacity-50"
+          className="flex-1 rounded-lg bg-[#0f7a4d] px-2 py-1.5 text-[11px] font-semibold text-white disabled:opacity-50"
         >
           {labels.enable}
         </button>

@@ -7,7 +7,7 @@ export function OwnerOnboardingSidebar({ L }: { L: OwnerOnboardingLabels }) {
   return (
     <div className="owner-onboarding-sidebar space-y-6">
       <div>
-        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-emerald-300/90">TajStay Partners</p>
+        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#0f7a4d]/90">TajStay Partners</p>
         <h1 className="owner-onboarding-hero-title mt-3">{L.heroTitle}</h1>
         <p className="owner-onboarding-hero-sub mt-4">{L.heroSubtitle}</p>
       </div>
@@ -18,7 +18,7 @@ export function OwnerOnboardingSidebar({ L }: { L: OwnerOnboardingLabels }) {
             key={t}
             className="flex items-start gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-200"
           >
-            <span className="mt-0.5 text-emerald-400" aria-hidden>
+            <span className="mt-0.5 text-[#0f7a4d]" aria-hidden>
               ✓
             </span>
             <span>{t}</span>
@@ -31,7 +31,7 @@ export function OwnerOnboardingSidebar({ L }: { L: OwnerOnboardingLabels }) {
         <ol className="mt-4 space-y-3">
           {steps.map((s, i) => (
             <li key={s} className="flex gap-3 text-sm text-slate-300">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-xs font-bold text-emerald-200 ring-1 ring-emerald-500/30">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#0f7a4d]/15 text-xs font-bold text-[#d1fae5] ring-1 ring-[#0f7a4d]/30">
                 {i + 1}
               </span>
               <span className="pt-0.5 leading-snug">{s}</span>
@@ -42,7 +42,7 @@ export function OwnerOnboardingSidebar({ L }: { L: OwnerOnboardingLabels }) {
 
       <div className="owner-trust-callout hidden lg:block">
         <div className="flex gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/15 text-lg text-emerald-300" aria-hidden>
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#0f7a4d]/15 text-lg text-[#0f7a4d]" aria-hidden>
             🛡
           </span>
           <div>

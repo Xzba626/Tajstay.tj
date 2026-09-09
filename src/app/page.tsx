@@ -7,7 +7,6 @@ import { HotelCard } from "@/components/HotelCard";
 import { getSiteContent } from "@/lib/site-content";
 import { prisma } from "@/lib/prisma";
 import { safeDbQuery } from "@/lib/db/safeDb";
-import { AIRecommendationLab } from "@/components/ai/AIRecommendationLab";
 import { ViewTransitionLink } from "@/components/effects/ViewTransitionLink";
 import { HomeScrollEnhancer } from "./HomeScrollEnhancer";
 import { GuestHomeExtras } from "@/components/guest/GuestHomeExtras";
@@ -62,14 +61,6 @@ export default async function HomePage() {
     []
   );
 
-  const aiHotels = featured.map((hotel) => ({
-    id: hotel.id,
-    name: hotel.name,
-    city: hotel.city,
-    rating: hotel.rating,
-    minPrice: hotel.rooms.length ? Math.min(...hotel.rooms.map((room) => Number(room.price))) : 0
-  }));
-
   return (
     <div className="home-page home-chapters pb-10 md:pb-16">
       <HomeScrollEnhancer />
@@ -104,11 +95,11 @@ export default async function HomePage() {
       {content.homeBanner.enabled ? (
         <section className="home-section home-section--compact hidden md:block" data-reveal>
           <PageContainer publicPage className="!py-0">
-            <div className="rounded-2xl border border-emerald-400/20 bg-gradient-to-r from-emerald-950/90 to-teal-900/80 p-5 sm:p-6">
+            <div className="rounded-2xl border border-[#0f7a4d]/20 bg-[#0f7a4d] p-5 sm:p-6">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h2 className="text-lg font-bold text-white sm:text-xl">{content.homeBanner.title}</h2>
-                  <p className="mt-2 max-w-2xl text-sm text-emerald-100/90">{content.homeBanner.subtitle}</p>
+                  <p className="mt-2 max-w-2xl text-sm text-white/90">{content.homeBanner.subtitle}</p>
                 </div>
                 <Link href={content.homeBanner.ctaHref} className="taj-btn taj-btn--primary shrink-0">
                   {content.homeBanner.ctaText}
@@ -178,35 +169,7 @@ export default async function HomePage() {
         </PageContainer>
       </section>
 
-      {/* 4. AI generator */}
-      <section className="home-section home-section--compact home-chapter hidden md:block" data-reveal>
-        <PageContainer publicPage className="!py-0">
-          <AIRecommendationLab
-            hotels={aiHotels}
-            locale={locale}
-            labels={{
-              badge: m(locale, "aiLab.badge"),
-              title: m(locale, "aiLab.title"),
-              subtitle: m(locale, "aiLab.subtitle"),
-              surprise: m(locale, "aiLab.surprise"),
-              budget: m(locale, "aiLab.budget"),
-              tripStyle: m(locale, "aiLab.tripStyle"),
-              modeFocus: m(locale, "aiLab.modeFocus"),
-              modeNature: m(locale, "aiLab.modeNature"),
-              modeRomance: m(locale, "aiLab.modeRomance"),
-              modeAdventure: m(locale, "aiLab.modeAdventure"),
-              match: m(locale, "aiLab.match"),
-              pickedForYou: m(locale, "aiLab.pickedForYou"),
-              tagInBudget: m(locale, "aiLab.tagInBudget"),
-              tagNatureStyle: m(locale, "aiLab.tagNatureStyle"),
-              tagHighRated: m(locale, "aiLab.tagHighRated"),
-              open: m(locale, "aiLab.open")
-            }}
-          />
-        </PageContainer>
-      </section>
-
-      {/* 5. Info block — Why TajStay (kept last per UX flow) */}
+      {/* 4. Info block — Why TajStay (kept last per UX flow) */}
       <SectionContainer tight className="home-section home-section--compact home-chapter hidden md:block" data-reveal>
         <PageContainer publicPage className="!py-0">
           <HomeSectionHeader title={m(locale, "home.trustTitle")} align="center" className="!text-center [&_.home-section__desc]:mx-auto" />

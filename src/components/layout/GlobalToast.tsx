@@ -39,8 +39,8 @@ export function GlobalToast() {
 
   return (
     <div className="pointer-events-none fixed top-4 left-1/2 z-[130] w-[92%] max-w-md -translate-x-1/2">
-      <div className="flex items-start gap-2 rounded-2xl border border-emerald-400/30 bg-slate-900/95 px-4 py-3 text-sm text-slate-100 shadow-xl backdrop-blur-md">
-        <span className="mt-0.5 text-emerald-400" aria-hidden>
+      <div className="flex items-start gap-2 rounded-2xl border border-[#0f7a4d]/30 bg-slate-900/95 px-4 py-3 text-sm text-slate-100 shadow-xl backdrop-blur-md">
+        <span className="mt-0.5 text-[#0f7a4d]" aria-hidden>
           🔔
         </span>
         <span className="line-clamp-2">{msg}</span>

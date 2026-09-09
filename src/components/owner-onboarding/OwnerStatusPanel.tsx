@@ -39,7 +39,7 @@ export function OwnerStatusPanel({ variant, L, rejectComment }: Props) {
         </ol>
         <Link
           href="/profile"
-          className="mt-6 inline-flex text-sm font-semibold text-emerald-300 hover:text-emerald-200"
+          className="mt-6 inline-flex text-sm font-semibold text-[#0f7a4d] hover:text-[#d1fae5]"
         >
           ← {L.backProfile}
         </Link>

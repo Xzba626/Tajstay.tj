@@ -45,7 +45,7 @@ export function BrandMark({
 
   if (href) {
     return (
-      <Link href={href} className={cn(classes, "rounded-xl outline-none transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-emerald-400/50")}>
+      <Link href={href} className={cn(classes, "rounded-xl outline-none transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-[#0f7a4d]/50")}>
         {inner}
       </Link>
     );

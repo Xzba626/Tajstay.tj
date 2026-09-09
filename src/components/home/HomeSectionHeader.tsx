@@ -30,7 +30,7 @@ export function HomeSectionHeader({ eyebrow, title, description, action, align =
       {action ? (
         <Link
           href={action.href}
-          className="shrink-0 text-sm font-semibold text-emerald-300 underline-offset-4 transition hover:text-emerald-200 hover:underline"
+          className="shrink-0 text-sm font-semibold text-[#0f7a4d] underline-offset-4 transition hover:text-[#d1fae5] hover:underline"
         >
           {action.label}
         </Link>

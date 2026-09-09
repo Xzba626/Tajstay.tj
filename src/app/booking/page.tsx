@@ -80,7 +80,7 @@ export default async function BookingPage({
   return (
     <div className="mx-auto max-w-3xl space-y-5 px-4 pb-12 pt-4 sm:pt-5">
       <h1 className="font-serif text-3xl font-normal tracking-tight text-white sm:text-[2rem]">
-        <span className="bg-gradient-to-r from-white via-emerald-50/95 to-emerald-100/80 bg-clip-text text-transparent">
+        <span className="bg-gradient-to-r from-white via-[#ecfdf5]/95 to-[#d1fae5]/80 bg-clip-text text-transparent">
           {m(locale, "search.bookNow")}
         </span>
       </h1>
@@ -105,7 +105,7 @@ export default async function BookingPage({
           <div className="min-w-0 flex-1 space-y-1">
             <div className="text-lg font-semibold text-white sm:text-xl">{hotelName}</div>
             <div className="text-sm font-medium text-slate-300/95">{title}</div>
-            <div className="pt-1 text-sm text-emerald-100/85">
+            <div className="pt-1 text-sm text-[#d1fae5]/85">
               {m(locale, "owner.priceNight")}:{" "}
               <span className="tabular-nums font-semibold text-white">{pricePerNight} TJS</span>
             </div>

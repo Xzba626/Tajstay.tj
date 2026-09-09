@@ -170,9 +170,9 @@ export function BookingWizard({ locale, labels, defaults, pricePerNight, finance
   const nights = calcNights(checkIn, checkOut);
   const totalByDates = nights ? Number((pricePerNight * nights).toFixed(2)) : null;
   const mobileField =
-    "h-14 w-full rounded-2xl border border-white/20 bg-white/12 px-4 text-sm text-slate-100 shadow-[0_10px_30px_rgba(2,6,23,0.30)] outline-none transition placeholder:text-slate-200/70 focus:border-emerald-300 focus:ring-2 focus:ring-emerald-300/30";
+    "h-14 w-full rounded-2xl border border-white/20 bg-white/12 px-4 text-sm text-slate-100 shadow-[0_10px_30px_rgba(2,6,23,0.30)] outline-none transition placeholder:text-slate-200/70 focus:border-[#0f7a4d] focus:ring-2 focus:ring-[#0f7a4d]/30";
   const labelRow = "flex items-center gap-2 text-xs font-semibold text-slate-200/90";
-  const labelIcon = "text-sm text-emerald-200/90";
+  const labelIcon = "text-sm text-[#d1fae5]/90";
 
   const persistFields = step >= 2;
 
@@ -206,7 +206,7 @@ export function BookingWizard({ locale, labels, defaults, pricePerNight, finance
 
       <div className="flex items-baseline justify-between gap-3 border-b border-white/[0.07] pb-2.5">
         <div className="text-[13px] font-medium tracking-wide text-slate-200/95">{stepTitle}</div>
-        <div className="tabular-nums text-[11px] font-medium uppercase tracking-[0.14em] text-emerald-200/70">
+        <div className="tabular-nums text-[11px] font-medium uppercase tracking-[0.14em] text-[#d1fae5]/70">
           {step}/3
         </div>
       </div>
@@ -221,8 +221,8 @@ export function BookingWizard({ locale, labels, defaults, pricePerNight, finance
             {step === 1 && (
               <div className="wizard-step wizard-in">
                 {defaults.isAuthed && (defaults.signedInAsName || defaults.signedInAsEmail) ? (
-                  <div className="mb-4 rounded-2xl border border-emerald-400/25 bg-emerald-500/[0.08] p-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-200/85">
+                  <div className="mb-4 rounded-2xl border border-[#0f7a4d]/25 bg-[#0f7a4d]/[0.08] p-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#d1fae5]/85">
                       {labels.signedInAccountTitle}
                     </div>
                     {defaults.signedInAsName ? (
@@ -329,7 +329,7 @@ export function BookingWizard({ locale, labels, defaults, pricePerNight, finance
 
             {step === 2 && (
               <div className="wizard-step wizard-in">
-                <div className="rounded-2xl border border-emerald-300/20 bg-emerald-500/10 p-4 text-sm text-slate-100">
+                <div className="rounded-2xl border border-[#0f7a4d]/20 bg-[#0f7a4d]/10 p-4 text-sm text-slate-100">
                   <div className="font-semibold">Способ оплаты</div>
                   <div className="mt-1 text-slate-200">Душанбе City (DC Next)</div>
                 </div>
@@ -364,20 +364,20 @@ export function BookingWizard({ locale, labels, defaults, pricePerNight, finance
             {step === 3 && (
               <div className="wizard-step wizard-in space-y-4">
                 <div
-                  className="relative overflow-hidden rounded-2xl border border-emerald-400/25 px-4 py-4 text-sm text-slate-100 shadow-[0_0_0_1px_rgba(16,185,129,0.12),0_0_32px_-4px_rgba(16,185,129,0.35),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-md"
+                  className="relative overflow-hidden rounded-2xl border border-[#0f7a4d]/25 px-4 py-4 text-sm text-slate-100 shadow-[0_0_0_1px_rgba(15, 122, 77,0.12),0_0_32px_-4px_rgba(15, 122, 77,0.35),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-md"
                   style={{
                     background:
-                      "linear-gradient(135deg, rgba(255,255,255,0.07) 0%, rgba(16,185,129,0.06) 45%, rgba(6,78,59,0.12) 100%)"
+                      "linear-gradient(135deg, rgba(255,255,255,0.07) 0%, rgba(15, 122, 77,0.06) 45%, rgba(6,78,59,0.12) 100%)"
                   }}
                 >
-                  <div className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-emerald-400/20 blur-2xl" />
-                  <div className="pointer-events-none absolute -bottom-6 -left-6 h-24 w-24 rounded-full bg-emerald-500/15 blur-2xl" />
+                  <div className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-[#0f7a4d]/20 blur-2xl" />
+                  <div className="pointer-events-none absolute -bottom-6 -left-6 h-24 w-24 rounded-full bg-[#0f7a4d]/15 blur-2xl" />
                   <div className="relative flex gap-3">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-emerald-300/30 bg-emerald-500/15 text-emerald-200">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#0f7a4d]/30 bg-[#0f7a4d]/15 text-[#d1fae5]">
                       <ShieldCheckIcon className="h-6 w-6" />
                     </div>
                     <div className="min-w-0 pt-0.5">
-                      <div className="font-semibold tracking-tight text-emerald-50/95">{labels.escrowTitle}</div>
+                      <div className="font-semibold tracking-tight text-[#ecfdf5]/95">{labels.escrowTitle}</div>
                       <p className="mt-1.5 text-[13px] leading-relaxed text-slate-200/90">{labels.escrowBody}</p>
                     </div>
                   </div>
@@ -413,7 +413,7 @@ export function BookingWizard({ locale, labels, defaults, pricePerNight, finance
                   loading={submitting}
                   disabled={submitting}
                   onClick={() => void runBookingSubmit()}
-                  className="border-emerald-400/40 bg-gradient-to-b from-emerald-500 to-emerald-700 text-white shadow-[0_8px_28px_rgba(0,0,0,0.35),0_0_24px_rgba(16,185,129,0.35)] hover:shadow-[0_8px_28px_rgba(0,0,0,0.35),0_0_32px_rgba(52,211,153,0.45)]"
+                  className="border-[#0f7a4d]/40 bg-gradient-to-b from-[#0f7a4d] to-[#0f7a4d] text-white shadow-[0_8px_28px_rgba(0,0,0,0.35),0_0_24px_rgba(15, 122, 77,0.35)] hover:shadow-[0_8px_28px_rgba(0,0,0,0.35),0_0_32px_rgba(15, 122, 77,0.45)]"
                 >
                   {labels.confirm}
                 </Button>

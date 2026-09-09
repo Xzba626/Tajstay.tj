@@ -71,7 +71,7 @@ export function ProofUploadPanel({
             </button>
           </div>
           <span className="chat-proof-card__status chat-proof-card__status--pending">{m(locale, "status.ON_REVIEW")}</span>
-          <label className="flex cursor-pointer flex-col items-center gap-2 rounded-xl border border-dashed border-[var(--taj-color-border-strong)] bg-[var(--taj-emerald-50)] px-3 py-4">
+          <label className="flex cursor-pointer flex-col items-center gap-2 rounded-xl border border-dashed border-[var(--taj-color-border-strong)] bg-[var(--taj-[#ecfdf5])] px-3 py-4">
             <span className="text-xs font-semibold text-[var(--taj-color-primary)]">{m(locale, "bookingRoom.proof.file")}</span>
             <span className="text-[10px] text-[var(--taj-color-text-muted)]">PNG, JPG, WebP</span>
             <input name="proofFile" type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" required />

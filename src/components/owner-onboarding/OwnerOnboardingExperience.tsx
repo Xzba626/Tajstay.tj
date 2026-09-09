@@ -379,7 +379,7 @@ export function OwnerOnboardingExperience({ locale, L, ownerNav, defaults }: Pro
         </div>
       </div>
       <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-        <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-1 h-4 w-4 rounded border-white/20 text-emerald-500" />
+        <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-1 h-4 w-4 rounded border-white/20 text-[#0f7a4d]" />
         <span className="text-sm text-slate-200">{L.consent}</span>
       </label>
       {errors.consent ? (

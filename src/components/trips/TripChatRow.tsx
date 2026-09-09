@@ -9,7 +9,7 @@ function statusDotClass(status: string) {
     return "bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.45)]";
   }
   if (status === "COMPLETED") return "bg-slate-500";
-  return "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)]";
+  return "bg-[#0f7a4d] shadow-[0_0_10px_rgba(15, 122, 77,0.4)]";
 }
 
 type Props = {
@@ -54,10 +54,10 @@ export function TripChatRow({ locale, user, booking: b, showAdminGuest }: Props)
             <div className="min-w-0 truncate font-semibold text-white">{hotel?.name ?? "—"}</div>
             <span className={`trip-chat-row__dot ${statusDotClass(b.status)}`} title={b.status} aria-hidden />
           </div>
-          <div className="truncate text-xs text-emerald-100/55">{roomTitle}</div>
-          <div className="mt-1 truncate text-sm text-emerald-100/45">{preview}</div>
+          <div className="truncate text-xs text-[#d1fae5]/55">{roomTitle}</div>
+          <div className="mt-1 truncate text-sm text-[#d1fae5]/45">{preview}</div>
           {showAdminGuest && b.user ? (
-            <div className="mt-1 truncate text-[11px] text-emerald-100/35">
+            <div className="mt-1 truncate text-[11px] text-[#d1fae5]/35">
               {b.user.name} · {b.user.phone}
             </div>
           ) : null}

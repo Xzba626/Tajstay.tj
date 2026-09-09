@@ -101,7 +101,7 @@ function isOnOrAfterLocalDay(now: Date, checkIn: Date): boolean {
 
 function statusPillClass(status: string): string {
   if (status === "CONFIRMED") {
-    return "bg-gradient-to-r from-emerald-500/25 via-emerald-400/15 to-teal-400/15 text-emerald-100 ring-emerald-300/25";
+    return "bg-gradient-to-r from-[#0f7a4d]/25 via-[#0f7a4d]/15 to-[#0f7a4d]/15 text-[#d1fae5] ring-[#0f7a4d]/25";
   }
   if (status === "WAITING_PAYMENT" || status === "WAIT_PROOF") {
     return "bg-[rgba(255,184,48,0.14)] text-[#ffe9b8] ring-[rgba(255,184,48,0.25)]";
@@ -597,7 +597,7 @@ export function BookingChatPanel({
         </div>
       ) : (
       <header className="sticky top-0 z-20 flex shrink-0 items-center gap-3 border-b border-white/[0.08] bg-slate-950/90 px-4 py-3 shadow-[0_8px_24px_rgba(0,0,0,0.35)] backdrop-blur-xl supports-[backdrop-filter]:bg-slate-950/75">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500/30 to-teal-600/20 text-lg font-bold text-emerald-100 ring-1 ring-white/10">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#0f7a4d]/30 to-[#0f7a4d]/20 text-lg font-bold text-[#d1fae5] ring-1 ring-white/10">
           {avatarLetter(title)}
         </div>
         <div className="min-w-0 flex-1">
@@ -677,7 +677,7 @@ export function BookingChatPanel({
                 type="button"
                 disabled={actionBusy || !liveBooking?.paymentTimerPaused}
                 onClick={() => void adminTimerAction("resume")}
-                className="rounded-lg border border-emerald-400/30 bg-emerald-500/15 px-2.5 py-1 text-[10px] font-semibold text-emerald-100"
+                className="rounded-lg border border-[#0f7a4d]/30 bg-[#0f7a4d]/15 px-2.5 py-1 text-[10px] font-semibold text-[#d1fae5]"
               >
                 {m(locale, "chat.resumeTimer")}
               </button>
@@ -766,23 +766,23 @@ export function BookingChatPanel({
                     ) : null}
                     {row.showMeta ? (
                       <div
-                        className={`mb-1 flex items-center justify-between gap-2 text-[10px] ${fromGuest ? "text-emerald-100/90" : "text-slate-400"}`}
+                        className={`mb-1 flex items-center justify-between gap-2 text-[10px] ${fromGuest ? "text-[#d1fae5]/90" : "text-slate-400"}`}
                       >
                         <span className="font-medium">{mine ? m(locale, "chat.you") : msg.senderName}</span>
                         <span>
                           {timeLabel(msg.createdAt)}
                           {mine && msg.readAt ? (
-                            <span className="ml-1 text-emerald-200/70" title={m(locale, "chat.readReceipt")}>
+                            <span className="ml-1 text-[#d1fae5]/70" title={m(locale, "chat.readReceipt")}>
                               ✓✓
                             </span>
                           ) : null}
                         </span>
                       </div>
                     ) : (
-                      <div className={`text-right text-[9px] ${fromGuest ? "text-emerald-100/60" : "text-slate-500"}`}>
+                      <div className={`text-right text-[9px] ${fromGuest ? "text-[#d1fae5]/60" : "text-slate-500"}`}>
                         {timeLabel(msg.createdAt)}
                         {mine && msg.readAt ? (
-                          <span className="ml-1 text-emerald-200/70" title={m(locale, "chat.readReceipt")}>
+                          <span className="ml-1 text-[#d1fae5]/70" title={m(locale, "chat.readReceipt")}>
                             ✓✓
                           </span>
                         ) : null}
@@ -818,7 +818,7 @@ export function BookingChatPanel({
             type="button"
             disabled={actionBusy}
             onClick={() => void adminConfirmPaymentFromChat()}
-            className="w-full rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 py-4 text-base font-bold text-white shadow-[0_0_28px_rgba(16,185,129,0.35)] transition hover:brightness-105 disabled:opacity-55"
+            className="w-full rounded-2xl bg-gradient-to-r from-[#0f7a4d] to-[#0f7a4d] py-4 text-base font-bold text-white shadow-[0_0_28px_rgba(15, 122, 77,0.35)] transition hover:brightness-105 disabled:opacity-55"
           >
             {actionBusy ? "…" : m(locale, "chat.confirmPayBig")}
           </button>
@@ -835,7 +835,7 @@ export function BookingChatPanel({
               paymentCode && !suppressPaymentDeepLink ? (
                 <Link
                   href={`/payment/${encodeURIComponent(paymentCode)}?after=1`}
-                  className="rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs font-semibold text-emerald-100 transition hover:bg-white/10"
+                  className="rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs font-semibold text-[#d1fae5] transition hover:bg-white/10"
                 >
                   Загрузить чек
                 </Link>
@@ -856,7 +856,7 @@ export function BookingChatPanel({
                         errorPrefix: "Не удалось подтвердить заселение"
                       });
                     }}
-                    className="rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white disabled:opacity-60"
+                    className="rounded-xl bg-[#0f7a4d] px-3 py-2 text-xs font-semibold text-white disabled:opacity-60"
                     title={!allowed ? "В день заезда" : undefined}
                   >
                     Заселение
@@ -892,7 +892,7 @@ export function BookingChatPanel({
               type="button"
               disabled={sending}
               onClick={() => void sendQuickReply(m(locale, "chat.quickPaidBtn"))}
-              className="rounded-full border border-emerald-400/25 bg-emerald-500/10 px-3 py-2 text-[11px] font-semibold text-emerald-100 disabled:opacity-50"
+              className="rounded-full border border-[#0f7a4d]/25 bg-[#0f7a4d]/10 px-3 py-2 text-[11px] font-semibold text-[#d1fae5] disabled:opacity-50"
             >
               {m(locale, "chat.quickPaidBtn")}
             </button>
@@ -926,7 +926,7 @@ export function BookingChatPanel({
                   disabled={sending}
                   title={label}
                   onClick={() => void sendQuickReply(label)}
-                  className="max-w-[220px] truncate rounded-full border border-emerald-400/25 bg-emerald-500/10 px-3 py-2 text-[11px] font-semibold text-emerald-100 disabled:opacity-50"
+                  className="max-w-[220px] truncate rounded-full border border-[#0f7a4d]/25 bg-[#0f7a4d]/10 px-3 py-2 text-[11px] font-semibold text-[#d1fae5] disabled:opacity-50"
                 >
                   {label}
                 </button>
@@ -956,7 +956,7 @@ export function BookingChatPanel({
         ) : null}
 
         <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
-        {file ? <div className="truncate text-[11px] text-emerald-200/90">{file.name}</div> : null}
+        {file ? <div className="truncate text-[11px] text-[#d1fae5]/90">{file.name}</div> : null}
         <div className="chat-compose__row">
           <button
             type="button"
@@ -1102,7 +1102,7 @@ export function BookingChatLauncher(props: LauncherProps) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-2 rounded-2xl border border-emerald-400/35 bg-emerald-500/15 px-4 py-2.5 text-sm font-semibold text-emerald-100 shadow-[0_0_24px_rgba(16,185,129,0.12)] backdrop-blur-md transition hover:bg-emerald-500/25"
+        className="inline-flex items-center gap-2 rounded-2xl border border-[#0f7a4d]/35 bg-[#0f7a4d]/15 px-4 py-2.5 text-sm font-semibold text-[#d1fae5] shadow-[0_0_24px_rgba(15, 122, 77,0.12)] backdrop-blur-md transition hover:bg-[#0f7a4d]/25"
         style={{ borderRadius: 16 }}
       >
         <span className="text-base" aria-hidden>

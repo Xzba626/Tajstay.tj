@@ -72,7 +72,7 @@ export function FileUploadCard({
         </span>
       </div>
       {hint ? <p className="mt-1 text-xs text-slate-400">{hint}</p> : null}
-      <p className="mt-1 text-[11px] text-emerald-200/80">{reqLabel}</p>
+      <p className="mt-1 text-[11px] text-[#d1fae5]/80">{reqLabel}</p>
 
       <input
         ref={inputRef}

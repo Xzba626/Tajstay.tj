@@ -31,7 +31,7 @@ function filterLabel(locale: Locale, f: InboxFilter): string {
 
 function statusPill(status: string): string {
   if (status === "CONFIRMED" || status === "CHECKED_IN" || status === "COMPLETED") {
-    return "bg-emerald-500/20 text-emerald-100";
+    return "bg-[#0f7a4d]/20 text-[#d1fae5]";
   }
   if (status === "ON_REVIEW") return "bg-indigo-500/20 text-indigo-100";
   if (status === "WAITING_PAYMENT" || status === "WAIT_PROOF") return "bg-amber-500/20 text-amber-100";
@@ -97,7 +97,7 @@ export function MessagesInbox({ locale, role }: { locale: Locale; role: string }
             onClick={() => setFilter(f)}
             className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
               filter === f
-                ? "bg-emerald-600 text-white shadow-md shadow-emerald-900/30"
+                ? "bg-[#0f7a4d] text-white shadow-md shadow-[#0f3d2e]/30"
                 : "border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10"
             }`}
           >
@@ -125,7 +125,7 @@ export function MessagesInbox({ locale, role }: { locale: Locale; role: string }
               <li key={item.bookingId}>
                 <Link
                   href={`/chat/booking/${item.bookingId}`}
-                  className="flex gap-3 rounded-2xl border border-white/[0.08] bg-[rgba(15,23,42,0.5)] p-3 backdrop-blur-xl transition hover:border-emerald-500/25 hover:bg-[rgba(15,23,42,0.7)]"
+                  className="flex gap-3 rounded-2xl border border-white/[0.08] bg-[rgba(15,23,42,0.5)] p-3 backdrop-blur-xl transition hover:border-[#0f7a4d]/25 hover:bg-[rgba(15,23,42,0.7)]"
                 >
                   <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-2xl ring-1 ring-[#e4e4e7] bg-[#f4f4f5]">
                     {cover ? (
@@ -133,7 +133,7 @@ export function MessagesInbox({ locale, role }: { locale: Locale; role: string }
                       <img src={cover} alt="" className="h-full w-full object-cover" loading="lazy" />
                     ) : null}
                     {item.unreadCount > 0 ? (
-                      <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-bold text-white">
+                      <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#0f7a4d] px-1 text-[10px] font-bold text-white">
                         {item.unreadCount > 9 ? "9+" : item.unreadCount}
                       </span>
                     ) : null}

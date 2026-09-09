@@ -35,7 +35,7 @@ export function GuestHomeExtras({ locale, compact = false }: { locale: Locale; c
           <li key={h.id}>
             <Link
               href={`/hotel/${h.id}`}
-              className="inline-flex min-h-[2.75rem] items-center rounded-full border border-[var(--taj-color-border)] bg-[var(--taj-public-surface)] px-3 py-2 text-sm text-[var(--taj-color-text)] transition hover:border-emerald-400/40"
+              className="inline-flex min-h-[2.75rem] items-center rounded-full border border-[var(--taj-color-border)] bg-[var(--taj-public-surface)] px-3 py-2 text-sm text-[var(--taj-color-text)] transition hover:border-[#0f7a4d]/40"
             >
               {h.name}
               <span className="ml-1 text-slate-400">· {h.city}</span>

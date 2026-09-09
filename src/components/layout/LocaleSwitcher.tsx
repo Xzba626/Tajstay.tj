@@ -74,7 +74,7 @@ export function LocaleSwitcher({ current, className, iconOnly = false }: Props) 
         className={cn(
           "taj-dropdown-trigger disabled:opacity-50",
           iconOnly && "locale-switcher-trigger--icon",
-          open && "ring-2 ring-emerald-400/25"
+          open && "ring-2 ring-[#0f7a4d]/25"
         )}
         aria-expanded={open}
         aria-haspopup="menu"

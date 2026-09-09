@@ -199,7 +199,7 @@ export function BookingRoom(props: BookingRoomProps) {
       {isGuest && eligibleForReview ? (
         <div
           id="booking-review"
-          className={`surface-1 rounded-2xl border p-4 ${focusReview ? "border-emerald-400/40 ring-1 ring-emerald-400/25" : "border-white/10"}`}
+          className={`surface-1 rounded-2xl border p-4 ${focusReview ? "border-[#0f7a4d]/40 ring-1 ring-[#0f7a4d]/25" : "border-white/10"}`}
         >
           <LeaveReviewForm
             bookingId={bookingId}

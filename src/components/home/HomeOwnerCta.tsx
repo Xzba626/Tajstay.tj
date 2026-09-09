@@ -16,7 +16,7 @@ export function HomeOwnerCta({ title, description, primaryLabel, secondaryLabel,
         <div>
           <p className="home-section__eyebrow">{eyebrow}</p>
           <h2 className="mt-2 font-[family-name:var(--taj-font-ui)] text-2xl font-bold tracking-tight text-white sm:text-3xl">{title}</h2>
-          <p className="mt-3 max-w-xl text-sm leading-relaxed text-emerald-100/85 sm:text-base">{description}</p>
+          <p className="mt-3 max-w-xl text-sm leading-relaxed text-[#d1fae5]/85 sm:text-base">{description}</p>
           {trustPoints?.length ? (
             <ul className="home-owner-cta__trust mt-5">
               {trustPoints.map((point) => (

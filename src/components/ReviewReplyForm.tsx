@@ -49,7 +49,7 @@ export default function ReviewReplyForm({ reviewId, labels }: { reviewId: number
         className="mt-2 min-h-[90px] w-full rounded-xl border px-3 py-2"
       />
       {error && <div className="mt-2 rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</div>}
-      <button disabled={loading} className="mt-3 w-full rounded-xl bg-emerald-700 px-4 py-2 text-sm font-medium text-white">
+      <button disabled={loading} className="mt-3 w-full rounded-xl bg-[#0f7a4d] px-4 py-2 text-sm font-medium text-white">
         {loading ? labels.saving : labels.submit}
       </button>
     </form>

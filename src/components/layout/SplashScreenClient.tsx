@@ -50,7 +50,7 @@ export function SplashScreenClient({ subtitle }: Props) {
 
   return (
     <div
-      className={`fixed inset-0 z-[200] flex flex-col items-center justify-center bg-gradient-to-br from-green-950 via-green-900 to-emerald-950 ${fadeOut ? "taj-splash-out" : ""}`}
+      className={`fixed inset-0 z-[200] flex flex-col items-center justify-center bg-gradient-to-br from-green-950 via-green-900 to-[#0f2920] ${fadeOut ? "taj-splash-out" : ""}`}
       aria-hidden
     >
       <div className={fadeOut ? "taj-splash-logo-out flex flex-col items-center gap-6" : "animate-splash-in flex flex-col items-center gap-6"}>

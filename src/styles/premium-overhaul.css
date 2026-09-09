@@ -195,17 +195,13 @@
 .home-hero-bg {
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(180deg, rgba(7, 26, 16, 0.55) 0%, rgba(7, 26, 16, 0.92) 72%),
-    url("/brand/tajstay-hero-mountains.jpg") center / cover no-repeat;
+  background: #ffffff;
   opacity: 1;
-  filter: blur(0.5px);
   pointer-events: none;
 }
 
 .home-hero-bg-fallback {
-  background: radial-gradient(ellipse 80% 60% at 50% 20%, rgba(22, 163, 74, 0.12), transparent 60%),
-    var(--bg-base);
+  background: #ffffff;
 }
 
 /* Horizontal hotel scroll */

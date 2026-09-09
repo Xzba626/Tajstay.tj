@@ -5,7 +5,7 @@ export function OfflineRetryButton({ label }: { label: string }) {
     <button
       type="button"
       onClick={() => window.location.reload()}
-      className="rounded-xl bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-600"
+      className="rounded-xl bg-[#0f7a4d] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#0f7a4d]"
     >
       {label}
     </button>

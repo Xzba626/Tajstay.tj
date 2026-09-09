@@ -11,7 +11,7 @@ export default function NotFound() {
         Возможно, ссылка устарела или страница была перемещена. Вернитесь на главную и продолжите поиск.
       </p>
       <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-        <Link href="/" className="rounded-xl bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-400">
+        <Link href="/" className="rounded-xl bg-[#0f7a4d] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0f7a4d]">
           На главную
         </Link>
         <Link href="/search" className="rounded-xl border border-slate-600 px-5 py-2.5 text-sm font-semibold text-slate-200 transition hover:bg-slate-800">

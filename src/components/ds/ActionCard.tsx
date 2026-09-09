@@ -19,7 +19,7 @@ export function ActionCard({ title, description, href, icon, trailing, onClick, 
       <div className="flex items-start gap-3">
         {icon ? (
           <div
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/15 text-lg text-emerald-300"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#0f7a4d]/15 text-lg text-[#0f7a4d]"
             aria-hidden
           >
             {icon}
@@ -41,7 +41,7 @@ export function ActionCard({ title, description, href, icon, trailing, onClick, 
   );
 
   const cardClass = cn(
-    "block transition hover:border-emerald-400/30 hover:bg-white/[0.07]",
+    "block transition hover:border-[#0f7a4d]/30 hover:bg-white/[0.07]",
     (href || onClick) && "cursor-pointer",
     className
   );

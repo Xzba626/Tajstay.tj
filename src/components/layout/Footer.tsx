@@ -34,7 +34,7 @@ export async function Footer() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-[var(--taj-text-secondary)] transition hover:text-[var(--taj-text)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--taj-bg)]"
+                className="text-[var(--taj-text-secondary)] transition hover:text-[var(--taj-text)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f7a4d]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--taj-bg)]"
               >
                 {link.label}
               </Link>

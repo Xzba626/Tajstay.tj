@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { HeroTravelPreview } from "@/components/landing/HeroTravelPreview";
 
 type Props = {
   heroBadge: string;
@@ -11,7 +10,7 @@ type Props = {
   primaryActionsAriaLabel: string;
 };
 
-/** Premium travel hero — dark emerald, static visual on tablet+ */
+/** Premium travel hero — clean white canvas, text + search only, no decorative visual layer */
 export function TajstayHero3D({
   heroBadge,
   heroTitle,
@@ -22,8 +21,8 @@ export function TajstayHero3D({
   primaryActionsAriaLabel
 }: Props) {
   return (
-    <div className="home-hero-layout relative z-[1] grid w-full flex-1 items-center lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] lg:gap-8">
-      <div className="text-center lg:text-left">
+    <div className="home-hero-layout relative z-[1] flex w-full flex-1 items-center">
+      <div className="mx-auto max-w-3xl text-center lg:text-left">
         <div className="home-hero-badge mb-1.5 inline-flex md:mb-3">{heroBadge}</div>
         <h1 className="home-hero-title font-[family-name:var(--taj-font-ui)] text-[clamp(1.625rem,6.5vw,2.75rem)] font-bold leading-[1.08] tracking-tight lg:font-[family-name:var(--taj-font-display)] lg:text-[clamp(1.875rem,5.2vw,2.875rem)]">
           {heroTitle}
@@ -52,12 +51,6 @@ export function TajstayHero3D({
             </li>
           ))}
         </ul>
-      </div>
-
-      <div className="home-hero-visual mx-auto w-full max-w-md lg:max-w-none" aria-hidden>
-        <div className="home-hero-visual__frame">
-          <HeroTravelPreview />
-        </div>
       </div>
     </div>
   );

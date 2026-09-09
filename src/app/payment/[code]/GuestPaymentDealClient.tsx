@@ -80,13 +80,13 @@ export function GuestPaymentDealClient(props: GuestPaymentDealClientProps) {
 
         <div className="mt-5 flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="truncate text-xs font-medium uppercase tracking-widest text-emerald-200/70">{hotelName}</p>
+            <p className="truncate text-xs font-medium uppercase tracking-widest text-[#d1fae5]/70">{hotelName}</p>
             <p className="truncate text-sm text-white/80">{roomTitle}</p>
             <h1 className="mt-2 text-2xl font-bold tracking-tight text-white sm:text-[1.65rem]">{headline}</h1>
           </div>
           <div className="shrink-0 rounded-2xl bg-black/25 px-3 py-2 text-right ring-1 ring-white/10">
             <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Сумма</p>
-            <p className="text-lg font-bold tabular-nums text-emerald-100 sm:text-xl">
+            <p className="text-lg font-bold tabular-nums text-[#d1fae5] sm:text-xl">
               {Number(totalPrice).toLocaleString("ru-RU", { maximumFractionDigits: 0 })} <span className="text-sm font-semibold">TJS</span>
             </p>
           </div>
@@ -118,9 +118,9 @@ export function GuestPaymentDealClient(props: GuestPaymentDealClientProps) {
         ) : null}
 
         {isConfirmed ? (
-          <div className="mt-4 rounded-2xl border border-emerald-400/25 bg-emerald-500/10 px-3 py-3 text-sm text-emerald-50" role="status">
+          <div className="mt-4 rounded-2xl border border-[#0f7a4d]/25 bg-[#0f7a4d]/10 px-3 py-3 text-sm text-[#ecfdf5]" role="status">
             <p className="font-semibold">Готово</p>
-            <p className="mt-1 text-emerald-100/85">Код: {code}</p>
+            <p className="mt-1 text-[#d1fae5]/85">Код: {code}</p>
           </div>
         ) : null}
 

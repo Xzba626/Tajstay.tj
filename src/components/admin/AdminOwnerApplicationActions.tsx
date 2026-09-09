@@ -68,9 +68,9 @@ export function AdminOwnerApplicationActions({ applicationId, labels: L }: Props
       )}
 
       {mode === "approve" && (
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50/80 p-4">
-          <p className="font-semibold text-emerald-900">{L.confirmApproveTitle}</p>
-          <p className="mt-1 text-sm text-emerald-800">{L.confirmApproveDesc}</p>
+        <div className="rounded-xl border border-[#d1fae5] bg-[#ecfdf5]/80 p-4">
+          <p className="font-semibold text-[#0f3d2e]">{L.confirmApproveTitle}</p>
+          <p className="mt-1 text-sm text-[#166534]">{L.confirmApproveDesc}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             <button
               type="button"

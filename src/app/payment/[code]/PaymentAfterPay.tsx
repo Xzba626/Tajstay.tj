@@ -101,7 +101,7 @@ export function PaymentAfterPay({
         <button
           type="button"
           onClick={handleOpen}
-          className="brand-gradient inline-flex w-full items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-900/35 transition hover:brightness-110"
+          className="brand-gradient inline-flex w-full items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#0f3d2e]/35 transition hover:brightness-110"
         >
           {labels.paidNext}
         </button>
@@ -130,8 +130,8 @@ export function PaymentAfterPay({
 
                 {isDeal ? (
                   <>
-                    <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-emerald-400/35 bg-emerald-500/[0.07] px-4 py-8 transition hover:border-emerald-400/55 hover:bg-emerald-500/10 active:scale-[0.99]">
-                      <ReceiptIcon className="h-10 w-10 text-emerald-200/90" />
+                    <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-[#0f7a4d]/35 bg-[#0f7a4d]/[0.07] px-4 py-8 transition hover:border-[#0f7a4d]/55 hover:bg-[#0f7a4d]/10 active:scale-[0.99]">
+                      <ReceiptIcon className="h-10 w-10 text-[#d1fae5]/90" />
                       <span className="text-base font-semibold text-white">Загрузить чек</span>
                       <span className="text-center text-xs text-slate-400">PNG, JPG или WebP</span>
                       <input name="proofFile" type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" />
@@ -168,8 +168,8 @@ export function PaymentAfterPay({
                     type="submit"
                     className={
                       isDeal
-                        ? "brand-gradient inline-flex min-h-[52px] flex-1 items-center justify-center rounded-2xl px-5 text-base font-semibold text-white shadow-lg shadow-emerald-900/30 transition hover:brightness-110"
-                        : "brand-gradient inline-flex rounded-2xl px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-900/35 transition hover:brightness-110"
+                        ? "brand-gradient inline-flex min-h-[52px] flex-1 items-center justify-center rounded-2xl px-5 text-base font-semibold text-white shadow-lg shadow-[#0f3d2e]/30 transition hover:brightness-110"
+                        : "brand-gradient inline-flex rounded-2xl px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-[#0f3d2e]/35 transition hover:brightness-110"
                     }
                   >
                     {isDeal ? "Отправить" : labels.submitProof}

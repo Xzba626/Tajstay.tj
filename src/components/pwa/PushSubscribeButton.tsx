@@ -64,14 +64,14 @@ export function PushSubscribeButton({
     return <p className="text-xs text-amber-700">{labels.denied}</p>;
   }
   if (status === "enabled") {
-    return <p className="text-xs text-emerald-700">{labels.enabled}</p>;
+    return <p className="text-xs text-[#0f7a4d]">{labels.enabled}</p>;
   }
 
   return (
     <button
       type="button"
       onClick={() => void subscribe()}
-      className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-semibold text-emerald-800 hover:bg-emerald-100"
+      className="rounded-xl border border-[#d1fae5] bg-[#ecfdf5] px-4 py-2 text-xs font-semibold text-[#166534] hover:bg-[#d1fae5]"
     >
       {labels.enable}
     </button>

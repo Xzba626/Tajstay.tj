@@ -6,7 +6,7 @@ export type BookingStatusTone = "pending" | "confirmed" | "cancelled" | "complet
 
 const toneClass: Record<BookingStatusTone, string> = {
   pending: "bg-amber-500/15 text-amber-200 border-amber-400/25",
-  confirmed: "bg-emerald-500/15 text-emerald-200 border-emerald-400/25",
+  confirmed: "bg-[#0f7a4d]/15 text-[#d1fae5] border-[#0f7a4d]/25",
   cancelled: "bg-red-500/15 text-red-200 border-red-400/25",
   completed: "bg-slate-500/15 text-slate-200 border-slate-400/25",
   default: "bg-white/10 text-slate-200 border-white/15"

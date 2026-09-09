@@ -132,14 +132,14 @@ export default async function PaymentPage({
             {m(locale, "checkout.expired")}
           </div>
         ) : isConfirmed ? (
-          <div className="mt-4 rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100" role="status">
+          <div className="mt-4 rounded-xl border border-[#0f7a4d]/30 bg-[#0f7a4d]/10 px-4 py-3 text-sm text-[#d1fae5]" role="status">
             <div className="font-semibold">Бронь подтверждена.</div>
             <div className="mt-1">
-              Код: <span className="font-bold text-emerald-50">{booking.publicCode}</span>
+              Код: <span className="font-bold text-[#ecfdf5]">{booking.publicCode}</span>
             </div>
           </div>
         ) : isOnReview ? (
-          <div className="mt-4 rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100" role="status">
+          <div className="mt-4 rounded-xl border border-[#0f7a4d]/30 bg-[#0f7a4d]/10 px-4 py-3 text-sm text-[#d1fae5]" role="status">
             <div className="font-semibold">{m(locale, "checkout.proofSent")}</div>
           </div>
         ) : (

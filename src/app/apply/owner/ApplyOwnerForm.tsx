@@ -148,7 +148,7 @@ export function ApplyOwnerForm({ labels }: Props) {
           multiple
           accept="image/*"
           capture="environment"
-          className="mt-2 block w-full rounded-2xl border border-white/15 bg-white/5 px-3 py-3 text-sm text-slate-200 file:mr-3 file:rounded-xl file:border-0 file:bg-emerald-500/25 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-emerald-50"
+          className="mt-2 block w-full rounded-2xl border border-white/15 bg-white/5 px-3 py-3 text-sm text-slate-200 file:mr-3 file:rounded-xl file:border-0 file:bg-[#0f7a4d]/25 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-[#ecfdf5]"
         />
         <p className="mt-2 text-xs leading-relaxed text-slate-400">{labels.photoUploadHelp}</p>
       </div>
@@ -166,7 +166,7 @@ export function ApplyOwnerForm({ labels }: Props) {
       <button
         type="submit"
         disabled={loading}
-        className="brand-gradient focus-ring w-full rounded-2xl px-4 py-3.5 text-sm font-semibold text-white shadow-lg shadow-emerald-900/30 transition hover:brightness-110 disabled:opacity-60"
+        className="brand-gradient focus-ring w-full rounded-2xl px-4 py-3.5 text-sm font-semibold text-white shadow-lg shadow-[#0f3d2e]/30 transition hover:brightness-110 disabled:opacity-60"
       >
         {loading ? labels.sending : labels.submit}
       </button>

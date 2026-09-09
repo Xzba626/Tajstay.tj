@@ -65,7 +65,7 @@ export function RoomTypeCards({
                   </div>
                 ) : null}
                 {roomsLeft > 0 ? (
-                  <p className="mt-2 text-xs text-emerald-300">
+                  <p className="mt-2 text-xs text-[#0f7a4d]">
                     {m(locale, "pms.roomsLeft", { count: String(roomsLeft) })}
                   </p>
                 ) : null}

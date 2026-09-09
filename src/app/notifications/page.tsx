@@ -68,6 +68,7 @@ export default async function NotificationsPage({
         </div>
         <form action="/api/notifications/read-all" method="post">
           <button type="submit" className="rounded-xl bg-[#0f7a4d] px-4 py-2 text-sm font-semibold text-white">
+
             {m(locale, "userMenu.markReadAll")}
           </button>
         </form>
@@ -77,7 +78,7 @@ export default async function NotificationsPage({
         <a
           href="/notifications?filter=all"
           className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
-            activeFilter === "all" ? "bg-emerald-700 text-white" : "border border-slate-200 bg-white text-slate-700"
+            activeFilter === "all" ? "bg-[#0f7a4d] text-white" : "border border-slate-200 bg-white text-slate-700"
           }`}
         >
           {m(locale, "notificationsPage.filterAll")}
@@ -85,7 +86,7 @@ export default async function NotificationsPage({
         <a
           href="/notifications?filter=unread"
           className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
-            activeFilter === "unread" ? "bg-emerald-700 text-white" : "border border-slate-200 bg-white text-slate-700"
+            activeFilter === "unread" ? "bg-[#0f7a4d] text-white" : "border border-slate-200 bg-white text-slate-700"
           }`}
         >
           {m(locale, "notificationsPage.filterUnread")}
@@ -114,14 +115,14 @@ export default async function NotificationsPage({
             <div
               key={n.id}
               className={`rounded-xl border p-4 text-sm ${
-                n.isRead ? "border-slate-200 bg-white text-slate-700" : "border-emerald-300 bg-emerald-50 text-slate-900"
+                n.isRead ? "border-slate-200 bg-white text-slate-700" : "border-[#0f7a4d] bg-[#ecfdf5] text-slate-900"
               }`}
             >
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div className="font-semibold">{label}</div>
                 {!n.isRead ? (
                   <form action={`/api/notifications/${n.id}/read`} method="post">
-                    <button type="submit" className="text-xs font-semibold text-emerald-800 underline">
+                    <button type="submit" className="text-xs font-semibold text-[#166534] underline">
                       {m(locale, "notificationsPage.markRead")}
                     </button>
                   </form>
@@ -134,7 +135,7 @@ export default async function NotificationsPage({
               ) : null}
               <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-500">
                 <span>{formatDateTimeShort(locale, n.createdAt)}</span>
-                <Link href={href} className="font-semibold text-emerald-800 hover:underline">
+                <Link href={href} className="font-semibold text-[#166534] hover:underline">
                   {m(locale, "notificationsPage.open")}
                 </Link>
               </div>

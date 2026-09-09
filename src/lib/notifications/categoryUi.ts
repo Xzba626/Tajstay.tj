@@ -49,7 +49,7 @@ export type CategoryStyle = {
 export function categoryStyle(cat: NotificationUiCategory): CategoryStyle {
   switch (cat) {
     case "booking":
-      return { bg: "bg-emerald-100", text: "text-emerald-800", ring: "ring-emerald-200", icon: "booking" };
+      return { bg: "bg-[#d1fae5]", text: "text-[#166534]", ring: "ring-[#d1fae5]", icon: "booking" };
     case "message":
       return { bg: "bg-sky-100", text: "text-sky-800", ring: "ring-sky-200", icon: "message" };
     case "payment":

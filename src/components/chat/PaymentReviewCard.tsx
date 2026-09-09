@@ -121,7 +121,7 @@ export function PaymentReviewCard(props: PaymentReviewCardProps) {
           {proofAmount != null ? (
             <div className="flex justify-between gap-2">
               <dt className="text-slate-500">{m(locale, "bookingRoom.review.paidAmount")}</dt>
-              <dd className="font-semibold tabular-nums text-emerald-100">
+              <dd className="font-semibold tabular-nums text-[#d1fae5]">
                 {proofAmount} {currency}
               </dd>
             </div>
@@ -185,7 +185,7 @@ export function PaymentReviewCard(props: PaymentReviewCardProps) {
               type="button"
               disabled={busy}
               onClick={() => void confirmPayment()}
-              className="w-full rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 py-3.5 text-sm font-bold text-white shadow-lg shadow-emerald-900/25 disabled:opacity-55"
+              className="w-full rounded-xl bg-gradient-to-r from-[#0f7a4d] to-[#0f7a4d] py-3.5 text-sm font-bold text-white shadow-lg shadow-[#0f3d2e]/25 disabled:opacity-55"
             >
               {busy ? "…" : m(locale, "bookingRoom.review.confirm")}
             </button>

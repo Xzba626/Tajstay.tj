@@ -110,7 +110,7 @@ export function TripBookingCard({ locale, user, booking }: Props) {
         ) : null}
         {booking.publicCode && booking.paymentStatus !== "PAID" ? (
           <Link
-            className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-100 transition hover:bg-emerald-500/20"
+            className="rounded-xl border border-[#0f7a4d]/40 bg-[#0f7a4d]/10 px-3 py-2 text-xs font-semibold text-[#d1fae5] transition hover:bg-[#0f7a4d]/20"
             href={`/payment/${booking.publicCode}`}
           >
             {m(locale, "tripsHub.openPayment")}

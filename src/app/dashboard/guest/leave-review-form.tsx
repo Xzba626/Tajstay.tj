@@ -97,7 +97,7 @@ export default function LeaveReviewForm({
       <button
         type="submit"
         disabled={loading}
-        className="brand-gradient focus-ring w-full rounded-xl px-4 py-3 text-sm font-semibold text-white shadow-md shadow-emerald-900/30 transition hover:brightness-110 disabled:opacity-60"
+        className="brand-gradient focus-ring w-full rounded-xl px-4 py-3 text-sm font-semibold text-white shadow-md shadow-[#0f3d2e]/30 transition hover:brightness-110 disabled:opacity-60"
       >
         {loading ? labels.sending : labels.submit}
       </button>

@@ -20,20 +20,20 @@ export function DealStepProgress({ status }: { status: string }) {
         <Fragment key={label}>
           {i > 0 ? (
             <div
-              className={`h-0.5 w-2 shrink-0 rounded-full sm:w-3 ${active >= i ? "bg-emerald-500/75" : "bg-white/12"}`}
+              className={`h-0.5 w-2 shrink-0 rounded-full sm:w-3 ${active >= i ? "bg-[#0f7a4d]/75" : "bg-white/12"}`}
               aria-hidden
             />
           ) : null}
           <div
             className={`flex min-h-[2.35rem] min-w-0 flex-1 flex-col justify-center rounded-xl px-1.5 py-1.5 text-center transition sm:px-2 ${
               active === i
-                ? "bg-emerald-500/25 ring-1 ring-emerald-400/45"
+                ? "bg-[#0f7a4d]/25 ring-1 ring-[#0f7a4d]/45"
                 : active > i
                   ? "bg-white/8 ring-1 ring-white/12"
                   : "bg-black/25 ring-1 ring-white/6 opacity-[0.45]"
             }`}
           >
-            <span className="text-[9px] font-bold uppercase leading-tight tracking-wide text-emerald-100/95 sm:text-[10px]">
+            <span className="text-[9px] font-bold uppercase leading-tight tracking-wide text-[#d1fae5]/95 sm:text-[10px]">
               {label}
             </span>
           </div>
