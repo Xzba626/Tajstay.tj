@@ -6,7 +6,10 @@ Do not re-read old audit reports or the full MASTER spec unless the task needs t
 ## Branch / SHA
 
 - Branch: `feature/tajstay-full-ui-ux-rebuild`
-- Base SHA (as of this file): `dd19950` (header/nav/footer contrast + hero CTA dedupe commit)
+- Base SHA (as of this file, session start of the continuation pass): `a54c1eb`
+- Final SHA (this pass): `aaec9c0` (auto-committed by an external tool under the user's git identity —
+  not a Claude Code commit, but confirmed to contain exactly this pass's intended changes: see
+  `git show --stat aaec9c0`)
 
 ## Current authorized block
 
@@ -62,6 +65,62 @@ authorized) → Owner Hotel Desk foundation → rest of V2 §63 / this block's �
   high z-index (`workspace-mobile-shell.css`) — does not hide or jump. Mobile search results are
   already single-column (`grid-cols-1`), desktop is `md:grid-cols-2 lg:grid-cols-3`.
 
+### Product/UX/Role consolidation block — continuation pass (2026-09-09, local dev only)
+
+**Block is still NOT closed.** This pass fixed several confirmed-real bugs and found one more
+significant one (shell leak) but did not land a fix for it — reverted a broken attempt rather than
+ship a regression. Do not read this update as completion; see the updated table + remaining
+FAIL/BLOCKED list below.
+
+**Fixed and verified this pass:**
+- Footer text contrast: `.site-footer` background is force-set to `#0f7a4d` via `!important` in
+  `globals.css` (a rule I didn't find on the first pass) — the link/copyright text was using
+  `--taj-text-secondary`/`--taj-text-muted` (dark grays meant for light backgrounds), nearly
+  invisible on green. Added explicit light-text `!important` overrides right next to the
+  background rule so they can't drift apart again. Verified on `/about` desktop screenshot.
+- Footer showing in the mobile Consumer app shell: was only hidden on the home page
+  (`body:has(.home-page) .site-footer`), so it still appeared under the bottom tab bar on `/history`
+  and other consumer pages — confirmed by screenshot, contradicts spec §7/§21. Fixed by keying the
+  hide rule off `.app-tab-bar` (the bottom nav's own class) instead of the home page specifically,
+  so it's now hidden everywhere the Consumer bottom nav shows. Verified via screenshot on `/history`
+  mobile viewport (~469px, an unintentionally-mobile fresh tab — useful free evidence).
+- **Public "О сервисе" (About) page directly contradicted the new passport/identity decision**:
+  RU and EN copy claimed "document photos uploaded during booking are stored encrypted and deleted
+  after check-in." Fixed RU/EN strings in `messages.ts` (TG version never had this claim). This was
+  live, user-facing text actively misrepresenting data handling — high-value find via manual
+  page-by-page walkthrough, not something a grep for color values would have caught.
+- **Role-aware header (`ADMIN` should not see "Стать владельцем") — moved from UNKNOWN to CONFIRMED
+  PASS.** Logged in as the seeded `admin@tajstay.local` / `Admin123!` QA account (credentials found
+  in `src/lib/seed/runDevSeed.ts`, local dev DB only — `127.0.0.1`, confirmed via `.env` before use)
+  and opened the account popover on `/dashboard/admin`: shows Профиль / Уведомления / Мои
+  бронирования / Избранное / **Админ-панель** / Выйти — no "Стать владельцем". The user's originally
+  reported bug does not reproduce with this account. If it still reproduces for the user's own
+  account, the cause is elsewhere (their specific user's `role`/`ownerApp` data), not this
+  component's logic.
+
+**Found but NOT fixed — needs a different approach next session:**
+- **Shell leak, confirmed at runtime**: `/dashboard/admin` (and presumably `/dashboard/owner`) renders
+  the full **Consumer** public `Header`/`Footer`/`MobileBottomNav` in addition to its own
+  `AdminSidebar`/`DashboardShell` chrome, because `Header`/`Footer` are unconditional in the root
+  `src/app/layout.tsx` — they don't check route. This violates `CLAUDE.md`'s own shell-separation
+  rule and spec §41. **Attempted fix this pass**: a `"use client"` wrapper (`PublicShellChrome`)
+  reading `usePathname()` and passing `<Header/>`/`<Footer/>`/`<MobileBottomNav/>` in as props to
+  conditionally render them. This broke the entire dev server (`Invariant: missing bootstrap script`
+  / webpack `options.factory` chunk errors on every route, survived a full `.next` cache wipe) — a
+  real regression, not a cache artifact. **Reverted immediately** (`git checkout -- src/app/layout.tsx`
+  + deleted the new file); app confirmed healthy again after revert. **Do not retry the
+  RSC-passed-as-a-prop-into-a-client-wrapper pattern for this** without first understanding why it
+  broke module resolution — possible leads: `Header`/`Footer` being `async` Server Components that
+  call `cookies()`/dynamic APIs, combined with being handed to a Client Component as a prop, may not
+  be safe in this Next 14.1.0 setup. A safer alternative to try: have `Header`/`Footer` each
+  self-check the request path via `headers()` reading an `x-pathname` header set in `middleware.ts`
+  (would require widening the middleware matcher to run globally — itself needs care since
+  `middleware.ts` currently only guards `/dashboard/admin|owner`, i.e. touches
+  auth-adjacent code) — or, lower-risk, give `AdminSidebar`/`OwnerSidebar`'s `DashboardShell` a CSS
+  rule that hides `.site-header`/`.site-footer`/`.app-tab-bar` when a `.owner-command-center-shell` /
+  admin-shell ancestor class is present (pure CSS, no new render-tree wiring, much smaller blast
+  radius).
+
 ### Product/UX/Role consolidation block — evidence table (commit `dd19950`, local dev only)
 
 Root cause found via targeted audit: `src/styles/home.css` header comment reads "Premium dark
@@ -82,12 +141,13 @@ footer moved to a white canvas. That explains most of the screenshot defects at 
 | Settings IA | Not touched — spot-checked `/profile` overview, already card/grouped (not a raw table) so likely closer to spec than Personal Information | — | Verified `/profile` overview only | Screenshot | Partially OK, not audited in full |
 | Security IA | Not touched this pass | — | — | — | NOT DONE |
 | Help/Contact | Not touched this pass | — | — | — | NOT DONE |
-| Footer | Dark-green gradient background → flat white; added missing "О сервисе"/"Для владельцев" links; fixed invisible divider border | tsc/eslint clean | Not re-screenshotted after this specific fix (verified via code + token trace) | none (code-level only) | PASS (local only) — **no runtime screenshot this pass, re-verify next session** |
-| Assistant (FAB) | Not touched this pass | — | — | — | NOT DONE |
-| Consumer Mobile | Not verified this pass (only desktop 1440x900 checked) | — | — | — | NOT DONE |
+| Footer | Superseded by continuation-pass fix above: text contrast (was invisible dark-gray-on-green) and mobile hide-rule (was leaking under bottom nav) both fixed | tsc clean | Verified `/about` desktop + `/history` mobile | Screenshots this pass | PASS (local only) |
+| Assistant (FAB) | Confirmed already correctly gated off Admin/Owner via `isWorkspaceRoute()` in `AppShell.tsx` — no fix needed | n/a (read-only check) | Verified visible+positioned correctly on `/history` mobile | Screenshot | PASS (local only) |
+| Consumer Mobile | Partial: `/history` verified at ~469px (footer hidden, FAB positioned correctly, nav readable) | tsc clean | `/history` only | Screenshot | Partial — full mobile matrix (360/390/412/768) still NOT DONE |
 | Owner Entry | Not touched/verified this pass | — | — | — | NOT DONE |
-| Admin Entry | Not touched/verified this pass | — | — | — | NOT DONE |
-| Security Findings | None newly found this pass beyond the role-aware-header UNKNOWN above | — | — | — | See UNKNOWN row |
+| Admin Entry | **Role CTA confirmed PASS** (see above). **Shell leak confirmed FAIL**: public Header/Footer/bottom-nav render on top of the admin dashboard's own chrome | n/a | Verified via real admin login | Screenshot | **FAIL** (role logic) / **BLOCKED** (shell leak — fix attempt broke the app, reverted; needs a safer approach, see note above) |
+| Security Findings | None newly found this pass beyond the shell-leak architecture bug (not a security hole, an IA/branding leak) | — | — | — | See shell-leak note |
+| Passport/Identity architecture | User's binding decision (no cloud passport storage) written into `docs/TAJSTAY_ARCHITECTURE_V2.md` §29 override; found and fixed a live contradiction in the public "О сервисе" page copy (RU+EN) that claimed encrypted document-photo storage | tsc clean | Verified `/about` | Screenshot | PASS (docs + copy) — **`guestDocumentUrl` feature in `TripBookingCard.tsx` still exists in code and contradicts the new decision; flagged, not removed** (data-model change, out of this block's safe scope, needs explicit direction) |
 
 **Target architecture documentation (§30/34-38/40-52 of the user's brief)**: not yet written up as an
 addendum to `docs/TAJSTAY_ARCHITECTURE_V2.md`. Still pending — see NEXT.
@@ -139,14 +199,28 @@ addendum to `docs/TAJSTAY_ARCHITECTURE_V2.md`. Still pending — see NEXT.
 
 ## NEXT
 
-Continue closing the PRODUCT/UX/ROLE ARCHITECTURE CONSOLIDATION block per the OPEN list above —
-proceed through these without waiting for a go-ahead on each one; they're inside the already-
-authorized block. Suggested order for next session: (1) `/profile/personal` IA redesign, (2) verify
-the ADMIN role-aware-header claim with a real admin session, (3) write the V2 architecture addendum
-for Expense/Staff-invite/Receipt/Review-entitlement/step-up-auth per the user's explicit decisions,
-(4) Auth screens, (5) Settings/Security/Help IA de-duplication, (6) mobile + Owner/Admin entry
-browser QA, (7) deployed preview-URL + SHA evidence pass. Do not mark the block fully closed on
-build/tsc/lint alone — the evidence table above shows most AREA rows still NOT DONE or UNKNOWN.
+Block is still NOT closed — continue without asking for new permission, these are all inside the
+already-authorized PRODUCT/UX/ROLE ARCHITECTURE CONSOLIDATION block. Priority order for next session:
+
+1. **Shell leak fix (Admin/Owner showing Consumer header/footer/bottom-nav)** — highest priority,
+   confirmed FAIL at runtime this pass. Try the CSS-scoped-hide approach noted above instead of the
+   RSC-into-client-wrapper pattern that broke the dev server. Verify on both `/dashboard/admin` and
+   `/dashboard/owner` after.
+2. `/profile/personal` IA redesign (raw bordered-row list → structured editable cards) — confirmed
+   FAIL via screenshot, still not started.
+3. `guestDocumentUrl` / passport-scan-link feature in `TripBookingCard.tsx` contradicts the new V2
+   §29 decision — flag to the user for direction (remove display? migrate data? out of this block's
+   safe scope to decide unilaterally since it's a data-model question, not pure visual).
+4. Auth screens (`/auth/sign-in`, `/register`) — confirmed via screenshot this pass to still be the
+   legacy dark-emerald theme (`auth-premium.css`, ~30 off-brand-green occurrences), not yet fixed.
+5. Settings/Security/Notifications/Help IA de-duplication audit — not started.
+6. Full responsive matrix (360/390/412/768/1024/1280/1440+) with click/scroll/dropdown/focus/empty/
+   error/loading checks per spec §10 — only partial mobile evidence gathered so far (`/history` only).
+7. Owner entry browser QA — not done at all this pass (only Admin entry done).
+8. Deployed preview-URL + SHA evidence pass — all evidence so far is local dev server only.
+
+Do not mark the block fully closed on build/tsc/lint alone, and do not re-touch the already-fixed
+Header/Hero/Footer/UserMenu/role-CTA areas without a found regression.
 
 **Do not start P0-S2 (AuthZ/RBAC) even once the visual block is fully closed** — get separate
 explicit authorization for it first. Only after P0-S2 is authorized and closed should Owner Hotel
