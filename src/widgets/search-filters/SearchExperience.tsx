@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
+import { MapPin, CalendarDays } from "lucide-react";
 import { HotelCard } from "@/components/HotelCard";
 import { useDebounce } from "@/shared/hooks/useDebounce";
 import { useSearchFilters } from "@/features/search-hotels/model/useSearchFilters";
@@ -156,7 +157,7 @@ export function SearchExperience({ initialHotels, initialFilters, locale, mobile
           placeholder="Умный запрос: уютно, семейно, рядом с центром"
         />
         <label className="relative block">
-          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-base text-brand-100">📍</span>
+          <MapPin className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-100" aria-hidden />
           <input
             name="city"
             value={filters.city}
@@ -166,7 +167,7 @@ export function SearchExperience({ initialHotels, initialFilters, locale, mobile
           />
         </label>
         <label className="relative block">
-          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-base text-brand-100">📅</span>
+          <CalendarDays className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-100" aria-hidden />
           <input
             name="checkIn"
             value={filters.checkIn}
@@ -177,7 +178,7 @@ export function SearchExperience({ initialHotels, initialFilters, locale, mobile
           />
         </label>
         <label className="relative block">
-          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-base text-brand-100">📅</span>
+          <CalendarDays className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-100" aria-hidden />
           <input
             name="checkOut"
             value={filters.checkOut}
