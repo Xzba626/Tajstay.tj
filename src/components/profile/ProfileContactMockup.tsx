@@ -14,6 +14,10 @@ type Props = {
   actionLabel: string;
   verified?: boolean;
   verifiedLabel?: string;
+  /** No working change flow exists yet server-side — show an honest disabled state
+      instead of a dead link (see .agent/STATE.md dependency audit). */
+  blocked?: boolean;
+  blockedLabel?: string;
 };
 
 export function ProfileContactMockup({
@@ -26,7 +30,9 @@ export function ProfileContactMockup({
   actionHref,
   actionLabel,
   verified,
-  verifiedLabel
+  verifiedLabel,
+  blocked,
+  blockedLabel
 }: Props) {
   return (
     <ProfileSubpageShell locale={locale} title={title} subtitle={subtitle}>
@@ -39,9 +45,15 @@ export function ProfileContactMockup({
           <div className="profile-subpage-contact__badge">{verifiedLabel}</div>
         ) : null}
         <p className="profile-subpage-contact__hint">{hint}</p>
-        <Link href={actionHref} className="profile-subpage-contact__action">
-          {actionLabel}
-        </Link>
+        {blocked ? (
+          <button type="button" disabled className="profile-subpage-contact__action" aria-disabled="true">
+            {blockedLabel ?? actionLabel}
+          </button>
+        ) : (
+          <Link href={actionHref} className="profile-subpage-contact__action">
+            {actionLabel}
+          </Link>
+        )}
       </div>
     </ProfileSubpageShell>
   );

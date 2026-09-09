@@ -29,8 +29,10 @@ export default async function ProfilePhonePage() {
       icon={Phone}
       value={value}
       hint={m(locale, "profile.contactPhoneHint")}
-      actionHref="/auth/sign-in?next=/profile/phone"
+      actionHref="/profile/phone"
       actionLabel={m(locale, "profile.changePhone")}
+      blocked
+      blockedLabel={m(locale, "profile.comingSoon")}
       verified={hasPhone && full.phoneVerified}
       verifiedLabel={m(locale, "profile.statusVerified")}
     />

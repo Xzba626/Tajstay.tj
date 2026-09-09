@@ -5,14 +5,11 @@ import {
   Bell,
   ChevronRight,
   CircleHelp,
-  FileText,
   Globe,
   Heart,
   History,
   Megaphone,
-  MessageCircle,
   Pencil,
-  ScrollText,
   Shield,
   User,
   type LucideIcon
@@ -150,7 +147,7 @@ export function ProfileMockupView({ locale, user, logoutLabel, unreadNotificatio
             <span className="profile-hub__activity-tile-value">{user.favorites.length}</span>
           </Link>
         </div>
-        <HubGroupLabel>{m(locale, "profile.sectionPersonal")}</HubGroupLabel>
+        <HubGroupLabel>{m(locale, "profile.sectionAccount")}</HubGroupLabel>
         <div className="profile-hub__nav-group">
           <HubNavBlock
             href="/profile/personal"
@@ -158,20 +155,12 @@ export function ProfileMockupView({ locale, user, logoutLabel, unreadNotificatio
             title={m(locale, "profile.personalInfo")}
             summary={`${phoneShort} · ${emailShort}`}
           />
-        </div>
-
-        <HubGroupLabel>{m(locale, "profile.security")}</HubGroupLabel>
-        <div className="profile-hub__nav-group">
           <HubNavBlock
             href="/profile/security"
             icon={Shield}
             title={m(locale, "profile.security")}
             summary={m(locale, "profile.securitySubtitle")}
           />
-        </div>
-
-        <HubGroupLabel>{m(locale, "profile.sectionSettings")}</HubGroupLabel>
-        <div className="profile-hub__nav-group">
           <HubNavBlock
             href="/profile/settings"
             icon={Globe}
@@ -195,30 +184,12 @@ export function ProfileMockupView({ locale, user, logoutLabel, unreadNotificatio
 
         <HubGroupLabel>{m(locale, "profile.sectionSupport")}</HubGroupLabel>
         <div className="profile-hub__nav-group">
-        <HubNavBlock
-          href="/faq"
-          icon={CircleHelp}
-          title={m(locale, "footer.helpCenter")}
-          summary={m(locale, "profile.actionsHelp")}
-        />
-        <HubNavBlock
-          href="/contacts"
-          icon={MessageCircle}
-          title={m(locale, "footer.contactUs")}
-          summary={m(locale, "profile.actionsHelp")}
-        />
-        <HubNavBlock
-          href="/policy"
-          icon={FileText}
-          title={m(locale, "footer.policy")}
-          summary={m(locale, "profile.settingsPrivacy")}
-        />
-        <HubNavBlock
-          href="/terms"
-          icon={ScrollText}
-          title={m(locale, "footer.terms")}
-          summary={m(locale, "profile.consentManage")}
-        />
+          <HubNavBlock
+            href="/profile/support"
+            icon={CircleHelp}
+            title={m(locale, "profile.sectionSupport")}
+            summary={m(locale, "profile.actionsHelp")}
+          />
         </div>
 
         {user.role === "GUEST" ? (

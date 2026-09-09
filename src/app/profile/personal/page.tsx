@@ -8,7 +8,7 @@ import { maskPhone } from "@/lib/format/maskPhone";
 import { maskEmail, formatTelegram } from "@/lib/format/maskEmail";
 import { ProfileSubpageShell } from "@/components/profile/ProfileSubpageShell";
 import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
-import type { Locale } from "@/lib/i18n/locale";
+import { PersonalNameEditor } from "@/components/profile/PersonalNameEditor";
 
 export const dynamic = "force-dynamic";
 
@@ -22,12 +22,6 @@ function InfoRow({ label, value, hint }: { label: string; value: string; hint?: 
   );
 }
 
-function localeLabel(locale: Locale, current: Locale) {
-  if (current === "ru") return "Русский";
-  if (current === "tg") return "Тоҷикӣ";
-  return "English";
-}
-
 export default async function ProfilePersonalPage() {
   const locale = getLocale();
   const user = await requireUser(["GUEST", "OWNER", "ADMIN"]);
@@ -38,14 +32,12 @@ export default async function ProfilePersonalPage() {
 
   const nameParts = full.name.trim().split(/\s+/).filter(Boolean);
   const firstName = nameParts[0] ?? full.name;
-  const lastName = nameParts.slice(1).join(" ") || m(locale, "profile.notSet");
+  const lastName = nameParts.slice(1).join(" ");
   const hasPhone = Boolean(full.phone && !isPlaceholderAccountPhone(full.phone));
   const phoneDisplay = hasPhone ? maskPhone(full.phone) : m(locale, "profile.phoneNotSet");
   const emailDisplay = maskEmail(full.email) ?? m(locale, "profile.emailNotSet");
   const telegramDisplay = formatTelegram(full.telegramUsername, full.telegramId) ?? m(locale, "profile.telegramNotConnected");
   const emailVerified = Boolean(full.emailVerified || (full.email?.trim() && full.verified));
-
-  const reviews = await prisma.review.count({ where: { booking: { userId: user.id } } });
 
   return (
     <ProfileSubpageShell locale={locale} title={m(locale, "profile.personalInfo")} subtitle={m(locale, "profile.personalSubtitle")}>
@@ -58,8 +50,20 @@ export default async function ProfilePersonalPage() {
       </div>
 
       <div className="profile-panel profile-panel--stack">
-        <InfoRow label={m(locale, "profile.firstName")} value={firstName} />
-        <InfoRow label={m(locale, "profile.lastName")} value={lastName} />
+        <PersonalNameEditor
+          firstName={firstName}
+          lastName={lastName}
+          labels={{
+            firstName: m(locale, "profile.firstName"),
+            lastName: m(locale, "profile.lastName"),
+            edit: m(locale, "profile.nameEdit"),
+            save: m(locale, "profile.nameSave"),
+            saving: m(locale, "profile.nameSaving"),
+            cancel: m(locale, "profile.nameCancel"),
+            error: m(locale, "profile.nameUpdateError"),
+            notSet: m(locale, "profile.notSet")
+          }}
+        />
         <InfoRow
           label={m(locale, "profile.phone")}
           value={phoneDisplay}
@@ -71,17 +75,7 @@ export default async function ProfilePersonalPage() {
           hint={full.email ? (emailVerified ? m(locale, "profile.statusVerified") : m(locale, "profile.statusNotVerified")) : undefined}
         />
         <InfoRow label={m(locale, "profile.telegram")} value={telegramDisplay} />
-        <InfoRow label={m(locale, "profile.birthDate")} value={m(locale, "profile.notSet")} />
-        <InfoRow label={m(locale, "profile.gender")} value={m(locale, "profile.notSet")} />
-        <InfoRow label={m(locale, "profile.language")} value={localeLabel(locale, locale)} />
       </div>
-
-      <section id="reviews" className="profile-panel profile-panel--stack scroll-mt-24">
-        <h2 className="profile-panel__title">{m(locale, "profile.reviewsTitle")}</h2>
-        <p className="text-sm text-[var(--ts-text-muted,#475569)]">
-          {reviews > 0 ? m(locale, "profile.reviewsCount", { count: reviews }) : m(locale, "profile.reviewsEmpty")}
-        </p>
-      </section>
     </ProfileSubpageShell>
   );
 }

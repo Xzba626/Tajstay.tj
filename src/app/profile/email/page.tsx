@@ -28,8 +28,10 @@ export default async function ProfileEmailPage() {
       icon={Mail}
       value={value}
       hint={m(locale, "profile.contactEmailHint")}
-      actionHref="/profile/personal"
+      actionHref="/profile/email"
       actionLabel={m(locale, "profile.changeEmail")}
+      blocked
+      blockedLabel={m(locale, "profile.comingSoon")}
       verified={Boolean(full.email) && verified}
       verifiedLabel={m(locale, "profile.statusVerified")}
     />

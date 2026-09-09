@@ -28,8 +28,10 @@ export default async function ProfileTelegramPage() {
       icon={Send}
       value={value}
       hint={m(locale, "profile.contactTelegramHint")}
-      actionHref={connected ? "/profile/personal" : "/auth/sign-in?next=/profile/telegram"}
+      actionHref={connected ? "/profile/personal" : "#"}
       actionLabel={connected ? m(locale, "profile.viewProfile") : m(locale, "profile.connectTelegram")}
+      blocked={!connected}
+      blockedLabel={m(locale, "profile.comingSoon")}
       verified={connected}
       verifiedLabel={m(locale, "profile.statusVerified")}
     />
