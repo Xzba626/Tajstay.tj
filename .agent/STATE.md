@@ -6,14 +6,59 @@ Do not re-read old audit reports or the full MASTER spec unless the task needs t
 ## Branch / SHA
 
 - Branch: `feature/tajstay-full-ui-ux-rebuild`
-- Base SHA (this corrective pass): `d2971da`
-- Final SHA (this pass): `7974712`
-- Changed files this pass: `data/site-content.json`, `src/app/globals.css`, `src/app/page.tsx`,
-  `src/components/landing/TajstayHero3D.tsx`, `src/styles/ds-components.css`, `src/styles/home.css`
+- Base SHA (this session's latest pass): `1e200e8`
+- Final SHA (this pass): `d076570`
+- Changed files this pass: `src/middleware.ts` (net: unchanged vs `1e200e8` after revert)
 - Preview/deployment: none — local dev server only (`localhost:3000`), not deployed
-- Note: a prior commit `aaec9c0` in this branch's history was auto-committed by an external tool
-  under the user's git identity (not by Claude Code) — confirmed via `git show --stat` to contain
-  only the previous pass's intended changes, no data loss.
+- Note: an external tool auto-commits this working tree under the user's git identity periodically
+  (not Claude Code) — `aaec9c0` and `efa962f` in this branch's history are such auto-commits, the
+  latter having captured this session's *broken* shell-isolation attempt mid-flight before it was
+  found and reverted. No data was lost; confirmed via `git show --stat` on each.
+
+### Shell isolation — SECOND FAILED ATTEMPT this session (do not retry either approach as-is)
+
+Per this session's explicit instruction: fix via route/layout composition, not CSS-hide. Attempted
+a pure server-side approach — no client wrapper around async Server Components (that was attempt #1,
+see prior STATE.md history) — instead:
+1. `middleware.ts`: widened the matcher to run on all non-static routes, set a `x-tajstay-pathname`
+   request header via `NextResponse.next({ request: { headers } })`.
+2. `src/app/layout.tsx`: read that header via `headers()` (sync in Next 14.1.0), computed
+   `hideConsumerShell = isShellHiddenRoute(pathname)`, conditionally rendered `<Header/>`/`<Footer/>`/
+   `<MobileBottomNav/>` — plain server-side `{cond ? <X/> : null}`, no new client component for this
+   part.
+3. Also added `WorkspaceTopbar.tsx` (client) + wired into `DashboardShell`/admin+owner layouts,
+   because step 2 alone would have removed Admin/Owner's only account/logout access (they'd been
+   relying on the leaked Header for it) — this is real: confirmed by grepping `AdminSidebar.tsx`/
+   `OwnerSidebar.tsx`/`DashboardShell.tsx` for any logout control — there is none. **Any future shell
+   fix must add an equivalent account/logout control to the Admin/Owner shells, or this becomes a
+   real regression, not just an architecture cleanup.**
+
+**Result**: `/dashboard/admin` and `/` both compiled successfully but crashed at runtime with the
+same signature as attempt #1 — `TypeError: Cannot read properties of undefined (reading 'call')`,
+surfacing inside `<NotFoundErrorBoundary>`, HTTP 200 from the server but the client renders `error.tsx`.
+Reproduced after **two separate full `.next` + `node_modules/.cache` wipes and clean dev-server
+restarts** — ruled out as a stale-cache artifact, this is a real bug in the new code or a real
+incompatibility with something in this exact Next 14.1.0 setup. Root cause not identified — reverted
+immediately rather than keep debugging against a shrinking session budget. `git checkout --` on the
+5 touched files, `rm` on the 2 new files; found middleware.ts had been left half-reverted (still
+importing the just-deleted `requestPathnameHeader.ts`) and rewrote it in full from the known-good
+version. Verified `/` and `/dashboard/admin` both render correctly again after the revert, following
+another full cache wipe.
+
+**For the next attempt**: do not retry the client-wrapper pattern (attempt #1) or the
+middleware-header pattern (attempt #2) without first building a minimal isolated repro (a throwaway
+branch/route) to find why either breaks module resolution in this specific project setup — both are
+individually standard, well-documented Next.js patterns, so something project-specific is likely
+involved (possibly `scripts/dev-normalized.mjs`, a custom dev wrapper referenced in `package.json`'s
+`predev`/`dev` scripts, worth reading before the third attempt). The remaining untried option,
+preferred by the user, is **route groups**: move the ~18 public/consumer route directories under
+`src/app/` into `src/app/(public)/...` (URL-transparent) with a layout there rendering Header/Footer/
+MobileBottomNav, leaving `src/app/dashboard/admin` and `src/app/dashboard/owner` outside it with no
+chrome by construction — `src/app/dashboard/{bookings,guest,messages}` would need to move into the
+group too (only `admin`/`owner` stay out). This is a larger mechanical change (dozens of directory
+moves) but doesn't touch middleware or add any new client/server boundary, so it may avoid whatever
+is causing the crash in both attempts so far. Needs to be done incrementally with a working dev
+server checked after each batch of moves, not as one large diff.
 
 ### FULL PRODUCT CORRECTIVE PASS — this session (2026-09-09)
 
