@@ -6,8 +6,33 @@ Do not re-read old audit reports or the full MASTER spec unless the task needs t
 ## Branch / SHA
 
 - Branch: `feature/tajstay-full-ui-ux-rebuild`
+### UX Consolidation block (43-section spec) — this pass only fixed 3 concrete, quick bugs
+
+The user's UX Consolidation instruction is large (search composition, profile compression, settings
+dedup, notifications split, admin analytics redesign, ~40 more items). This pass did NOT attempt
+that scope — given remaining session budget, picked 3 concrete, cheap, high-confidence bugs instead,
+per the user's own request to report back with a bounded pass rather than force through everything:
+
+| AREA | CODE | TEST | REAL RUNTIME | EVIDENCE | STATUS |
+|---|---|---|---|---|---|
+| Mobile "Войти" button invisible on green header | `.header-auth-signin-mobile` was solid `#0f7a4d` on now-green header (collateral damage from the header-color change two passes ago, missed at the time) — flipped to white pill + green text | tsc clean | Verified `/` unauthenticated, mobile viewport | Screenshot | **PASS (local only)** |
+| Home search city field label duplication | `<span>ГОРОД</span>` above + `placeholder="Город"` inside (same message key twice) — changed placeholder to the existing `search.whereTo` ("Куда вы хотите?") | tsc clean | Verified `/` mobile | Screenshot | **PASS (local only)** |
+| Emoji icons in `/search` filter bar | 📍/📅/📅 replaced with `lucide-react` MapPin/CalendarDays, matching the icon library already used elsewhere (`constants/app-navigation.ts`) | tsc/eslint clean | Verified `/search` desktop | Screenshot | **PASS (local only)** — 13 other files still have emoji icons repo-wide (`BookingWizard.tsx`, `NotificationBell.tsx`, `HotelCard.tsx`, `OwnerOnboardingExperience.tsx`, `OwnerOnboardingSidebar.tsx`, `GlobalToast.tsx`, `TstAssistant.tsx`, `PhotoPlaceholder.tsx`, `HomeSearchExtras.tsx`, `BookingChatPanel.tsx`, `app/page.tsx`, `app/offline/page.tsx`), not swept this pass |
+
+**Not started this pass** (full 43-section scope, awaiting the user's next narrow block per their own
+stated preference not to receive another giant prompt back-to-back): search composition redesign
+(icon-only zones, no per-field borders), search proportions, promo block contrast, Assistant visual
+cleanup, Profile root compression (duplicate headers/cards), mobile expand-in-place pattern, Personal
+Information field cleanup (remove pol, remove language, remove "Мои отзывы"), editability audit (no
+dead pencils), phone change flow, Settings dedup (remove Security/Subscriptions/Privacy/Help/FAQ/
+Contact/Terms/About from Settings), language/currency single-control pattern, notification inbox vs
+settings split, Support compression, Admin Analytics full redesign as an operational command center,
+shell isolation (still BLOCKED from last pass, two failed attempts, see above), full click-through
+QA, full responsive matrix. All of these remain open — do not read the 3 fixes above as any signal
+that the broader block is progressing at the same rate; it hasn't been started.
+
 - Base SHA (this session's latest pass): `1e200e8`
-- Final SHA (this pass): `d076570`
+- Final SHA (this pass): `ac92586`
 - Changed files this pass: `src/middleware.ts` (net: unchanged vs `1e200e8` after revert)
 - Preview/deployment: none — local dev server only (`localhost:3000`), not deployed
 - Note: an external tool auto-commits this working tree under the user's git identity periodically
