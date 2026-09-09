@@ -209,23 +209,40 @@ booking ID, room.
 
 Central operational screen. Sections: Guest (name, surname, phone); Stay (room, category, guests,
 planned/actual check-in, planned/actual check-out); Payment (total, paid, outstanding, method);
-Communication (booking chat); Documents (stay card, receipt, identity data if permission exists);
-History (audit timeline).
+Communication (booking chat); Documents (stay card, receipt — no identity/passport documents, see
+§29 override); History (audit timeline).
 
 ## 27. Guest data model
 
-Structured, not one PDF. Entities: `Guest`, `Booking`, `Stay`, `IdentityDocument`, `Payment`,
-`Receipt`, `AuditLog`.
+Structured, not one PDF. Entities: `Guest`, `Booking`, `Stay`, `Payment`, `Receipt`, `AuditLog`.
+**No `IdentityDocument` entity in TajStay Cloud** — see §29 override, added 2026-09-09, which
+supersedes any earlier mention of an `IdentityDocument` model anywhere in this document or in code
+comments/docs written before that date.
 
 ## 28. Check-in / check-out
 
 Хранить отдельно: `plannedCheckIn`, `checkedInAt`, `plannedCheckOut`, `checkedOutAt`. Секунды
 хранить; показывать в UI только где реально нужно.
 
-## 29. Identity documents
+## 29. Passport / Identity Architecture Override (binding, added 2026-09-09)
 
-Sensitive. Не хранить как public upload: private storage, no public URL, authorization, tenant
-isolation, audit access, retention, minimal access, no analytics usage.
+**This section supersedes the original §29 "Identity documents" text above and any other passage in
+this document that assumed TajStay Cloud stores passport/identity documents.**
+
+TajStay Cloud does **not** store passport scans, passport photos, or act as a hotel passport vault.
+TajStay stores only ordinary booking/stay operational data (guest name, phone, stay dates, payment,
+receipt — no document images, no document numbers as a stored PII field).
+
+Hotels may export their own booking data (XLSX/CSV/JSON) for use in their own local systems.
+
+A future, separate product — **TajStay Hotel Vault** — may provide encrypted, offline-first local
+identity storage running on hotel-controlled devices. That vault is a distinct, separately
+security-reviewed product and is **not part of the current Web TajStay implementation**.
+
+Passport/Vault implementation is explicitly **out of scope** for any block until a separate,
+explicitly authorized security-critical block is opened for it. Do not design booking, guest, or
+document flows around passport capture/storage in the meantime — if a flow seems to need identity
+document handling, stop and flag it rather than adding an `IdentityDocument`-shaped model.
 
 ## 30. Hotel staff
 
@@ -239,7 +256,9 @@ Object-level authorization.
 
 ## 32. Document input
 
-Upload, drag-drop, paste, camera/mobile capture — только в protected document flow.
+Upload, drag-drop, paste, camera/mobile capture — только в protected document flow. Applies to
+non-identity operational documents only (e.g. an expense receipt attachment) — not passport/identity
+documents, which are out of scope per §29.
 
 ## 33. Print / PDF
 
