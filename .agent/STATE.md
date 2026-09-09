@@ -6,109 +6,136 @@ NEXT, not a diary. Detailed rationale for a fix belongs in its commit message, n
 
 ## Governing instruction
 
-The user has issued a **MASTER COMMERCIALIZATION / PRODUCT COMPLETION CONTRACT** (2026-09-10):
-full architecture + product + UX/UI + mobile/PWA + Owner Hotel Desk + Admin CRM + performance +
-security + QA, worked as a continuous `audit → implement → runtime QA → fix → re-QA` loop across
-sessions, until the product is commercially ready. This supersedes prior narrower "blocks" as the
-standing authorization — do not wait for a new prompt between phases, and do not report "ready for
-next narrow block." Only stop for: destructive production operations, real data-loss risk, a missing
-required secret, or a legal/business call that can't be safely assumed. Session/turn limits are not a
-stopping reason — bank progress via this file and continue next session.
+The user has issued a **FINAL COMMERCIAL PRODUCT CONTRACT** (2026-09-10, 130 sections) — this
+**supersedes** the earlier "Master Commercialization Contract" as the standing authorization. Full
+architecture + UX/UI + mobile app experience + Owner Hotel Desk + Admin Command Center + analytics +
+PWA + performance + security + human-like QA, worked as a continuous
+`audit → implement → visual review → runtime QA → fix → re-QA → next area → regression` loop across
+sessions until the product is commercially ready per its acceptance gates (§119-124). Do not wait for
+a new prompt between phases or areas. Do not report "ready for next narrow block" — that phrasing and
+its variants are explicitly forbidden by the contract. Only stop for: destructive production
+operations, real data-loss risk, a missing required secret, or a legal/business call that can't be
+safely assumed. Session/turn limits are not a stopping reason — bank progress via this file and
+continue next session without waiting for a new user prompt.
 
-Phase order per the contract (§93): foundation/shells/nav → consumer flows → profile/auth/
-notifications/support → Owner Hotel Desk → Admin → performance/PWA/cache → full security audit →
-regression/commercial QA. Currently in: **foundation + consumer flows + profile** (early, not complete).
+Phase order (§118): 1 architecture/route-map/tokens/shell-isolation → 2 mobile foundation/header/
+home/search → 3 auth/registration → 4 profile (personal/avatar/phone/email/settings/security/
+notifications/support) → 5 hotels/booking/reviews/chat → 6 tours → 7 owner onboarding → 8 Owner Hotel
+Desk/finance/analytics/staff → 9 Admin Command Center/analytics/operations → 10 PWA/cookie/install/
+cache/performance → 11 full security audit → 12 full regression/commercial QA.
+**Currently in: Phase 1 (shell isolation still open) + early Phase 2/4 work.**
+
+Key corrections from the user in this specific contract (override earlier interpretations of the same
+areas): no placeholder text ("Куда едете?" etc.) inside the city field when empty — label + icon +
+empty tap/type area only; search field zones must be fully **borderless** internally (structure via
+spacing/typography/icons, not lines); dates must render via TajStay's own display layer, never a bare
+native `<input type="date">`, because real mobile browsers were showing it empty; mobile Home has its
+own acceptance gate — first viewport (390/412px) must show headline + working Search with no scroll
+required, hero copy cannot push Search below the fold; Profile's phone/avatar/email flows must reach
+a **real** end state (or a named external blocker, e.g. "no SMS provider credential") — a permanent
+"Скоro" disabled button is no longer acceptable as a final answer for those two specifically.
 
 ## Branch / SHA
 
 - Branch: `feature/tajstay-full-ui-ux-rebuild`
-- Base SHA (this pass): `72f4a17`
-- Final SHA (this pass): `8d6c720`
-- Local dev only — nothing deployed this pass. `localhost:3000` (also briefly tested on an ad-hoc
-  port 3100 mid-session while port 3000 was held by another session; closed, do not reuse the pattern
-  of starting a second `npm run dev` manually — prefer waiting for the port or asking the user).
+- Base SHA (this pass): `8d6c720`
+- Final SHA (this pass): `419fe9d`
+- Local dev only — nothing deployed. Server on `localhost:3000` via the project's own `preview_start`/
+  launch.json config (port 3000 is pinned — `NEXTAUTH_URL` depends on it). Do not manually start a
+  second ad-hoc `npm run dev` on another port again — it broke script execution in the browser tool
+  this pass (crossed some origin/CSP boundary) and wasted significant time before being traced to that.
+- **QA isolation**: created a dedicated test account not shared with other sessions —
+  `qa-claude-session@tajstay.local` / `QaClaude123!` (id 33, role GUEST, local dev DB only). Use this
+  instead of the shared seeded `guest@tajstay.local`/`owner@tajstay.local`/`admin@tajstay.local`
+  accounts when evidence must be reproducible and uncontaminated by concurrent sessions. The shared
+  seeded accounts remain fine for one-off manual spot checks where isolation doesn't matter.
 - An external tool periodically auto-commits this working tree under the user's own git identity
-  (not Claude Code) — commits like `efa962f`/`aaec9c0` with generic messages are that tool, already
-  verified to contain only legitimate in-flight work, not something to be alarmed by.
+  (not Claude Code, e.g. `efa962f`/`aaec9c0`) — not a cause for alarm, already verified benign.
 
 ## DONE (this pass)
 
-- Profile root IA dedup: merged redundant group-label-duplicates-row-title pairs (ЛИЧНЫЕ ДАННЫЕ →
-  Личная информация, БЕЗОПАСНОСТЬ → Безопасность) into one "АККАУНТ" group; collapsed 4 separate
-  Support rows into one row → new `/profile/support` hub page.
-- Personal Information: removed Пол/Язык (no schema field for gender; language belongs in Settings)
-  and "Мои отзывы" (not identity data, was nonsensical for ADMIN/OWNER accounts too).
-- Real name editing: `POST /api/profile/update-name` (own-user-only, session-scoped) +
-  `PersonalNameEditor` client component with edit/save/cancel/loading/error. Verified round-trip on
-  `localhost:3000` logged in as seeded `guest@tajstay.local`.
-- Removed 3 dead controls (phone/email/telegram "change" links pointed at sign-in or nowhere real) —
-  replaced with an honest disabled "Скоро" state instead of a fake link.
-- Admin donut chart black-circle bug: root cause was `AnalyticsDonut.tsx` having zero CSS anywhere in
-  the repo (SVG default fill, no legend spacing) — added the missing stylesheet. Verified on
-  `/dashboard/admin` mobile+desktop.
-- Public header flipped to canonical green `#0F7A4D` per binding decision, with light-mode CSS
-  override for Admin/Owner workspaces (`body:has(.ts-workspace-light)`) so they don't go green via
-  the still-open shell-leak bug. Fixed contrast on nav/language/auth-buttons/wordmark for white-on-
-  green; fixed the mobile "Войти" pill (was solid green on now-green header, invisible).
-- Hero: removed eyebrow badge + subtitle + duplicate CTA, single headline → search.
-- Promo banner: fixed "Tajstay" casing and an external-domain CTA link bug (both file default and
-  local DB `SiteContentState` row — **production DB still has the old wrong values**, needs the same
-  fix via admin CMS UI, not a direct prod write).
-- Public "О сервисе" page: removed a false claim that TajStay stores encrypted passport/document
-  photos — contradicted the passport architecture decision below.
-- `docs/TAJSTAY_ARCHITECTURE_V2.md` §29: binding override — TajStay Cloud does not store passport
-  scans/photos; hotels can export booking data; a future separate TajStay Hotel Vault product may
-  handle offline local identity storage. Not implemented now, by design.
-- Search field label duplication (city input) and 3 emoji icons in the search filter bar fixed
-  (lucide-react MapPin/CalendarDays).
+- **Real root-cause fixes** (not dismissed as environment), found via rigorous elimination after the
+  user correctly rejected an earlier "environmental flake" claim:
+  - `/profile` was passing raw Prisma `Booking` rows (with `Decimal`/`Date` fields) into a
+    `"use client"` component that only used `.length` on them — fixed via `_count` instead of full
+    relations. Confirmed via server log: the "Only plain objects can be passed to Client Components"
+    warning is gone after the fix.
+  - Service worker (`public/sw.js`) had two real defects: (a) `/_next/*` chunks were cache-first, but
+    dev/some-deploy chunk URLs aren't content-hashed, so a stale chunk could be served forever after a
+    rebuild — switched to network-first-with-fallback; (b) navigation HTML caching had no allowlist,
+    so **authenticated pages like `/profile` were being cached in the shared offline cache** — a real
+    cross-account privacy risk on a shared device. Restricted to an explicit public-route allowlist,
+    bumped `CACHE_VERSION` to purge old poisoned caches.
+  - `TrustBadges.tsx` had an unguarded `badges.length` with no default — hardened. Also fixed its
+    verification-pill colors, which were still legacy pale-mint (`#d1fae5` on `#0f7a4d`) — now solid
+    `#0F7A4D` on white.
+- Profile root IA dedup, Personal Information field cleanup (removed Пол/Язык/Мои отзывы), real name
+  editing (API + component), 3 dead phone/email/telegram links replaced with honest disabled states
+  (**note**: per the new contract §36-38, "disabled + Скоро" is no longer sufficient for phone/avatar
+  specifically — see OPEN), Admin donut chart CSS root-cause fix, green public header with Admin/Owner
+  correctly kept light, hero simplified, promo banner bugs fixed, passport architecture decision
+  written into V2 and a false public claim about passport storage removed — all from the prior pass,
+  still standing, see previous commits for evidence detail.
 
-## OPEN (large, not started or partial — from the Master Contract's full scope)
+## OPEN (large — from the Final Commercial Product Contract's full scope, essentially everything)
 
-- **`guestDocumentUrl` legacy passport-link feature** (`TripBookingCard.tsx`) — contradicts the V2
-  §29 decision. Per the user's latest instruction this is no longer just "flag it": do a dependency
-  audit (schema/API/storage/UI/reads/writes/tests) and safely disable the user-facing upload/view
-  without destructive migration; backend/schema removal is a separate protected follow-up.
-- Repo-wide emoji icons beyond the search bar (13+ files: `BookingWizard.tsx`, `NotificationBell.tsx`,
-  `HotelCard.tsx`, `OwnerOnboardingExperience.tsx`, `OwnerOnboardingSidebar.tsx`, `GlobalToast.tsx`,
-  `TstAssistant.tsx`, `PhotoPlaceholder.tsx`, `HomeSearchExtras.tsx`, `BookingChatPanel.tsx`,
-  `app/page.tsx`, `app/offline/page.tsx`).
-- Home search full recomposition (icon-only zones, no per-field borders, proportions).
-- Auth screens (`/auth/sign-in`, register, forgot-password) — confirmed still legacy dark-emerald
-  theme via screenshot, not touched yet.
-- Settings page dedup (remove Security/Subscriptions/Privacy/Help/FAQ/Contact/Terms/About if
-  duplicated there), language/currency single-control pattern, notification inbox vs settings split.
-- TajStay Assistant visual cleanup (legacy dark-green/mint remnants) — not started.
-- Mystery "black vertical panel" reported alongside the Assistant FAB — could not reproduce in this
-  session's browser tool (looked like a fixed viewport-edge artifact across unrelated routes); not
-  confirmed as app code, not touched.
-- Cookie consent rework (Accept/Reject-non-essential/Customize, essential-vs-analytics split).
-- Owner Hotel Desk, Admin deep analytics (revenue/bookings/users/hotels/complaints trend charts),
-  performance/PWA/cache strategy, full security audit (§70-80 of the contract) — none started.
-- Full responsive matrix (360/390/412/768/1024/1280/1440+) — only spot-checked at 2-3 breakpoints
-  across all passes so far, not systematic.
+Restructured per the contract's phase order (§118) rather than a flat list — work top to bottom,
+returning to earlier phases only if regression is found:
+
+1. **Shell isolation** (Phase 1, still the top blocker — see BLOCKED). Also Phase 1: full route/
+   layout/shell/role inventory has never been formally built — the contract explicitly wants an actual
+   map (§3) before further UI work, not just ad-hoc fixes.
+2. Mobile Home acceptance gate (§9, §119) — first viewport must show headline+Search with zero scroll
+   at 390/412px; current state not verified against this specific gate yet.
+3. Search field internals: remove all internal borders (§11), remove city placeholder text entirely
+   (§12 — supersedes earlier "Куда едете?" instruction), fix real-mobile-device date-empty-state bug
+   with a custom date display layer (§14), fix search button proportions (§18).
+4. Auth screens — still legacy dark-emerald theme, untouched.
+5. Profile: real avatar upload/change/remove flow, real phone change+verification flow (or a named
+   external blocker, not a permanent disabled button), Settings dedup, notification inbox vs settings
+   split, Support consolidation — partially done, needs finishing per the stricter final-state bar.
+6. Hotels/booking/reviews/chat, Tours visual pass, Owner onboarding redesign — not started.
+7. Owner Hotel Desk (overview, calendar, rooms, bookings, finance, occupancy gauge, analytics, staff
+   invite architecture) — not started.
+8. Admin Command Center (deep analytics beyond the donut fix, operational queues, applications,
+   users, complaints) — not started.
+9. PWA install-prompt timing (cookie first, then ~15s active engagement, never simultaneous with
+   cookie banner — §26), cache strategy beyond the two SW fixes already made — partially started.
+10. Full performance audit (§87-91) — not started.
+11. Full security audit (§101-113) — not started.
+12. Full responsive/role/commercial regression (§126-127) — not started.
 
 ## BLOCKED
 
-- **Admin/Owner shell isolation** (Consumer Header/Footer/MobileBottomNav rendering on
-  `/dashboard/admin` and `/dashboard/owner`). Two attempted fixes this branch's history both broke
-  the dev server and were reverted: (1) a `"use client"` wrapper passing async Server Components as
-  props — broke webpack module resolution; (2) a second attempt (see commit `d076570` revert) — also
-  failed, reasons captured in that revert commit's message. Currently mitigated only by a CSS
-  override that keeps the header light-colored on those routes — the wrong nav items still render
-  there. The user has explicitly rejected a CSS-hide-only fix as the final answer: the next attempt
-  must fix it at route/layout composition level (e.g. Next.js route groups splitting public vs
-  admin/owner layouts, or a verified-safe Server Component pathname pattern), not global CSS.
+- **Admin/Owner shell isolation** — unchanged from before, still the top architectural defect. Two
+  attempted fixes (client-wrapper-around-async-Server-Components; a second attempt, see revert
+  `d076570`) both broke the dev server. The user has explicitly rejected CSS-hide as an acceptable
+  final answer — next attempt must be genuine route/layout composition (e.g. Next.js route groups).
+- **`ProfileMockupView` client-only crash** (`Cannot read properties of undefined (reading 'length')`)
+  — reproduces reliably on `/profile` only (confirmed NOT site-wide: `/search`, which shares the same
+  header/UserMenu tree, renders fine). Investigated exhaustively this pass: verified SSR HTML is 100%
+  correct (fetched and read the raw server response directly — full correct profile content, no
+  error); verified the compiled client chunk on disk matches current source (grepped for
+  `bookingsCount`/`favoritesCount`, present and correct); read every component in the render tree
+  (`ProfileAvatar`, `TrustBadges`, `UserMenu`, `ProfileLogoutConfirm`) for unguarded `.length`/array
+  access — found and fixed one real one (`TrustBadges`) but it didn't resolve this crash; ruled out
+  stale service worker and stale `.next` build cache (full wipes, full restarts, dedicated fresh QA
+  account, brand-new browser tabs, all still reproduced it). Root cause NOT found — do not mark this
+  fixed, and do not re-explain it as environmental without new evidence. Next step: add explicit
+  instrumentation (log full `componentStack`/props at the top of `ProfileMockupView`) or bisect by
+  temporarily stripping the component tree down section by section until the crash disappears.
 - **Production `site-content` values** (banner casing/URL) — only local dev DB fixed; production
   needs the same fix via the admin CMS UI, not a direct prod DB write from a session.
-- **Passport/identity backend removal** — architecture decision is written (V2 §29), but the actual
-  `guestDocumentUrl` schema/storage cleanup needs its own dependency audit first (see OPEN) and any
-  destructive part needs a separate authorized block.
+- **Passport/identity backend removal** (`guestDocumentUrl`) — architecture decision written (V2
+  §29), dependency audit + safe UI disable not yet done (upgraded from "flag it" to "audit + disable"
+  by explicit user instruction two passes ago — still not started).
 
 ## NEXT
 
-Continue the Master Contract's phase order. Suggested immediate priorities: (1) shell isolation via
-route groups (highest-leverage architecture fix, referenced by multiple other OPEN items), (2)
-`guestDocumentUrl` dependency audit + safe disable, (3) Auth screen redesign, (4) Settings dedup,
-(5) repo-wide emoji sweep, (6) Admin analytics real charts (revenue/bookings/users trends). Do not
-stop after a handful of fixes and report back prematurely — this file plus each commit message is the
-continuity mechanism across sessions/turns.
+Continue the Final Commercial Product Contract's phase order. Immediate priorities: (1) finish the
+`ProfileMockupView` crash root-cause (highest-priority unresolved defect, actively investigated this
+pass), (2) shell isolation via route groups, (3) build the actual route/shell/role inventory the
+contract asks for before more ad-hoc UI work, (4) mobile Home acceptance gate, (5) search field
+border/placeholder/date fixes per the corrected spec. Do not stop after a handful of fixes — this file
+plus each commit message is the continuity mechanism across sessions/turns, not a reason to return to
+the user for direction.
