@@ -29,8 +29,7 @@ export default async function ProfilePage() {
     prisma.user.findUnique({
       where: { id: user.id },
       include: {
-        bookings: true,
-        favorites: true
+        _count: { select: { bookings: true, favorites: true } }
       }
     }),
     getUnreadNotificationsCount(user.id)
@@ -42,7 +41,7 @@ export default async function ProfilePage() {
     <PageContainer width="default" className="profile-page-light profile-workspace ts-workspace-light">
       <ProfileMockupView
         locale={locale}
-        user={full}
+        user={{ ...full, bookingsCount: full._count.bookings, favoritesCount: full._count.favorites }}
         logoutLabel={m(locale, "userMenu.logout")}
         unreadNotifications={unreadNotifications}
       />

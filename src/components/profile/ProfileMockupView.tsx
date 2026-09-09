@@ -34,8 +34,8 @@ type UserFull = {
   telegramId: string | null;
   image: string | null;
   telegramPhotoUrl: string | null;
-  favorites: unknown[];
-  bookings: unknown[];
+  favoritesCount: number;
+  bookingsCount: number;
 };
 
 type Props = {
@@ -139,12 +139,12 @@ export function ProfileMockupView({ locale, user, logoutLabel, unreadNotificatio
           <Link href="/history" className="profile-hub__activity-tile">
             <History size={18} aria-hidden />
             <span className="profile-hub__activity-tile-label">{m(locale, "profile.navHistory")}</span>
-            <span className="profile-hub__activity-tile-value">{user.bookings.length}</span>
+            <span className="profile-hub__activity-tile-value">{user.bookingsCount}</span>
           </Link>
           <Link href="/favorites" className="profile-hub__activity-tile">
             <Heart size={18} aria-hidden />
             <span className="profile-hub__activity-tile-label">{m(locale, "profile.navFavorites")}</span>
-            <span className="profile-hub__activity-tile-value">{user.favorites.length}</span>
+            <span className="profile-hub__activity-tile-value">{user.favoritesCount}</span>
           </Link>
         </div>
         <HubGroupLabel>{m(locale, "profile.sectionAccount")}</HubGroupLabel>

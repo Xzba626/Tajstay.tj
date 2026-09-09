@@ -1,6 +1,17 @@
 /* Tajstay PWA service worker — app shell + offline fallback */
-const CACHE_VERSION = "tajstay-shell-v2";
+const CACHE_VERSION = "tajstay-shell-v3";
 const SHELL_URLS = ["/", "/offline", "/search", "/about", "/brand/tajstay-icon.png", "/manifest.webmanifest"];
+
+// Only these path prefixes may have their navigation HTML cached — everything else is
+// personalized/authenticated (profile, dashboard, notifications, favorites, history, auth, ...)
+// and must never be written into the shared offline cache, or one device user could be served
+// another user's cached page after a session switch.
+const PUBLIC_NAV_PREFIXES = ["/", "/about", "/search", "/tours", "/offline", "/faq", "/contacts", "/policy", "/terms"];
+
+function isPublicNavPath(pathname) {
+  if (pathname === "/") return true;
+  return PUBLIC_NAV_PREFIXES.some((p) => p !== "/" && (pathname === p || pathname.startsWith(`${p}/`)));
+}
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -45,16 +56,18 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // Network-first for JS/CSS chunks: dev-mode (and some deploy) filenames are not content-hashed,
+  // so cache-first can serve stale code indefinitely after a rebuild/deploy. Cache is only a
+  // fallback for genuinely offline requests.
   if (url.pathname.startsWith("/_next/") || url.pathname.startsWith("/fonts/") || url.pathname.startsWith("/sounds/")) {
     event.respondWith(
       caches.open(CACHE_VERSION).then(async (cache) => {
-        const cached = await cache.match(event.request);
-        if (cached) return cached;
         try {
           const res = await fetch(event.request);
           if (res.ok) cache.put(event.request, res.clone());
           return res;
         } catch {
+          const cached = await cache.match(event.request);
           return cached || Response.error();
         }
       })
@@ -63,17 +76,22 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (isNavigation(event.request)) {
+    const cacheable = isPublicNavPath(url.pathname);
     event.respondWith(
       fetch(event.request)
         .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE_VERSION).then((c) => c.put(event.request, copy));
+          if (cacheable) {
+            const copy = res.clone();
+            caches.open(CACHE_VERSION).then((c) => c.put(event.request, copy));
+          }
           return res;
         })
         .catch(async () => {
           const cache = await caches.open(CACHE_VERSION);
-          const cached = await cache.match(event.request);
-          if (cached) return cached;
+          if (cacheable) {
+            const cached = await cache.match(event.request);
+            if (cached) return cached;
+          }
           const offline = await cache.match("/offline");
           return offline || new Response("Offline", { status: 503, headers: { "Content-Type": "text/plain" } });
         })
