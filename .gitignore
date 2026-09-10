@@ -27,3 +27,6 @@ data/admin-security.json
 data/site-content.json
 data/owner-payment-methods.json
 .tools/
+
+# Local dev uploads (owner-application photos etc.) — never committed
+/public/uploads/

@@ -20,7 +20,9 @@ const jsonSchema = z
     email: z.string().email().max(200),
     businessName: z.string().min(2).max(200),
     documentUrl: z.union([z.literal(""), z.string().url().max(2000)]).optional(),
-    applicantType: z.string().min(1).max(64),
+    // Not read by any permission/verification/business logic — kept optional, not collected in
+    // the current onboarding UI (product decision: don't ask for data the flow doesn't use).
+    applicantType: z.string().max(64).optional(),
     city: z.string().min(2).max(120),
     propertyType: z.string().min(1).max(64),
     address: z.string().min(3).max(300),
@@ -117,25 +119,21 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-      const identity = await saveOptionalFile(form, "identity");
-      if (!identity) {
-        return NextResponse.json({ error: "Загрузите фото паспорта / ID" }, { status: 400 });
-      }
+      // No identity/passport/selfie requirement — first commercial onboarding is not KYC (see
+      // OwnerOnboardingExperience.tsx). New owners are verified manually by Admin (phone call,
+      // public listing cross-check), not by document upload. Do not resurrect an `identity`
+      // requirement here without an explicit product decision to bring KYC back.
       const facade = await saveOptionalFile(form, "facade");
       const room = await saveOptionalFile(form, "room");
       const bathroom = await saveOptionalFile(form, "bathroom");
-      if (!facade || !room || !bathroom) {
-        return NextResponse.json({ error: "Загрузите фото объекта (фасад, комната, санузел)" }, { status: 400 });
+      if (!facade && !room && !bathroom) {
+        return NextResponse.json({ error: "Добавьте хотя бы одну фотографию объекта" }, { status: 400 });
       }
 
       const uploads = {
-        identity,
-        identityBack: await saveOptionalFile(form, "identityBack"),
-        selfie: await saveOptionalFile(form, "selfie"),
         facade,
         room,
-        bathroom,
-        propertyDoc: await saveOptionalFile(form, "propertyDoc")
+        bathroom
       };
 
       const meta: OwnerApplicationMeta = {

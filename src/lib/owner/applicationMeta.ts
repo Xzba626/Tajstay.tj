@@ -10,7 +10,7 @@ export type OwnerApplicationUploads = {
 };
 
 export type OwnerApplicationMeta = {
-  applicantType: string;
+  applicantType?: string;
   city: string;
   propertyType: string;
   address: string;

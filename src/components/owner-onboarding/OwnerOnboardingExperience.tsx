@@ -162,10 +162,16 @@ export function OwnerOnboardingExperience({ locale, L, ownerNav, defaults }: Pro
     }
     if (step === 2) {
       // Only real property photos are validated here — no passport/selfie/document upload in
-      // this flow (see documentsSection above). Facade is the one required shot; room/bathroom
-      // are encouraged but optional so a small listing isn't blocked on photo count.
-      const fErr = validateFile(uploads.facade, true);
-      if (fErr) e.facade = fErr;
+      // this flow (see documentsSection above). Per product decision: don't force separate
+      // mandatory categories (facade/room/bathroom) — that's a bureaucratic slot-filling exercise
+      // again. Just require at least one photo overall; each individual slot is optional.
+      if (!uploads.facade && !uploads.room && !uploads.bathroom) {
+        e.facade = L.errUpload;
+      }
+      if (uploads.facade) {
+        const fErr = validateFile(uploads.facade, false);
+        if (fErr) e.facade = fErr;
+      }
       if (uploads.room) {
         const rErr = validateFile(uploads.room, false);
         if (rErr) e.room = rErr;
@@ -264,15 +270,6 @@ export function OwnerOnboardingExperience({ locale, L, ownerNav, defaults }: Pro
             ))}
           </select>
         </Field>
-        <div className="sm:col-span-2">
-          <Field id="applicantType" label={L.applicantType} required optionalLabel={L.optional} requiredLabel={L.required}>
-            <select id="applicantType" className="owner-input" value={applicantType} onChange={(e) => setApplicantType(e.target.value)}>
-              <option value="individual">{L.applicantIndividual}</option>
-              <option value="entrepreneur">{L.applicantEntrepreneur}</option>
-              <option value="company">{L.applicantCompany}</option>
-            </select>
-          </Field>
-        </div>
       </div>
     </section>
   );
@@ -326,8 +323,9 @@ export function OwnerOnboardingExperience({ locale, L, ownerNav, defaults }: Pro
       <h3 id="sec-docs" className="owner-section-title">
         {L.sectionPhotos}
       </h3>
+      <p className="mt-1 text-sm text-[var(--taj-text-muted,#71717a)]">{L.photosHint}</p>
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        <FileUploadCard name="facade" label={L.uploadFacade} required chooseLabel={L.uploadChoose} removeLabel={L.uploadRemove} reqLabel={L.uploadReq} optionalLabel={L.optional} requiredLabel={L.required} error={errors.facade} onFileChange={(f) => setUpload("facade", f)} />
+        <FileUploadCard name="facade" label={L.uploadFacade} chooseLabel={L.uploadChoose} removeLabel={L.uploadRemove} reqLabel={L.uploadReq} optionalLabel={L.optional} requiredLabel={L.required} error={errors.facade} onFileChange={(f) => setUpload("facade", f)} />
         <FileUploadCard name="room" label={L.uploadRoom} chooseLabel={L.uploadChoose} removeLabel={L.uploadRemove} reqLabel={L.uploadReq} optionalLabel={L.optional} requiredLabel={L.required} error={errors.room} onFileChange={(f) => setUpload("room", f)} />
         <FileUploadCard name="bathroom" label={L.uploadBathroom} chooseLabel={L.uploadChoose} removeLabel={L.uploadRemove} reqLabel={L.uploadReq} optionalLabel={L.optional} requiredLabel={L.required} error={errors.bathroom} onFileChange={(f) => setUpload("bathroom", f)} />
       </div>
