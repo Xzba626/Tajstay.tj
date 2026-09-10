@@ -3,6 +3,7 @@ import { m } from "@/lib/i18n/messages";
 import type { TrustBadge } from "@/lib/auth/trustBadges";
 import { cn } from "@/lib/cn";
 
+// Canonical brand green only (#0F7A4D) — no legacy dark/mint variants. See CLAUDE.md Green Contract.
 const STYLES: Record<string, string> = {
   phoneVerified: "bg-[#0f7a4d]/10 text-[#0f7a4d] ring-[#0f7a4d]/25",
   emailVerified: "bg-[#0f7a4d]/10 text-[#0f7a4d] ring-[#0f7a4d]/25",

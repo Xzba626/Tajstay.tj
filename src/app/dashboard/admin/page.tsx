@@ -215,8 +215,12 @@ export default async function AdminDashboardPage({
         .filter((row) => statuses.includes(row.status))
         .reduce((sum, row) => sum + row._count._all, 0);
 
-    bookingConfirmed = sumBookingStatus(["CONFIRMED", "COMPLETED", "CHECKED_IN", "CHECKED_OUT"]);
-    bookingPending = sumBookingStatus(["PENDING_OWNER", "ON_REVIEW", "WAIT_PROOF", "PENDING"]);
+    // Buckets must cover every BOOKING_STATUS value (src/lib/domain/booking.ts) exactly once —
+    // "PENDING" was never a real status (leftover from an older model) and WAITING_PAYMENT (the
+    // 2026 chat-first lifecycle's initial state) was missing entirely, so bookings sitting in it
+    // counted toward the headline total but vanished from every donut segment.
+    bookingConfirmed = sumBookingStatus(["CONFIRMED", "COMPLETED", "CHECKED_IN"]);
+    bookingPending = sumBookingStatus(["WAITING_PAYMENT", "PENDING_OWNER", "ON_REVIEW", "WAIT_PROOF"]);
     bookingCancelled = sumBookingStatus(["CANCELLED", "REJECTED", "EXPIRED"]);
 
     usersGuest = userRoleGroups.find((row) => row.role === "GUEST")?._count._all ?? 0;
