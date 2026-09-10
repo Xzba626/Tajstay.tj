@@ -25,15 +25,22 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const id = Number(params.id);
   if (!id) return NextResponse.json({ error: "Invalid id" }, { status: 400 });
 
-  const form = await req.formData().catch(() => null);
+  // Real bug found and fixed here: `req.formData()` consumes the request body stream even when
+  // it rejects (wrong content-type), so a `.catch(() => null)` fallback to `req.json()` on the
+  // same request always read an already-drained stream and parsed `{}` — every JSON submission
+  // (the client always sends JSON, see AdminOwnerApplicationActions.tsx) silently lost its
+  // comment and failed with "Нужен комментарий" no matter what the admin typed. Branch on
+  // Content-Type instead of speculatively consuming the body twice.
+  const contentType = req.headers.get("content-type") ?? "";
   let comment = "";
-  if (form) {
-    comment = String(form.get("comment") ?? "");
-  } else {
+  if (contentType.includes("application/json")) {
     const json = await req.json().catch(() => ({}));
     const p = bodySchema.safeParse(json);
     if (!p.success) return NextResponse.json({ error: "Нужен комментарий" }, { status: 400 });
     comment = p.data.comment;
+  } else {
+    const form = await req.formData().catch(() => null);
+    comment = form ? String(form.get("comment") ?? "") : "";
   }
 
   if (!comment.trim()) return NextResponse.json({ error: "Нужен комментарий" }, { status: 400 });
