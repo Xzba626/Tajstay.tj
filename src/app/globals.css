@@ -2871,11 +2871,14 @@ body.app-shell--hidden-nav .cookie-consent {
 }
 
 .owner-form-card {
+  /* Was a dark navy/green gradient card — legacy dark theme, barely-readable text on a
+     functional public form. Canonical TajStay surface is white/near-white (see CLAUDE.md
+     Green Contract) — this is an interactive form, not a decorative brand section. */
   border-radius: 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: linear-gradient(160deg, rgba(15, 23, 42, 0.92), rgba(6, 20, 14, 0.95));
+  border: 1px solid var(--taj-border, #e4e4e7);
+  background: #ffffff;
   padding: 1.25rem;
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  box-shadow: 0 12px 32px rgba(15, 35, 27, 0.08);
 }
 
 @media (min-width: 640px) {
@@ -2887,7 +2890,7 @@ body.app-shell--hidden-nav .cookie-consent {
 .owner-form-section + .owner-form-section {
   margin-top: 2rem;
   padding-top: 2rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--taj-border, #e4e4e7);
 }
 
 .owner-section-title {
@@ -2895,49 +2898,56 @@ body.app-shell--hidden-nav .cookie-consent {
   font-weight: 800;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: rgba(167, 243, 208, 0.95);
+  color: #0f7a4d;
 }
 
+/* This is the public /profile/become-owner onboarding form's copy of `.owner-input` — the Owner
+   CRM dashboard has its own canonical light definition in owner-command-center.css, which this
+   route never loads. This one was still the old dark-theme version (duplicate-competing-CSS
+   pattern, see CLAUDE.md Explore-before-build) and is the reason the onboarding form was
+   unreadable. Matched to the canonical light input style used elsewhere (Auth, Admin, Owner CRM). */
 .owner-input {
   display: flex;
   min-height: 3rem;
   width: 100%;
   border-radius: 0.875rem;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--taj-border, #e4e4e7);
+  background: #ffffff;
   padding: 0.65rem 0.85rem;
   font-size: 0.9375rem;
-  color: #f8fafc;
+  color: var(--taj-text, #14231b);
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
 }
 
 .owner-input:focus {
-  border-color: rgba(52, 211, 153, 0.55);
-  background: rgba(255, 255, 255, 0.09);
-  box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.2);
+  border-color: rgba(15, 122, 77, 0.55);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(15, 122, 77, 0.15);
 }
 
 .owner-input::placeholder {
-  color: rgba(148, 163, 184, 0.75);
+  color: var(--taj-text-muted, #71717a);
 }
 
 .owner-onboarding-submit {
+  /* Was a lime/emerald gradient (#4ade80/#16a34a) — off-brand per Green Contract (canonical is
+     #0F7A4D only, no alternate green shades). */
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 1rem;
-  background: linear-gradient(180deg, #4ade80, #16a34a);
+  background: #0f7a4d;
   padding: 0.85rem 1.5rem;
   font-size: 0.9375rem;
   font-weight: 800;
-  color: #052e16;
-  box-shadow: 0 0 0 1px rgba(187, 247, 208, 0.35), 0 12px 32px rgba(34, 197, 94, 0.28);
+  color: #ffffff;
+  box-shadow: 0 12px 32px rgba(15, 122, 77, 0.28);
   transition: filter 0.2s, transform 0.15s;
 }
 
 .owner-onboarding-submit:hover:not(:disabled) {
-  filter: brightness(1.05);
+  filter: brightness(1.08);
 }
 
 .owner-onboarding-submit:disabled {
@@ -2946,17 +2956,17 @@ body.app-shell--hidden-nav .cookie-consent {
 
 .owner-onboarding-submit:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.45), 0 12px 32px rgba(34, 197, 94, 0.28);
+  box-shadow: 0 0 0 3px rgba(15, 122, 77, 0.35);
 }
 
 .owner-btn-secondary {
   border-radius: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--taj-border, #e4e4e7);
+  background: #ffffff;
   padding: 0.85rem 1rem;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #e2e8f0;
+  color: var(--taj-text, #14231b);
 }
 
 .owner-trust-callout {
@@ -2998,21 +3008,21 @@ body.app-shell--hidden-nav .cookie-consent {
 
 .owner-wizard-pill {
   border-radius: 9999px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--taj-border, #e4e4e7);
   padding: 0.35rem 0.65rem;
   font-size: 0.68rem;
   font-weight: 600;
-  color: rgba(148, 163, 184, 0.9);
+  color: var(--taj-text-muted, #71717a);
 }
 
 .owner-wizard-pill.is-active {
-  border-color: rgba(52, 211, 153, 0.45);
-  background: rgba(16, 185, 129, 0.12);
-  color: #d1fae5;
+  border-color: rgba(15, 122, 77, 0.4);
+  background: rgba(15, 122, 77, 0.1);
+  color: #0f7a4d;
 }
 
 .owner-wizard-pill.is-done {
-  color: #a7f3d0;
+  color: #0f7a4d;
 }
 
 .owner-wizard-actions {
@@ -3022,22 +3032,22 @@ body.app-shell--hidden-nav .cookie-consent {
   display: flex;
   gap: 0.75rem;
   border-radius: 1.25rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid var(--taj-border, #e4e4e7);
+  background: rgba(255, 255, 255, 0.92);
   padding: 0.75rem;
   backdrop-filter: blur(12px);
-  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 -8px 32px rgba(15, 35, 27, 0.12);
 }
 
 .owner-status-card {
   margin-inline: auto;
   max-width: 32rem;
   border-radius: 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: linear-gradient(160deg, rgba(15, 23, 42, 0.95), rgba(6, 24, 18, 0.98));
+  border: 1px solid var(--taj-border, #e4e4e7);
+  background: #ffffff;
   padding: 2rem 1.5rem;
   text-align: center;
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 12px 32px rgba(15, 35, 27, 0.08);
 }
 
 .owner-status-icon {
@@ -3048,19 +3058,19 @@ body.app-shell--hidden-nav .cookie-consent {
   align-items: center;
   justify-content: center;
   border-radius: 1rem;
-  background: rgba(16, 185, 129, 0.15);
+  background: rgba(15, 122, 77, 0.1);
   font-size: 1.5rem;
-  color: #6ee7b7;
+  color: #0f7a4d;
 }
 
 .owner-status-chip {
   display: inline-flex;
   border-radius: 9999px;
-  background: rgba(245, 158, 11, 0.15);
+  background: rgba(217, 119, 6, 0.12);
   padding: 0.35rem 0.85rem;
   font-size: 0.75rem;
   font-weight: 700;
-  color: #fcd34d;
+  color: #b45309;
 }
 
 .owner-status-card--pending {
@@ -3078,11 +3088,11 @@ body.app-shell--hidden-nav .cookie-consent {
   gap: 0.75rem;
   padding-bottom: 0.85rem;
   font-size: 0.875rem;
-  color: rgba(148, 163, 184, 0.9);
+  color: var(--taj-text-muted, #71717a);
 }
 
 .owner-timeline li.is-active {
-  color: #e2e8f0;
+  color: var(--taj-text, #14231b);
   font-weight: 600;
 }
 
@@ -3092,12 +3102,12 @@ body.app-shell--hidden-nav .cookie-consent {
   width: 0.5rem;
   shrink: 0;
   border-radius: 9999px;
-  background: rgba(148, 163, 184, 0.5);
+  background: #d4d4d8;
 }
 
 .owner-timeline li.is-active .owner-timeline-dot {
-  background: #34d399;
-  box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.2);
+  background: #0f7a4d;
+  box-shadow: 0 0 0 4px rgba(15, 122, 77, 0.2);
 }
 
 @media (prefers-reduced-motion: reduce) {

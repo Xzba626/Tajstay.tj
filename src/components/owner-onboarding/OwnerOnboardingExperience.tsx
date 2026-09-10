@@ -36,15 +36,23 @@ type Props = {
 };
 
 function useIsMobileWizard() {
+  // SSR has no viewport, so the server always renders the desktop layout. If the client's first
+  // paint used the real viewport instead, a <1024px window (true for most real devices) would
+  // hydrate a structurally different tree (wizard steps vs. stacked sections) and React would
+  // discard the server HTML for this subtree - a genuine hydration mismatch, not a false alarm.
+  // `mounted` forces the client's first render to match SSR (desktop) regardless of viewport;
+  // only after that first commit does the real breakpoint take effect.
+  const [mounted, setMounted] = useState(false);
   const [mobile, setMobile] = useState(false);
   useEffect(() => {
+    setMounted(true);
     const mq = window.matchMedia("(max-width: 1023px)");
     const update = () => setMobile(mq.matches);
     update();
     mq.addEventListener("change", update);
     return () => mq.removeEventListener("change", update);
   }, []);
-  return mobile;
+  return mounted && mobile;
 }
 
 function Field({
@@ -67,16 +75,16 @@ function Field({
   return (
     <div className="owner-field">
       <div className="mb-1.5 flex items-center justify-between gap-2">
-        <label htmlFor={id} className="text-sm font-semibold text-slate-100">
+        <label htmlFor={id} className="text-sm font-semibold text-[var(--taj-text,#14231b)]">
           {label}
         </label>
-        <span className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
+        <span className="text-[10px] font-bold uppercase tracking-wide text-[var(--taj-text-muted,#71717a)]">
           {required ? requiredLabel : optionalLabel}
         </span>
       </div>
       {children}
       {error ? (
-        <p id={`${id}-err`} className="mt-1.5 text-xs font-medium text-red-300" role="alert">
+        <p id={`${id}-err`} className="mt-1.5 text-xs font-medium text-red-600" role="alert">
           {error}
         </p>
       ) : null}
@@ -95,7 +103,12 @@ export function OwnerOnboardingExperience({ locale, L, ownerNav, defaults }: Pro
   const [fullName, setFullName] = useState(defaults.fullName);
   const [phone, setPhone] = useState(defaults.phone);
   const [email, setEmail] = useState(defaults.email);
-  const [city, setCity] = useState("");
+  // Real bug found by using the form: the select's empty-value placeholder option displayed the
+  // text "Душанбе" (cityPh label) while its value stayed "" — the field LOOKED filled but wasn't,
+  // so a user who never touched the dropdown got a confusing "fill required field" error on a
+  // field that visibly already showed a city. Defaulting state to the real first city fixes the
+  // mismatch between what's displayed and what's actually selected.
+  const [city, setCity] = useState<string>(TAJIK_CITY_CANONICAL[0] ?? "");
   const [applicantType, setApplicantType] = useState("individual");
   const [businessName, setBusinessName] = useState("");
   const [propertyType, setPropertyType] = useState("hotel");
@@ -151,8 +164,13 @@ export function OwnerOnboardingExperience({ locale, L, ownerNav, defaults }: Pro
       if (!address.trim()) e.address = L.errRequired;
     }
     if (step === 2) {
-      const idErr = validateFile(uploads.identity, true);
-      if (idErr) e.identity = idErr;
+      // Identity document is optional on first commercial onboarding — no passport/selfie KYC
+      // gate for a new owner to list a property. Matches the V2 architecture decision to move
+      // away from storing identity documents; Admin can still request it later if genuinely needed.
+      if (uploads.identity) {
+        const idErr = validateFile(uploads.identity, false);
+        if (idErr) e.identity = idErr;
+      }
       const fErr = validateFile(uploads.facade, true);
       if (fErr) e.facade = fErr;
       const rErr = validateFile(uploads.room, true);
@@ -323,7 +341,7 @@ export function OwnerOnboardingExperience({ locale, L, ownerNav, defaults }: Pro
         {L.sectionDocuments}
       </h3>
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        <FileUploadCard name="identity" label={L.uploadIdentity} required chooseLabel={L.uploadChoose} removeLabel={L.uploadRemove} reqLabel={L.uploadReq} optionalLabel={L.optional} requiredLabel={L.required} error={errors.identity} onFileChange={(f) => setUpload("identity", f)} />
+        <FileUploadCard name="identity" label={L.uploadIdentity} chooseLabel={L.uploadChoose} removeLabel={L.uploadRemove} reqLabel={L.uploadReq} optionalLabel={L.optional} requiredLabel={L.required} error={errors.identity} onFileChange={(f) => setUpload("identity", f)} />
         <FileUploadCard name="identityBack" label={L.uploadIdentityBack} hint={L.uploadIdentityBackHint} chooseLabel={L.uploadChoose} removeLabel={L.uploadRemove} reqLabel={L.uploadReq} optionalLabel={L.optional} requiredLabel={L.required} error={errors.identityBack} onFileChange={(f) => setUpload("identityBack", f)} />
         <FileUploadCard name="facade" label={L.uploadFacade} required chooseLabel={L.uploadChoose} removeLabel={L.uploadRemove} reqLabel={L.uploadReq} optionalLabel={L.optional} requiredLabel={L.required} error={errors.facade} onFileChange={(f) => setUpload("facade", f)} />
         <FileUploadCard name="room" label={L.uploadRoom} required chooseLabel={L.uploadChoose} removeLabel={L.uploadRemove} reqLabel={L.uploadReq} optionalLabel={L.optional} requiredLabel={L.required} error={errors.room} onFileChange={(f) => setUpload("room", f)} />
@@ -334,7 +352,7 @@ export function OwnerOnboardingExperience({ locale, L, ownerNav, defaults }: Pro
       <div className="mt-4">
         <Field id="documentUrl" label={L.documentUrl} optionalLabel={L.optional} requiredLabel={L.required} error={errors.documentUrl}>
           <input id="documentUrl" className="owner-input" value={documentUrl} onChange={(e) => setDocumentUrl(e.target.value)} placeholder={L.documentUrlPh} type="url" inputMode="url" />
-          <p className="mt-1 text-xs text-slate-400">{L.documentUrlHelp}</p>
+          <p className="mt-1 text-xs text-[var(--taj-text-muted,#71717a)]">{L.documentUrlHelp}</p>
         </Field>
       </div>
     </section>
@@ -378,12 +396,12 @@ export function OwnerOnboardingExperience({ locale, L, ownerNav, defaults }: Pro
           </div>
         </div>
       </div>
-      <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-        <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-1 h-4 w-4 rounded border-white/20 text-[#0f7a4d]" />
-        <span className="text-sm text-slate-200">{L.consent}</span>
+      <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-xl border border-[var(--taj-border,#e4e4e7)] bg-[#f4f4f5] px-4 py-3">
+        <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-1 h-4 w-4 rounded border-[var(--taj-border,#e4e4e7)] text-[#0f7a4d]" />
+        <span className="text-sm text-[var(--taj-text,#14231b)]">{L.consent}</span>
       </label>
       {errors.consent ? (
-        <p className="mt-2 text-xs text-red-300" role="alert">
+        <p className="mt-2 text-xs text-red-600" role="alert">
           {errors.consent}
         </p>
       ) : null}
@@ -461,9 +479,9 @@ export function OwnerOnboardingExperience({ locale, L, ownerNav, defaults }: Pro
           <OwnerOnboardingSidebar L={L} />
 
           <div className="owner-form-card">
-            <header className="border-b border-white/10 pb-5">
-              <h2 className="text-xl font-bold text-white sm:text-2xl">{L.formTitle}</h2>
-              <p className="mt-2 text-sm text-slate-400">{L.formSubtitle}</p>
+            <header className="border-b border-[var(--taj-border,#e4e4e7)] pb-5">
+              <h2 className="text-xl font-bold text-[var(--taj-text,#14231b)] sm:text-2xl">{L.formTitle}</h2>
+              <p className="mt-2 text-sm text-[var(--taj-text-muted,#71717a)]">{L.formSubtitle}</p>
             </header>
 
             {mobileWizard ? (
