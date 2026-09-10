@@ -400,10 +400,15 @@ a.taj-btn--icon {
   justify-content: center;
   text-align: center;
   pointer-events: none;
+  /* Ring opening is narrower than the box (R=42, stroke-width=12 of a 120-unit
+     viewBox) — constrain the label to the actual inner circle so long words
+     (e.g. "Бронирования") wrap inside the ring instead of overflowing it. */
+  width: 54%;
+  margin: 0 auto;
 }
 
 .analytics-donut__center strong {
-  font-size: 1.25rem;
+  font-size: 1.0625rem;
   font-weight: 700;
   color: var(--taj-text, #14231b);
   line-height: 1.1;
@@ -411,8 +416,11 @@ a.taj-btn--icon {
 
 .analytics-donut__center span {
   margin-top: 0.125rem;
-  font-size: 0.6875rem;
+  font-size: 0.5625rem;
+  line-height: 1.15;
   color: var(--taj-text-muted, #71717a);
+  word-break: break-word;
+  hyphens: auto;
 }
 
 .analytics-legend {
