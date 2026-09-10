@@ -573,8 +573,11 @@ body:has(.ts-workspace-light) .header-auth-signin-mobile {
 }
 
 .home-dest-chip:hover {
-  border-color: rgba(52, 211, 153, 0.35);
-  background: rgba(16, 45, 34, 0.9);
+  /* Was a near-black dark-green fill (rgba(16,45,34,.9)) while the label text stayed dark
+     (var(--taj-color-text)) - unreadable on hover, confirmed by the user. Light tint instead,
+     text colors are unaffected and stay readable. */
+  border-color: rgba(15, 122, 77, 0.35);
+  background: rgba(15, 122, 77, 0.08);
   transform: translateY(-2px);
 }
 
@@ -779,4 +782,15 @@ body:has(.ts-workspace-light) .site-header .header-nav-link.is-active {
   .home-page .hotel-card-premium:hover .hotel-img-wrap img {
     transform: none;
   }
+}
+
+/* Promo banner title/subtitle on the green (#0F7A4D) background — must beat the repo-wide
+   `h1,h2,h3,h4,h5,h6 { color: var(--ds-text-primary) !important }` resets, which otherwise force
+   dark text here regardless of Tailwind's text-white utility or even an inline style. */
+.home-promo-title {
+  color: #ffffff !important;
+}
+
+.home-promo-subtitle {
+  color: rgba(255, 255, 255, 0.9) !important;
 }

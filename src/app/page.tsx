@@ -15,7 +15,6 @@ import { SearchBar } from "@/components/SearchBar";
 import { TajstayHero3D } from "@/components/landing/TajstayHero3D";
 import { PageContainer, SectionContainer, ContentGrid, EmptyStateCard } from "@/components/ds";
 import { HomeSectionHeader } from "@/components/home/HomeSectionHeader";
-import { HomeReviewsSection } from "@/components/home/HomeReviewsSection";
 import { HomeHeroMobile } from "@/components/home/HomeHeroMobile";
 
 export default async function HomePage() {
@@ -94,8 +93,15 @@ export default async function HomePage() {
             <div className="rounded-2xl border border-[#0f7a4d]/20 bg-[#0f7a4d] p-5 sm:p-6">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <h2 className="text-lg font-bold text-white sm:text-xl">{content.homeBanner.title}</h2>
-                  <p className="mt-2 max-w-2xl text-sm text-white/90">{content.homeBanner.subtitle}</p>
+                  {/* Not just text-white, and not even inline style: repo-wide
+                      `h1,h2,h3,h4,h5,h6 { color: var(--ds-text-primary) !important }` resets
+                      (multiple duplicates found across globals.css this session) carry
+                      !important and beat both the Tailwind utility AND an inline style —
+                      confirmed via getComputedStyle after each attempt, not assumed from source.
+                      Only a class-based !important override wins here; see .home-promo-title/
+                      .home-promo-subtitle below. */}
+                  <h2 className="home-promo-title text-lg font-bold sm:text-xl">{content.homeBanner.title}</h2>
+                  <p className="home-promo-subtitle mt-2 max-w-2xl text-sm">{content.homeBanner.subtitle}</p>
                 </div>
                 <Link href={content.homeBanner.ctaHref} className="taj-btn taj-btn--primary shrink-0">
                   {content.homeBanner.ctaText}
@@ -158,12 +164,8 @@ export default async function HomePage() {
         <GuestHomeExtras locale={locale} />
       </div>
 
-      {/* 3. Reviews — social proof */}
-      <section className="home-section home-section--compact home-chapter hidden md:block" data-reveal>
-        <PageContainer publicPage className="!py-0">
-          <HomeReviewsSection locale={locale} reviews={latestReviews} />
-        </PageContainer>
-      </section>
+      {/* Reviews removed from the homepage by product decision — a site-wide aggregate reviews
+          block doesn't make sense; reviews belong on each hotel's own page, not the landing page. */}
 
       {/* 4. Info block — Why TajStay (kept last per UX flow) */}
       <SectionContainer tight className="home-section home-section--compact home-chapter hidden md:block" data-reveal>

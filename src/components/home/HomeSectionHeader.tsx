@@ -30,7 +30,10 @@ export function HomeSectionHeader({ eyebrow, title, description, action, align =
       {action ? (
         <Link
           href={action.href}
-          className="shrink-0 text-sm font-semibold text-[#0f7a4d] underline-offset-4 transition hover:text-[#d1fae5] hover:underline"
+          // hover:text-[#d1fae5] (light mint) made this nearly invisible on a white page —
+          // the recurring legacy off-brand color found throughout this session. Darken on
+          // hover instead of lightening toward white.
+          className="shrink-0 text-sm font-semibold text-[#0f7a4d] underline-offset-4 transition hover:text-[#0b5c3a] hover:underline"
         >
           {action.label}
         </Link>

@@ -23,6 +23,11 @@
 }
 
 .tst-assistant__panel {
+  /* KNOWN ISSUE, not yet fixed: this dark-green panel (rgba(6,40,28,.98)) is off-brand per the
+     Green Contract. Flipping just this background to white was tried and reverted - the rest of
+     this file's ~450 lines (bubbles, chips, buttons, inputs) all assume light-on-dark text, so a
+     white panel alone makes everything else invisible. Needs a full, deliberate light-theme pass
+     across this whole file in one dedicated turn, not a partial edit. See STATE.md. */
   position: fixed;
   z-index: 101;
   display: flex;
