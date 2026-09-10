@@ -1,6 +1,10 @@
 /**
  * TST Assistant — responsive drawer (desktop) + near-fullscreen (mobile).
  * Independent scroll region; FAB hidden while open; body scroll locked in JS.
+ *
+ * Rewritten to the canonical light theme (was a dark-green ~450-line panel, off-brand per the
+ * Green Contract — flagged repeatedly, see STATE.md). White surfaces, dark text, canonical
+ * #0F7A4D accents only — no mint/emerald/dark-green substitutes anywhere in this file.
  */
 
 .tst-assistant {
@@ -23,19 +27,14 @@
 }
 
 .tst-assistant__panel {
-  /* KNOWN ISSUE, not yet fixed: this dark-green panel (rgba(6,40,28,.98)) is off-brand per the
-     Green Contract. Flipping just this background to white was tried and reverted - the rest of
-     this file's ~450 lines (bubbles, chips, buttons, inputs) all assume light-on-dark text, so a
-     white panel alone makes everything else invisible. Needs a full, deliberate light-theme pass
-     across this whole file in one dedicated turn, not a partial edit. See STATE.md. */
   position: fixed;
   z-index: 101;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid rgba(110, 231, 183, 0.22);
-  background: rgba(6, 40, 28, 0.98);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--taj-border, #e4e4e7);
+  background: #ffffff;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
   /* Mobile: bottom sheet above tab bar — not fullscreen trap */
   top: auto;
   left: 0;
@@ -57,15 +56,15 @@
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.7rem 0.9rem 0.35rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(6, 40, 28, 0.98);
+  border-bottom: 1px solid var(--taj-border, #e4e4e7);
+  background: #ffffff;
 }
 
 .tst-assistant__toolbar-title {
   margin: 0;
   font-size: 0.85rem;
   font-weight: 700;
-  color: #ecfdf5;
+  color: var(--taj-text, #14231b);
 }
 
 .tst-assistant__icon-btn {
@@ -76,8 +75,8 @@
   height: 2.75rem;
   border: 0;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.1);
-  color: #ecfdf5;
+  background: #f4f4f5;
+  color: var(--taj-text, #14231b);
   cursor: pointer;
   position: relative;
   z-index: 10;
@@ -108,9 +107,9 @@
   width: 3.25rem;
   height: 3.25rem;
   border-radius: 999px;
-  border: 1px solid rgba(110, 231, 183, 0.28);
-  background: rgba(0, 0, 0, 0.22);
-  color: #ecfdf5;
+  border: 1px solid rgba(15, 122, 77, 0.25);
+  background: rgba(15, 122, 77, 0.1);
+  color: #0f7a4d;
 }
 
 .tst-assistant__avatar.is-thinking {
@@ -122,14 +121,14 @@
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.12em;
-  color: #6ee7b7;
+  color: #0f7a4d;
 }
 
 .tst-assistant__tagline {
   margin: 0.15rem 0 0;
   font-size: 0.68rem;
   line-height: 1.35;
-  color: #a7d3b8;
+  color: var(--taj-text-muted, #71717a);
   max-width: 18rem;
 }
 
@@ -137,21 +136,21 @@
   margin: 0;
   font-size: 0.82rem;
   font-weight: 600;
-  color: #ecfdf5;
+  color: var(--taj-text, #14231b);
 }
 
 .tst-assistant__context {
   margin: 0.25rem 0 0;
   font-size: 0.68rem;
   line-height: 1.4;
-  color: #86efac;
+  color: #0f7a4d;
 }
 
 .tst-assistant__thinking {
   padding: 0.45rem 0 0.55rem;
   text-align: center;
   font-size: 0.72rem;
-  color: #a7d3b8;
+  color: var(--taj-text-muted, #71717a);
 }
 
 .tst-assistant__dots {
@@ -164,7 +163,7 @@
   width: 0.35rem;
   height: 0.35rem;
   border-radius: 999px;
-  background: #6ee7b7;
+  background: #0f7a4d;
   animation: tst-assistant-dot 1s ease-in-out infinite;
 }
 
@@ -188,10 +187,10 @@
 }
 
 .tst-assistant__action {
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--taj-border, #e4e4e7);
   border-radius: 0.75rem;
-  background: rgba(255, 255, 255, 0.04);
-  color: #ecfdf5;
+  background: #ffffff;
+  color: var(--taj-text, #14231b);
   font-size: 0.72rem;
   font-weight: 600;
   line-height: 1.25;
@@ -208,7 +207,7 @@
   margin: 0.15rem auto 0.35rem;
   border: 0;
   background: none;
-  color: #6ee7b7;
+  color: #0f7a4d;
   font-size: 0.72rem;
   font-weight: 700;
   padding: 0.25rem 0.5rem;
@@ -223,21 +222,23 @@
 .tst-assistant__notice {
   padding: 0.65rem 0.7rem;
   border-radius: 0.75rem;
-  border: 1px solid rgba(110, 231, 183, 0.25);
-  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(15, 122, 77, 0.25);
+  background: rgba(15, 122, 77, 0.06);
   font-size: 0.74rem;
   line-height: 1.45;
-  color: #d1fae5;
+  color: var(--taj-text, #14231b);
 }
 
 .tst-assistant__notice--warn {
-  border-color: rgba(251, 191, 36, 0.35);
-  color: #fde68a;
+  border-color: rgba(217, 119, 6, 0.3);
+  background: rgba(217, 119, 6, 0.08);
+  color: #92400e;
 }
 
 .tst-assistant__notice--error {
-  border-color: rgba(248, 113, 113, 0.35);
-  color: #fecaca;
+  border-color: rgba(220, 38, 38, 0.3);
+  background: rgba(220, 38, 38, 0.08);
+  color: #991b1b;
 }
 
 .tst-assistant__chips {
@@ -251,18 +252,18 @@
   flex: 0 0 auto;
   white-space: nowrap;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.04);
-  color: #d1fae5;
+  border: 1px solid var(--taj-border, #e4e4e7);
+  background: #ffffff;
+  color: var(--taj-text, #14231b);
   font-size: 0.68rem;
   font-weight: 600;
   padding: 0.32rem 0.6rem;
 }
 
 .tst-assistant__chip.is-on {
-  border-color: rgba(52, 211, 153, 0.45);
-  background: rgba(16, 185, 129, 0.16);
-  color: #ecfdf5;
+  border-color: rgba(15, 122, 77, 0.4);
+  background: rgba(15, 122, 77, 0.1);
+  color: #0f7a4d;
 }
 
 .tst-assistant__form {
@@ -273,7 +274,7 @@
   margin: 0 0 0.35rem;
   font-size: 0.68rem;
   font-weight: 600;
-  color: #a7d3b8;
+  color: var(--taj-text-muted, #71717a);
 }
 
 .tst-assistant__row {
@@ -288,16 +289,16 @@
   flex-direction: column;
   gap: 0.2rem;
   font-size: 0.62rem;
-  color: #a7d3b8;
+  color: var(--taj-text-muted, #71717a);
 }
 
 .tst-assistant__field input,
 .tst-assistant__ask input {
   width: 100%;
   border-radius: 0.55rem;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(0, 0, 0, 0.22);
-  color: #ecfdf5;
+  border: 1px solid var(--taj-border, #e4e4e7);
+  background: #ffffff;
+  color: var(--taj-text, #14231b);
   font-size: 0.78rem;
   padding: 0.45rem 0.55rem;
 }
@@ -305,8 +306,8 @@
 .tst-assistant__primary {
   border: 0;
   border-radius: 0.65rem;
-  background: #059669;
-  color: #ecfdf5;
+  background: #0f7a4d;
+  color: #ffffff !important;
   font-size: 0.75rem;
   font-weight: 700;
   padding: 0.45rem 0.7rem;
@@ -318,10 +319,15 @@
   grid-template-columns: 1fr auto;
   gap: 0.4rem;
   padding: 0.55rem 0.9rem calc(0.55rem + env(safe-area-inset-bottom, 0px));
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid var(--taj-border, #e4e4e7);
+  background: #ffffff;
 }
 
+/* button.tst-assistant__ask-send (not a bare descendant selector): a global
+   `[data-theme="light"] button { color: inherit }` reset has higher specificity than a plain
+   `.tst-assistant__ask button` descendant rule and was silently winning — same bug class as the
+   cookie-consent Accept button, confirmed via computed style, not source reading alone. */
+.tst-assistant__ask button.tst-assistant__ask-send,
 .tst-assistant__ask button {
   display: grid;
   place-items: center;
@@ -329,8 +335,8 @@
   height: 2.1rem;
   border: 0;
   border-radius: 999px;
-  background: #059669;
-  color: #ecfdf5;
+  background: #0f7a4d;
+  color: #ffffff !important;
 }
 
 .tst-assistant__status,
@@ -340,17 +346,17 @@
 .tst-assistant__match {
   font-size: 0.7rem;
   line-height: 1.4;
-  color: #a7d3b8;
+  color: var(--taj-text-muted, #71717a);
 }
 
 .tst-assistant__match {
   margin: 0.15rem 0 0;
-  color: #6ee7b7;
+  color: #0f7a4d;
   font-weight: 600;
 }
 
 .tst-assistant__status.is-error {
-  color: #fde68a;
+  color: #b45309;
 }
 
 .tst-assistant__empty {
@@ -373,15 +379,15 @@
 .tst-assistant__booking-summary {
   padding: 0.55rem;
   border-radius: 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid var(--taj-border, #e4e4e7);
+  background: #ffffff;
 }
 
 .tst-assistant__hotel {
   margin: 0;
   font-size: 0.8rem;
   font-weight: 700;
-  color: #ecfdf5;
+  color: var(--taj-text, #14231b);
 }
 
 .tst-assistant__meta {
@@ -402,7 +408,7 @@
 .tst-assistant__links a,
 .tst-assistant__search-link,
 .tst-assistant__btn-link {
-  color: #6ee7b7;
+  color: #0f7a4d;
   font-size: 0.72rem;
   font-weight: 700;
   text-decoration: none;
@@ -417,9 +423,9 @@
 
 .tst-assistant__btn {
   border-radius: 0.55rem;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.05);
-  color: #ecfdf5;
+  border: 1px solid var(--taj-border, #e4e4e7);
+  background: #ffffff;
+  color: var(--taj-text, #14231b);
   font-size: 0.72rem;
   font-weight: 600;
   padding: 0.4rem 0.65rem;
@@ -427,7 +433,8 @@
 
 .tst-assistant__btn--primary {
   border-color: transparent;
-  background: #059669;
+  background: #0f7a4d;
+  color: #ffffff !important;
 }
 
 .tst-assistant__rooms {
@@ -461,7 +468,7 @@
   border-radius: 999px;
   border: none;
   background: #0f7a4d;
-  color: #ffffff;
+  color: #ffffff !important;
   box-shadow: 0 8px 20px rgba(15, 23, 42, 0.18);
 }
 
@@ -538,10 +545,10 @@
 @keyframes tst-assistant-pulse {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(110, 231, 183, 0.15);
+    box-shadow: 0 0 0 0 rgba(15, 122, 77, 0.15);
   }
   50% {
-    box-shadow: 0 0 0 6px rgba(110, 231, 183, 0);
+    box-shadow: 0 0 0 6px rgba(15, 122, 77, 0);
   }
 }
 
