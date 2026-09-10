@@ -2681,7 +2681,11 @@ body:has(.ts-workspace-light) .site-header .brand-mark-name {
   border-color: #a1a1aa;
 }
 
-.cookie-consent__accept {
+/* button.cookie-consent__accept (not just .cookie-consent__accept): a broad
+   `[data-theme="light"] button { color: inherit }` reset has higher specificity than a bare
+   class selector and was silently winning, leaving white-intended text to inherit dark
+   --taj-text from an ancestor — confirmed via computed style, not just source reading. */
+button.cookie-consent__accept {
   display: inline-flex;
   align-items: center;
   justify-content: center;

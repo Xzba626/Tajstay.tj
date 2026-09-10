@@ -16,13 +16,9 @@ type Defaults = { fullName: string; phone: string; email: string };
 type FieldErrors = Record<string, string>;
 
 type UploadState = {
-  identity: File | null;
-  identityBack: File | null;
-  selfie: File | null;
   facade: File | null;
   room: File | null;
   bathroom: File | null;
-  propertyDoc: File | null;
 };
 
 const MAX_FILE = 5 * 1024 * 1024;
@@ -72,16 +68,15 @@ function Field({
   error?: string;
   children: React.ReactNode;
 }) {
+  // Compact "*" for required instead of repeating the word "ОБЯЗАТЕЛЬНО"/"required" next to
+  // every single field — that was visual noise, not information (a form this short doesn't need
+  // a badge per field; one required-fields note near the top is enough, see formSubtitle usage).
   return (
     <div className="owner-field">
-      <div className="mb-1.5 flex items-center justify-between gap-2">
-        <label htmlFor={id} className="text-sm font-semibold text-[var(--taj-text,#14231b)]">
-          {label}
-        </label>
-        <span className="text-[10px] font-bold uppercase tracking-wide text-[var(--taj-text-muted,#71717a)]">
-          {required ? requiredLabel : optionalLabel}
-        </span>
-      </div>
+      <label htmlFor={id} className="mb-1.5 block text-sm font-semibold text-[var(--taj-text,#14231b)]">
+        {label}
+        {required ? <span className="text-[#0f7a4d]"> *</span> : null}
+      </label>
       {children}
       {error ? (
         <p id={`${id}-err`} className="mt-1.5 text-xs font-medium text-red-600" role="alert">
@@ -123,20 +118,15 @@ export function OwnerOnboardingExperience({ locale, L, ownerNav, defaults }: Pro
   const [roomCount, setRoomCount] = useState("");
   const [guestCapacity, setGuestCapacity] = useState("");
   const [propertyDescription, setPropertyDescription] = useState("");
-  const [documentUrl, setDocumentUrl] = useState("");
   const [experience, setExperience] = useState("");
   const [houseRules, setHouseRules] = useState("");
   const [adminComment, setAdminComment] = useState("");
   const [consent, setConsent] = useState(false);
 
   const [uploads, setUploads] = useState<UploadState>({
-    identity: null,
-    identityBack: null,
-    selfie: null,
     facade: null,
     room: null,
-    bathroom: null,
-    propertyDoc: null
+    bathroom: null
   });
 
   const setUpload = useCallback((key: keyof UploadState, file: File | null) => {
@@ -171,29 +161,18 @@ export function OwnerOnboardingExperience({ locale, L, ownerNav, defaults }: Pro
       if (!address.trim()) e.address = L.errRequired;
     }
     if (step === 2) {
-      // Identity document is optional on first commercial onboarding — no passport/selfie KYC
-      // gate for a new owner to list a property. Matches the V2 architecture decision to move
-      // away from storing identity documents; Admin can still request it later if genuinely needed.
-      if (uploads.identity) {
-        const idErr = validateFile(uploads.identity, false);
-        if (idErr) e.identity = idErr;
-      }
+      // Only real property photos are validated here — no passport/selfie/document upload in
+      // this flow (see documentsSection above). Facade is the one required shot; room/bathroom
+      // are encouraged but optional so a small listing isn't blocked on photo count.
       const fErr = validateFile(uploads.facade, true);
       if (fErr) e.facade = fErr;
-      const rErr = validateFile(uploads.room, true);
-      if (rErr) e.room = rErr;
-      const bErr = validateFile(uploads.bathroom, true);
-      if (bErr) e.bathroom = bErr;
-      if (uploads.identityBack) {
-        const ib = validateFile(uploads.identityBack, false);
-        if (ib) e.identityBack = ib;
+      if (uploads.room) {
+        const rErr = validateFile(uploads.room, false);
+        if (rErr) e.room = rErr;
       }
-      if (uploads.selfie) {
-        const s = validateFile(uploads.selfie, false);
-        if (s) e.selfie = s;
-      }
-      if (documentUrl.trim() && !documentUrl.trim().toLowerCase().startsWith("https://")) {
-        e.documentUrl = L.errHttps;
+      if (uploads.bathroom) {
+        const bErr = validateFile(uploads.bathroom, false);
+        if (bErr) e.bathroom = bErr;
       }
     }
     if (step === 3) {
@@ -235,18 +214,13 @@ export function OwnerOnboardingExperience({ locale, L, ownerNav, defaults }: Pro
     if (roomCount) fd.append("roomCount", roomCount);
     if (guestCapacity) fd.append("guestCapacity", guestCapacity);
     if (propertyDescription) fd.append("propertyDescription", propertyDescription);
-    if (documentUrl.trim()) fd.append("documentUrl", documentUrl.trim());
     if (experience) fd.append("experience", experience);
     if (houseRules) fd.append("houseRules", houseRules);
     if (adminComment) fd.append("adminComment", adminComment);
     fd.append("consent", "true");
-    if (uploads.identity) fd.append("identity", uploads.identity);
-    if (uploads.identityBack) fd.append("identityBack", uploads.identityBack);
-    if (uploads.selfie) fd.append("selfie", uploads.selfie);
     if (uploads.facade) fd.append("facade", uploads.facade);
     if (uploads.room) fd.append("room", uploads.room);
     if (uploads.bathroom) fd.append("bathroom", uploads.bathroom);
-    if (uploads.propertyDoc) fd.append("propertyDoc", uploads.propertyDoc);
 
     try {
       const res = await fetch("/api/owner/applications", {
@@ -342,25 +316,20 @@ export function OwnerOnboardingExperience({ locale, L, ownerNav, defaults }: Pro
     </section>
   );
 
+  // No identity/passport/selfie/property-document upload here by product decision: first
+  // commercial onboarding is not bank-level KYC. TajStay verifies new owners manually (phone
+  // call, public listing cross-check) after submission — see Admin Applications. Only real
+  // property photos are collected here, to help Admin recognize the listing, not "prove"
+  // ownership.
   const documentsSection = (
     <section className="owner-form-section" aria-labelledby="sec-docs">
       <h3 id="sec-docs" className="owner-section-title">
-        {L.sectionDocuments}
+        {L.sectionPhotos}
       </h3>
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        <FileUploadCard name="identity" label={L.uploadIdentity} chooseLabel={L.uploadChoose} removeLabel={L.uploadRemove} reqLabel={L.uploadReq} optionalLabel={L.optional} requiredLabel={L.required} error={errors.identity} onFileChange={(f) => setUpload("identity", f)} />
-        <FileUploadCard name="identityBack" label={L.uploadIdentityBack} hint={L.uploadIdentityBackHint} chooseLabel={L.uploadChoose} removeLabel={L.uploadRemove} reqLabel={L.uploadReq} optionalLabel={L.optional} requiredLabel={L.required} error={errors.identityBack} onFileChange={(f) => setUpload("identityBack", f)} />
         <FileUploadCard name="facade" label={L.uploadFacade} required chooseLabel={L.uploadChoose} removeLabel={L.uploadRemove} reqLabel={L.uploadReq} optionalLabel={L.optional} requiredLabel={L.required} error={errors.facade} onFileChange={(f) => setUpload("facade", f)} />
-        <FileUploadCard name="room" label={L.uploadRoom} required chooseLabel={L.uploadChoose} removeLabel={L.uploadRemove} reqLabel={L.uploadReq} optionalLabel={L.optional} requiredLabel={L.required} error={errors.room} onFileChange={(f) => setUpload("room", f)} />
-        <FileUploadCard name="bathroom" label={L.uploadBathroom} required chooseLabel={L.uploadChoose} removeLabel={L.uploadRemove} reqLabel={L.uploadReq} optionalLabel={L.optional} requiredLabel={L.required} error={errors.bathroom} onFileChange={(f) => setUpload("bathroom", f)} />
-        <FileUploadCard name="selfie" label={L.uploadSelfie} hint={L.uploadSelfieHint} chooseLabel={L.uploadChoose} removeLabel={L.uploadRemove} reqLabel={L.uploadReq} optionalLabel={L.optional} requiredLabel={L.required} error={errors.selfie} onFileChange={(f) => setUpload("selfie", f)} />
-        <FileUploadCard name="propertyDoc" label={L.uploadPropertyDoc} hint={L.uploadPropertyDocHint} chooseLabel={L.uploadChoose} removeLabel={L.uploadRemove} reqLabel={L.uploadReq} optionalLabel={L.optional} requiredLabel={L.required} error={errors.propertyDoc} onFileChange={(f) => setUpload("propertyDoc", f)} />
-      </div>
-      <div className="mt-4">
-        <Field id="documentUrl" label={L.documentUrl} optionalLabel={L.optional} requiredLabel={L.required} error={errors.documentUrl}>
-          <input id="documentUrl" className="owner-input" value={documentUrl} onChange={(e) => setDocumentUrl(e.target.value)} placeholder={L.documentUrlPh} type="url" inputMode="url" />
-          <p className="mt-1 text-xs text-[var(--taj-text-muted,#71717a)]">{L.documentUrlHelp}</p>
-        </Field>
+        <FileUploadCard name="room" label={L.uploadRoom} chooseLabel={L.uploadChoose} removeLabel={L.uploadRemove} reqLabel={L.uploadReq} optionalLabel={L.optional} requiredLabel={L.required} error={errors.room} onFileChange={(f) => setUpload("room", f)} />
+        <FileUploadCard name="bathroom" label={L.uploadBathroom} chooseLabel={L.uploadChoose} removeLabel={L.uploadRemove} reqLabel={L.uploadReq} optionalLabel={L.optional} requiredLabel={L.required} error={errors.bathroom} onFileChange={(f) => setUpload("bathroom", f)} />
       </div>
     </section>
   );

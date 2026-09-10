@@ -4,19 +4,22 @@ export function OwnerOnboardingSidebar({ L }: { L: OwnerOnboardingLabels }) {
   const trust = [L.trust1, L.trust2, L.trust3, L.trust4];
   const steps = [L.step1, L.step2, L.step3, L.step4];
 
+  // Rewritten light per Green Contract — this used to be a dark navy/black promo panel with a
+  // decorative "TajStay Partners" eyebrow and near-unreadable feature bars, out of step with the
+  // rest of the product. Now white surfaces, dark text, canonical #0F7A4D accents, and compact —
+  // the form is the primary content, this is supporting context, not a marketing landing page.
   return (
-    <div className="owner-onboarding-sidebar space-y-6">
+    <div className="owner-onboarding-sidebar space-y-5">
       <div>
-        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#0f7a4d]/90">TajStay Partners</p>
-        <h1 className="owner-onboarding-hero-title mt-3">{L.heroTitle}</h1>
-        <p className="owner-onboarding-hero-sub mt-4">{L.heroSubtitle}</p>
+        <h1 className="text-xl font-bold text-[var(--taj-text,#14231b)] sm:text-2xl">{L.heroTitle}</h1>
+        <p className="mt-2 text-sm text-[var(--taj-text-muted,#71717a)]">{L.heroSubtitle}</p>
       </div>
 
       <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
         {trust.map((t) => (
           <li
             key={t}
-            className="flex items-start gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-200"
+            className="flex items-start gap-2 rounded-xl border border-[var(--taj-border,#e4e4e7)] bg-white px-3 py-2.5 text-sm text-[var(--taj-text,#14231b)]"
           >
             <span className="mt-0.5 text-[#0f7a4d]" aria-hidden>
               ✓
@@ -26,12 +29,12 @@ export function OwnerOnboardingSidebar({ L }: { L: OwnerOnboardingLabels }) {
         ))}
       </ul>
 
-      <div className="rounded-2xl border border-white/10 bg-slate-900/40 p-4">
-        <h2 className="text-sm font-bold text-white">{L.howTitle}</h2>
+      <div className="rounded-2xl border border-[var(--taj-border,#e4e4e7)] bg-white p-4">
+        <h2 className="text-sm font-bold text-[var(--taj-text,#14231b)]">{L.howTitle}</h2>
         <ol className="mt-4 space-y-3">
           {steps.map((s, i) => (
-            <li key={s} className="flex gap-3 text-sm text-slate-300">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#0f7a4d]/15 text-xs font-bold text-[#d1fae5] ring-1 ring-[#0f7a4d]/30">
+            <li key={s} className="flex gap-3 text-sm text-[var(--taj-text-muted,#71717a)]">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#0f7a4d]/10 text-xs font-bold text-[#0f7a4d] ring-1 ring-[#0f7a4d]/25">
                 {i + 1}
               </span>
               <span className="pt-0.5 leading-snug">{s}</span>
@@ -42,12 +45,12 @@ export function OwnerOnboardingSidebar({ L }: { L: OwnerOnboardingLabels }) {
 
       <div className="owner-trust-callout hidden lg:block">
         <div className="flex gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#0f7a4d]/15 text-lg text-[#0f7a4d]" aria-hidden>
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#0f7a4d]/10 text-lg text-[#0f7a4d]" aria-hidden>
             🛡
           </span>
           <div>
-            <p className="text-sm font-bold text-white">{L.trustBoxTitle}</p>
-            <ul className="mt-2 space-y-1.5 text-xs leading-relaxed text-slate-300">
+            <p className="text-sm font-bold text-[var(--taj-text,#14231b)]">{L.trustBoxTitle}</p>
+            <ul className="mt-2 space-y-1.5 text-xs leading-relaxed text-[var(--taj-text-muted,#71717a)]">
               <li>{L.trustBox1}</li>
               <li>{L.trustBox2}</li>
               <li>{L.trustBox3}</li>
