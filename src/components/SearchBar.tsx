@@ -40,7 +40,6 @@ export function SearchBar({ locale = "ru" }: Props) {
                 name="city"
                 type="text"
                 list="popular-cities"
-                placeholder={m(locale, "search.whereTo")}
                 aria-label={m(locale, "search.placeholder")}
                 className="home-search-input"
                 inputMode="text"
