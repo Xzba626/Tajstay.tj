@@ -219,14 +219,15 @@ returning to earlier phases only if regression is found:
 
 ## NEXT
 
-**STOP AND WAIT — do not start implementation.** `docs/TAJSTAY_CURRENT_STATE_AUDIT.md` (first pass) is
-written and committed. Per its own instructions and the user's explicit audit-only framing, the next
-action is the user reviewing it and issuing a new implementation instruction — not this session
-picking priorities and continuing the Final Commercial Product Contract on its own. This overrides the
-general "don't wait for a new prompt" rule for right now specifically.
-
-When implementation does resume, the audit doc's §11 has a dependency-ordered starting list (verify
-`/api/seed` reachability, shell isolation via route groups, trace the Admin KPI data mismatch to its
-actual query, decide on `HotelStaff`/`lib/pms/staff.ts` vs. a fresh staff model, add security response
-headers, dedicated re-investigation of the two open runtime mysteries) — but do not act on it until
-told to.
+**AUDIT CONTINUES — not implementation, not "complete."** The user explicitly rejected calling the
+first pass "complete audit" — it was a structural first layer. This session added a second layer
+(code-traced chain-following: phone-OTP full chain, Admin Bookings KPI root cause confirmed, `/api/seed`
+resolved, security headers confirmed absent, Owner/Admin section lists extracted) — see
+`docs/TAJSTAY_CURRENT_STATE_AUDIT.md` §6b-6f. **Still explicitly required before the audit's own
+completion gate is met** (not started any prior pass this session): the full browser-runtime
+role-by-role walkthrough (anonymous/Guest/Owner/Admin, all 21 Owner+Admin sections, all Profile
+subroutes), auth provider runtime verification, booking end-to-end walkthrough, full RU/TJ/EN visual
+pass, full responsive matrix, IDOR/authorization testing, performance baseline, deployed-vs-local diff.
+This is genuinely multi-session runtime QA work, not something to fabricate. Continue the audit next
+session — do not start implementation, do not call the audit complete, do not silently narrow scope
+again.
