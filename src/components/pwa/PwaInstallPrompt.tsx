@@ -18,10 +18,24 @@ export type PwaInstallLabels = {
 
 const DISMISS_KEY = "tajstay:pwa-install-dismissed";
 const INSTALLED_KEY = "tajstay:pwa-installed";
+const COOKIE_CONSENT_KEY = "cookie-consent";
+const ENGAGEMENT_DELAY_MS = 15000;
+
+function cookieConsentResolved(): boolean {
+  try {
+    const v = localStorage.getItem(COOKIE_CONSENT_KEY);
+    return v === "accepted" || v === "essential-only";
+  } catch {
+    return false;
+  }
+}
 
 export function PwaInstallPrompt({ labels }: { labels: PwaInstallLabels }) {
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
   const [hidden, setHidden] = useState(false);
+  // Must never show at the same time as the cookie banner: wait for consent to be
+  // resolved, then require ~15s of active TajStay engagement before it's eligible.
+  const [engaged, setEngaged] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -47,13 +61,28 @@ export function PwaInstallPrompt({ labels }: { labels: PwaInstallLabels }) {
 
     window.addEventListener("beforeinstallprompt", onBip);
     window.addEventListener("appinstalled", onInstalled);
+
+    let timer: number | undefined;
+    function startEngagementTimer() {
+      if (timer) return;
+      timer = window.setTimeout(() => setEngaged(true), ENGAGEMENT_DELAY_MS);
+    }
+
+    if (cookieConsentResolved()) {
+      startEngagementTimer();
+    } else {
+      window.addEventListener("tajstay:cookie-consent-resolved", startEngagementTimer, { once: true });
+    }
+
     return () => {
       window.removeEventListener("beforeinstallprompt", onBip);
       window.removeEventListener("appinstalled", onInstalled);
+      window.removeEventListener("tajstay:cookie-consent-resolved", startEngagementTimer);
+      if (timer) window.clearTimeout(timer);
     };
   }, []);
 
-  if (hidden || !deferred) return null;
+  if (hidden || !deferred || !engaged) return null;
 
   async function install() {
     if (!deferred) return;
@@ -90,10 +119,10 @@ export function PwaInstallPrompt({ labels }: { labels: PwaInstallLabels }) {
           priority
         />
         <div className="min-w-0 flex-1">
-          <p id="pwa-install-title" className="text-sm font-bold text-white">
+          <p id="pwa-install-title" className="text-sm font-bold text-[#14231b]">
             {labels.title}
           </p>
-          <p id="pwa-install-body" className="mt-1 text-xs leading-relaxed text-slate-300">
+          <p id="pwa-install-body" className="mt-1 text-xs leading-relaxed text-[#52525b]">
             {labels.body}
           </p>
         </div>
@@ -102,14 +131,14 @@ export function PwaInstallPrompt({ labels }: { labels: PwaInstallLabels }) {
         <button
           type="button"
           onClick={() => void install()}
-          className="home-hero-cta-primary min-h-0 flex-1 px-3 py-2.5 text-xs"
+          className="min-h-0 flex-1 rounded-xl bg-[#0f7a4d] px-3 py-2.5 text-xs font-bold text-white transition hover:-translate-y-px"
         >
           {labels.install}
         </button>
         <button
           type="button"
           onClick={dismiss}
-          className="rounded-xl border border-white/15 px-3 py-2.5 text-xs font-semibold text-slate-300 transition hover:bg-white/8 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f7a4d]/50"
+          className="rounded-xl border border-[#d4d4d8] px-3 py-2.5 text-xs font-semibold text-[#14231b] transition hover:bg-[#f4f4f5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f7a4d]/50"
         >
           {labels.dismiss}
         </button>

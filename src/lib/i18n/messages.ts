@@ -203,8 +203,9 @@ const ru: Tree = {
     faq: "Помощь / FAQ"
   },
   cookies: {
-    text: "Мы используем cookie для безопасности, аналитики и улучшения сервиса.",
+    text: "Мы используем необходимые cookie для работы TajStay. Аналитические cookie помогают улучшать сервис.",
     accept: "Принять",
+    reject: "Отклонить необязательные",
     more: "Подробнее"
   },
   media: {
@@ -2089,8 +2090,9 @@ const tg: Tree = {
     faq: "Кумак / FAQ"
   },
   cookies: {
-    text: "Мо cookie-ро барои бехатарӣ, таҳлил ва беҳбудии хизматрасонӣ истифода мебарем.",
+    text: "Мо cookie-ҳои заруриро барои кори TajStay истифода мебарем. Cookie-ҳои таҳлилӣ ба беҳтар кардани хизмат кӯмак мекунанд.",
     accept: "Қабул",
+    reject: "Радди ғайризарурӣ",
     more: "Бештар"
   },
   media: {
@@ -3936,8 +3938,9 @@ const en: Tree = {
     faq: "Help / FAQ"
   },
   cookies: {
-    text: "We use cookies for security, analytics and to improve the service.",
+    text: "We use essential cookies to run TajStay. Analytics cookies help us improve the service.",
     accept: "Accept",
+    reject: "Reject non-essential",
     more: "Learn more"
   },
   media: {

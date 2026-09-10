@@ -127,6 +127,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           <CookieConsent
             text={m(locale, "cookies.text")}
             acceptLabel={m(locale, "cookies.accept")}
+            rejectLabel={m(locale, "cookies.reject")}
             moreLabel={m(locale, "cookies.more")}
             moreHref="/policy"
           />

@@ -5,13 +5,14 @@ import { useEffect, useState } from "react";
 type Props = {
   text: string;
   acceptLabel: string;
+  rejectLabel: string;
   moreLabel: string;
   moreHref?: string;
 };
 
 const STORAGE_KEY = "cookie-consent";
 
-export function CookieConsent({ text, acceptLabel, moreLabel, moreHref = "/policy" }: Props) {
+export function CookieConsent({ text, acceptLabel, rejectLabel, moreLabel, moreHref = "/policy" }: Props) {
   const [visible, setVisible] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -19,7 +20,7 @@ export function CookieConsent({ text, acceptLabel, moreLabel, moreHref = "/polic
     setMounted(true);
     try {
       const saved = window.localStorage.getItem(STORAGE_KEY);
-      if (saved !== "accepted") {
+      if (saved !== "accepted" && saved !== "essential-only") {
         const t = window.setTimeout(() => setVisible(true), 600);
         return () => window.clearTimeout(t);
       }
@@ -28,13 +29,14 @@ export function CookieConsent({ text, acceptLabel, moreLabel, moreHref = "/polic
     }
   }, []);
 
-  function accept() {
+  function choose(value: "accepted" | "essential-only") {
     try {
-      window.localStorage.setItem(STORAGE_KEY, "accepted");
+      window.localStorage.setItem(STORAGE_KEY, value);
     } catch {
       /* ignore */
     }
     setVisible(false);
+    window.dispatchEvent(new Event("tajstay:cookie-consent-resolved"));
   }
 
   if (!mounted || !visible) return null;
@@ -52,7 +54,10 @@ export function CookieConsent({ text, acceptLabel, moreLabel, moreHref = "/polic
           <a href={moreHref} className="cookie-consent__more">
             {moreLabel}
           </a>
-          <button type="button" onClick={accept} className="cookie-consent__accept">
+          <button type="button" onClick={() => choose("essential-only")} className="cookie-consent__reject">
+            {rejectLabel}
+          </button>
+          <button type="button" onClick={() => choose("accepted")} className="cookie-consent__accept">
             {acceptLabel}
           </button>
         </div>
