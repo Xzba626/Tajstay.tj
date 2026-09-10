@@ -6,6 +6,7 @@ import "@fontsource/playfair-display/cyrillic.css";
 import type { Metadata } from "next";
 import type { Viewport } from "next";
 import type { ReactNode } from "react";
+import { headers } from "next/headers";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
@@ -73,6 +74,11 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const unreadCount = user ? await getUnreadNotificationsCount(user.id) : 0;
   const pendingTripsCount =
     user?.role === "GUEST" ? await getPendingTripsCount(user.id) : 0;
+  const shell = (await headers()).get("x-tajstay-shell");
+  // Admin/Owner CRM shells render their own chrome (see dashboard/admin, dashboard/owner
+  // layouts) — the Public/Consumer shell below (Header/Footer/MobileBottomNav/AppShell/
+  // Cookie/PWA prompts) must not leak into those two. Classified in middleware.ts, not CSS.
+  const isConsumerShell = shell !== "admin" && shell !== "owner";
   return (
     <html lang={locale} className="scroll-smooth" data-theme="light" suppressHydrationWarning>
       <head>
@@ -85,52 +91,58 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       </head>
       <body className="min-h-screen bg-white text-[var(--text-primary-semantic,#14231b)] antialiased font-sans" suppressHydrationWarning>
         <AuthProvider>
-          <AppShell locale={locale} />
-          <SplashScreen />
-          <PageBackdrop />
-          <GlobalToast />
-          <PwaClientShell
-            isAuthed={Boolean(user)}
-            initialUnreadCount={unreadCount}
-            toastLabel={m(locale, "notifications.bell.newToast")}
-            installLabels={{
-              title: m(locale, "pwa.installTitle"),
-              body: m(locale, "pwa.installBody"),
-              install: m(locale, "pwa.installAction"),
-              dismiss: m(locale, "pwa.installDismiss")
-            }}
-            pushLabels={{
-              title: m(locale, "pwa.pushTitle"),
-              enable: m(locale, "pwa.pushEnable"),
-              later: m(locale, "pwa.pushLater"),
-              unsupported: m(locale, "pwa.pushUnsupported")
-            }}
-          />
-          <div className="flex min-h-screen flex-col">
-            <Header />
-            <main className="flex-1">
-              {children}
-            </main>
-            <Footer />
-          </div>
-          <MobileBottomNav
-            pendingBookingsCount={pendingTripsCount}
-            labels={{
-              ariaLabel: m(locale, "bottomNav.ariaLabel"),
-              home: m(locale, "bottomNav.home"),
-              search: m(locale, "bottomNav.search"),
-              tours: m(locale, "bottomNav.tours"),
-              history: m(locale, "bottomNav.history"),
-              profile: m(locale, "bottomNav.profile")
-            }}
-          />
-          <CookieConsent
-            text={m(locale, "cookies.text")}
-            acceptLabel={m(locale, "cookies.accept")}
-            rejectLabel={m(locale, "cookies.reject")}
-            moreLabel={m(locale, "cookies.more")}
-            moreHref="/policy"
-          />
+          {isConsumerShell ? (
+            <>
+              <AppShell locale={locale} />
+              <SplashScreen />
+              <PageBackdrop />
+              <GlobalToast />
+              <PwaClientShell
+                isAuthed={Boolean(user)}
+                initialUnreadCount={unreadCount}
+                toastLabel={m(locale, "notifications.bell.newToast")}
+                installLabels={{
+                  title: m(locale, "pwa.installTitle"),
+                  body: m(locale, "pwa.installBody"),
+                  install: m(locale, "pwa.installAction"),
+                  dismiss: m(locale, "pwa.installDismiss")
+                }}
+                pushLabels={{
+                  title: m(locale, "pwa.pushTitle"),
+                  enable: m(locale, "pwa.pushEnable"),
+                  later: m(locale, "pwa.pushLater"),
+                  unsupported: m(locale, "pwa.pushUnsupported")
+                }}
+              />
+              <div className="flex min-h-screen flex-col">
+                <Header />
+                <main className="flex-1">
+                  {children}
+                </main>
+                <Footer />
+              </div>
+              <MobileBottomNav
+                pendingBookingsCount={pendingTripsCount}
+                labels={{
+                  ariaLabel: m(locale, "bottomNav.ariaLabel"),
+                  home: m(locale, "bottomNav.home"),
+                  search: m(locale, "bottomNav.search"),
+                  tours: m(locale, "bottomNav.tours"),
+                  history: m(locale, "bottomNav.history"),
+                  profile: m(locale, "bottomNav.profile")
+                }}
+              />
+              <CookieConsent
+                text={m(locale, "cookies.text")}
+                acceptLabel={m(locale, "cookies.accept")}
+                rejectLabel={m(locale, "cookies.reject")}
+                moreLabel={m(locale, "cookies.more")}
+                moreHref="/policy"
+              />
+            </>
+          ) : (
+            children
+          )}
         </AuthProvider>
       </body>
     </html>

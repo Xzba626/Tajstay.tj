@@ -24,6 +24,19 @@ function isTelegramWebhookPath(path: string): boolean {
  * Первый слой: без cookie сессии не пускаем на dashboard admin/owner.
  * Финальная проверка роли остаётся в RSC (requireAdmin / requireOwner).
  */
+/**
+ * Shell classification for RootLayout — Admin/Owner render their own CRM shell,
+ * everything else renders the Public/Consumer shell (Header/Footer/MobileBottomNav/
+ * AppShell). Read via `headers().get("x-tajstay-shell")` in `src/app/layout.tsx`.
+ * Not CSS-hide: this decides what RootLayout renders server-side, nothing is mounted
+ * then hidden.
+ */
+function shellFor(path: string): "admin" | "owner" | "consumer" {
+  if (path.startsWith("/dashboard/admin")) return "admin";
+  if (path.startsWith("/dashboard/owner")) return "owner";
+  return "consumer";
+}
+
 export async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
 
@@ -32,8 +45,12 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set("x-tajstay-shell", shellFor(path));
+  const withShellHeader = () => NextResponse.next({ request: { headers: requestHeaders } });
+
   if (!path.startsWith("/dashboard/admin") && !path.startsWith("/dashboard/owner")) {
-    return NextResponse.next();
+    return withShellHeader();
   }
 
   const legacyToken = req.cookies.get(SESSION_COOKIE)?.value ?? "";
@@ -47,14 +64,11 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(signIn);
   }
 
-  return NextResponse.next();
+  return withShellHeader();
 }
 
 export const config = {
   matcher: [
-    "/api/telegram/webhook",
-    "/api/telegram/webhook/:path*",
-    "/dashboard/admin/:path*",
-    "/dashboard/owner/:path*"
+    "/((?!_next/static|_next/image|favicon.ico|favicon.png|apple-touch-icon.png|manifest.webmanifest|icons/|sw.js).*)"
   ]
 };
