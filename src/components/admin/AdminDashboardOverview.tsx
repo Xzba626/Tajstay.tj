@@ -125,16 +125,16 @@ export function AdminDashboardOverview({ locale, stats, riskNotes, basePath }: P
       </div>
 
       <div className="admin-kpi-grid">
+        {/* Headline/center/segments all read off hotelTotal, matching the Users and Bookings
+            cards below — previously the headline showed hotelApproved as "1 / 4" while the
+            card title just said "Отели", forcing the admin to infer which number was which. */}
         <article className="admin-kpi-card admin-kpi-card--visual admin-kpi-card--brand">
           <div className="admin-kpi-card__label">{m(locale, "admin.hotelsTotal")}</div>
-          <div className="admin-kpi-card__value">
-            {stats.hotelApproved}
-            <span className="admin-kpi-card__value-sub"> / {stats.hotelTotal}</span>
-          </div>
+          <div className="admin-kpi-card__value">{stats.hotelTotal.toLocaleString()}</div>
           <AnalyticsDonut
             ariaLabel={m(locale, "admin.hotelsTotal")}
-            centerValue={String(stats.hotelApproved)}
-            centerLabel={m(locale, "admin.kpiHotelsApproved")}
+            centerValue={stats.hotelTotal.toLocaleString()}
+            centerLabel={m(locale, "admin.hotelsTotal")}
             segments={[
               { value: stats.hotelApproved, tone: "success", label: m(locale, "admin.kpiHotelsApproved") },
               { value: hotelPending, tone: "warning", label: m(locale, "admin.kpiHotelsPending") }
