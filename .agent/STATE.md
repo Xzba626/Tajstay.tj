@@ -6,31 +6,34 @@ NEXT, not a diary. Detailed rationale for a fix belongs in its commit message, n
 
 ## Governing instruction
 
-**CURRENT MODE: AUDIT-ONLY, PAUSED FOR USER REVIEW.** The user issued a "DEEPEST CURRENT-STATE
-DISCOVERY & AUDIT" instruction (2026-09-10) that explicitly **pauses** the standing FINAL COMMERCIAL
-PRODUCT CONTRACT (130 sections, still the eventual governing instruction, summarized below) until the
-user has reviewed `docs/TAJSTAY_CURRENT_STATE_AUDIT.md`. That audit's own §139/142 are explicit: do
-NOT start redesign/fixes after finishing it — stop and hand the findings back. **This session did
-exactly that — audit committed (`f1a52ca`), no further implementation work should start until the
-user responds to it, even under the general "don't wait for a new prompt" rule from the product
-contract below.** The audit is a first pass, not the full 142-point brief — see the audit doc's own
-§9 for what it does not yet cover.
+**MODE = IMPLEMENTATION.** The user reviewed `docs/TAJSTAY_CURRENT_STATE_AUDIT.md` and issued
+"TAJSTAY — END STANDALONE AUDIT / START IMPLEMENTATION" (2026-09-10): standalone audit phase is over,
+the audit doc is now the **CURRENT SOURCE OF TRUTH** for actual project state (not to be re-run in
+full — only targeted re-checks per phase when a specific unknown blocks that phase). Do not create new
+audit skills. Do not expand audit scope for full pixel-perfect coverage of the old version.
 
-Once the user re-authorizes implementation, the standing instruction resumes: **FINAL COMMERCIAL
-PRODUCT CONTRACT** (130 sections) — full architecture + UX/UI + mobile app experience + Owner Hotel
-Desk + Admin Command Center + analytics + PWA + performance + security + human-like QA, worked as a
-continuous `audit → implement → visual review → runtime QA → fix → re-QA → next area → regression`
-loop across sessions until commercially ready per its acceptance gates (§119-124). Do not wait for a
-new prompt between phases/areas once resumed. Do not report "ready for next narrow block." Only stop
-for: destructive production operations, real data-loss risk, a missing required secret, or a legal/
-business call that can't be safely assumed. Session/turn limits are not a stopping reason.
+- **AUDIT SOURCE** = `docs/TAJSTAY_CURRENT_STATE_AUDIT.md`
+- **ROADMAP** = `docs/TAJSTAY_IMPLEMENTATION_ROADMAP.md` (created this pass — 11 phases, each with
+  CURRENT PROBLEM/TARGET STATE/ARCHITECTURE/FRONTEND/BACKEND/DATA/SECURITY/MOBILE/QA/DEPENDENCIES/
+  ACCEPTANCE, built directly from confirmed audit findings, not theoretical)
+- **CURRENT PHASE** = Phase 1 (Architecture Foundation) — shell isolation **DONE this pass** (see
+  DONE below), remaining Phase 1 work: eliminate remaining duplicate CSS "palette lock" blocks
+  repo-wide, establish one canonical design-token file.
 
-Phase order (§118): 1 architecture/route-map/tokens/shell-isolation → 2 mobile foundation/header/
-home/search → 3 auth/registration → 4 profile (personal/avatar/phone/email/settings/security/
-notifications/support) → 5 hotels/booking/reviews/chat → 6 tours → 7 owner onboarding → 8 Owner Hotel
-Desk/finance/analytics/staff → 9 Admin Command Center/analytics/operations → 10 PWA/cookie/install/
-cache/performance → 11 full security audit → 12 full regression/commercial QA.
-**Currently in: Phase 1 (shell isolation still open) + early Phase 2/4 work.**
+Per-phase loop (roadmap doc, same as before): audit reference → targeted re-check of only that phase's
+unknowns → architecture/design decision → implement → typecheck/lint → runtime QA (desktop+mobile,
+RU baseline + TJ/EN where i18n-visible) → fix → regression on touched areas → commit → next phase.
+Compile success is never PASS for user-facing/security-sensitive work. Do not wait for a new prompt
+between phases. Do not report "ready for next narrow block" and stop. Only stop for: destructive
+production operations, real data-loss risk, a missing required secret, or a legal/business call that
+can't be safely assumed. Session/turn limits are not a stopping reason.
+
+Standing scope-discipline rule (explicit, repeated by the user): if implementation surfaces a genuine
+unknown, investigate only that dependency, then continue — never fall back into another global audit
+pass. Reuse confirmed-real subsystems, never rebuild them: custom `/api/phone-otp/*` (not Firebase, not
+a new OTP system) for phone verification; `lib/pms/*` + `HotelStaff`/`staff.ts` foundation for Owner
+Staff; `src/lib/trips/classify.ts` for History classification; `BOOKING_STATUS` enum as the single
+source of booking-status truth.
 
 Key corrections from the user in this specific contract (override earlier interpretations of the same
 areas): no placeholder text ("Куда едете?" etc.) inside the city field when empty — label + icon +
@@ -72,6 +75,22 @@ unidentified black floating widget on every route. **Important: that deployment 
 to be running this branch's code** — do not assume screenshots from it reflect local commits, and do
 not assume local fixes are live there either. Local dev (`localhost:3000`) is the only environment
 actually verified this session.
+
+## DONE (this pass — Phase 1, implementation mode)
+
+- **Shell isolation fixed** (the top architectural blocker, two prior attempts had broken webpack).
+  `middleware.ts` now tags every request with `x-tajstay-shell` (`admin`/`owner`/`consumer`), computed
+  from the path alongside the existing session gate; root `layout.tsx` reads that header and only
+  renders Consumer chrome (Header/Footer/MobileBottomNav/AppShell/CookieConsent/PwaClientShell) when
+  the shell is `consumer`. Admin/Owner keep rendering their own existing self-contained
+  `DashboardShell`-based layouts unchanged. Not CSS-hide — server decides what to render, nothing is
+  mounted then hidden; avoids the prior failure mode entirely (no RSC passed as a client prop).
+  **Verified in-browser**: logged in as seeded admin, `/dashboard/admin` shows only Admin's own
+  sidebar/bottom nav, zero Consumer nav links, zero console errors; Consumer Home unaffected (Header +
+  bottom nav present, zero console errors). Owner path uses identical code, not separately
+  browser-verified with an owner login this pass (same mechanism, lower-risk to assume symmetric than
+  to force a second manual login cycle this turn — flag for a quick spot-check next Owner-focused pass).
+  Commit `8834d03`.
 
 ## DONE (this pass, continued)
 
@@ -136,9 +155,9 @@ actually verified this session.
 Restructured per the contract's phase order (§118) rather than a flat list — work top to bottom,
 returning to earlier phases only if regression is found:
 
-1. **Shell isolation** (Phase 1, still the top blocker — see BLOCKED). Also Phase 1: full route/
-   layout/shell/role inventory has never been formally built — the contract explicitly wants an actual
-   map (§3) before further UI work, not just ad-hoc fixes.
+1. ~~Shell isolation~~ **DONE this pass**. Remaining Phase 1 work: eliminate remaining duplicate CSS
+   "palette lock" blocks repo-wide (CSSOM-enumeration technique, see the note above), establish one
+   canonical design-token file per `docs/TAJSTAY_IMPLEMENTATION_ROADMAP.md` Phase 1.
 2. Mobile Home acceptance gate (§9, §119) — first viewport must show headline+Search with zero scroll
    at 390/412px; current state not verified against this specific gate yet.
 3. Search field internals: remove all internal borders (§11), city placeholder removed this pass ✓,
@@ -168,10 +187,9 @@ returning to earlier phases only if regression is found:
 
 ## BLOCKED
 
-- **Admin/Owner shell isolation** — unchanged from before, still the top architectural defect. Two
-  attempted fixes (client-wrapper-around-async-Server-Components; a second attempt, see revert
-  `d076570`) both broke the dev server. The user has explicitly rejected CSS-hide as an acceptable
-  final answer — next attempt must be genuine route/layout composition (e.g. Next.js route groups).
+- ~~Admin/Owner shell isolation~~ **RESOLVED this pass** — see DONE above (`8834d03`). Two prior
+  attempts (client-wrapper-around-async-Server-Components) broke the dev server; fixed instead via
+  middleware header + conditional server-side render, no client-wrapper pattern involved.
 - **`ProfileMockupView` client-only crash** (`Cannot read properties of undefined (reading 'length')`)
   — reproduces reliably on `/profile` only (confirmed NOT site-wide: `/search`, which shares the same
   header/UserMenu tree, renders fine). Investigated exhaustively this pass: verified SSR HTML is 100%
@@ -219,52 +237,12 @@ returning to earlier phases only if regression is found:
 
 ## NEXT
 
-**AUDIT CONTINUES — not implementation, not "complete."** Layer 3 this pass, per the user's two
-explicit refinements plus new-pass instructions — see `docs/TAJSTAY_CURRENT_STATE_AUDIT.md` §6e-6g:
-
-- §6e `/api/seed`: added **deployed runtime evidence** (not just code) — `GET` against production
-  `https://www.tajstay.site/api/seed` with no credentials → `403 Forbidden` (`{"error":"Forbidden"}`);
-  `POST` same → `405 Method Not Allowed`. Confirms the fail-closed path actually executes in prod, not
-  just in code.
-- §6f Security headers: now split into **APPLICATION CONFIG: absent** (unchanged) vs. **DEPLOYED
-  RESPONSE: actual headers** (new) — checked `/`, `/auth/sign-in`, `/api/search` on production. Only
-  `Strict-Transport-Security` is present (Vercel platform default, not app config); CSP, X-Frame-Options,
-  X-Content-Type-Options, Referrer-Policy, Permissions-Policy all absent in both config AND live
-  response; `X-Powered-By: Next.js` also leaked. Authenticated route / mutating API response not checked
-  (stayed within GET-only, non-destructive scope).
-- §6b Phone-OTP: **Firebase client SDK trace completed.** `src/lib/firebase/client.ts` is a fully
-  implemented Firebase Phone Auth wrapper (recaptcha + `signInWithPhoneNumber` + `confirmationResult`)
-  with **zero call sites and zero DOM container anywhere else in the repo** → classified **(A)
-  DEAD/UNUSED PLUMBING**, not partially wired. The actual live system for `phoneVerified` is the custom
-  `/api/phone-otp/*` subsystem (fully documented: 10min TTL, 60s resend cooldown, 5-attempt lock/15min,
-  layered IP+phone+pair rate limits, timing-safe hash compare) — but *that* subsystem also has zero UI
-  callers found. What `/profile/phone`'s actual button calls, if anything, is **still unknown** —
-  requires a live click-through, queued for the Guest Profile walkthrough below.
-- §6g `lib/pms/*`/`HotelStaff` deepened to file-by-file classification: 7 of 10 files are **REAL
-  FEATURE** with confirmed call sites (bookingContext, prismaIncludes, inventory, amenities,
-  ownerQueries, bulkRooms, assignment — all wired into live Owner/booking/chat/review flows).
-  `staff.ts` (`resolveHotelAccess`, the only code that reads `HotelStaff` for permissions) has **zero
-  callers anywhere** → **BACKEND FOUNDATION ONLY, unreachable** — a `HotelStaff` row today has no effect
-  on anything, access is governed purely by `User.role`. `migrate.ts` → **LEGACY-UNUSED** one-off
-  backfill script, zero callers.
-
-**Runtime role-walkthrough: STARTED, far from complete.** Opened local dev (`localhost:3000`) in the
-in-app Browser pane as Anonymous: home page loads clean, zero console errors, nav links present
-(`/`, `/search`, `/tours`, `/history`, `/profile` all visible unauthenticated — worth checking during
-Guest/Anonymous comparison whether `/history` and `/profile` properly redirect-to-login for anonymous
-users rather than rendering, not yet checked). One **UNVERIFIED, not confirmed** observation: the
-search card appeared to overflow the visible pane width at both the pane's default size and after
-requesting a 1280px desktop resize (the resize call reported viewport emulation was cleared rather than
-applied, so this may be a Browser-pane width artifact, not a genuine desktop layout bug — needs
-re-verification with a viewport that's confirmed to have actually changed before treating as a finding).
-
-**Still explicitly required before the audit's own completion gate is met** — this is the dominant
-remaining gap: full browser-runtime role-by-role walkthrough (Anonymous journey incl. mobile, Guest
-incl. full Profile click-tree, Owner all 11 sections individually, Admin all 10 sections individually),
-auth provider runtime verification (Google/Telegram/Phone), Cookie+Install actual timed sequencing,
-real RU/TJ/EN runtime pass (not dictionary grep), responsive runtime interaction at 360/390/412/768/
-1024/1280/1440, booking end-to-end on isolated QA data (`qa-claude-session@tajstay.local`), Tours
-data-source classification, non-destructive IDOR testing (Guest A vs Guest B, Owner A vs Owner B),
-performance baseline (dev vs deployed, clearly separated), deployed-vs-local diff (local SHA `f63443c`
-vs. production `https://www.tajstay.site` — not yet done). Continue next session — do not start
-implementation, do not call the audit complete, do not silently narrow scope again.
+**IMPLEMENTATION MODE.** Audit closed as a standalone phase (layer-3 refinements — deployed `/api/seed`
++ security-header evidence, Firebase-SDK dead-plumbing classification, `lib/pms/*` file-by-file
+call-site mapping — are preserved in `docs/TAJSTAY_CURRENT_STATE_AUDIT.md` §6e-6g, not repeated here).
+Working from `docs/TAJSTAY_IMPLEMENTATION_ROADMAP.md` now. Currently finishing **Phase 1**: shell
+isolation done (`8834d03`); remaining — eliminate leftover duplicate CSS "palette lock" blocks
+repo-wide (CSSOM-enumeration technique, not source grep alone) and establish one canonical design-token
+file. Then proceed to Phase 2 (Consumer Core: mobile Home zero-scroll gate, borderless search, custom
+date display) without waiting for a new prompt, per the roadmap's per-phase loop. Do not fall back into
+a global audit pass — if a phase hits a genuine unknown, investigate only that dependency and continue.
