@@ -70,14 +70,19 @@ body:has(.taj-auth-page) .taj-auth-page {
 }
 
 /* Shared glass card chrome (promo + auth) */
-.taj-promo-card,
-.taj-auth-card {
+.taj-promo-card {
   border: 1px solid rgba(110, 231, 183, 0.22);
   background: linear-gradient(145deg, rgba(3, 34, 24, 0.86), rgba(2, 18, 13, 0.82));
   box-shadow:
     0 28px 90px rgba(0, 0, 0, 0.42),
     0 0 70px rgba(16, 185, 129, 0.08);
   backdrop-filter: blur(20px);
+}
+
+.taj-auth-card {
+  border: 1px solid var(--taj-border);
+  background: var(--taj-bg);
+  box-shadow: var(--taj-shadow);
 }
 
 /* —— Left promo —— */
@@ -405,9 +410,9 @@ body:has(.taj-auth-page) .taj-auth-page {
   width: 48px;
   height: 48px;
   border-radius: 14px;
-  border: 1px solid rgba(110, 231, 183, 0.22);
-  background: rgba(4, 32, 22, 0.55);
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--taj-border);
+  background: var(--taj-bg-mid);
+  box-shadow: none;
 }
 
 .taj-auth-welcome h1 {
@@ -416,7 +421,7 @@ body:has(.taj-auth-page) .taj-auth-page {
   font-size: clamp(31px, 3vw, 42px);
   line-height: 1;
   letter-spacing: -0.04em;
-  color: #fffef7;
+  color: var(--taj-text);
 }
 
 .taj-auth-welcome p {
@@ -457,7 +462,7 @@ body:has(.taj-auth-page) .taj-auth-page {
 .taj-link-button {
   border: 0;
   background: transparent;
-  color: #34d399;
+  color: var(--taj-emerald);
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
@@ -466,7 +471,7 @@ body:has(.taj-auth-page) .taj-auth-page {
 }
 
 .taj-link-button:hover {
-  color: #86efac;
+  color: var(--taj-emerald);
   text-decoration: underline;
   text-underline-offset: 4px;
 }
@@ -478,9 +483,9 @@ body:has(.taj-auth-page) .taj-auth-page {
   gap: 12px;
   padding: 0 16px;
   border-radius: 16px;
-  border: 1px solid rgba(110, 231, 183, 0.22);
-  background: rgba(3, 32, 22, 0.72);
-  color: var(--taj-muted);
+  border: 1px solid var(--taj-border);
+  background: var(--taj-bg);
+  color: var(--taj-emerald);
   transition: border-color 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
 }
 
@@ -489,13 +494,13 @@ body:has(.taj-auth-page) .taj-auth-page {
 }
 
 .taj-input-wrap--invalid {
-  border-color: rgba(251, 113, 133, 0.55);
+  border-color: #dc2626;
 }
 
 .taj-input-wrap:focus-within {
-  border-color: rgba(52, 211, 153, 0.56);
-  background: rgba(1, 26, 18, 0.7);
-  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.08);
+  border-color: var(--taj-emerald);
+  background: var(--taj-bg);
+  box-shadow: 0 0 0 3px rgba(15, 122, 77, 0.12);
 }
 
 .taj-input-wrap input {
@@ -518,26 +523,26 @@ body:has(.taj-auth-page) .taj-auth-page {
 }
 
 .taj-input-wrap input::placeholder {
-  color: rgba(236, 253, 245, 0.48);
+  color: var(--taj-muted);
 }
 
 .taj-input-icon-button {
   flex: none;
   width: 36px;
   height: 36px;
-  border: 1px solid rgba(110, 231, 183, 0.14);
+  border: none;
   border-radius: 10px;
-  background: rgba(16, 185, 129, 0.1);
-  color: rgba(236, 253, 245, 0.78);
+  background: transparent;
+  color: #71717a;
   display: grid;
   place-items: center;
   cursor: pointer;
-  transition: background 0.18s ease, border-color 0.18s ease;
+  transition: background 0.18s ease, color 0.18s ease;
 }
 
 .taj-input-icon-button:hover {
-  background: rgba(16, 185, 129, 0.16);
-  border-color: rgba(110, 231, 183, 0.24);
+  background: #f4f4f5;
+  color: #14231b;
 }
 
 .taj-check-row {
@@ -1251,11 +1256,13 @@ body:has(.taj-auth-page) .taj-auth-page {
   }
 }
 
-/* Palette lock inside auth — overrides global input/button rules */
+/* Palette lock inside auth — overrides global input/button rules.
+   White field + neutral border + dark text, per the binding surface rule
+   (white surface -> dark text, green surface -> white text). */
 .taj-auth-page .taj-input-wrap {
-  background: rgba(3, 32, 22, 0.72) !important;
-  border: 1px solid rgba(110, 231, 183, 0.22) !important;
-  color: rgba(236, 253, 245, 0.72);
+  background: #ffffff !important;
+  border: 1px solid #e4e4e7 !important;
+  color: #0f7a4d;
 }
 
 .taj-auth-page .taj-input-wrap input,
@@ -1268,11 +1275,11 @@ body:has(.taj-auth-page) .taj-auth-page {
   border: none !important;
   box-shadow: none !important;
   outline: none !important;
-  color: #ecfdf5 !important;
+  color: #14231b !important;
 }
 
 .taj-auth-page .taj-input-wrap input::placeholder {
-  color: rgba(236, 253, 245, 0.5) !important;
+  color: #71717a !important;
   opacity: 1 !important;
 }
 

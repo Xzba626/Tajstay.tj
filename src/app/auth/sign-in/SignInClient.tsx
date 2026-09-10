@@ -376,7 +376,6 @@ export function SignInClient({
                     value={regPassword}
                     onChange={setRegPassword}
                     autoComplete="new-password"
-                    placeholder={L.passwordPlaceholder}
                     icon={<LockIcon />}
                     toggle={{
                       show: regShowPassword,
@@ -393,7 +392,6 @@ export function SignInClient({
                     value={regConfirmPassword}
                     onChange={setRegConfirmPassword}
                     autoComplete="new-password"
-                    placeholder={L.confirmPasswordPlaceholder}
                     icon={<LockIcon />}
                     invalid={!!formError && regPassword !== regConfirmPassword}
                   />
@@ -425,7 +423,6 @@ export function SignInClient({
                     value={loginEmail}
                     onChange={setLoginEmail}
                     autoComplete="username"
-                    placeholder={L.emailPlaceholder}
                     icon={<MailIcon />}
                     invalid={!!formError && !loginEmail.trim()}
                   />
@@ -441,7 +438,6 @@ export function SignInClient({
                     value={loginPassword}
                     onChange={setLoginPassword}
                     autoComplete="current-password"
-                    placeholder={L.passwordPlaceholder}
                     icon={<LockIcon />}
                     toggle={{
                       show: loginShowPassword,
