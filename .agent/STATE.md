@@ -361,14 +361,83 @@ as verifying one exists and renders correctly). **Error state**: NOT exercised �
 covered. Not blocking progress to the next section — fault injection for a read-only dashboard is lower
 priority than moving through the remaining sections, but recorded accurately rather than glossed over.
 
-**NEXT**: Move to the next real Admin section (Applications) and run the same full Human Product
-Reconstruction cycle: open visually → click everything → understand the data/business logic → fix bugs
-→ improve UX → mobile (375/390/412) → RU/TJ/EN → console/network → loading/empty/error → regression →
-PASS → next section. Continue through all 9 remaining Admin sections, then all 11 Owner sections
-(checking 390/412 explicitly per finding #9 above). Also still owed, not to lose: Phase 1 design
-foundation (canonical design tokens, remaining duplicate "palette lock" CSS audit, no legacy mint/
-dark-green/navy brand surfaces, no global `!important` hacks) — do a mini-regression across Public/
-Auth/Profile/Admin/Owner once that foundation work lands. For every new Admin/Owner KPI: definition →
-query → verification → chart, in that order — never decorate a number before its semantics are checked.
-Do not mark anything PASS from one language, one viewport, or a correct diff alone. Do not return for a
-new prompt between sections. Do not fall back into a global audit pass.
+## Applications E2E — IN PROGRESS (commits `df4c06c`, `cad1ed7`)
+
+Per instruction: test Admin → Applications through the REAL user pipeline, not a direct DB insert —
+QA Guest → Become Owner form → submit → Admin reviews/approves → Owner access check. This is
+deliberately a cross-role, cross-page test (Guest UI → API → DB → Admin UI → Owner UI), not a
+single-screen check.
+
+**CURRENT STATE**: Logged in as `qa-claude-session@tajstay.local`, opened `/profile/become-owner`
+(never opened before this session). Found and fixed real defects along the way, all by using the form,
+none reported:
+
+1. **Whole form was dark/near-unreadable** — `.owner-form-card`/`.owner-input`/`.owner-wizard-*`/
+   `.owner-status-*` in `globals.css` were a stale, duplicate-competing legacy dark-theme definition
+   (the Owner CRM has its own correct light version in `owner-command-center.css`, which this public
+   route never loads — same duplicate-CSS anti-pattern flagged throughout this audit). **FIXED,
+   RUNTIME VERIFIED**: rewrote to canonical light theme (#0F7A4D accents, white surfaces). Submit
+   button was also off-brand lime/emerald gradient, now canonical `#0F7A4D`.
+2. **City field silently invalid** — the empty-value placeholder `<option>` displayed the text
+   "Душанбе" (reusing the `cityPh` label) while its real `value` stayed `""`, so the field looked
+   filled but wasn't; pressing Next threw "fill required field" on a visibly-filled field. **FIXED**:
+   defaulted `city` state to the real first canonical city + added a defensive mount-effect fallback.
+   **RUNTIME VERIFIED in production build only** (`next build` + `next start`, fresh diagnostic port,
+   throwaway `SEED_SECRET`) — city correctly shows "Dushanbe", zero hydration errors. In **dev** this
+   page intermittently still shows the old empty value even with the fix compiled into the bundle
+   (bundle-content-verified present) — same class as finding below, dev-only, not a real defect.
+3. **Identity document (passport front) was hard-required**, blocking submission — heavy KYC has no
+   place gating first commercial onboarding (matches the already-recorded V2 architecture decision to
+   move away from storing identity documents). **FIXED**: made optional; `facade`/`room`/`bathroom`
+   property photos remain required (legitimate for a hotel listing).
+4. **New hydration finding on this page**, distinct from the already-triaged TrustBadges one — "Text
+   content does not match server-rendered HTML" / "Switched to client rendering" (a Suspense-recovery
+   path). **ROOT CAUSE FOUND: dev-server-only artifact, RUNTIME VERIFIED absent in production** — same
+   evidence method as TrustBadges (clean `npm run build` → `next start` → fresh tab → console): zero
+   hydration errors, city field correct from first paint. Not chased further to a dev-specific
+   mechanism (would be the third such investigation this session) — the standing lesson is now: **this
+   dev environment accumulates real hydration-adjacent staleness/mismatches across long sessions with
+   many restarts; when one appears, verify against a production build before assuming it's a real
+   defect, but don't assume it either — check every time.**
+
+**NOT YET DONE** (this is where the E2E resumes — do not restart from data-entry, continue from here):
+- Step 1 (Личные данные) fields are pre-filled from QA account defaults and were validated as working
+  (Next advances once city fix is confirmed live in dev — re-verify after the current dev server, which
+  was restarted clean at the end of this pass, has settled).
+- Step 2 (Объект/property): businessName, propertyType, address, roomCount, guestCapacity,
+  propertyDescription — not yet filled or visually reviewed.
+- Step 3 (Документы): facade/room/bathroom photos need a REAL QA image upload (not passport/identity
+  documents, per fix #3 above) — test preview/remove/replace/size/MIME validation per the review's
+  instruction §7.
+- Step 4 (Отправка/review + consent) — not yet reached.
+- Submit — not yet attempted. After submit: check HTTP/API result, DB record, owner/user linkage,
+  status, duplicate-submit protection, success UI, reload persistence (§8-9 of the instruction).
+- Admin side: log back in as `admin@tajstay.local`, open Applications, verify the new QA application
+  appears (count, filter, list readability), open detail, review the whole screen for defects, then
+  exercise Request Info and/or Approve (§10-15) on this QA application specifically — never on a real
+  application.
+- After Approve: log out Admin, log in as the QA Guest, verify role/session refresh, Profile, Owner
+  dashboard access, hotel linkage (§15) — this is the part that proves the full pipeline, not just the
+  Admin screen.
+- Reject flow, responsive (390/412/768), RU/TJ/EN, and security checks (Guest can't approve own/other
+  applications, ID manipulation) — §16-20 of the instruction, after the happy path is proven once.
+
+**Dev server note**: restarted clean at the very end of this pass (serverId `637f7ce6...`, tab `tab-1`);
+previous tabs (`seed`, `tab-1` old instance) may be stale — re-navigate and re-login before continuing.
+
+## Also still owed (Phase 1 design foundation, not lost)
+
+Canonical design tokens; remaining duplicate "palette lock" CSS audit repo-wide; no legacy mint/
+dark-green/navy brand surfaces (found and fixed several more this pass, in the onboarding form
+specifically — worth a repo-wide sweep, not assumed exhausted); no global `!important` hacks. Do a
+mini-regression across Public/Auth/Profile/Admin/Owner once that foundation work lands.
+
+## Standing rules (do not relitigate each session)
+
+For every new Admin/Owner KPI: definition → query → verification → chart, never decorate a number
+before its semantics are checked. Do not mark anything PASS from one language, one viewport, or a
+correct diff alone. When a hydration/console error appears: investigate for a real cause first, but if
+suspicion points to dev-server staleness, verify against a clean production build before either
+fixing blindly or dismissing as environmental — this session established the pattern three times
+(TrustBadges, this page's Suspense mismatch, the city-default runtime gap) and it held every time.
+Do not return for a new prompt between sections/steps. Do not fall back into a global audit pass.
