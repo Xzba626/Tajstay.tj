@@ -168,9 +168,16 @@ export default async function AdminDashboardPage({
       prisma.hotel.count({ where: { status: "APPROVED" } }),
       prisma.user.count(),
       prisma.booking.count(),
+      // Turnover ("Оборот") must exclude bookings that never became real committed value —
+      // CANCELLED/REJECTED/EXPIRED — or a cancelled booking's totalPrice still inflates the
+      // 30-day figure. Matches the same "define the status semantics before summing" fix as
+      // the Bookings KPI buckets above.
       prisma.booking.aggregate({
         _sum: { totalPrice: true, commission: true },
-        where: { createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } }
+        where: {
+          createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
+          status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] }
+        }
       }),
       prisma.notification.findMany({
         where: {
