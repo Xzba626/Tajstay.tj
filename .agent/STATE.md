@@ -193,6 +193,17 @@ returning to earlier phases only if regression is found:
   failure mode (a JS error / an element absent, not a wrong style value) — this technique doesn't
   directly explain those, they're still open, but re-investigate them with the same "enumerate,
   don't assume" discipline before concluding they're environmental again.
+- **Cookie reject button re-checked this pass with more rigor, still genuinely missing**: confirmed
+  present in source (`CookieConsent.tsx`), confirmed present in the freshly-rebuilt compiled chunk
+  (`grep` on `.next/static/chunks/app/layout.js` after a full `.next` wipe), confirmed clean browser
+  console (zero errors/warnings), confirmed only one `CookieConsent` component and one usage exist in
+  the codebase (ruled out a duplicate-component shadowing issue, which WAS the real cause of a similar
+  auth bug this pass) — yet `document.querySelector('.cookie-consent__actions').innerHTML` shows only
+  "Подробнее" + "Принять", no reject button element at all. This one is NOT explained by the CSS
+  duplicate-override pattern above (nothing to enumerate — the element simply isn't in the tree).
+  Genuinely unresolved; do not re-attempt without a new hypothesis (e.g. add a temporary
+  `console.log(rejectLabel)` at the top of the component to check whether the prop itself is somehow
+  throwing/undefined at runtime despite typechecking fine).
 - **Production `site-content` values** (banner casing/URL) — only local dev DB fixed; production
   needs the same fix via the admin CMS UI, not a direct prod DB write from a session.
 - **Passport/identity backend removal** (`guestDocumentUrl`) — architecture decision written (V2
