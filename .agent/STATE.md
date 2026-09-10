@@ -261,7 +261,7 @@ mobile pass done. Not yet clicked: "Требует внимания" panel actio
 
 | Role | Route/Section | Desktop | Mobile | RU | TJ | EN | Visual | UX | Function | Data | Error | Perf | Security | Status |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Admin | Overview (`?section=dashboard`) | done | done | done | done (bonus) | open | 4 fixed | open | open | fixed (bookings), verified-no-bug (hotels) | open | open | open | OPEN — partial |
+| Admin | Overview (`?section=dashboard`) | done | done | done | done (bonus) | OPEN | 5 fixed | OPEN | OPEN | FIXED (bookings, hotels) | OPEN | OPEN | OPEN | OPEN — partial |
 | Admin | Applications | — | — | — | — | — | — | — | — | — | — | — | — | OPEN |
 | Admin | Users | — | — | — | — | — | — | — | — | — | — | — | — | OPEN |
 | Admin | Hotels | — | — | — | — | — | — | — | — | — | — | — | — | OPEN |
@@ -274,69 +274,62 @@ mobile pass done. Not yet clicked: "Требует внимания" panel actio
 | Owner | (all 11 sections) | shell verified | — | — | — | — | — | — | — | — | — | — | — | OPEN, shell isolation confirmed, no section PASSed yet |
 | Anonymous/Guest/Public | (all routes) | — | — | — | — | — | — | — | — | — | — | — | — | OPEN, not started |
 
-**DONE this pass** (commits `c71f512`, `9dfefad`; all found by looking, none reported by the user):
-1. Admin Overview donut center labels ("Бронирования", "Пользователи") overflowed the ring —
-   `AnalyticsDonut` center box constrained to the ring's actual inner opening with word-wrap, generic
-   across locale length (verified on RU and, incidentally while re-testing, TJ — both clean, no overflow).
-2. Admin Overview KPI cards on a 375px viewport truncated legend rows to an unreadable ellipsis
-   ("подтвержд…") — grid single-columns below 480px instead of squeezing 2-up.
-3. **Admin Bookings KPI bucket bug FIXED** (was open finding #3 from the audit, root-caused there, now
-   actually fixed): `sumBookingStatus` buckets in `src/app/dashboard/admin/page.tsx` referenced two
-   status literals that don't exist in `BOOKING_STATUS` (`"PENDING"`, `"CHECKED_OUT"` — both dead
-   leftovers) while omitting `WAITING_PAYMENT` entirely. Buckets now cover all 10 real statuses exactly
-   once, verified by explicit enumeration against `src/lib/domain/booking.ts`. Not yet re-verified
-   against a booking actually sitting in `WAITING_PAYMENT` in the dev DB (current seed data has none in
-   that state) — correct by construction, but a live numeric before/after on real data is still owed.
-4. **Admin Hotels "1 vs 4" question CLOSED, confirmed not a bug** (was open in the audit as
-   "misread, not yet confirmed"): read `AdminDashboardOverview.tsx` directly — the headline is
-   `{hotelApproved} / {hotelTotal}` (a fraction, reads oddly at a glance but is correct), and the
-   donut's two segments (`hotelApproved` + `hotelPending`) sum to exactly `hotelTotal` by construction.
-   No code change needed; this was a display-format misread, not a data-integrity bug — now verified,
-   not asserted.
+**Status vocabulary from here on** (do not collapse these into "closed"/"fixed" loosely):
+`ROOT CAUSE FOUND` (understood, nothing changed yet) · `FIXED` (code changed) ·
+`RUNTIME VERIFIED` (fix confirmed live, in the actual product, not just by reading the diff) ·
+`DEFERRED` (real fix identified, intentionally not done now, dependency named) · `OPEN` (unresolved).
+"Found ≠ fixed. Fixed ≠ verified. Verified in one language ≠ PASS." — standing rule, not a one-off.
 
-**RESOLVED, not a defect (investigated to a real conclusion, not dismissed on sight):**
-5. **Hydration mismatch on `TrustBadges`** (was open finding #3 last pass) — fully root-caused this
-   pass: confirmed via a `.next` cache wipe + clean dev-server restart + direct fetch of the served
-   bundle that the compiled client JS now matches source exactly, yet the SSR/hydration warning still
-   fires in dev. Verified the ACTUAL delivered DOM (`getComputedStyle` after the dropdown opens) shows
-   `rgb(15, 122, 77)` — the correct canonical `#0F7A4D`, matching SSR exactly, zero visible impact.
-   Conclusion: a dev-server-only artifact from this session's repeated HMR/restart cycles, not a defect
-   in the shipped `TrustBadges.tsx` (single, unambiguous style map, confirmed matching both SSR output
-   and the final rendered DOM). Not re-attributed to "environment" without this evidence chain — this
-   is the standing rule being followed, not an exception to it.
-6. **Admin `headers()`/`x-tajstay-shell` impact on static/dynamic rendering — checked, NOT a new
-   regression.** `getSessionUser()` (called unconditionally in root `layout.tsx`, present before Phase
-   1) already calls Next's `cookies()`, which already forced every route under the root layout into
-   dynamic rendering. Adding `headers()` for shell classification changes nothing about rendering mode
-   — confirmed by reading `src/lib/auth/session.ts`, not assumed.
+**Findings, commits `c71f512`, `9dfefad`, `02f6a34`** (all found by looking, none reported by the user):
 
-**STILL OPEN, not yet fixed:**
-7. **Duplicate API calls**: `/api/auth/session` (NextAuth's own `useSession()`), `/api/auth/me`
-   (this app's custom `AuthStateSync`, polls every 12s + on visibility change), `/api/notifications/*`
-   (custom `useNotificationPoller`, polls every 25s) — confirmed via
-   `performance.getEntriesByType('resource')`, not just eyeballing. Root cause identified (not just
-   symptom-patched): **two independent identity-fetching systems run in parallel** — NextAuth's built-in
-   session endpoint and the app's own `/api/auth/me` poller — that don't share state, on top of React
-   StrictMode's dev-only 2x effect invoke. A real fix means consolidating onto one canonical
-   session/identity source (likely dropping the redundant `/api/auth/me` poll in favor of
-   `useSession()`, or vice versa) — not a debounce. Not done this pass (real refactor, correctly
-   deferred to when Auth/Profile is the active area — roadmap Phase 3/9 — rather than rushed here).
-8. ~~Owner shell not directly re-verified~~ **RESOLVED this pass.** Logged out, logged in as the real
-   seeded `owner@tajstay.local`, opened `/dashboard/owner`: only Owner's own bottom nav (Обзор/
-   Объекты/Брони/Финансы/Ещё) rendered, zero Consumer nav links, zero new console errors beyond the
-   already-triaged (harmless) TrustBadges warning. **Phase 1 shell-isolation gate is now fully closed**
-   for both Admin and Owner with real logins, not assumed from shared code. Desktop only this pass —
-   Owner at 390/412px not yet done (do next alongside Owner's own section-by-section pass).
-9. One `Failed to load resource: 500` seen once in console, source URL never isolated (didn't reproduce
-   in `performance.getEntriesByType('resource')` on repeat checks) — likely transient from an earlier
-   dev-server restart in this same session, not re-triaged as a standing defect. Re-open if it recurs.
+1. Donut center-label overflow — **FIXED, RUNTIME VERIFIED** (RU + TJ both checked live, EN not yet).
+2. 375px KPI-card legend truncation — **FIXED, RUNTIME VERIFIED** (375px screenshot, legend readable).
+3. Admin Bookings KPI bucket bug (`PENDING`/`CHECKED_OUT` phantom statuses, missing `WAITING_PAYMENT`)
+   — **FIXED** in `src/app/dashboard/admin/page.tsx`, verified correct by enumeration against
+   `BOOKING_STATUS`. **NOT runtime-verified against real data** — current dev DB has zero bookings in
+   `WAITING_PAYMENT`, so no before/after count change was observable. Owed: create or find a booking in
+   that status and confirm the donut/headline move together.
+4. Admin Hotels KPI ambiguous fraction headline (`{approved} / {total}` under a bare "Отели" label) —
+   **FIXED, RUNTIME VERIFIED**: headline/donut-center/legend all now read off `hotelTotal`, matching
+   the Users/Bookings card pattern exactly; screenshot confirms "6" headline, "6" donut center,
+   "одобрено 6 100%" legend — unambiguous. This was a UX/copy defect the previous pass under-classified
+   as "not a bug" by only checking the math — the math was always correct, the presentation was not.
+5. `TrustBadges` hydration mismatch — **ROOT CAUSE FOUND, RUNTIME VERIFIED absent in production.**
+   Correction from last pass: "final computed DOM is correct" was NOT sufficient evidence and was
+   correctly rejected — a self-correcting mismatch is still a real mismatch during the render itself.
+   This pass ran the actual test: `npm run build` (clean, zero errors — confirms `assertProdSecrets()`
+   and every route compiles) → `next start` on port 3001 with a throwaway local `SEED_SECRET` (never a
+   real secret) → fresh tab → console read. **Zero hydration warnings in the production build**, first
+   paint already shows the correct `#0F7A4D` markup in the raw HTML. Conclusion, now evidence-backed
+   both ways (present in dev, absent in prod): dev-server-only artifact (this session restarted the dev
+   server multiple times; Next.js dev's module/HMR state is the suspected but not further-isolated
+   mechanism — not pursued further since production, the thing that ships, is clean). Production
+   diagnostic server stopped, dev server restored on port 3000 afterward.
+6. Admin `headers()`/`x-tajstay-shell` impact on static/dynamic rendering — **ROOT CAUSE FOUND, RUNTIME
+   VERIFIED not a regression**: `npm run build` output shows every single route (all ~130) marked `λ`
+   (server-rendered dynamic), confirming `getSessionUser()`'s pre-existing `cookies()` call already
+   forced this before Phase 1 — `headers()` added nothing new. Read from the actual build manifest, not
+   inferred from source alone.
+7. Duplicate identity API calls (`/api/auth/session` via NextAuth `useSession()`, `/api/auth/me` via
+   custom `AuthStateSync` polling every 12s, `/api/notifications/*` via `useNotificationPoller` every
+   25s) — **ROOT CAUSE FOUND, DEFERRED.** Two independent identity-fetching systems run in parallel
+   without shared state; fix is a real consolidation (drop one of the two session sources), not a
+   debounce. Explicitly not done this pass — dependency: Auth/Profile becomes the active area (roadmap
+   Phase 3) or the PWA/performance pass (Phase 9). This is a named, tracked deferral, not a closed item.
+8. Owner shell isolation — **FIXED (Phase 1), RUNTIME VERIFIED, both desktop and mobile.** Logged in as
+   real `owner@tajstay.local` twice: once at desktop width, once at 375px mobile — both showed zero
+   Consumer chrome, only Owner's own bottom nav. OWNER DESKTOP: verified. OWNER MOBILE: verified.
+   Phase 1's shell-isolation gate is now genuinely closed for both roles, both viewports.
+9. One `Failed to load resource: 500`, source never isolated, not reproduced on repeat checks — OPEN,
+   low priority, re-open only if it recurs with a capturable URL.
 
-**NEXT**: Phase 1 shell-isolation gate is closed (Admin + Owner both verified with real logins). Finish
-Admin Overview to full PASS: click "Требует внимания" panel actions, EN pass on this screen (RU+TJ
-done), loading/empty/error states, data semantics on remaining KPIs (Users, Turnover — Hotels and
-Bookings already closed this pass). Then continue sidebar-by-sidebar through the remaining 9 Admin
-sections per the progress table, same full human cycle each time; after Admin, do the same for all 11
-Owner sections (Owner is logged in and shell-verified but no section has had its own human pass yet —
-only Overview was glimpsed while checking shell isolation, not yet PASSed). Do not return for a new
-prompt between sections. Do not fall back into a global audit pass — investigate only the specific
-unknown in front of you and continue.
+**NEXT**: Phase 1 shell-isolation gate fully closed (Admin + Owner, desktop + mobile, all runtime
+verified with real logins). (a) Admin Overview is still OPEN, not PASS — remaining before it can be
+marked PASS: EN pass on this screen, "Требует внимания" panel actions clicked, loading/empty/error
+states, Users/Turnover KPI data semantics (Hotels/Bookings done), full console/network re-check.
+(b) Then continue section-by-section
+through the remaining 9 Admin sections, same full cycle each time, then all 11 Owner sections. Do not
+mark anything PASS from one language, one viewport, or a correct diff alone — runtime-verify across the
+dimensions in the progress table before changing a cell's status. Do not return for a new prompt between
+sections. Do not fall back into a global audit pass — investigate only the specific unknown in front of
+you and continue.
