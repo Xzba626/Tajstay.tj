@@ -261,7 +261,7 @@ mobile pass done. Not yet clicked: "Требует внимания" panel actio
 
 | Role | Route/Section | Desktop | Mobile | RU | TJ | EN | Visual | UX | Function | Data | Error | Perf | Security | Status |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Admin | Overview (`?section=dashboard`) | done (incl. 390/412) | done | done | done (bonus) | done | 6 fixed | done | done | FIXED (bookings, hotels, turnover) | verified-clean (empty state) | not separately tested | n/a this screen | **PASS** |
+| Admin | Overview (`?section=dashboard`) | done (incl. 390/412) | done | done | done (bonus) | done | 6 fixed | done | done | FIXED (bookings, hotels, turnover, GMV definition documented) | empty-state verified clean; error path NOT exercised | not separately tested | n/a this screen | **PRODUCT/VISUAL/DATA/RESPONSIVE = PASS; ERROR PATH = NOT YET EXERCISED** |
 | Admin | Applications | — | — | — | — | — | — | — | — | — | — | — | — | OPEN |
 | Admin | Users | — | — | — | — | — | — | — | — | — | — | — | — | OPEN |
 | Admin | Hotels | — | — | — | — | — | — | — | — | — | — | — | — | OPEN |
@@ -300,6 +300,15 @@ by the user):
    filter never had anything to exclude in this data set; correct by construction, same caveat as #3.
    Confirmed already-correct: GMV ("Оборот"/"30-day volume") and platform revenue (commission, shown
    separately with its own label and %) were never conflated — this part didn't need a fix.
+   **CANONICAL DEFINITION now documented** (commit `3ec12da`, code comment in
+   `src/app/dashboard/admin/page.tsx`) since a status filter alone isn't a complete metric
+   definition: period anchor is `Booking.createdAt` (the only timestamp this model has — no
+   `confirmedAt`/`paidAt` field exists, so a stricter "paid-only" GMV cannot be computed without a
+   schema change, not approximated from existing fields); `WAITING_PAYMENT`/`PENDING_OWNER`/
+   `ON_REVIEW`/`WAIT_PROOF` are deliberately INCLUDED — this is booking-creation volume/demand, not
+   confirmed-and-paid revenue, which is exactly why it's labeled "оборот"/"volume", never "выручка"/
+   "revenue". One metric, one definition, one query — documented so a future pass doesn't redefine
+   it silently.
 6. `TrustBadges` hydration mismatch — **PRODUCTION RUNTIME PASS / DEV-SERVER-ONLY ARTIFACT CONFIRMED.**
    `npm run build` (clean) → `next start` on a throwaway port with a local-only diagnostic `SEED_SECRET`
    → fresh tab → console: zero hydration warnings, correct `#0F7A4D` from first paint. Present in dev
@@ -341,11 +350,16 @@ by the user):
     staff role), the Users donut could silently repeat the exact class of bug just fixed in Bookings.
     Not fixed defensively this pass — flagging is the correct scope for now, not a speculative rewrite.
 
-**ADMIN OVERVIEW = PASS.** Full cycle completed: desktop, 375/390/412px mobile, RU/TJ/EN, all 4 KPI
-cards' data semantics checked (3 fixed, 1 confirmed already-correct), attention panel confirmed real,
-empty-state checked clean, console/network checked (only the already-triaged dev-only hydration
-warning remains, zero new errors). Loading/error states not separately forced via test/mock boundaries
-this pass — accepted as a lighter-weight gap for a low-risk read-only dashboard, not deferred silently.
+**ADMIN OVERVIEW = PRODUCT/VISUAL/DATA/RESPONSIVE PASS; ERROR PATH NOT YET EXERCISED** (precise status,
+not blanket PASS, per review). Full cycle completed: desktop, 375/390/412px mobile, RU/TJ/EN, all 4 KPI
+cards' data semantics checked (3 fixed with canonical definitions documented, 1 confirmed
+already-correct), attention panel confirmed real, empty-state checked clean, console/network checked
+(only the already-triaged dev-only hydration warning remains, zero new errors). **Loading state**: not
+separately observed (page loads fast enough in dev that no distinct loading UI was seen — not the same
+as verifying one exists and renders correctly). **Error state**: NOT exercised — no fault was injected
+(no forced Prisma failure, no simulated network error); this is an honest gap, not silently assumed
+covered. Not blocking progress to the next section — fault injection for a read-only dashboard is lower
+priority than moving through the remaining sections, but recorded accurately rather than glossed over.
 
 **NEXT**: Move to the next real Admin section (Applications) and run the same full Human Product
 Reconstruction cycle: open visually → click everything → understand the data/business logic → fix bugs
