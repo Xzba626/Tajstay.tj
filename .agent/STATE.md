@@ -447,10 +447,53 @@ owner-access was showing a Google-auth owner's internal placeholder phone (`goog
 schema-satisfying synthetic value, see `accountPhone.ts`) verbatim as "Логин (телефон)" — a real
 data-semantics leak of an internal value to the admin UI. Now shows the actual sign-in method
 (Google/Telegram/Email). Also cleaned up "Email: Email не указан" (duplicated label) and renamed the
-reset button to plainly describe what it already does — the backend
-(`/api/admin/users/reset-password`) was checked and is already a complete, secure implementation
-(hashed single-use token, dual rate limits, audit log, never exposes plaintext) — this was a label
-problem, not a fake/half-built feature as it first appeared from the screenshot alone.
+reset button to plainly describe what it already does.
+
+## Access recovery — backend E2E traced precisely, one real gap found
+
+Per explicit instruction not to accept "backend looks complete" without tracing exactly what happens
+after the admin clicks — read `src/app/api/admin/users/reset-password/route.ts` and
+`src/lib/email/sendPasswordResetLink.ts` line by line, not just skimmed:
+
+**CONFIRMED SOUND** (this is the commercial model the user wants, already implemented, not built
+this pass — just verified rather than taken on faith):
+- Raw token exists only in server memory (`newToken()`) and inside the `resetUrl` string passed
+  directly to `sendPasswordResetLinkEmail()` — it is **never** included in the redirect response back
+  to the Admin UI (the redirect only carries `ok=recovery_sent` or a specific `error=...` code, no
+  token, no URL). Admin genuinely cannot see or copy the user's reset link.
+- Only the SHA-256 **hash** of the token is stored (`passwordResetToken.token`), single-use (deleted/
+  replaced on each new request via `deleteMany` then `create` in one transaction), TTL 1 hour.
+- Rate-limited two ways (`admin:reset-issue:actor` — 10/hour per admin, `admin:reset-issue:target` —
+  3/hour per target user) — cannot be hammered from either direction.
+- **Fail-closed on delivery, not fake success**: `sendPasswordResetLinkEmail` returns `{ok:false}` if
+  the Resend client isn't configured, and the route reacts by deleting the just-created token and
+  writing an audit entry (`reason: "delivery_unavailable"`) — the admin sees a distinct, honest
+  message ("Не удалось отправить письмо восстановления. Проверьте почтовый провайдер."), never
+  "Ссылка отправлена" unless the email genuinely sent. Every error path (`recovery_no_email`,
+  `recovery_banned`, `recovery_rate_limited`, `recovery_delivery`, `recovery_failed`) maps to its own
+  specific, correctly-worded message — not a generic catch-all.
+- Full audit trail either way (`writeAdminAudit`, action `owner_recovery_issued` or
+  `owner_recovery_issue_failed` with a specific `reason`), banned-user and no-email cases both
+  explicitly blocked before any token is even created.
+- Token itself is never logged (grepped `sendPasswordResetLink.ts` and the route — no `console.log`/
+  audit field ever carries the raw token or the full `resetUrl`).
+
+**REAL GAP FOUND, NOT YET FIXED**: `User.password` is a non-nullable schema field — every account,
+including Google/Telegram OAuth signups, has *some* password hash (a random unusable one, per the
+existing OTP-registration pattern seen earlier this audit). The Owner Access UI's reset button shows
+unconditionally for every `OWNER`-role user regardless of how they actually authenticate — a
+Google-only owner would get "Отправить ссылку для сброса пароля" for a local password they never use
+to sign in, exactly the confusing case flagged. **Not fixed this pass** — needs: detect the user's
+real sign-in method (the same classification now used in the phone-label fix) and either hide/relabel
+the reset action for OAuth-only accounts, or show it with accurate framing about what it actually
+resets. Belongs with the broader Auth/Profile phase (Phase 3) alongside the identity-model work
+already flagged there.
+
+**NOT YET DONE this pass** (traced the backend rigorously; did not re-run the actual click-through):
+self-service `/auth/forgot-password` E2E (expired/used/invalid token, second-reset invalidates first,
+rate limit, no account enumeration) — the backend code inspected strongly suggests this holds (same
+`passwordResetToken` table/pattern), but per standing rule this needs a live pass before calling it
+PASS, not inferred from the admin-side code alone.
 
 ## SYSTEMIC FIX — service worker was registering in local dev (commit `c81a8bd`)
 
