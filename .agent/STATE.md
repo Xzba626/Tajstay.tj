@@ -361,7 +361,30 @@ as verifying one exists and renders correctly). **Error state**: NOT exercised �
 covered. Not blocking progress to the next section — fault injection for a read-only dashboard is lower
 priority than moving through the remaining sections, but recorded accurately rather than glossed over.
 
-## Applications E2E — IN PROGRESS (commits `df4c06c`, `cad1ed7`)
+## Applications E2E — IN PROGRESS (commits `df4c06c`, `cad1ed7`, `4635c1e`)
+
+**Product correction landed this pass**: Become Owner no longer has ANY KYC/document step —
+identity/identityBack/selfie/propertyDoc/documentUrl removed entirely (UI, validation, state,
+submission). Documents step is now a photos-only step ("Фотографии объекта"): facade required,
+room/bathroom optional. Verification of new owners is a manual process (Admin calls the applicant,
+cross-checks public listing info) — matches the already-recorded V2 decision against storing identity
+documents, now actually enforced in the flow, not just documented as a future intent.
+
+Also this pass: "ФИО по документу" → "Имя и фамилия" (RU/TJ/EN); removed the repeated "ОБЯЗАТЕЛЬНО"
+badge per field in favor of a compact "*"; rewrote the sidebar from a dark navy/black promo panel to
+canonical light theme and removed the decorative "TajStay Partners" eyebrow entirely; replaced an
+unverified commercial promise ("Бесплатное размещение на старте") with a real, always-true feature
+claim, since it wasn't confirmed as a fixed business policy; found and fixed a genuine cookie-consent
+Accept-button contrast bug (`[data-theme="light"] button { color: inherit }` had higher specificity
+than `.cookie-consent__accept`'s own white-text rule, confirmed via `getComputedStyle`, not source
+reading alone — text was silently rendering dark-on-green).
+
+**Dev-server rendering for this exact page is now confirmed unreliable across 4 separate instances
+this session** (TrustBadges-class mismatch, city-field reset, full sidebar/label edits not appearing,
+cookie button) — every single time, a fresh `npm run build` + `next start` on a diagnostic port showed
+the fix was correct and the dev-only symptom didn't reproduce. This is now the established, trusted
+verification method for `/profile/become-owner` specifically — don't re-litigate this in dev again for
+this page; go straight to a production build check if something looks wrong here.
 
 Per instruction: test Admin → Applications through the REAL user pipeline, not a direct DB insert —
 QA Guest → Become Owner form → submit → Admin reviews/approves → Owner access check. This is
@@ -401,29 +424,34 @@ none reported:
    defect, but don't assume it either — check every time.**
 
 **NOT YET DONE** (this is where the E2E resumes — do not restart from data-entry, continue from here):
-- Step 1 (Личные данные) fields are pre-filled from QA account defaults and were validated as working
-  (Next advances once city fix is confirmed live in dev — re-verify after the current dev server, which
-  was restarted clean at the end of this pass, has settled).
+- Step 1 (Личные данные): fields pre-filled from QA account defaults; city bug fixed. Not yet
+  re-clicked through end-to-end since the KYC-removal edits — do a fresh pass through step 1 first
+  (fast, low-risk) before assuming it still advances cleanly.
 - Step 2 (Объект/property): businessName, propertyType, address, roomCount, guestCapacity,
-  propertyDescription — not yet filled or visually reviewed.
-- Step 3 (Документы): facade/room/bathroom photos need a REAL QA image upload (not passport/identity
-  documents, per fix #3 above) — test preview/remove/replace/size/MIME validation per the review's
-  instruction §7.
-- Step 4 (Отправка/review + consent) — not yet reached.
-- Submit — not yet attempted. After submit: check HTTP/API result, DB record, owner/user linkage,
-  status, duplicate-submit protection, success UI, reload persistence (§8-9 of the instruction).
+  propertyDescription — not yet filled or visually reviewed. Per this pass's product correction, do
+  NOT add a map/pin control here unless `src/app/map` or existing hotel-location infrastructure
+  already supports it cleanly — check before building a second map integration (instruction §6 asked
+  for a map; not yet investigated whether one can be reused vs. is a real new-build task).
+- Step 3 (Фотографии): now photo-only (facade/room/bathroom, only facade required) — need a REAL QA
+  image upload test: preview/remove/replace/size/MIME validation/failure/retry.
+- Step 4 (Отправка/review + consent) — not yet reached. Confirm the consent checkbox text is the
+  short, human, non-legal-wall-of-text version the correction asked for, not a leftover heavier one.
+- Submit — not yet attempted. After submit: check HTTP/API result (note: `/api/apply/owner` or
+  equivalent route may still reference removed upload fields server-side — check the API route
+  handler accepts the new, smaller FormData shape without erroring on missing identity/selfie/etc.,
+  since only the client was changed this pass, not yet verified against the backend route).
 - Admin side: log back in as `admin@tajstay.local`, open Applications, verify the new QA application
-  appears (count, filter, list readability), open detail, review the whole screen for defects, then
-  exercise Request Info and/or Approve (§10-15) on this QA application specifically — never on a real
-  application.
-- After Approve: log out Admin, log in as the QA Guest, verify role/session refresh, Profile, Owner
-  dashboard access, hotel linkage (§15) — this is the part that proves the full pipeline, not just the
-  Admin screen.
-- Reject flow, responsive (390/412/768), RU/TJ/EN, and security checks (Guest can't approve own/other
-  applications, ID manipulation) — §16-20 of the instruction, after the happy path is proven once.
+  appears, open detail — review whether Admin Application Detail still references/expects identity
+  documents that no longer exist (instruction §12 asks for this screen to be rebuilt for the new
+  model) — not yet checked, likely still shows old document fields expecting uploads that will now
+  never arrive.
+- Approve/Reject flow, post-approval Owner access check, responsive (390/412/768), RU/TJ/EN, security
+  checks — unchanged from before, still all open.
 
-**Dev server note**: restarted clean at the very end of this pass (serverId `637f7ce6...`, tab `tab-1`);
-previous tabs (`seed`, `tab-1` old instance) may be stale — re-navigate and re-login before continuing.
+**Dev server note**: restarted clean at the very end of this pass (serverId `fe60ecda...`, tab
+`tab-1`); this exact page (`/profile/become-owner`) has shown dev-only stale-render symptoms 4 times
+this session — verify via production build (see pattern above) before trusting a dev-only "still
+broken" read on this specific route.
 
 ## Also still owed (Phase 1 design foundation, not lost)
 
