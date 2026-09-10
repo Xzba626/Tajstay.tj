@@ -67,8 +67,15 @@ a[role="button"],
   box-shadow: 0 10px 24px rgba(2, 6, 23, 0.24), 0 2px 8px rgba(2, 6, 23, 0.16);
 }
 
-[data-theme="light"] button,
-[data-theme="light"] a[role="button"] {
+/* :where() zeroes this rule's specificity to (0,0,0) — it's a baseline default (unstyled
+   buttons inherit surrounding text color instead of the browser default), not a component style,
+   and must never be able to outrank a real component's own color rule. Before this fix it had
+   specificity (0,1,1) via the attribute+tag selector, which silently beat every bare
+   `.component-name` class rule (0,1,0) sharing a `<button>` element — the exact bug that hit the
+   cookie-consent Accept button and three TST Assistant buttons this session (all needed
+   `!important` patches as a workaround). Root-caused instead of patched per-component. */
+:where([data-theme="light"] button),
+:where([data-theme="light"] a[role="button"]) {
   color: inherit;
   border-color: #e4e4e7;
 }
