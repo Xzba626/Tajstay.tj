@@ -538,3 +538,45 @@ suspicion points to dev-server staleness, verify against a clean production buil
 fixing blindly or dismissing as environmental — this session established the pattern three times
 (TrustBadges, this page's Suspense mismatch, the city-default runtime gap) and it held every time.
 Do not return for a new prompt between sections/steps. Do not fall back into a global audit pass.
+
+## This session's closing batch (commits `f793445`, `5b24a5b`, `3c0bdb0`)
+
+**Identity capability model** — new `src/lib/auth/identityMethods.ts`, `resolveIdentityCapabilities()`.
+Replaces the earlier phone-prefix-only inference (which conflated "no real phone" with "no real
+password" — wrong for email/password users with no phone) with real signals: NextAuth `Account.provider`
+for Google, `telegramId` for Telegram, verified-non-placeholder phone for Phone; password-based is
+whatever's left. Wired into both the Owner Access UI (shows real method, hides reset action + shows
+`noPasswordCredentialHint` for OAuth-only accounts) AND the reset-password API route itself (rejects
+server-side with its own audit reason, not just a hidden button). **STATUS: FIXED, RUNTIME VERIFIED**
+(QA Claude account correctly shows "Вход: Email/пароль", real phone excluded since unverified).
+
+**Applications card photo/id leak** — `applicationMeta.uploads` was fetched but never rendered anywhere;
+`(id {userId})` was shown directly to the admin. Fixed: photo now renders, city/address shown, internal
+id removed. **STATUS: FIXED, E2E VERIFIED WITH REAL DATA** — submitted a real JPEG through the actual
+`/api/owner/applications` endpoint as the seeded guest account (not fabricated DB rows), confirmed as
+admin that photo/city/address render correctly with zero internal ids visible.
+
+**Reject flow root cause — the real bug behind the "Сохранение... hangs" report.**
+`req.formData().catch(() => null)` in the reject route consumed the request body stream even on
+rejection; the JSON fallback on the same request then read an already-drained stream and parsed `{}`,
+so EVERY reject attempt failed with "Нужен комментарий" regardless of what was typed — 100% failure
+rate, not intermittent. Confirmed by patching `window.fetch` client-side to prove the outgoing body was
+correct, then tracing server-side to find it arriving empty — definitively a server bug, not a UI/state
+issue. Fixed by branching on `Content-Type` instead of speculatively consuming the body twice.
+**STATUS: FIXED, RUNTIME VERIFIED** — real reject submission now closes the form and the application
+leaves the pending queue.
+
+**Side note on tooling, not the app**: mouse-coordinate clicks on this page intermittently returned
+"computer timed out after 30s" during active HMR/Fast-Refresh windows, while the click had actually
+succeeded underneath (confirmed via `read_page` immediately after). Dispatching clicks via
+`element.click()` in `javascript_tool` was the reliable way to test through this — worth reusing next
+time real-device-reported "hang" symptoms need reproducing here, since it separates true app hangs
+(the reject bug above) from this browser-tool/dev-server interaction artifact.
+
+**NEXT** (real-device defects still open, per the screenshots already provided): Bookings 500 (root
+cause not yet traced), Complaints showing ordinary reviews (domain-model mix-up, not yet traced), Admin
+Notifications top-content disappearing + dev/maintenance UI (`30`/`Удалить старые`) still in the primary
+inbox + developer-language notification copy, mobile nav duplication (header hamburger + bottom "Ещё").
+Also still open from earlier: self-service `/auth/forgot-password` E2E click-through (backend inspected,
+not live-tested), TST Assistant function/mobile regression (visual theme fixed, interaction not
+re-verified), Users list mobile density (cards still show the full recovery paragraph per row).
