@@ -39,7 +39,7 @@ a **real** end state (or a named external blocker, e.g. "no SMS provider credent
 
 - Branch: `feature/tajstay-full-ui-ux-rebuild`
 - Base SHA (this pass): `419fe9d`
-- Final SHA (this pass): `b614893`
+- Final SHA (this pass): `12ed32a`
 - Local dev only — nothing deployed. Server on `localhost:3000` via the project's own `preview_start`/
   launch.json config (port 3000 is pinned — `NEXTAUTH_URL` depends on it). Do not manually start a
   second ad-hoc `npm run dev` on another port again — it broke script execution in the browser tool
@@ -65,6 +65,18 @@ unidentified black floating widget on every route. **Important: that deployment 
 to be running this branch's code** — do not assume screenshots from it reflect local commits, and do
 not assume local fixes are live there either. Local dev (`localhost:3000`) is the only environment
 actually verified this session.
+
+## DONE (this pass, continued)
+
+- **Auth screens (`/auth/sign-in`, register mode)**: fixed the confirmed HARD FAIL from the user's
+  deployed screenshot — dark-emerald card/inputs/heading, duplicate label+placeholder text on 4
+  fields. Root cause of the stubborn dark input fields found and fixed (see the pattern note above).
+  Verified via screenshot + direct computed-style/CSSOM inspection on a freshly rebuilt server.
+  **Not done in this pass**: the decorative left-side promo panel (mountain photo, still dark by
+  design choice per the "controlled brand section" allowance) — flag for a follow-up visual pass, not
+  color-swapped blind. Also not yet checked: Forgot Password screen, Telegram/Google button states,
+  OTP verification panel (`.taj-otp-cell-input` still has old dark styling, unrelated to what was
+  visible in the reported screenshot).
 
 ## DONE (this pass)
 
@@ -125,8 +137,9 @@ returning to earlier phases only if regression is found:
 3. Search field internals: remove all internal borders (§11), city placeholder removed this pass ✓,
    fix real-mobile-device date-empty-state bug with a custom date display layer (§14), fix search
    button proportions (§18).
-4. Auth screens — still legacy dark-emerald theme, confirmed via deployed screenshot, untouched.
-   Fix icon-in-dark-box treatment, duplicate label/placeholder text, form density.
+4. Auth: sign-in/register card+fields+labels fixed this pass ✓. Still open: promo panel redesign,
+   Forgot Password screen, form density pass (§6 of the correction — compact spacing, no giant gaps),
+   OTP verification panel colors, RU/TJ/EN runtime check on Auth specifically.
 5. Profile: real avatar upload/change/remove flow, real phone change+verification flow (or a named
    external blocker, not a permanent disabled button), Settings dedup, notification inbox vs settings
    split, Support consolidation — partially done, needs finishing per the stricter final-state bar.
@@ -165,15 +178,21 @@ returning to earlier phases only if regression is found:
   fixed, and do not re-explain it as environmental without new evidence. Next step: add explicit
   instrumentation (log full `componentStack`/props at the top of `ProfileMockupView`) or bisect by
   temporarily stripping the component tree down section by section until the crash disappears.
-- **Recurring "compiled bundle is correct, live browser DOM doesn't match it" pattern** — hit twice
-  now (ProfileMockupView crash above; the Cookie reject button not rendering despite being present in
-  the compiled `layout.js`, verified by direct chunk inspection, even after SW unregister + cache
-  clear + hard reload + cache-busting query param). This is worth investigating as a category, not
-  just per-incident: something in this dev environment (or this specific long-lived browser session)
-  is causing genuine client render/DOM to diverge from what the server is actually serving. Next
-  session should try: a completely fresh OS-level browser profile/container if the tooling allows one,
-  or building and running a production (`next build && next start`) instance instead of dev mode to
-  rule out dev-only mechanisms (Fast Refresh, dev overlay, webpack HMR) as the common factor.
+- **UPDATE — partially solved**: the "compiled bundle correct, live DOM wrong" pattern flagged last
+  pass was NOT a caching/environment mystery for the CSS case. Root cause found via direct CSSOM
+  enumeration (query every stylesheet, list every rule matching the live element, not just grep
+  source files): `.taj-auth-page .taj-input-wrap`'s dark background survived every fix because a
+  SECOND "final palette lock" block existed in `globals.css` (separate file, loaded after
+  `auth-premium.css`, same selector, `!important`, old dark value) — the exact same
+  duplicate-late-override pattern hit repeatedly this session (header, footer, etc.), just harder to
+  spot because it spanned two files. Fixed (see auth commit). **Recommended technique for next time**:
+  when a fix doesn't take effect visually, don't just re-grep the file you edited — run this in the
+  browser console against the live element to see every matching rule across all loaded stylesheets:
+  `Array.from(document.styleSheets).flatMap(s => { try { return Array.from(s.cssRules) } catch { return [] } }).filter(r => r.selectorText && el.matches(r.selectorText))`.
+  The `ProfileMockupView` crash and the cookie reject-button-missing-from-DOM issue are a different
+  failure mode (a JS error / an element absent, not a wrong style value) — this technique doesn't
+  directly explain those, they're still open, but re-investigate them with the same "enumerate,
+  don't assume" discipline before concluding they're environmental again.
 - **Production `site-content` values** (banner casing/URL) — only local dev DB fixed; production
   needs the same fix via the admin CMS UI, not a direct prod DB write from a session.
 - **Passport/identity backend removal** (`guestDocumentUrl`) — architecture decision written (V2
