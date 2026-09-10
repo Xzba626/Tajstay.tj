@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
+import { isPlaceholderAccountPhone } from "@/lib/auth/accountPhone";
 import { AdminBookingPayCountdown } from "@/components/admin/AdminBookingPayCountdown";
 import { AdminOwnerApplicationActions } from "@/components/admin/AdminOwnerApplicationActions";
 import { OWNER_APPLICATION_STATUS } from "@/lib/domain/booking";
@@ -828,11 +829,20 @@ export default async function AdminDashboardPage({
                 <StatusBadge variant={roleVariant(u.role)}>{tRole(u.role)}</StatusBadge>
               </div>
               <div className="admin-record-card__meta mt-2 space-y-1">
+                {/* u.phone stores a synthetic "google_<ts>_<n>" placeholder for OAuth accounts
+                    with no real phone (see accountPhone.ts) — was being shown verbatim as
+                    "Логин (телефон)", a real data-semantics bug (an internal placeholder
+                    displayed as if it were the user's login). Show the actual sign-in method
+                    instead. */}
                 <div>
-                  {m(locale, "admin.loginPhone")}: {u.phone || "—"}
+                  {isPlaceholderAccountPhone(u.phone)
+                    ? `${m(locale, "admin.loginMethod")}: ${
+                        u.phone!.startsWith("google_") ? "Google" : u.phone!.startsWith("telegram_") ? "Telegram" : "Email"
+                      }`
+                    : `${m(locale, "admin.loginPhone")}: ${u.phone || "—"}`}
                 </div>
                 <div>
-                  {m(locale, "profile.email")}: {u.email?.trim() ? u.email : m(locale, "admin.emailNotSet")}
+                  {u.email?.trim() ? `${m(locale, "profile.email")}: ${u.email}` : m(locale, "admin.emailNotSet")}
                 </div>
               </div>
               <p className="mt-3 text-xs text-[var(--admin-text-muted)]">{m(locale, "admin.credentialsDisabledHint")}</p>
