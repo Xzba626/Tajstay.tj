@@ -6,6 +6,20 @@ NEXT, not a diary. Detailed rationale for a fix belongs in its commit message, n
 
 ## Governing instruction
 
+**MODE = HUMAN PRODUCT RECONSTRUCTION** (execution protocol issued 2026-09-10, supersedes the plain
+IMPLEMENTATION framing below for *how* work happens, not *what* — roadmap/phase order unchanged). Do
+not wait for the user to name a defect: open each page/section as a real user, look at the full render,
+click every control, check desktop+mobile+RU/TJ/EN+loading/error/empty+console/network, fix what's
+wrong (visual, UX, functional, data, perf, security) even if never mentioned, then re-verify the whole
+flow before marking it PASS. Do not close an area after one fix — mini-regression after ~5-10 related
+fixes, full area regression before moving on. Every `?section=` on Admin/Owner is its own page for this
+purpose, not "the same route already checked." Compile/typecheck is never PASS for user-facing work.
+Session end is not a completion signal — update STATE.md with CURRENT AREA/ROUTE/ROLE/LAST VERIFIED
+CONTROL/DONE/OPEN/BLOCKED/NEXT and the next session resumes exactly there. Only real stoppers: git
+reset --hard/clean -fd/push --force, prod DB drop/reset/mass-delete, destructive irreversible prod
+migration, prod payment mutation — everything else (safe implementation, refactor, backend, API,
+security fixes) is authorized without asking.
+
 **MODE = IMPLEMENTATION.** The user reviewed `docs/TAJSTAY_CURRENT_STATE_AUDIT.md` and issued
 "TAJSTAY — END STANDALONE AUDIT / START IMPLEMENTATION" (2026-09-10): standalone audit phase is over,
 the audit doc is now the **CURRENT SOURCE OF TRUTH** for actual project state (not to be re-run in
@@ -237,12 +251,63 @@ returning to earlier phases only if regression is found:
 
 ## NEXT
 
-**IMPLEMENTATION MODE.** Audit closed as a standalone phase (layer-3 refinements — deployed `/api/seed`
-+ security-header evidence, Firebase-SDK dead-plumbing classification, `lib/pms/*` file-by-file
-call-site mapping — are preserved in `docs/TAJSTAY_CURRENT_STATE_AUDIT.md` §6e-6g, not repeated here).
-Working from `docs/TAJSTAY_IMPLEMENTATION_ROADMAP.md` now. Currently finishing **Phase 1**: shell
-isolation done (`8834d03`); remaining — eliminate leftover duplicate CSS "palette lock" blocks
-repo-wide (CSSOM-enumeration technique, not source grep alone) and establish one canonical design-token
-file. Then proceed to Phase 2 (Consumer Core: mobile Home zero-scroll gate, borderless search, custom
-date display) without waiting for a new prompt, per the roadmap's per-phase loop. Do not fall back into
-a global audit pass — if a phase hits a genuine unknown, investigate only that dependency and continue.
+**CURRENT AREA**: Admin Command Center — Overview section (`/dashboard/admin?section=dashboard`).
+**CURRENT ROUTE**: `/dashboard/admin`
+**CURRENT ROLE**: Admin (seeded `admin@tajstay.local`)
+**LAST VERIFIED CONTROL**: Overview KPI cards (Отели/Пользователи/Бронирования/Оборот) — visual +
+mobile pass done. Not yet clicked: "Требует внимания" panel actions, sidebar links to other 9 sections.
+
+**Execution progress table** (per-area status — PASS only after full dimension check, not on sight):
+
+| Role | Route/Section | Desktop | Mobile | RU | TJ | EN | Visual | UX | Function | Data | Error | Perf | Security | Status |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Admin | Overview (`?section=dashboard`) | done | done | done | open | open | 2 fixed | open | open | open | open | open | open | OPEN — partial |
+| Admin | Applications | — | — | — | — | — | — | — | — | — | — | — | — | OPEN |
+| Admin | Users | — | — | — | — | — | — | — | — | — | — | — | — | OPEN |
+| Admin | Hotels | — | — | — | — | — | — | — | — | — | — | — | — | OPEN |
+| Admin | Owner-access | — | — | — | — | — | — | — | — | — | — | — | — | OPEN |
+| Admin | Bookings | — | — | — | — | — | — | — | — | — | — | — | — | OPEN (has confirmed KPI bug, roadmap Phase 8) |
+| Admin | Finance | — | — | — | — | — | — | — | — | — | — | — | — | OPEN |
+| Admin | Complaints | — | — | — | — | — | — | — | — | — | — | — | — | OPEN |
+| Admin | Content | — | — | — | — | — | — | — | — | — | — | — | — | OPEN |
+| Admin | Notifications | — | — | — | — | — | — | — | — | — | — | — | — | OPEN |
+| Owner | (all 11 sections) | — | — | — | — | — | — | — | — | — | — | — | — | OPEN, not started |
+| Anonymous/Guest/Public | (all routes) | — | — | — | — | — | — | — | — | — | — | — | — | OPEN, not started |
+
+**DONE this pass** (real defects found by looking, not reported by the user — commit `c71f512`):
+1. Admin Overview donut center labels ("Бронирования", "Пользователи") overflowed the ring —
+   `AnalyticsDonut` center box now constrained to the ring's actual inner opening with word-wrap, fixed
+   generically (works for any locale length, not a hardcoded RU fix).
+2. Admin Overview KPI cards on a 375px viewport truncated legend rows to an unreadable ellipsis
+   ("подтвержд…") — grid now single-columns below 480px instead of squeezing 2-up.
+
+**OPEN, found this pass, NOT yet fixed** (do not silently drop):
+3. **Confirmed, reproducible React hydration mismatch** on `TrustBadges` inside `UserMenu` (Consumer
+   Header) — server renders `bg-[#0f7a4d]/10 text-[#0f7a4d] ring-[#0f7a4d]/25` (canonical brand green),
+   client renders `bg-[#0f7a4d]/15 text-[#d1fae5] ring-[#0f7a4d]/30` (`#d1fae5` = light mint, a
+   dark-surface text color — exactly the legacy off-brand palette Green Contract §14 forbids). Ruled
+   out this pass: stale service worker (`unregister()` + `caches.delete()` on every cache key, still
+   reproduced), browser cache (hard `location.reload()`, still reproduced), source-file drift
+   (`TrustBadges.tsx` on disk has exactly one style map, matching the server-rendered classes exactly —
+   the client's differing classes cannot come from that file as currently written). **Root cause NOT
+   found** — next step: instrument `cn()`/`STYLES` with a temporary log of what actually executes
+   client-side, or bisect by temporarily hardcoding the className to rule out `cn()`/tailwind-merge
+   behaving differently at runtime vs. build. Do not re-attribute to "environment" without new evidence
+   per standing user rule.
+4. **Duplicate API calls confirmed** on every navigation: `/api/auth/session`, `/api/auth/me`,
+   `/api/notifications/list`, `/api/notifications/unread-count` each fire 3-4 times per page load
+   (verified via `performance.getEntriesByType('resource')`, not just eyeballing the network tab) —
+   more than React strict-mode's 2x dev-only double-invoke would explain. Likely multiple independent
+   consumers (SessionProvider + a custom hook, or an effect re-firing) not sharing one fetch/cache.
+   Not yet root-caused or fixed — flagged for the perf/network pass (roadmap Phase 9, but cheap enough
+   to fix opportunistically when found again).
+5. One `Failed to load resource: 500` seen in console during this pass, **source URL not yet isolated**
+   (didn't appear in `performance.getEntriesByType('resource')` — may be a genuinely transient/earlier
+   request). Re-check next time console errors are read on this area.
+
+**NEXT**: Finish Admin Overview to PASS (click "Требует внимания" actions, check TJ/EN on this specific
+screen, check loading/empty/error states, resolve or fully triage findings #3-5 above), then continue
+sidebar-by-sidebar through the remaining 9 Admin sections per the progress table, each as its own full
+human pass — not sequential Owner-first or roadmap-Phase-first; Admin was already open in-browser, finish
+it before switching context. Do not fall back into a global audit pass; investigate only the specific
+unknown in front of you (e.g. the hydration mismatch) and continue.
