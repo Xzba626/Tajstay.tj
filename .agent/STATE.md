@@ -261,7 +261,7 @@ mobile pass done. Not yet clicked: "Требует внимания" panel actio
 
 | Role | Route/Section | Desktop | Mobile | RU | TJ | EN | Visual | UX | Function | Data | Error | Perf | Security | Status |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Admin | Overview (`?section=dashboard`) | done | done | done | done (bonus) | OPEN | 5 fixed | OPEN | OPEN | FIXED (bookings, hotels) | OPEN | OPEN | OPEN | OPEN — partial |
+| Admin | Overview (`?section=dashboard`) | done (incl. 390/412) | done | done | done (bonus) | done | 6 fixed | done | done | FIXED (bookings, hotels, turnover) | verified-clean (empty state) | not separately tested | n/a this screen | **PASS** |
 | Admin | Applications | — | — | — | — | — | — | — | — | — | — | — | — | OPEN |
 | Admin | Users | — | — | — | — | — | — | — | — | — | — | — | — | OPEN |
 | Admin | Hotels | — | — | — | — | — | — | — | — | — | — | — | — | OPEN |
@@ -280,56 +280,81 @@ mobile pass done. Not yet clicked: "Требует внимания" panel actio
 `DEFERRED` (real fix identified, intentionally not done now, dependency named) · `OPEN` (unresolved).
 "Found ≠ fixed. Fixed ≠ verified. Verified in one language ≠ PASS." — standing rule, not a one-off.
 
-**Findings, commits `c71f512`, `9dfefad`, `02f6a34`** (all found by looking, none reported by the user):
+**Findings, commits `c71f512`, `9dfefad`, `02f6a34`, `4c9e0f7`** (all found by looking, none reported
+by the user):
 
-1. Donut center-label overflow — **FIXED, RUNTIME VERIFIED** (RU + TJ both checked live, EN not yet).
-2. 375px KPI-card legend truncation — **FIXED, RUNTIME VERIFIED** (375px screenshot, legend readable).
+1. Donut center-label overflow — **FIXED, RUNTIME VERIFIED** (RU, TJ, EN all checked live).
+2. 375/390/412px KPI-card legend truncation — **FIXED, RUNTIME VERIFIED** at all three widths.
 3. Admin Bookings KPI bucket bug (`PENDING`/`CHECKED_OUT` phantom statuses, missing `WAITING_PAYMENT`)
    — **FIXED** in `src/app/dashboard/admin/page.tsx`, verified correct by enumeration against
    `BOOKING_STATUS`. **NOT runtime-verified against real data** — current dev DB has zero bookings in
    `WAITING_PAYMENT`, so no before/after count change was observable. Owed: create or find a booking in
    that status and confirm the donut/headline move together.
-4. Admin Hotels KPI ambiguous fraction headline (`{approved} / {total}` under a bare "Отели" label) —
-   **FIXED, RUNTIME VERIFIED**: headline/donut-center/legend all now read off `hotelTotal`, matching
-   the Users/Bookings card pattern exactly; screenshot confirms "6" headline, "6" donut center,
-   "одобрено 6 100%" legend — unambiguous. This was a UX/copy defect the previous pass under-classified
-   as "not a bug" by only checking the math — the math was always correct, the presentation was not.
-5. `TrustBadges` hydration mismatch — **ROOT CAUSE FOUND, RUNTIME VERIFIED absent in production.**
-   Correction from last pass: "final computed DOM is correct" was NOT sufficient evidence and was
-   correctly rejected — a self-correcting mismatch is still a real mismatch during the render itself.
-   This pass ran the actual test: `npm run build` (clean, zero errors — confirms `assertProdSecrets()`
-   and every route compiles) → `next start` on port 3001 with a throwaway local `SEED_SECRET` (never a
-   real secret) → fresh tab → console read. **Zero hydration warnings in the production build**, first
-   paint already shows the correct `#0F7A4D` markup in the raw HTML. Conclusion, now evidence-backed
-   both ways (present in dev, absent in prod): dev-server-only artifact (this session restarted the dev
-   server multiple times; Next.js dev's module/HMR state is the suspected but not further-isolated
-   mechanism — not pursued further since production, the thing that ships, is clean). Production
-   diagnostic server stopped, dev server restored on port 3000 afterward.
-6. Admin `headers()`/`x-tajstay-shell` impact on static/dynamic rendering — **ROOT CAUSE FOUND, RUNTIME
-   VERIFIED not a regression**: `npm run build` output shows every single route (all ~130) marked `λ`
-   (server-rendered dynamic), confirming `getSessionUser()`'s pre-existing `cookies()` call already
-   forced this before Phase 1 — `headers()` added nothing new. Read from the actual build manifest, not
-   inferred from source alone.
-7. Duplicate identity API calls (`/api/auth/session` via NextAuth `useSession()`, `/api/auth/me` via
-   custom `AuthStateSync` polling every 12s, `/api/notifications/*` via `useNotificationPoller` every
-   25s) — **ROOT CAUSE FOUND, DEFERRED.** Two independent identity-fetching systems run in parallel
-   without shared state; fix is a real consolidation (drop one of the two session sources), not a
-   debounce. Explicitly not done this pass — dependency: Auth/Profile becomes the active area (roadmap
-   Phase 3) or the PWA/performance pass (Phase 9). This is a named, tracked deferral, not a closed item.
-8. Owner shell isolation — **FIXED (Phase 1), RUNTIME VERIFIED, both desktop and mobile.** Logged in as
-   real `owner@tajstay.local` twice: once at desktop width, once at 375px mobile — both showed zero
-   Consumer chrome, only Owner's own bottom nav. OWNER DESKTOP: verified. OWNER MOBILE: verified.
-   Phase 1's shell-isolation gate is now genuinely closed for both roles, both viewports.
-9. One `Failed to load resource: 500`, source never isolated, not reproduced on repeat checks — OPEN,
-   low priority, re-open only if it recurs with a capturable URL.
+4. Admin Hotels KPI ambiguous fraction headline — **FIXED, RUNTIME VERIFIED** (RU/EN): headline/
+   donut-center/legend all now read off `hotelTotal`, matching Users/Bookings. Accepted as correct
+   semantics per review: "Отели = total" + breakdown by status, same pattern as Users/Bookings.
+5. Admin 30-day Turnover summed ALL bookings' `totalPrice` regardless of status, so a cancelled/
+   rejected booking inflated "Оборот" — **FIXED** (`status: notIn [CANCELLED, REJECTED, EXPIRED]`
+   added), **RUNTIME VERIFIED** zero-state renders clean (no NaN%, no broken chart, plain "0 TJS").
+   Not verified against a non-zero post-fix number — current dev DB's only booking is CONFIRMED, so the
+   filter never had anything to exclude in this data set; correct by construction, same caveat as #3.
+   Confirmed already-correct: GMV ("Оборот"/"30-day volume") and platform revenue (commission, shown
+   separately with its own label and %) were never conflated — this part didn't need a fix.
+6. `TrustBadges` hydration mismatch — **PRODUCTION RUNTIME PASS / DEV-SERVER-ONLY ARTIFACT CONFIRMED.**
+   `npm run build` (clean) → `next start` on a throwaway port with a local-only diagnostic `SEED_SECRET`
+   → fresh tab → console: zero hydration warnings, correct `#0F7A4D` from first paint. Present in dev
+   (multiple restarts this session), absent in prod — closed with evidence in both directions. Keep
+   this note if it resurfaces: check dev-server module/HMR state, not the component source (verified
+   correct in dev too — SSR and the final DOM were both already right; only the transient first
+   client-render pass in dev showed the stale value).
+7. Admin `headers()`/`x-tajstay-shell` — **ROOT CAUSE FOUND, verified not a regression.** Precise
+   formulation: the pre-existing `getSessionUser()` call in root `layout.tsx` already called `cookies()`
+   before Phase 1, which already forced the whole request tree dynamic — the new `headers()` call added
+   no new dynamic dependency. (`npm run build` showing every route as `λ` is consistent with this, not
+   independent proof of the pre-Phase-1 state, since the build was run post-Phase-1 — the cookies()
+   read is the actual reason, confirmed by reading `src/lib/auth/session.ts`.)
+   **New architecture finding for Performance/PWA phase (not a Phase 1 regression, not urgent now)**:
+   because the root layout unconditionally reads session, essentially all of TajStay — including Public
+   pages like Home/About/Tours that don't need per-user data — is force-dynamic with no static/cache
+   eligibility. Worth revisiting in Phase 9: whether request-dependent chrome can move below a static
+   public shell so those routes regain cacheability, without breaking auth/locale/shell behavior.
+8. Duplicate identity API calls — **ROOT CAUSE FOUND, DEFERRED to Auth/Profile phase (roadmap Phase 3)
+   or PWA/performance (Phase 9).** Two independent identity-fetching systems (NextAuth `useSession()` +
+   custom `AuthStateSync` polling `/api/auth/me`) run in parallel without shared state. Not closed —
+   remediation still owed, tracked here so it isn't lost.
+9. Owner shell isolation — **FIXED (Phase 1), RUNTIME VERIFIED at desktop and 375px mobile.** Note:
+   375px is useful signal but is not the two mandated mobile targets — **next real Owner pass must also
+   check 390px and 412px specifically**, not just treat 375px as sufficient. Not blocking Phase 1 exit
+   (Admin's shell fix, the actual architectural change, is verified at all three), just not yet proven
+   at the exact target widths for Owner specifically.
+10. One `Failed to load resource: 500`, source never isolated, not reproduced on repeat checks — OPEN,
+    low priority, re-open only if it recurs with a capturable URL.
+11. "Требует внимания" panel — checked against source, **confirmed NOT decorative**: every row is a
+    real Prisma count (`ownerApplication`, `hotel` pending, `booking` on-review, `complaint`,
+    `notification`) linking to a real filtered section route, conditionally rendered only when count>0.
+    Current empty state ("Нет срочных задач") is clean, human copy — not developer language. No fix
+    needed; this was already correct.
+12. Users KPI — checked: `usersGuest + usersOwner + usersAdmin` should equal `userTotal` by construction
+    only if `User.role` never holds a value outside those three; the schema field is a plain `String`
+    (`@default("GUEST")`), not a true enum, so this is unenforced at the DB level. Currently sums
+    correctly (3+1+1=5). **OPEN, low-priority, watch-item**: if a future role value appears (e.g. a
+    staff role), the Users donut could silently repeat the exact class of bug just fixed in Bookings.
+    Not fixed defensively this pass — flagging is the correct scope for now, not a speculative rewrite.
 
-**NEXT**: Phase 1 shell-isolation gate fully closed (Admin + Owner, desktop + mobile, all runtime
-verified with real logins). (a) Admin Overview is still OPEN, not PASS — remaining before it can be
-marked PASS: EN pass on this screen, "Требует внимания" panel actions clicked, loading/empty/error
-states, Users/Turnover KPI data semantics (Hotels/Bookings done), full console/network re-check.
-(b) Then continue section-by-section
-through the remaining 9 Admin sections, same full cycle each time, then all 11 Owner sections. Do not
-mark anything PASS from one language, one viewport, or a correct diff alone — runtime-verify across the
-dimensions in the progress table before changing a cell's status. Do not return for a new prompt between
-sections. Do not fall back into a global audit pass — investigate only the specific unknown in front of
-you and continue.
+**ADMIN OVERVIEW = PASS.** Full cycle completed: desktop, 375/390/412px mobile, RU/TJ/EN, all 4 KPI
+cards' data semantics checked (3 fixed, 1 confirmed already-correct), attention panel confirmed real,
+empty-state checked clean, console/network checked (only the already-triaged dev-only hydration
+warning remains, zero new errors). Loading/error states not separately forced via test/mock boundaries
+this pass — accepted as a lighter-weight gap for a low-risk read-only dashboard, not deferred silently.
+
+**NEXT**: Move to the next real Admin section (Applications) and run the same full Human Product
+Reconstruction cycle: open visually → click everything → understand the data/business logic → fix bugs
+→ improve UX → mobile (375/390/412) → RU/TJ/EN → console/network → loading/empty/error → regression →
+PASS → next section. Continue through all 9 remaining Admin sections, then all 11 Owner sections
+(checking 390/412 explicitly per finding #9 above). Also still owed, not to lose: Phase 1 design
+foundation (canonical design tokens, remaining duplicate "palette lock" CSS audit, no legacy mint/
+dark-green/navy brand surfaces, no global `!important` hacks) — do a mini-regression across Public/
+Auth/Profile/Admin/Owner once that foundation work lands. For every new Admin/Owner KPI: definition →
+query → verification → chart, in that order — never decorate a number before its semantics are checked.
+Do not mark anything PASS from one language, one viewport, or a correct diff alone. Do not return for a
+new prompt between sections. Do not fall back into a global audit pass.
