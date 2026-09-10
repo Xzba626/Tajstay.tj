@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
-import { isPlaceholderAccountPhone } from "@/lib/auth/accountPhone";
+import { resolveIdentityCapabilities, signInMethodLabel } from "@/lib/auth/identityMethods";
 import { AdminBookingPayCountdown } from "@/components/admin/AdminBookingPayCountdown";
 import { AdminOwnerApplicationActions } from "@/components/admin/AdminOwnerApplicationActions";
 import { OWNER_APPLICATION_STATUS } from "@/lib/domain/booking";
@@ -108,7 +108,9 @@ export default async function AdminDashboardPage({
                           ? m(locale, "admin.recoveryDeliveryMsg")
                           : securityError === "recovery_banned"
                             ? m(locale, "admin.recoveryBannedMsg")
-                            : securityError === "credentials_disabled"
+                            : securityError === "recovery_no_password_credential"
+                              ? m(locale, "admin.noPasswordCredentialHint")
+                              : securityError === "credentials_disabled"
                               ? m(locale, "admin.credentialsDisabledMsg")
                               : securityError === "content-save"
                                 ? "Не удалось сохранить контент сайта. Проверьте DATABASE_URL и выполните prisma migrate deploy на Vercel."
@@ -293,6 +295,7 @@ export default async function AdminDashboardPage({
     totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
     users = await prisma.user.findMany({
       where,
+      include: { accounts: { select: { provider: true } } },
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * pageSize,
       take: pageSize
@@ -810,6 +813,7 @@ export default async function AdminDashboardPage({
           securityError === "recovery_no_email" ||
           securityError === "recovery_rate_limited" ||
           securityError === "recovery_banned" ||
+          securityError === "recovery_no_password_credential" ||
           securityError === "recovery_failed") && securityMessage ? (
           <div className="admin-alert admin-alert--error">{securityMessage}</div>
         ) : null}
@@ -822,38 +826,42 @@ export default async function AdminDashboardPage({
           fields={[{ kind: "search", name: "q", placeholder: m(locale, "admin.searchPlaceholderOwners") }]}
         />
         <div className="admin-record-grid">
-          {users.map((u) => (
-            <AdminRecordCard key={u.id}>
-              <div className="admin-record-card__title-row">
-                <div className="admin-record-card__title">{u.name}</div>
-                <StatusBadge variant={roleVariant(u.role)}>{tRole(u.role)}</StatusBadge>
-              </div>
-              <div className="admin-record-card__meta mt-2 space-y-1">
-                {/* u.phone stores a synthetic "google_<ts>_<n>" placeholder for OAuth accounts
-                    with no real phone (see accountPhone.ts) — was being shown verbatim as
-                    "Логин (телефон)", a real data-semantics bug (an internal placeholder
-                    displayed as if it were the user's login). Show the actual sign-in method
-                    instead. */}
-                <div>
-                  {isPlaceholderAccountPhone(u.phone)
-                    ? `${m(locale, "admin.loginMethod")}: ${
-                        u.phone!.startsWith("google_") ? "Google" : u.phone!.startsWith("telegram_") ? "Telegram" : "Email"
-                      }`
-                    : `${m(locale, "admin.loginPhone")}: ${u.phone || "—"}`}
+          {users.map((u) => {
+            const identity = resolveIdentityCapabilities(u);
+            return (
+              <AdminRecordCard key={u.id}>
+                <div className="admin-record-card__title-row">
+                  <div className="admin-record-card__title">{u.name}</div>
+                  <StatusBadge variant={roleVariant(u.role)}>{tRole(u.role)}</StatusBadge>
                 </div>
-                <div>
-                  {u.email?.trim() ? `${m(locale, "profile.email")}: ${u.email}` : m(locale, "admin.emailNotSet")}
+                <div className="admin-record-card__meta mt-2 space-y-1">
+                  <div>
+                    {m(locale, "admin.loginMethod")}: {identity.methods.map(signInMethodLabel).join(", ")}
+                  </div>
+                  {identity.methods.includes("phone") ? <div>{m(locale, "admin.loginPhone")}: {u.phone}</div> : null}
+                  <div>
+                    {u.email?.trim() ? `${m(locale, "profile.email")}: ${u.email}` : m(locale, "admin.emailNotSet")}
+                  </div>
                 </div>
-              </div>
-              <p className="mt-3 text-xs text-[var(--admin-text-muted)]">{m(locale, "admin.credentialsDisabledHint")}</p>
-              <AdminNativeForm action="/api/admin/users/reset-password" method="post" className="mt-3">
-                <input type="hidden" name="id" value={u.id} />
-                <AdminSubmitButton variant="secondary" className="admin-btn--sm" loadingLabel={m(locale, "admin.processing")}>
-                  {m(locale, "admin.generateResetLink")}
-                </AdminSubmitButton>
-              </AdminNativeForm>
-            </AdminRecordCard>
-          ))}
+                {identity.canResetPassword ? (
+                  <>
+                    <p className="mt-3 text-xs text-[var(--admin-text-muted)]">{m(locale, "admin.credentialsDisabledHint")}</p>
+                    <AdminNativeForm action="/api/admin/users/reset-password" method="post" className="mt-3">
+                      <input type="hidden" name="id" value={u.id} />
+                      <AdminSubmitButton variant="secondary" className="admin-btn--sm" loadingLabel={m(locale, "admin.processing")}>
+                        {m(locale, "admin.generateResetLink")}
+                      </AdminSubmitButton>
+                    </AdminNativeForm>
+                  </>
+                ) : (
+                  // Google/Telegram-only account: User.password is a random, unusable placeholder
+                  // hash (schema requires it non-null) — there is no real TajStay password to
+                  // reset, so offering that action would be confusing, not helpful.
+                  <p className="mt-3 text-xs text-[var(--admin-text-muted)]">{m(locale, "admin.noPasswordCredentialHint")}</p>
+                )}
+              </AdminRecordCard>
+            );
+          })}
           {!users.length && <EmptyState title={m(locale, "admin.ownerAccessEmpty")} />}
         </div>
         <Pagination page={page} totalPages={totalPages} />

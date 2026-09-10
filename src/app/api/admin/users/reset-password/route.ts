@@ -8,6 +8,7 @@ import { clientIp, rateLimit } from "@/lib/security/rateLimit";
 import { sendPasswordResetLinkEmail } from "@/lib/email/sendPasswordResetLink";
 import { writeAdminAudit, maskEmail } from "@/lib/admin/auditLog";
 import { createNotification } from "@/lib/notifications/create";
+import { resolveIdentityCapabilities } from "@/lib/auth/identityMethods";
 
 function newToken(): string {
   return crypto.randomBytes(24).toString("hex");
@@ -47,8 +48,29 @@ export async function POST(req: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   }
 
-  const user = await prisma.user.findUnique({ where: { id } });
+  const user = await prisma.user.findUnique({
+    where: { id },
+    include: { accounts: { select: { provider: true } } }
+  });
   if (!user || user.role !== "OWNER") return forbiddenJson();
+
+  // Backend enforcement, not just a hidden client button: User.password always holds a hash
+  // (schema-required non-null), but for Google/Telegram-only accounts it's a random placeholder
+  // never used to sign in — resetting it would be meaningless and confusing.
+  if (!resolveIdentityCapabilities(user).canResetPassword) {
+    await writeAdminAudit({
+      actorUserId: admin.id,
+      action: "owner_recovery_issue_failed",
+      targetType: "user",
+      targetId: id,
+      result: "blocked",
+      reason: "no_password_credential",
+      ip,
+      userAgent: ua
+    }).catch(() => undefined);
+    redirectUrl.searchParams.set("error", "recovery_no_password_credential");
+    return NextResponse.redirect(redirectUrl);
+  }
 
   if (user.isBanned) {
     await writeAdminAudit({
