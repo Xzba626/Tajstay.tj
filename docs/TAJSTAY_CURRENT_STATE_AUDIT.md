@@ -1,11 +1,13 @@
 # TajStay — Current State Audit
 
-**Status: FIRST PASS.** This document is a living audit, not a one-shot complete certification. This
-pass covers full mechanical inventory (routes, API, data models, role guards) plus everything already
-verified at runtime across this session's prior work. It does **not** yet cover a systematic
-role-by-role, page-by-page click-through of all ~37 routes × 3 roles × 7 viewports × 3 locales that
-the requesting brief asked for — that is many hours of work on its own and is listed explicitly as
-NOT DONE below, not silently skipped. Read `.agent/STATE.md` alongside this for the day-to-day
+**Status: IN PROGRESS / PARTIAL — explicitly NOT complete.** Per the user's correction, this document
+may not be called "complete" until the full completion gate in the governing audit instruction is met
+(structural inventory + anonymous/Guest/Owner/Admin runtime + auth flow + profile click-through +
+booking + RU/TJ/EN + responsive + PWA + performance + security/authorization + deployed-vs-local, all
+done). This pass is the **second layer**: code-traced findings (dead code, exact root causes, chain
+tracing) added on top of the first layer's mechanical inventory. The full browser-runtime role-by-role
+walkthrough, RU/TJ/EN pass, responsive matrix, and performance baseline are **still not done** — listed
+explicitly in §9, not silently skipped. Read `.agent/STATE.md` alongside this for the day-to-day
 commit-level trail; this document is the structural map.
 
 - Base SHA: `797b83d`
@@ -197,6 +199,114 @@ prose above, not drawn as a diagram.
 
 ---
 
+## 6b. Phone Verification — Full Chain Traced (worked example, per the user's explicit request)
+
+This is the level of answer the audit is meant to produce for any subsystem. Traced by reading every
+file, not guessed:
+
+**What exists, connected:**
+- `User.phone` (schema field, unique), `User.phoneVerified` (boolean) — the only phone state actually
+  read by the live UI (`ProfileMockupView`, `/profile/phone`, `/profile/personal`).
+- Firebase Phone Auth (`firebaseUid` field on `User`, `/api/auth/firebase/config|register|session`
+  routes) — this is what `phoneVerified` actually gets set by, per the schema comment "True when phone
+  was verified via Firebase Phone Auth (or legacy OTP)."
+- `PasswordRecoveryWizard.tsx` — real, used by `/auth/forgot-password`.
+
+**What exists, built, but NOT wired to anything (dead/orphaned code — verified via
+repo-wide grep, zero importers found for each):**
+- `/api/phone-otp/request` + `/api/phone-otp/verify` and their duplicate aliases under
+  `/api/auth/phone-otp/*` (`src/lib/auth/phoneOtpHandlers.ts`) — a complete custom OTP request/verify/
+  rate-limit implementation with **zero UI callers anywhere in the codebase**.
+- `OtpVerificationPanel.tsx` — a presentational OTP-entry component with **zero importers**.
+- `TajikPhoneInput.tsx` — a Tajikistan-specific phone input with country/calling-code handling —
+  **zero importers**.
+- The Firebase phone routes (`/api/auth/firebase/config|register|session`) also have **zero
+  frontend callers found** in `src/components` or `src/app` — meaning even the system that
+  `phoneVerified` is documented to depend on is not currently invoked from any UI path found.
+  **This needs a runtime check, not just grep** (e.g. the Firebase JS SDK might be initialized
+  directly against Firebase's own endpoints client-side, bypassing these Next.js API routes entirely
+  — not ruled out this pass).
+
+**What this means for "rebuild the phone flow" as a future task**: do **not** build a new OTP system.
+There is already a complete, unused `/api/phone-otp/*` implementation with rate limiting. The actual
+work is: (a) confirm at runtime whether Firebase Phone Auth is really what sets `phoneVerified` today
+(client-side Firebase SDK usage not yet checked), (b) decide whether to wire the existing custom
+phone-otp subsystem or the Firebase one to `/profile/phone`'s "Изменить" action, (c) if custom OTP is
+chosen, `OtpVerificationPanel.tsx` and `TajikPhoneInput.tsx` are ready-made UI, not scaffolding to
+throw away.
+
+## 6c. Admin Analytics — Bookings KPI Mismatch, Root Cause Confirmed (not hypothesis)
+
+Traced in `src/app/dashboard/admin/page.tsx` (lines ~165-220):
+
+- `bookingTotal` = `prisma.booking.count()` — **all** bookings, no status filter (this is the KPI
+  headline, e.g. "30").
+- The donut's three segments are built by `sumBookingStatus()` against three hardcoded status lists:
+  - Confirmed: `CONFIRMED, COMPLETED, CHECKED_IN, CHECKED_OUT`
+  - Pending: `PENDING_OWNER, ON_REVIEW, WAIT_PROOF, PENDING`
+  - Cancelled: `CANCELLED, REJECTED, EXPIRED`
+- The canonical status enum (`src/lib/domain/booking.ts`, `BOOKING_STATUS`) includes
+  **`WAITING_PAYMENT`** — explicitly commented as part of the "New premium chat-first lifecycle
+  (2026)" — which **appears in none of the three buckets above**. It also references a status literal
+  `"PENDING"` that **does not exist anywhere in the canonical `BOOKING_STATUS` enum** — almost
+  certainly a leftover from an older status model.
+- **Conclusion**: any booking currently in `WAITING_PAYMENT` status counts toward the headline total
+  but is invisible in the donut — this is the exact, confirmed mechanism behind the "headline 30 /
+  donut implies 7" observation from an earlier session. This is a code bug (stale status list, not
+  data corruption or a semantic disagreement about what "bookings" means) with an unambiguous fix:
+  update `sumBookingStatus` calls in `src/app/dashboard/admin/page.tsx` to use `WAITING_PAYMENT`
+  (and drop the non-existent `"PENDING"` literal) — **not done this pass, this is a finding, not a
+  fix, per the audit-only instruction.**
+- The Hotels KPI (headline "`{approved} / {total}`", donut center = approved, legend =
+  approved+pending) does **not** appear to have the same bug on inspection — the apparent
+  "headline 1 vs. donut implies 4" mismatch from an earlier session's screenshot is most likely a
+  misread of the fractional headline format (`1 / 4`) rather than a real data inconsistency, but this
+  is not yet confirmed with a fresh screenshot at readable resolution — flagged as UNVERIFIED, not
+  closed.
+
+## 6d. Owner/Admin Actual Section Lists (extracted from source, not assumed)
+
+**Owner** (`OwnerSidebar.tsx`, `buildItems()`) — 11 areas, all client-side `?section=` switches on the
+single `/dashboard/owner` route **except Messages**, which is a real separate route:
+`overview`, `properties`, `rooms`, `bookings`, `offline-bookings`, `calendar`,
+`/dashboard/messages` (real route), `reviews`, `finances`, `statistics`, `help`, `notifications`.
+**No `staff` or `settings` section exists in the sidebar at all** — confirms Owner Staff management
+has no UI entry point, consistent with `HotelStaff` being backend-only (§4).
+
+**Admin** (`AdminSidebar.tsx`, section list) — 10 areas, all `?section=` on the single
+`/dashboard/admin` route: `dashboard`, `content`, `applications`, `hotels`, `users`, `owner-access`,
+`bookings`, `finance`, `complaints`, `notifications`.
+
+**NOT DONE**: clicking through each of these 21 sections individually to verify render/data/actions —
+only the navigation list itself was extracted from code this pass.
+
+## 6e. `/api/seed` — Resolved (was "candidate", now confirmed)
+
+Read `src/app/api/seed/route.ts` directly. Fail-closed and layered:
+1. `NODE_ENV === "production"` → immediate 403, before anything else runs.
+2. Requires `SEED_SECRET` env var to be set at all, or returns 503.
+3. Requires the provided secret (query param or `x-seed-secret` header) to match.
+4. Requires an active ADMIN session, unless `SEED_ALLOW_INSECURE_DEV=1` is explicitly set.
+
+**Classification: SAFE DEV-ONLY**, not a P0/P1 vulnerability, on the assumption that
+`NODE_ENV=production` is actually set correctly in the real production deployment (Vercel sets this
+automatically for production builds — not independently re-verified against the live deployment's
+actual environment this pass, but this is standard Next.js/Vercel behavior, not a custom
+misconfigurable value in this repo).
+
+## 6f. Security Response Headers — Confirmed Absent, Full Path Checked
+
+Checked all three places headers could be set: `next.config.mjs` (`headers()` — only Cache-Control
+rules found), `src/middleware.ts` (no header-setting logic of any kind), `vercel.json` (only
+`buildCommand`/`installCommand`, no `headers` key at all). **Confirmed: no CSP, HSTS,
+X-Frame-Options, X-Content-Type-Options, Referrer-Policy, or Permissions-Policy configured anywhere
+in this repository.** Severity classification not yet assigned — depends on this app's actual threat
+model (iframe embedding risk, third-party script exposure) which hasn't been evaluated this pass.
+**NOT DONE**: checking actual response headers on a live deployed request (Vercel or other platform
+defaults might add some of these automatically — not verified).
+
+---
+
 ## 7. Known Runtime-Verified Findings (carried over from this session's prior work, all with evidence)
 
 These were found and (where marked) fixed with real browser/CSSOM verification in this session,
@@ -285,17 +395,32 @@ Based only on what was inspected this pass:
 
 ---
 
-## 11. Immediate Recommended Next Steps (dependency order, not started)
+## 11. Immediate Recommended Next Steps (dependency order)
 
-1. Verify whether `/api/seed` is reachable outside dev — real risk if not gated.
-2. Resolve the shell-leak defect via route groups (blocks meaningful Admin/Owner work quality).
-3. Trace the Admin Hotels/Bookings KPI-vs-legend data mismatch to its actual query before building
-   more analytics on top of unverified numbers.
+1. ~~Verify whether `/api/seed` is reachable outside dev~~ — **RESOLVED this pass, see §6e: safe,
+   fail-closed.**
+2. ~~Trace the Admin Bookings KPI-vs-donut mismatch~~ — **RESOLVED this pass, see §6c: confirmed code
+   bug (stale status list missing `WAITING_PAYMENT`), exact fix identified, not applied (audit-only).**
+3. Resolve the shell-leak defect via route groups (blocks meaningful Admin/Owner work quality) —
+   still open.
 4. Decide whether to build Owner Staff UI on the existing `HotelStaff` model/`lib/pms/staff.ts` or
-   design fresh — don't duplicate.
-5. Add baseline security response headers (CSP at minimum) — currently entirely absent.
-6. A dedicated, focused pass on the two still-open runtime mysteries (`ProfileMockupView` crash,
+   design fresh — don't duplicate. Still open, now with a fuller picture (§6d: no staff/settings
+   sidebar entry point exists at all).
+5. Decide the phone-verification path per §6b (custom OTP vs. Firebase) before building anything —
+   full chain now traced, decision not made (that's an implementation choice, not an audit output).
+6. Add baseline security response headers (CSP at minimum) — confirmed absent across all 3 possible
+   config locations (§6f).
+7. A dedicated, focused pass on the two still-open runtime mysteries (`ProfileMockupView` crash,
    cookie reject button) since they've resisted two full investigation attempts each.
+
+**Still required before this audit can be called complete** (per the completion gate in the governing
+instruction — not started this pass, genuinely large remaining scope): anonymous/Guest/Owner/Admin
+human-like runtime walkthrough (all 21 Owner+Admin sections individually, all Profile subroutes
+individually per role), auth provider runtime verification (Google/Telegram/Firebase — configured?
+working?), booking end-to-end walkthrough on isolated QA data, full RU/TJ/EN visual pass, full
+responsive matrix, PWA/cache runtime re-verification, performance baseline, IDOR/authorization testing
+on isolated QA data, deployed-vs-local diff (no deployed environment accessed this pass or any prior
+pass this session).
 
 No implementation should start on any of the above, or on redesign of Home/Profile/Admin, until the
 user reviews this document and issues the next explicit instruction.
