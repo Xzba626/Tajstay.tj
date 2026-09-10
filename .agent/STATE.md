@@ -6,17 +6,24 @@ NEXT, not a diary. Detailed rationale for a fix belongs in its commit message, n
 
 ## Governing instruction
 
-The user has issued a **FINAL COMMERCIAL PRODUCT CONTRACT** (2026-09-10, 130 sections) — this
-**supersedes** the earlier "Master Commercialization Contract" as the standing authorization. Full
-architecture + UX/UI + mobile app experience + Owner Hotel Desk + Admin Command Center + analytics +
-PWA + performance + security + human-like QA, worked as a continuous
-`audit → implement → visual review → runtime QA → fix → re-QA → next area → regression` loop across
-sessions until the product is commercially ready per its acceptance gates (§119-124). Do not wait for
-a new prompt between phases or areas. Do not report "ready for next narrow block" — that phrasing and
-its variants are explicitly forbidden by the contract. Only stop for: destructive production
-operations, real data-loss risk, a missing required secret, or a legal/business call that can't be
-safely assumed. Session/turn limits are not a stopping reason — bank progress via this file and
-continue next session without waiting for a new user prompt.
+**CURRENT MODE: AUDIT-ONLY, PAUSED FOR USER REVIEW.** The user issued a "DEEPEST CURRENT-STATE
+DISCOVERY & AUDIT" instruction (2026-09-10) that explicitly **pauses** the standing FINAL COMMERCIAL
+PRODUCT CONTRACT (130 sections, still the eventual governing instruction, summarized below) until the
+user has reviewed `docs/TAJSTAY_CURRENT_STATE_AUDIT.md`. That audit's own §139/142 are explicit: do
+NOT start redesign/fixes after finishing it — stop and hand the findings back. **This session did
+exactly that — audit committed (`f1a52ca`), no further implementation work should start until the
+user responds to it, even under the general "don't wait for a new prompt" rule from the product
+contract below.** The audit is a first pass, not the full 142-point brief — see the audit doc's own
+§9 for what it does not yet cover.
+
+Once the user re-authorizes implementation, the standing instruction resumes: **FINAL COMMERCIAL
+PRODUCT CONTRACT** (130 sections) — full architecture + UX/UI + mobile app experience + Owner Hotel
+Desk + Admin Command Center + analytics + PWA + performance + security + human-like QA, worked as a
+continuous `audit → implement → visual review → runtime QA → fix → re-QA → next area → regression`
+loop across sessions until commercially ready per its acceptance gates (§119-124). Do not wait for a
+new prompt between phases/areas once resumed. Do not report "ready for next narrow block." Only stop
+for: destructive production operations, real data-loss risk, a missing required secret, or a legal/
+business call that can't be safely assumed. Session/turn limits are not a stopping reason.
 
 Phase order (§118): 1 architecture/route-map/tokens/shell-isolation → 2 mobile foundation/header/
 home/search → 3 auth/registration → 4 profile (personal/avatar/phone/email/settings/security/
@@ -212,10 +219,14 @@ returning to earlier phases only if regression is found:
 
 ## NEXT
 
-Continue the Final Commercial Product Contract's phase order. Immediate priorities: (1) finish the
-`ProfileMockupView` crash root-cause (highest-priority unresolved defect, actively investigated this
-pass), (2) shell isolation via route groups, (3) build the actual route/shell/role inventory the
-contract asks for before more ad-hoc UI work, (4) mobile Home acceptance gate, (5) search field
-border/placeholder/date fixes per the corrected spec. Do not stop after a handful of fixes — this file
-plus each commit message is the continuity mechanism across sessions/turns, not a reason to return to
-the user for direction.
+**STOP AND WAIT — do not start implementation.** `docs/TAJSTAY_CURRENT_STATE_AUDIT.md` (first pass) is
+written and committed. Per its own instructions and the user's explicit audit-only framing, the next
+action is the user reviewing it and issuing a new implementation instruction — not this session
+picking priorities and continuing the Final Commercial Product Contract on its own. This overrides the
+general "don't wait for a new prompt" rule for right now specifically.
+
+When implementation does resume, the audit doc's §11 has a dependency-ordered starting list (verify
+`/api/seed` reachability, shell isolation via route groups, trace the Admin KPI data mismatch to its
+actual query, decide on `HotelStaff`/`lib/pms/staff.ts` vs. a fresh staff model, add security response
+headers, dedicated re-investigation of the two open runtime mysteries) — but do not act on it until
+told to.
