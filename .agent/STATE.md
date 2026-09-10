@@ -421,13 +421,16 @@ others reproduced live and got fixed for real:
 **Checked, already correct on current source (stale-deployment report, not a current bug):**
 - Footer text contrast — computed style confirmed white-on-green, correct now.
 
+**RESOLVED this session (commit `9909991`): TST Assistant dark theme.** Full deliberate rewrite of
+`tst-assistant.css` (612 lines) to the canonical light theme — white panel/toolbar/cards/inputs, dark
+`--taj-text` for primary copy, `#0F7A4D` for brand/links/active-chip state, tinted (not saturated-dark)
+warn/error notices. Verified live: opened the panel, screenshot confirms readable white surface with
+correct green avatar/accents. Also found and fixed 3 buttons (send/primary/FAB) with the same
+`[data-theme="light"] button { color: inherit }` specificity bug as the cookie-consent Accept button —
+confirmed via `getComputedStyle` before (dark text on green) and after (white) for each. This closes
+the single highest-recurrence item from this session's user reports.
+
 **Reported, investigated, explicitly NOT fixed this pass (documented, not lost):**
-- **TST Assistant dark theme** — the whole panel (~450 lines in `tst-assistant.css`) is a dark-green
-  theme, off-brand. Attempted flipping just the panel background to white, immediately reverted: every
-  other rule in the file (bubbles, chips, inputs, buttons) assumes light-on-dark text, so a white panel
-  alone would have made the assistant *less* readable, not more. **Needs one dedicated full-file pass**
-  — same rigor as the onboarding form rewrite (commit `df4c06c`), not a partial edit. High priority for
-  next session given how many times this has been flagged.
 - Auth page (sign-in/register): reported duplicate label+placeholder text, Telegram/Google button
   styling, and an unclear/undecided-looking left-side panel on desktop — **not yet re-verified against
   current localhost** (this session's very first-pass fixes touched some of this — "removed 4 redundant
@@ -438,6 +441,16 @@ others reproduced live and got fixed for real:
   re-checked this pass (was addressed earlier in project history per STATE.md's own notes on hero copy
   length; may have regressed or may already be fine, unconfirmed).
 - User's report was explicitly partial ("остальное я потом отправлю") — expect a continuation.
+
+**Also fixed this session, from the same user-report thread (commit `f8e9d6a`)**: Admin > Users >
+owner-access was showing a Google-auth owner's internal placeholder phone (`google_<ts>_<n>`, a
+schema-satisfying synthetic value, see `accountPhone.ts`) verbatim as "Логин (телефон)" — a real
+data-semantics leak of an internal value to the admin UI. Now shows the actual sign-in method
+(Google/Telegram/Email). Also cleaned up "Email: Email не указан" (duplicated label) and renamed the
+reset button to plainly describe what it already does — the backend
+(`/api/admin/users/reset-password`) was checked and is already a complete, secure implementation
+(hashed single-use token, dual rate limits, audit log, never exposes plaintext) — this was a label
+problem, not a fake/half-built feature as it first appeared from the screenshot alone.
 
 ## SYSTEMIC FIX — service worker was registering in local dev (commit `c81a8bd`)
 
