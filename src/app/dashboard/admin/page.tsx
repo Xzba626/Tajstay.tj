@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { resolveIdentityCapabilities, signInMethodLabel } from "@/lib/auth/identityMethods";
+import { parseOwnerApplicationMeta } from "@/lib/owner/applicationMeta";
 import { AdminBookingPayCountdown } from "@/components/admin/AdminBookingPayCountdown";
 import { AdminOwnerApplicationActions } from "@/components/admin/AdminOwnerApplicationActions";
 import { OWNER_APPLICATION_STATUS } from "@/lib/domain/booking";
@@ -612,24 +613,29 @@ export default async function AdminDashboardPage({
           <div className="admin-empty-inline">{m(locale, "admin.applicationsEmpty")}</div>
         ) : (
           <div className="admin-record-grid admin-record-grid--2">
-            {ownerApplications.map((app) => (
+            {ownerApplications.map((app) => {
+              const meta = parseOwnerApplicationMeta(app.applicationMeta);
+              const photoUrl = meta?.uploads?.facade || meta?.uploads?.room || meta?.uploads?.bathroom;
+              return (
               <AdminRecordCard key={app.id} highlight="warning">
+                {photoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- admin-uploaded photo from arbitrary storage, next/image domain allowlist not worth it for an internal tool
+                  <img
+                    src={photoUrl}
+                    alt={app.businessName}
+                    className="mb-3 h-36 w-full rounded-xl object-cover"
+                  />
+                ) : null}
                 <div className="admin-record-card__title-row">
-                  <div className="admin-record-card__title">{app.fullName}</div>
+                  <div className="admin-record-card__title">{app.businessName}</div>
                   <StatusBadge variant="warning">{tStatus("PENDING")}</StatusBadge>
                 </div>
                 <div className="admin-record-card__meta">
-                  {app.businessName} · {app.phone} · {app.email}
+                  {meta?.city ?? "—"}
+                  {meta?.address ? ` · ${meta.address}` : ""}
                   <br />
-                  {m(locale, "admin.owner")}: {app.user.name} (id {app.userId})
+                  {app.fullName} · {app.phone} · {app.email}
                 </div>
-                {app.documentUrl && (
-                  <div className="admin-record-card__actions">
-                    <a className="admin-link text-sm" href={app.documentUrl} target="_blank" rel="noreferrer">
-                      {m(locale, "admin.document")}
-                    </a>
-                  </div>
-                )}
                 <AdminOwnerApplicationActions
                   applicationId={app.id}
                   labels={{
@@ -644,7 +650,8 @@ export default async function AdminDashboardPage({
                   }}
                 />
               </AdminRecordCard>
-            ))}
+              );
+            })}
           </div>
         )}
       </section>}
