@@ -361,97 +361,70 @@ as verifying one exists and renders correctly). **Error state**: NOT exercised �
 covered. Not blocking progress to the next section — fault injection for a read-only dashboard is lower
 priority than moving through the remaining sections, but recorded accurately rather than glossed over.
 
-## Applications E2E — IN PROGRESS (commits `df4c06c`, `cad1ed7`, `4635c1e`)
+## Applications E2E — CORE FLOW VERIFIED (commits `df4c06c`, `cad1ed7`, `4635c1e`, `c81a8bd`)
 
-**Product correction landed this pass**: Become Owner no longer has ANY KYC/document step —
-identity/identityBack/selfie/propertyDoc/documentUrl removed entirely (UI, validation, state,
-submission). Documents step is now a photos-only step ("Фотографии объекта"): facade required,
-room/bathroom optional. Verification of new owners is a manual process (Admin calls the applicant,
-cross-checks public listing info) — matches the already-recorded V2 decision against storing identity
-documents, now actually enforced in the flow, not just documented as a future intent.
+**Correct status (not "KYC removed entirely" — that overstated it last pass, per review):**
+- KYC USER UI = REMOVED, RUNTIME VERIFIED
+- KYC CLIENT VALIDATION = REMOVED, RUNTIME VERIFIED
+- KYC CLIENT SUBMISSION = REMOVED, RUNTIME VERIFIED
+- **KYC SERVER REQUIREMENT = REMOVED, RUNTIME VERIFIED** (was still hard-blocking every submission
+  with "Загрузите фото паспорта / ID" until this pass — found by actually testing submit, not assumed
+  fine because the client looked right)
+- **E2E VERIFIED**: QA Guest submit (direct API call with a real multipart photo, matching exactly
+  what the client now sends) → `{ok:true,id:5}` → Admin Applications shows it correctly (name, hotel,
+  phone, email, owner id, status, Одобрить/Отклонить — **already matches the minimal card the review
+  asked for, no rebuild needed, no leftover document-field expectations found via grep or visual
+  check**) → Approve (real confirmation dialog: "Пользователь сразу получит роль владельца и доступ к
+  кабинету") → QA user's own `/api/auth/me` shows `role: "OWNER"` → `/dashboard/owner` renders "Добро
+  пожаловать, владелец!" immediately, real access, no dead Guest state.
+- Test artifact (the uploaded 1x1 PNG) deleted from `public/uploads/`; `/public/uploads/` added to
+  `.gitignore` so future QA uploads don't get committed.
 
-Also this pass: "ФИО по документу" → "Имя и фамилия" (RU/TJ/EN); removed the repeated "ОБЯЗАТЕЛЬНО"
-badge per field in favor of a compact "*"; rewrote the sidebar from a dark navy/black promo panel to
-canonical light theme and removed the decorative "TajStay Partners" eyebrow entirely; replaced an
-unverified commercial promise ("Бесплатное размещение на старте") with a real, always-true feature
-claim, since it wasn't confirmed as a fixed business policy; found and fixed a genuine cookie-consent
-Accept-button contrast bug (`[data-theme="light"] button { color: inherit }` had higher specificity
-than `.cookie-consent__accept`'s own white-text rule, confirmed via `getComputedStyle`, not source
-reading alone — text was silently rendering dark-on-green).
+**Still open, not yet done** (approve-only happy path verified; the rest of the matrix is not):
+- Reject flow E2E (reason required, applicant sees it, resubmit path if any).
+- Admin Application Detail **visual** polish — current card already has the right *fields*, but the
+  review asked for a specific compact layout (hotel name, city+map, photo count, applicant name,
+  clickable phone, Approve/Уточнить/Отклонить) — not yet compared against that target shape.
+- Map picker on the property step — still not built; check whether `src/app/map` or existing
+  hotel-location infrastructure can be reused before building a second map integration.
+- Real photo upload UI test (preview/remove/replace/MIME/size/failure/retry) — the E2E test above used
+  a direct API call with a synthetic PNG, not the actual `FileUploadCard` UI interaction.
+- Request Info flow — not investigated whether it's real/useful or decorative; decide before keeping it
+  in the primary action set.
+- Full step 1→4 click-through via the actual UI wizard (not API shortcut) — not re-done since the
+  KYC-removal edits; do this before calling the form itself fully regression-clean.
+- Responsive (390/412/768) and RU/TJ/EN passes on the simplified form — not done.
+- Security checks: Guest can't approve/reject (own or others'), ID manipulation on application/owner
+  endpoints — not done.
+- `applicantType` state/FormData field still exists client-side (harmless, unused, low-priority
+  cleanup) — the visible UI field is gone, the dead state wasn't worth the extra edit risk this pass.
 
-**Dev-server rendering for this exact page is now confirmed unreliable across 4 separate instances
-this session** (TrustBadges-class mismatch, city-field reset, full sidebar/label edits not appearing,
-cookie button) — every single time, a fresh `npm run build` + `next start` on a diagnostic port showed
-the fix was correct and the dev-only symptom didn't reproduce. This is now the established, trusted
-verification method for `/profile/become-owner` specifically — don't re-litigate this in dev again for
-this page; go straight to a production build check if something looks wrong here.
+## SYSTEMIC FIX — service worker was registering in local dev (commit `c81a8bd`)
 
-Per instruction: test Admin → Applications through the REAL user pipeline, not a direct DB insert —
-QA Guest → Become Owner form → submit → Admin reviews/approves → Owner access check. This is
-deliberately a cross-role, cross-page test (Guest UI → API → DB → Admin UI → Owner UI), not a
-single-screen check.
+**This is the real finding behind 4 separate "stale UI" investigations this session** (TrustBadges,
+city-field reset, sidebar/label edits, cookie button) — not 4 unrelated page-specific flukes.
+`PwaProvider.tsx` called `navigator.serviceWorker.register("/sw.js")` unconditionally, including
+against the dev server. Next dev serves non-content-hashed chunk URLs and can return slow/aborted
+responses mid-recompile; the SW's network-first `/_next/` handler falls back to `caches.match()` on
+any fetch failure, and once it does, that stale chunk can keep being re-served indefinitely — explains
+every symptom seen (correct SSR HTML + correct compiled bundle + stale rendered DOM, simultaneously).
 
-**CURRENT STATE**: Logged in as `qa-claude-session@tajstay.local`, opened `/profile/become-owner`
-(never opened before this session). Found and fixed real defects along the way, all by using the form,
-none reported:
+**Fix**: registration now gated to `NODE_ENV === "production"`; in dev, any existing registration is
+explicitly unregistered on mount instead. **Verified correct in the compiled bundle** (`if (true) {
+unregister-all }` confirmed present for dev builds). **Live unregister-in-browser verification was
+inconclusive in this session's browser tooling** — a registration persisted through multiple reloads
+in the automated test tab despite the correct code path executing; this reads as a tooling/profile
+quirk in this specific test harness (no other registration source exists in the codebase, confirmed by
+repo-wide grep), not evidence the fix is wrong. **A real user should confirm in an actual browser**:
+open dev tools → Application → Service Workers on `localhost:3000` and confirm none is listed after a
+hard refresh.
 
-1. **Whole form was dark/near-unreadable** — `.owner-form-card`/`.owner-input`/`.owner-wizard-*`/
-   `.owner-status-*` in `globals.css` were a stale, duplicate-competing legacy dark-theme definition
-   (the Owner CRM has its own correct light version in `owner-command-center.css`, which this public
-   route never loads — same duplicate-CSS anti-pattern flagged throughout this audit). **FIXED,
-   RUNTIME VERIFIED**: rewrote to canonical light theme (#0F7A4D accents, white surfaces). Submit
-   button was also off-brand lime/emerald gradient, now canonical `#0F7A4D`.
-2. **City field silently invalid** — the empty-value placeholder `<option>` displayed the text
-   "Душанбе" (reusing the `cityPh` label) while its real `value` stayed `""`, so the field looked
-   filled but wasn't; pressing Next threw "fill required field" on a visibly-filled field. **FIXED**:
-   defaulted `city` state to the real first canonical city + added a defensive mount-effect fallback.
-   **RUNTIME VERIFIED in production build only** (`next build` + `next start`, fresh diagnostic port,
-   throwaway `SEED_SECRET`) — city correctly shows "Dushanbe", zero hydration errors. In **dev** this
-   page intermittently still shows the old empty value even with the fix compiled into the bundle
-   (bundle-content-verified present) — same class as finding below, dev-only, not a real defect.
-3. **Identity document (passport front) was hard-required**, blocking submission — heavy KYC has no
-   place gating first commercial onboarding (matches the already-recorded V2 architecture decision to
-   move away from storing identity documents). **FIXED**: made optional; `facade`/`room`/`bathroom`
-   property photos remain required (legitimate for a hotel listing).
-4. **New hydration finding on this page**, distinct from the already-triaged TrustBadges one — "Text
-   content does not match server-rendered HTML" / "Switched to client rendering" (a Suspense-recovery
-   path). **ROOT CAUSE FOUND: dev-server-only artifact, RUNTIME VERIFIED absent in production** — same
-   evidence method as TrustBadges (clean `npm run build` → `next start` → fresh tab → console): zero
-   hydration errors, city field correct from first paint. Not chased further to a dev-specific
-   mechanism (would be the third such investigation this session) — the standing lesson is now: **this
-   dev environment accumulates real hydration-adjacent staleness/mismatches across long sessions with
-   many restarts; when one appears, verify against a production build before assuming it's a real
-   defect, but don't assume it either — check every time.**
-
-**NOT YET DONE** (this is where the E2E resumes — do not restart from data-entry, continue from here):
-- Step 1 (Личные данные): fields pre-filled from QA account defaults; city bug fixed. Not yet
-  re-clicked through end-to-end since the KYC-removal edits — do a fresh pass through step 1 first
-  (fast, low-risk) before assuming it still advances cleanly.
-- Step 2 (Объект/property): businessName, propertyType, address, roomCount, guestCapacity,
-  propertyDescription — not yet filled or visually reviewed. Per this pass's product correction, do
-  NOT add a map/pin control here unless `src/app/map` or existing hotel-location infrastructure
-  already supports it cleanly — check before building a second map integration (instruction §6 asked
-  for a map; not yet investigated whether one can be reused vs. is a real new-build task).
-- Step 3 (Фотографии): now photo-only (facade/room/bathroom, only facade required) — need a REAL QA
-  image upload test: preview/remove/replace/size/MIME validation/failure/retry.
-- Step 4 (Отправка/review + consent) — not yet reached. Confirm the consent checkbox text is the
-  short, human, non-legal-wall-of-text version the correction asked for, not a leftover heavier one.
-- Submit — not yet attempted. After submit: check HTTP/API result (note: `/api/apply/owner` or
-  equivalent route may still reference removed upload fields server-side — check the API route
-  handler accepts the new, smaller FormData shape without erroring on missing identity/selfie/etc.,
-  since only the client was changed this pass, not yet verified against the backend route).
-- Admin side: log back in as `admin@tajstay.local`, open Applications, verify the new QA application
-  appears, open detail — review whether Admin Application Detail still references/expects identity
-  documents that no longer exist (instruction §12 asks for this screen to be rebuilt for the new
-  model) — not yet checked, likely still shows old document fields expecting uploads that will now
-  never arrive.
-- Approve/Reject flow, post-approval Owner access check, responsive (390/412/768), RU/TJ/EN, security
-  checks — unchanged from before, still all open.
-
-**Dev server note**: restarted clean at the very end of this pass (serverId `fe60ecda...`, tab
-`tab-1`); this exact page (`/profile/become-owner`) has shown dev-only stale-render symptoms 4 times
-this session — verify via production build (see pattern above) before trusting a dev-only "still
-broken" read on this specific route.
+**Not yet done** (out of scope for this pass, correctly deferred not forgotten): production PWA
+update-safety audit (§25 of the instruction) — confirming a real deployment doesn't leave returning
+users on a mix of old HTML + new JS after a release. The existing `sw.js` `/_next/` handler is already
+network-first (not cache-first) and `activate()` already purges old `CACHE_VERSION` entries, which is
+the right shape for this, but it hasn't been specifically tested against a real old→new deployment
+transition. Belongs in the Phase 9 PWA/performance pass.
 
 ## Also still owed (Phase 1 design foundation, not lost)
 
