@@ -168,10 +168,17 @@ export default async function AdminDashboardPage({
       prisma.hotel.count({ where: { status: "APPROVED" } }),
       prisma.user.count(),
       prisma.booking.count(),
-      // Turnover ("Оборот") must exclude bookings that never became real committed value —
-      // CANCELLED/REJECTED/EXPIRED — or a cancelled booking's totalPrice still inflates the
-      // 30-day figure. Matches the same "define the status semantics before summing" fix as
-      // the Bookings KPI buckets above.
+      // CANONICAL DEFINITION — "Оборот 30 дней" / "30-day volume" (admin.revenue30):
+      //   sum(totalPrice) for bookings whose CREATION date (Booking.createdAt — the only
+      //   period-anchor timestamp this model has; there is no confirmedAt/paidAt field) falls
+      //   in the trailing 30 days, EXCLUDING statuses that never became real committed demand
+      //   (CANCELLED, REJECTED, EXPIRED). WAITING_PAYMENT/PENDING_OWNER/ON_REVIEW/WAIT_PROOF are
+      //   INCLUDED — this is booking-creation volume/demand, not confirmed-and-paid revenue, and
+      //   is deliberately labeled "volume"/"оборот", never "revenue"/"выручка", for that reason.
+      //   commission30 (shown as a separate, explicitly labeled sub-metric) is the actual
+      //   platform-revenue figure — the two must never be presented as the same number.
+      //   If a stricter "paid/confirmed-only" GMV is ever needed, it requires a real paidAt/
+      //   confirmedAt column (schema change) — do not approximate one from existing fields.
       prisma.booking.aggregate({
         _sum: { totalPrice: true, commission: true },
         where: {
