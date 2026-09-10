@@ -38,8 +38,8 @@ a **real** end state (or a named external blocker, e.g. "no SMS provider credent
 ## Branch / SHA
 
 - Branch: `feature/tajstay-full-ui-ux-rebuild`
-- Base SHA (this pass): `8d6c720`
-- Final SHA (this pass): `419fe9d`
+- Base SHA (this pass): `419fe9d`
+- Final SHA (this pass): `b614893`
 - Local dev only — nothing deployed. Server on `localhost:3000` via the project's own `preview_start`/
   launch.json config (port 3000 is pinned — `NEXTAUTH_URL` depends on it). Do not manually start a
   second ad-hoc `npm run dev` on another port again — it broke script execution in the browser tool
@@ -52,8 +52,43 @@ a **real** end state (or a named external blocker, e.g. "no SMS provider credent
 - An external tool periodically auto-commits this working tree under the user's own git identity
   (not Claude Code, e.g. `efa962f`/`aaec9c0`) — not a cause for alarm, already verified benign.
 
+## Correction contract received (2026-09-10, same day as Final Commercial Product Contract)
+
+The user sent screenshots from a **deployed Vercel preview URL** (`tajstay-kayafrjhk-xzba626s-
+projects.vercel.app`) showing several regressions/unfinished items: legacy dark-green Auth screens,
+Cookie banner + TajStay install prompt shown simultaneously (explicitly forbidden), no "reject non-
+essential" cookie option, Admin donut chart center labels not fitting ("15 Пользователи" overflow),
+Admin analytics headline/legend numbers that don't add up (Hotels: headline 1 vs legend implying 4;
+Bookings: headline 30 vs legend implying 7 — investigate data semantics before trusting these KPIs),
+TajStay logo used as a user avatar fallback, mint verification pills/Admin-panel row still present, an
+unidentified black floating widget on every route. **Important: that deployment has not been confirmed
+to be running this branch's code** — do not assume screenshots from it reflect local commits, and do
+not assume local fixes are live there either. Local dev (`localhost:3000`) is the only environment
+actually verified this session.
+
 ## DONE (this pass)
 
+- Fixed the real Cookie/Install sequencing bug confirmed in the deployed screenshots: `PwaInstallPrompt`
+  had zero gating logic (showed instantly on `beforeinstallprompt`, could appear same time as the
+  cookie banner). Now waits for cookie consent to resolve (via a `tajstay:cookie-consent-resolved`
+  event or an already-resolved localStorage value), then a 15s engagement timer, before becoming
+  eligible to show. Added the missing "Отклонить необязательные" cookie action (was Accept-only).
+  Both components' legacy dark-navy/dark-green theme replaced with white surface + canonical
+  `#0F7A4D` per the "green surface → white text/icons, white surface → dark text/green action" rule.
+  **Not fully runtime-verified**: the reject button renders in the compiled JS bundle (confirmed via
+  direct chunk inspection) but did not appear in the live DOM during this session's browser testing,
+  despite a full service-worker unregister + cache clear + hard navigation with a cache-busting query
+  param — same "compiled bundle correct, live DOM doesn't reflect it" symptom hit earlier with the
+  `ProfileMockupView` crash investigation, and equally unresolved. Do not mark Cookie/Install PASS
+  without re-verifying in a clean browser session next time.
+- Removed the city-field placeholder per the user's correction (label alone is sufficient, no
+  "Куда едете?"/"Куда вы хотите?" text) in `SearchBar.tsx`.
+- Investigated the unidentified black floating widget: no matching component, package, or third-party
+  script found anywhere in this repo (no `@vercel/toolbar`, no chat-widget SDK). Given the screenshots
+  are from a `*.vercel.app` preview URL, this is most likely Vercel's own Preview Toolbar (auto-
+  injected for authenticated Vercel accounts viewing team preview deployments) — not TajStay code, and
+  not something an end user would see on the production domain. Not fixed because there is nothing in
+  this repo to fix. Flag to the user for confirmation rather than continuing to investigate blind.
 - **Real root-cause fixes** (not dismissed as environment), found via rigorous elimination after the
   user correctly rejected an earlier "environmental flake" claim:
   - `/profile` was passing raw Prisma `Booking` rows (with `Decimal`/`Date` fields) into a
@@ -87,10 +122,11 @@ returning to earlier phases only if regression is found:
    map (§3) before further UI work, not just ad-hoc fixes.
 2. Mobile Home acceptance gate (§9, §119) — first viewport must show headline+Search with zero scroll
    at 390/412px; current state not verified against this specific gate yet.
-3. Search field internals: remove all internal borders (§11), remove city placeholder text entirely
-   (§12 — supersedes earlier "Куда едете?" instruction), fix real-mobile-device date-empty-state bug
-   with a custom date display layer (§14), fix search button proportions (§18).
-4. Auth screens — still legacy dark-emerald theme, untouched.
+3. Search field internals: remove all internal borders (§11), city placeholder removed this pass ✓,
+   fix real-mobile-device date-empty-state bug with a custom date display layer (§14), fix search
+   button proportions (§18).
+4. Auth screens — still legacy dark-emerald theme, confirmed via deployed screenshot, untouched.
+   Fix icon-in-dark-box treatment, duplicate label/placeholder text, form density.
 5. Profile: real avatar upload/change/remove flow, real phone change+verification flow (or a named
    external blocker, not a permanent disabled button), Settings dedup, notification inbox vs settings
    split, Support consolidation — partially done, needs finishing per the stricter final-state bar.
@@ -98,9 +134,14 @@ returning to earlier phases only if regression is found:
 7. Owner Hotel Desk (overview, calendar, rooms, bookings, finance, occupancy gauge, analytics, staff
    invite architecture) — not started.
 8. Admin Command Center (deep analytics beyond the donut fix, operational queues, applications,
-   users, complaints) — not started.
-9. PWA install-prompt timing (cookie first, then ~15s active engagement, never simultaneous with
-   cookie banner — §26), cache strategy beyond the two SW fixes already made — partially started.
+   users, complaints) — not started. **Data-integrity concern found in deployed screenshot, unverified
+   locally**: Hotels KPI headline showed 1 but its donut legend implied 4 total; Bookings headline
+   showed 30 but its legend (confirmed 6 + cancelled 1) implied 7. Before building more charts,
+   check whether the KPI headline and its own donut are querying the same dataset/denominator —
+   don't just make the numbers visually consistent, find why they currently disagree. Also fix donut
+   center-label overflow for longer RU/TJ/EN words (e.g. "Пользователи" not fitting) with a
+   bigger/responsive center area, and runtime-check every chart in all 3 locales, not just RU.
+9. PWA install-prompt timing/theme — fixed this pass, not fully runtime-verified (see DONE).
 10. Full performance audit (§87-91) — not started.
 11. Full security audit (§101-113) — not started.
 12. Full responsive/role/commercial regression (§126-127) — not started.
@@ -124,6 +165,15 @@ returning to earlier phases only if regression is found:
   fixed, and do not re-explain it as environmental without new evidence. Next step: add explicit
   instrumentation (log full `componentStack`/props at the top of `ProfileMockupView`) or bisect by
   temporarily stripping the component tree down section by section until the crash disappears.
+- **Recurring "compiled bundle is correct, live browser DOM doesn't match it" pattern** — hit twice
+  now (ProfileMockupView crash above; the Cookie reject button not rendering despite being present in
+  the compiled `layout.js`, verified by direct chunk inspection, even after SW unregister + cache
+  clear + hard reload + cache-busting query param). This is worth investigating as a category, not
+  just per-incident: something in this dev environment (or this specific long-lived browser session)
+  is causing genuine client render/DOM to diverge from what the server is actually serving. Next
+  session should try: a completely fresh OS-level browser profile/container if the tooling allows one,
+  or building and running a production (`next build && next start`) instance instead of dev mode to
+  rule out dev-only mechanisms (Fast Refresh, dev overlay, webpack HMR) as the common factor.
 - **Production `site-content` values** (banner casing/URL) — only local dev DB fixed; production
   needs the same fix via the admin CMS UI, not a direct prod DB write from a session.
 - **Passport/identity backend removal** (`guestDocumentUrl`) — architecture decision written (V2
