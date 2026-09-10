@@ -399,6 +399,46 @@ priority than moving through the remaining sections, but recorded accurately rat
 - `applicantType` state/FormData field still exists client-side (harmless, unused, low-priority
   cleanup) — the visible UI field is gone, the dead state wasn't worth the extra edit risk this pass.
 
+## User-reported production screenshots — real bugs found (commit `bbcf1aa`)
+
+User sent screenshots of the live Vercel deployment (`tajstay-cj0biqwfq-xzba626s-projects.vercel.app`)
+showing several contrast/UX bugs. Checked each against current localhost before fixing — some were
+already fixed in current source (deployment is stale, needs a redeploy to reflect this branch's work),
+others reproduced live and got fixed for real:
+
+**Fixed, reproduced on localhost, root-caused:**
+- Home promo banner title/subtitle unreadable (dark text on green) — a repo-wide
+  `h1,h2,h3,h4,h5,h6 { color: var(--ds-text-primary) !important }` reset (multiple duplicates found in
+  globals.css) beat both `text-white` AND an inline style attempt. Fixed with a scoped `!important`
+  class (`.home-promo-title`/`.home-promo-subtitle`), verified white via `getComputedStyle` after.
+- Popular-destinations chip hover went near-black while text stayed dark — unreadable. Now a light
+  green tint on hover.
+- "Найти жильё" header CTA hover used the recurring legacy `#d1fae5` light-mint (near-invisible on
+  white) — now darkens on hover instead.
+- Removed the homepage aggregate reviews section entirely (product decision: reviews belong per-hotel,
+  not as a site-wide landing block).
+
+**Checked, already correct on current source (stale-deployment report, not a current bug):**
+- Footer text contrast — computed style confirmed white-on-green, correct now.
+
+**Reported, investigated, explicitly NOT fixed this pass (documented, not lost):**
+- **TST Assistant dark theme** — the whole panel (~450 lines in `tst-assistant.css`) is a dark-green
+  theme, off-brand. Attempted flipping just the panel background to white, immediately reverted: every
+  other rule in the file (bubbles, chips, inputs, buttons) assumes light-on-dark text, so a white panel
+  alone would have made the assistant *less* readable, not more. **Needs one dedicated full-file pass**
+  — same rigor as the onboarding form rewrite (commit `df4c06c`), not a partial edit. High priority for
+  next session given how many times this has been flagged.
+- Auth page (sign-in/register): reported duplicate label+placeholder text, Telegram/Google button
+  styling, and an unclear/undecided-looking left-side panel on desktop — **not yet re-verified against
+  current localhost** (this session's very first-pass fixes touched some of this — "removed 4 redundant
+  placeholder props" per earlier history — but the exact current state on this branch is unconfirmed).
+  The user separately asked for **real hotel data** to show in that left panel instead of a decorative
+  empty-feeling block — not investigated this pass.
+- Mobile home hero heading reported as too large/verbose for a compact app-like first screen — not
+  re-checked this pass (was addressed earlier in project history per STATE.md's own notes on hero copy
+  length; may have regressed or may already be fine, unconfirmed).
+- User's report was explicitly partial ("остальное я потом отправлю") — expect a continuation.
+
 ## SYSTEMIC FIX — service worker was registering in local dev (commit `c81a8bd`)
 
 **This is the real finding behind 4 separate "stale UI" investigations this session** (TrustBadges,
