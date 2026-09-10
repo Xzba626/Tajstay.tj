@@ -109,6 +109,13 @@ export function OwnerOnboardingExperience({ locale, L, ownerNav, defaults }: Pro
   // field that visibly already showed a city. Defaulting state to the real first city fixes the
   // mismatch between what's displayed and what's actually selected.
   const [city, setCity] = useState<string>(TAJIK_CITY_CANONICAL[0] ?? "");
+  // Defensive: the useState initializer above matches SSR (verified in the raw server HTML), but
+  // this page also hydrates through a Suspense-recovery path (separate open finding) that can
+  // remount this component client-only and lose the initial value. Force it back to a real city
+  // on mount so the select never silently ends up on the empty placeholder option.
+  useEffect(() => {
+    setCity((current) => current || TAJIK_CITY_CANONICAL[0] || "");
+  }, []);
   const [applicantType, setApplicantType] = useState("individual");
   const [businessName, setBusinessName] = useState("");
   const [propertyType, setPropertyType] = useState("hotel");
