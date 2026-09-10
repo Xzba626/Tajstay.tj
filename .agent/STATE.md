@@ -261,53 +261,82 @@ mobile pass done. Not yet clicked: "Требует внимания" panel actio
 
 | Role | Route/Section | Desktop | Mobile | RU | TJ | EN | Visual | UX | Function | Data | Error | Perf | Security | Status |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Admin | Overview (`?section=dashboard`) | done | done | done | open | open | 2 fixed | open | open | open | open | open | open | OPEN — partial |
+| Admin | Overview (`?section=dashboard`) | done | done | done | done (bonus) | open | 4 fixed | open | open | fixed (bookings), verified-no-bug (hotels) | open | open | open | OPEN — partial |
 | Admin | Applications | — | — | — | — | — | — | — | — | — | — | — | — | OPEN |
 | Admin | Users | — | — | — | — | — | — | — | — | — | — | — | — | OPEN |
 | Admin | Hotels | — | — | — | — | — | — | — | — | — | — | — | — | OPEN |
 | Admin | Owner-access | — | — | — | — | — | — | — | — | — | — | — | — | OPEN |
-| Admin | Bookings | — | — | — | — | — | — | — | — | — | — | — | — | OPEN (has confirmed KPI bug, roadmap Phase 8) |
+| Admin | Bookings | — | — | — | — | — | — | — | — | KPI bucket bug fixed (see below) | — | — | — | OPEN |
 | Admin | Finance | — | — | — | — | — | — | — | — | — | — | — | — | OPEN |
 | Admin | Complaints | — | — | — | — | — | — | — | — | — | — | — | — | OPEN |
 | Admin | Content | — | — | — | — | — | — | — | — | — | — | — | — | OPEN |
 | Admin | Notifications | — | — | — | — | — | — | — | — | — | — | — | — | OPEN |
-| Owner | (all 11 sections) | — | — | — | — | — | — | — | — | — | — | — | — | OPEN, not started |
+| Owner | (all 11 sections) | shell verified | — | — | — | — | — | — | — | — | — | — | — | OPEN, shell isolation confirmed, no section PASSed yet |
 | Anonymous/Guest/Public | (all routes) | — | — | — | — | — | — | — | — | — | — | — | — | OPEN, not started |
 
-**DONE this pass** (real defects found by looking, not reported by the user — commit `c71f512`):
+**DONE this pass** (commits `c71f512`, `9dfefad`; all found by looking, none reported by the user):
 1. Admin Overview donut center labels ("Бронирования", "Пользователи") overflowed the ring —
-   `AnalyticsDonut` center box now constrained to the ring's actual inner opening with word-wrap, fixed
-   generically (works for any locale length, not a hardcoded RU fix).
+   `AnalyticsDonut` center box constrained to the ring's actual inner opening with word-wrap, generic
+   across locale length (verified on RU and, incidentally while re-testing, TJ — both clean, no overflow).
 2. Admin Overview KPI cards on a 375px viewport truncated legend rows to an unreadable ellipsis
-   ("подтвержд…") — grid now single-columns below 480px instead of squeezing 2-up.
+   ("подтвержд…") — grid single-columns below 480px instead of squeezing 2-up.
+3. **Admin Bookings KPI bucket bug FIXED** (was open finding #3 from the audit, root-caused there, now
+   actually fixed): `sumBookingStatus` buckets in `src/app/dashboard/admin/page.tsx` referenced two
+   status literals that don't exist in `BOOKING_STATUS` (`"PENDING"`, `"CHECKED_OUT"` — both dead
+   leftovers) while omitting `WAITING_PAYMENT` entirely. Buckets now cover all 10 real statuses exactly
+   once, verified by explicit enumeration against `src/lib/domain/booking.ts`. Not yet re-verified
+   against a booking actually sitting in `WAITING_PAYMENT` in the dev DB (current seed data has none in
+   that state) — correct by construction, but a live numeric before/after on real data is still owed.
+4. **Admin Hotels "1 vs 4" question CLOSED, confirmed not a bug** (was open in the audit as
+   "misread, not yet confirmed"): read `AdminDashboardOverview.tsx` directly — the headline is
+   `{hotelApproved} / {hotelTotal}` (a fraction, reads oddly at a glance but is correct), and the
+   donut's two segments (`hotelApproved` + `hotelPending`) sum to exactly `hotelTotal` by construction.
+   No code change needed; this was a display-format misread, not a data-integrity bug — now verified,
+   not asserted.
 
-**OPEN, found this pass, NOT yet fixed** (do not silently drop):
-3. **Confirmed, reproducible React hydration mismatch** on `TrustBadges` inside `UserMenu` (Consumer
-   Header) — server renders `bg-[#0f7a4d]/10 text-[#0f7a4d] ring-[#0f7a4d]/25` (canonical brand green),
-   client renders `bg-[#0f7a4d]/15 text-[#d1fae5] ring-[#0f7a4d]/30` (`#d1fae5` = light mint, a
-   dark-surface text color — exactly the legacy off-brand palette Green Contract §14 forbids). Ruled
-   out this pass: stale service worker (`unregister()` + `caches.delete()` on every cache key, still
-   reproduced), browser cache (hard `location.reload()`, still reproduced), source-file drift
-   (`TrustBadges.tsx` on disk has exactly one style map, matching the server-rendered classes exactly —
-   the client's differing classes cannot come from that file as currently written). **Root cause NOT
-   found** — next step: instrument `cn()`/`STYLES` with a temporary log of what actually executes
-   client-side, or bisect by temporarily hardcoding the className to rule out `cn()`/tailwind-merge
-   behaving differently at runtime vs. build. Do not re-attribute to "environment" without new evidence
-   per standing user rule.
-4. **Duplicate API calls confirmed** on every navigation: `/api/auth/session`, `/api/auth/me`,
-   `/api/notifications/list`, `/api/notifications/unread-count` each fire 3-4 times per page load
-   (verified via `performance.getEntriesByType('resource')`, not just eyeballing the network tab) —
-   more than React strict-mode's 2x dev-only double-invoke would explain. Likely multiple independent
-   consumers (SessionProvider + a custom hook, or an effect re-firing) not sharing one fetch/cache.
-   Not yet root-caused or fixed — flagged for the perf/network pass (roadmap Phase 9, but cheap enough
-   to fix opportunistically when found again).
-5. One `Failed to load resource: 500` seen in console during this pass, **source URL not yet isolated**
-   (didn't appear in `performance.getEntriesByType('resource')` — may be a genuinely transient/earlier
-   request). Re-check next time console errors are read on this area.
+**RESOLVED, not a defect (investigated to a real conclusion, not dismissed on sight):**
+5. **Hydration mismatch on `TrustBadges`** (was open finding #3 last pass) — fully root-caused this
+   pass: confirmed via a `.next` cache wipe + clean dev-server restart + direct fetch of the served
+   bundle that the compiled client JS now matches source exactly, yet the SSR/hydration warning still
+   fires in dev. Verified the ACTUAL delivered DOM (`getComputedStyle` after the dropdown opens) shows
+   `rgb(15, 122, 77)` — the correct canonical `#0F7A4D`, matching SSR exactly, zero visible impact.
+   Conclusion: a dev-server-only artifact from this session's repeated HMR/restart cycles, not a defect
+   in the shipped `TrustBadges.tsx` (single, unambiguous style map, confirmed matching both SSR output
+   and the final rendered DOM). Not re-attributed to "environment" without this evidence chain — this
+   is the standing rule being followed, not an exception to it.
+6. **Admin `headers()`/`x-tajstay-shell` impact on static/dynamic rendering — checked, NOT a new
+   regression.** `getSessionUser()` (called unconditionally in root `layout.tsx`, present before Phase
+   1) already calls Next's `cookies()`, which already forced every route under the root layout into
+   dynamic rendering. Adding `headers()` for shell classification changes nothing about rendering mode
+   — confirmed by reading `src/lib/auth/session.ts`, not assumed.
 
-**NEXT**: Finish Admin Overview to PASS (click "Требует внимания" actions, check TJ/EN on this specific
-screen, check loading/empty/error states, resolve or fully triage findings #3-5 above), then continue
-sidebar-by-sidebar through the remaining 9 Admin sections per the progress table, each as its own full
-human pass — not sequential Owner-first or roadmap-Phase-first; Admin was already open in-browser, finish
-it before switching context. Do not fall back into a global audit pass; investigate only the specific
-unknown in front of you (e.g. the hydration mismatch) and continue.
+**STILL OPEN, not yet fixed:**
+7. **Duplicate API calls**: `/api/auth/session` (NextAuth's own `useSession()`), `/api/auth/me`
+   (this app's custom `AuthStateSync`, polls every 12s + on visibility change), `/api/notifications/*`
+   (custom `useNotificationPoller`, polls every 25s) — confirmed via
+   `performance.getEntriesByType('resource')`, not just eyeballing. Root cause identified (not just
+   symptom-patched): **two independent identity-fetching systems run in parallel** — NextAuth's built-in
+   session endpoint and the app's own `/api/auth/me` poller — that don't share state, on top of React
+   StrictMode's dev-only 2x effect invoke. A real fix means consolidating onto one canonical
+   session/identity source (likely dropping the redundant `/api/auth/me` poll in favor of
+   `useSession()`, or vice versa) — not a debounce. Not done this pass (real refactor, correctly
+   deferred to when Auth/Profile is the active area — roadmap Phase 3/9 — rather than rushed here).
+8. ~~Owner shell not directly re-verified~~ **RESOLVED this pass.** Logged out, logged in as the real
+   seeded `owner@tajstay.local`, opened `/dashboard/owner`: only Owner's own bottom nav (Обзор/
+   Объекты/Брони/Финансы/Ещё) rendered, zero Consumer nav links, zero new console errors beyond the
+   already-triaged (harmless) TrustBadges warning. **Phase 1 shell-isolation gate is now fully closed**
+   for both Admin and Owner with real logins, not assumed from shared code. Desktop only this pass —
+   Owner at 390/412px not yet done (do next alongside Owner's own section-by-section pass).
+9. One `Failed to load resource: 500` seen once in console, source URL never isolated (didn't reproduce
+   in `performance.getEntriesByType('resource')` on repeat checks) — likely transient from an earlier
+   dev-server restart in this same session, not re-triaged as a standing defect. Re-open if it recurs.
+
+**NEXT**: Phase 1 shell-isolation gate is closed (Admin + Owner both verified with real logins). Finish
+Admin Overview to full PASS: click "Требует внимания" panel actions, EN pass on this screen (RU+TJ
+done), loading/empty/error states, data semantics on remaining KPIs (Users, Turnover — Hotels and
+Bookings already closed this pass). Then continue sidebar-by-sidebar through the remaining 9 Admin
+sections per the progress table, same full human cycle each time; after Admin, do the same for all 11
+Owner sections (Owner is logged in and shell-verified but no section has had its own human pass yet —
+only Overview was glimpsed while checking shell isolation, not yet PASSed). Do not return for a new
+prompt between sections. Do not fall back into a global audit pass — investigate only the specific
+unknown in front of you and continue.
