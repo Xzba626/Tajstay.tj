@@ -223,17 +223,53 @@ repo-wide grep, zero importers found for each):**
 - The Firebase phone routes (`/api/auth/firebase/config|register|session`) also have **zero
   frontend callers found** in `src/components` or `src/app` — meaning even the system that
   `phoneVerified` is documented to depend on is not currently invoked from any UI path found.
-  **This needs a runtime check, not just grep** (e.g. the Firebase JS SDK might be initialized
-  directly against Firebase's own endpoints client-side, bypassing these Next.js API routes entirely
-  — not ruled out this pass).
 
-**What this means for "rebuild the phone flow" as a future task**: do **not** build a new OTP system.
-There is already a complete, unused `/api/phone-otp/*` implementation with rate limiting. The actual
-work is: (a) confirm at runtime whether Firebase Phone Auth is really what sets `phoneVerified` today
-(client-side Firebase SDK usage not yet checked), (b) decide whether to wire the existing custom
-phone-otp subsystem or the Firebase one to `/profile/phone`'s "Изменить" action, (c) if custom OTP is
-chosen, `OtpVerificationPanel.tsx` and `TajikPhoneInput.tsx` are ready-made UI, not scaffolding to
-throw away.
+**Firebase client SDK trace — RESOLVED this pass (was the open question above).**
+`src/lib/firebase/client.ts` is a complete, correctly-implemented `"use client"` wrapper module:
+`getFirebaseClientAuth()`, `ensureRecaptcha()` (creates an invisible `RecaptchaVerifier` bound to a
+DOM container id `"firebase-recaptcha"`), `sendFirebasePhoneOtp()` (calls
+`signInWithPhoneNumber(auth, phone, verifier)`), `confirmFirebasePhoneOtp()` (calls
+`pendingConfirmation.confirm(code)` then `getIdToken()`), plus teardown/reset helpers. This is real,
+working Firebase Phone Auth client plumbing — not a stub.
+- Repo-wide grep for its three exported entry points (`sendFirebasePhoneOtp`, `confirmFirebasePhoneOtp`,
+  `initFirebaseRecaptcha`) found **zero call sites anywhere outside the file that defines them.**
+- Repo-wide grep for the reCAPTCHA container id (`firebase-recaptcha` / `RECAPTCHA_CONTAINER_ID`) also
+  found **zero matches outside that same file** — no page or component renders the
+  `<div id="firebase-recaptcha">` this module requires to function, so even if a caller existed,
+  `ensureRecaptcha()` would throw (`"reCAPTCHA container not found"`).
+- **Classification: (A) DEAD/UNUSED PLUMBING.** Fully implemented, zero UI wiring, zero possibility of
+  accidental invocation (missing DOM container is a hard blocker, not just a missing button).
+
+**What actually sets `phoneVerified` today**: only the custom `/api/phone-otp/*` subsystem
+(`src/lib/auth/phoneOtpHandlers.ts` + `src/lib/auth/otp.ts`), traced fully this pass:
+- Storage: `OtpChallenge` Prisma model, keyed by normalized phone, storing `codeHash` (SHA-256, never
+  plaintext), `expiresAt`, `attempts`, `lockedUntil`, `lastSentAt`.
+- TTL: `OTP_EXPIRES_MS = 10 min`. Resend cooldown: `OTP_RESEND_COOLDOWN_MS = 60s`. Max attempts before
+  lock: `OTP_MAX_ATTEMPTS = 5`, lock duration `OTP_LOCK_MS = 15 min`.
+- Rate limiting (layered, `src/lib/security/rateLimit.ts`): on request — 20/min per IP, 5/10min per
+  phone, 4/10min per IP+phone pair; on verify — 50/min per IP, 8/10min per phone, 8/10min per pair.
+- Verify path uses `crypto.timingSafeEqual` on the hash (constant-time), plus an artificial 180ms delay
+  on mismatch, plus hashes a dummy `"000000"` when the input format is invalid — all specifically to
+  resist timing-based enumeration/brute force. In production (`NODE_ENV=production`) the raw OTP is
+  never echoed in the response; in dev it is, for testability.
+- On successful verify: creates or updates the `User` (sets `verified: true`, `phoneVerified: true`),
+  issues a session cookie directly (`createSessionCookie`), logs an audit event
+  (`otp_request`/`otp_verify_fail`/`register_phone`/`login_phone`), and fires notifications.
+- **But this subsystem also has zero UI callers** (confirmed via grep for `/api/phone-otp` and
+  `/api/auth/phone-otp` across `src/app` and `src/components` — only the route files and the handler
+  module itself match). So `/profile/phone`'s actual "Изменить"/verify action, if it does anything at
+  all today, calls neither this nor Firebase — **not yet identified this pass**; that requires a live
+  click-through of `/profile/phone`, not more grep (queued for the role-walkthrough phase, §Guest
+  Profile click-tree).
+
+**What this means for "rebuild the phone flow" as a future task**: do **not** build a new OTP system
+and do **not** wire up the dead Firebase plumbing by default. There is already a complete, well-secured,
+unused `/api/phone-otp/*` implementation (rate limiting, hashing, timing-safe compare, lockout, audit
+logging) that is objectively more production-ready than the Firebase path (which additionally requires
+external Firebase project config/cost and has no DOM container wired). The real remaining work is:
+(a) live-click `/profile/phone` to see what it currently calls, if anything, (b) decide custom-OTP vs.
+Firebase as the one system to keep, (c) if custom OTP is chosen, `OtpVerificationPanel.tsx` and
+`TajikPhoneInput.tsx` are ready-made UI, not scaffolding to throw away.
 
 ## 6c. Admin Analytics — Bookings KPI Mismatch, Root Cause Confirmed (not hypothesis)
 
@@ -280,7 +316,7 @@ has no UI entry point, consistent with `HotelStaff` being backend-only (§4).
 **NOT DONE**: clicking through each of these 21 sections individually to verify render/data/actions —
 only the navigation list itself was extracted from code this pass.
 
-## 6e. `/api/seed` — Resolved (was "candidate", now confirmed)
+## 6e. `/api/seed` — Resolved (code-level) AND runtime-confirmed on production
 
 Read `src/app/api/seed/route.ts` directly. Fail-closed and layered:
 1. `NODE_ENV === "production"` → immediate 403, before anything else runs.
@@ -288,22 +324,95 @@ Read `src/app/api/seed/route.ts` directly. Fail-closed and layered:
 3. Requires the provided secret (query param or `x-seed-secret` header) to match.
 4. Requires an active ADMIN session, unless `SEED_ALLOW_INSECURE_DEV=1` is explicitly set.
 
-**Classification: SAFE DEV-ONLY**, not a P0/P1 vulnerability, on the assumption that
-`NODE_ENV=production` is actually set correctly in the real production deployment (Vercel sets this
-automatically for production builds — not independently re-verified against the live deployment's
-actual environment this pass, but this is standard Next.js/Vercel behavior, not a custom
-misconfigurable value in this repo).
+**DEPLOYED RUNTIME EVIDENCE (new, this pass)** — safe, non-destructive, no credentials supplied,
+against production `https://www.tajstay.site`, commit `f63443c` (deployed revision assumed current;
+not independently re-confirmed via Vercel dashboard):
+- `GET https://www.tajstay.site/api/seed` (no headers, no session cookie) → **`403 Forbidden`**,
+  body `{"error":"Forbidden"}`, `X-Matched-Path: /api/seed`, confirming the route resolved and the
+  guard rejected the request before any side effect — not a 404/routing artifact.
+- `POST https://www.tajstay.site/api/seed` (no body, no auth) → **`405 Method Not Allowed`**, empty
+  body — POST is not even an accepted method on this route as deployed (mutation only reachable, if
+  at all, through whatever method the guarded code path uses once past the 403 above — not tested
+  further, since supplying a real secret would violate audit-only/non-destructive scope).
+- No `Set-Cookie`, no stack trace, no debug info leaked in either response.
 
-## 6f. Security Response Headers — Confirmed Absent, Full Path Checked
+**Classification: CONFIRMED SAFE DEV-ONLY, verified at both CODE and DEPLOYED RUNTIME levels.** The
+production deployment does have `NODE_ENV=production` in effect (the 403 fail-closed path is the one
+actually executing, not a bypass) — this closes the "assumption not re-verified" gap noted in the
+prior pass.
 
-Checked all three places headers could be set: `next.config.mjs` (`headers()` — only Cache-Control
-rules found), `src/middleware.ts` (no header-setting logic of any kind), `vercel.json` (only
-`buildCommand`/`installCommand`, no `headers` key at all). **Confirmed: no CSP, HSTS,
-X-Frame-Options, X-Content-Type-Options, Referrer-Policy, or Permissions-Policy configured anywhere
-in this repository.** Severity classification not yet assigned — depends on this app's actual threat
-model (iframe embedding risk, third-party script exposure) which hasn't been evaluated this pass.
-**NOT DONE**: checking actual response headers on a live deployed request (Vercel or other platform
-defaults might add some of these automatically — not verified).
+## 6f. Security Response Headers — Two Dimensions, Both Now Evidenced
+
+**APPLICATION CONFIG: absent** (code-level, unchanged from prior pass). Checked all three places
+headers could be set: `next.config.mjs` (`headers()` — only Cache-Control rules found),
+`src/middleware.ts` (no header-setting logic of any kind), `vercel.json` (only
+`buildCommand`/`installCommand`, no `headers` key at all). **Confirmed: this repository does not
+itself configure CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, or Permissions-Policy
+anywhere.**
+
+**DEPLOYED RESPONSE: actual headers** (new, this pass) — `curl -sD` against production
+`https://www.tajstay.site`, commit `f63443c`:
+
+| Header | `/` | `/auth/sign-in` | `/api/search` (representative API) |
+|---|---|---|---|
+| `Strict-Transport-Security` | `max-age=63072000` | `max-age=63072000` | `max-age=63072000` |
+| `Content-Security-Policy` | **absent** | **absent** | **absent** |
+| `X-Frame-Options` | **absent** | **absent** | **absent** |
+| `X-Content-Type-Options` | **absent** | **absent** | **absent** |
+| `Referrer-Policy` | **absent** | **absent** | **absent** |
+| `Permissions-Policy` | **absent** | **absent** | **absent** |
+| `X-Powered-By` | `Next.js` (leaked) | `Next.js` (leaked) | not present on this route |
+| `Server` | `Vercel` | `Vercel` | `Vercel` |
+| `Cache-Control` | `private, no-cache, no-store, max-age=0, must-revalidate` | same | `public, max-age=0, must-revalidate` |
+
+**Conclusion**: HSTS is present — added by the platform (Vercel), not this app's own config, since no
+`Strict-Transport-Security` value appears anywhere in the repo. Every other standard security header
+(CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy) is **absent both
+in application config and in the live deployed response** — platform defaults do not fill this gap.
+`X-Powered-By: Next.js` is also leaked (framework fingerprinting), and is likewise not suppressed
+anywhere in config (`poweredByHeader` not set to `false` in `next.config.mjs`). An authenticated route
+and a POST/mutating API response were not separately checked this pass (GET-only, unauthenticated
+requests, per audit-only/non-destructive scope) — headers are set at the Next.js/middleware layer
+uniformly enough that a route-specific difference is unlikely but not proven. Severity/threat-model
+judgment (iframe-embedding risk, XSS blast radius without CSP) still not assigned — that's a
+`tajstay-security` skill judgment call for the implementation phase, not this audit.
+
+## 6g. `src/lib/pms/*` and `HotelStaff` — Deepened, File-by-File Classification
+
+Full call-site mapping across all 10 files (569 lines total), repo-wide grep for every import path:
+
+| File | Exports (main) | Call sites | Classification |
+|---|---|---|---|
+| `bookingContext.ts` | `bookingHotel`, `bookingRoomTitle`, `bookingPhysicalRoomId` | 13+ call sites: chat init/access, trips history, payment page, admin chat archive, reviews, disputes, notifications reminders, owner dashboard | **REAL FEATURE** — core shared helper, load-bearing across booking/chat/review/dispute/notification subsystems |
+| `prismaIncludes.ts` | `bookingWithHotelInclude` | 10+ call sites across chat/tst/bookings/disputes/admin API routes | **REAL FEATURE** — shared Prisma include shape, widely reused |
+| `inventory.ts` | `assertRoomTypeAvailable`, `findAvailablePhysicalRoom`, `getRoomTypeDaySummary` | Owner offline-booking, booking pricing, owner calendar, admin booking actions, owner booking confirm, `assignment.ts` | **REAL FEATURE** — availability engine used by both consumer booking flow and Owner/Admin actions |
+| `amenities.ts` | `parseAmenitiesJson`, `amenitiesToJson`, `AMENITY_CATEGORIES` | TST assistant intent parsing, hotel room grouping, `OwnerRoomTypesPanel.tsx`, `RoomTypeCards.tsx`, owner room-types API | **REAL FEATURE** — wired end-to-end (Owner UI → API → consumer-facing room cards) |
+| `ownerQueries.ts` | `ownerBookingWhere`, `ownerOfflineBookingWhere` | Owner dashboard page, owner offline-bookings API | **REAL FEATURE**, small/thin but load-bearing for Owner Bookings section |
+| `bulkRooms.ts` | `bulkCreatePhysicalRooms`, `expandRoomNumbers` | `/api/owner/rooms/bulk` only | **REAL FEATURE**, single call site — Owner bulk room creation, not dead |
+| `assignment.ts` | `assignBookingToRoom`, `autoAssignBookingIfPossible` | `/api/owner/bookings/[id]/assign-room`, `/api/owner/bookings/[id]/confirm` | **REAL FEATURE** — Owner room-assignment API, wired |
+| **`staff.ts`** | `resolveHotelAccess`, `hasPermission`, `maskGuestContact` | **Zero call sites anywhere outside this file** (repo-wide grep) | **BACKEND FOUNDATION ONLY — unreachable.** This is the *only* code in the repo that reads the `HotelStaff` model or checks staff permissions, and nothing calls it. |
+| `migrate.ts` | `ensureRoomTypesForHotel` | **Zero call sites anywhere** | **LEGACY-UNUSED** — an idempotent one-off backfill helper (own comment: "backfill for dev / post-migration"), never invoked by any route, cron, or script found |
+| `types.ts` | `STAFF_ROLE`, `HotelStaffRole`, misc type helpers | Imported only by `staff.ts` and `assignment.ts` (for unrelated booking-room-id helpers) | Support file, follows its consumers' classification |
+
+**`HotelStaff` end-to-end conclusion**: the Prisma model (`hotelId`, `userId`, `staffRole:
+RECEPTIONIST | HOUSEKEEPING`) exists in the schema, and a complete, well-designed permission system for
+it exists in `staff.ts` (per-role permission arrays, PII masking for receptionists without
+`view_guest_pii`, owner/admin full-access bypass) — but:
+- **No API route creates, lists, updates, or deletes a `HotelStaff` record** (repo-wide grep for
+  `hotelStaff` / `HotelStaff` found only the 2 files above — no `/api/owner/staff/*` or similar route
+  exists at all).
+- **No invite/setup flow exists** — no email/link/code generation for onboarding a staff member found.
+- **No login differentiation for staff** — `HotelStaff.userId` implies a staff member is a `User`, but
+  since `resolveHotelAccess` (the only code that would grant a staff member reduced-scope access) is
+  never called from any authenticated route, a `HotelStaff` row today has **zero effect on anything a
+  logged-in user can do** — their access is governed entirely by their `User.role` (GUEST/OWNER/ADMIN)
+  via the existing `requireAuth`/`requireOwner`/`requireAdmin` guards, not by `HotelStaff`.
+- Consistent with §6d: Owner sidebar has no "Staff" section, confirming no UI entry point either.
+- **Classification: BACKEND FOUNDATION ONLY.** Not a bug, not partially wired — a complete,
+  self-consistent subsystem (schema + permission logic) that the rest of the app simply does not call
+  yet. Building "Owner → Staff management" as a future feature would mean writing the API routes, an
+  invite flow, and a staff-scoped session/permission-check integration — the RBAC *logic itself*
+  (`ROLE_PERMISSIONS`, `maskGuestContact`) would not need to be rewritten, just wired in.
 
 ---
 

@@ -219,15 +219,52 @@ returning to earlier phases only if regression is found:
 
 ## NEXT
 
-**AUDIT CONTINUES — not implementation, not "complete."** The user explicitly rejected calling the
-first pass "complete audit" — it was a structural first layer. This session added a second layer
-(code-traced chain-following: phone-OTP full chain, Admin Bookings KPI root cause confirmed, `/api/seed`
-resolved, security headers confirmed absent, Owner/Admin section lists extracted) — see
-`docs/TAJSTAY_CURRENT_STATE_AUDIT.md` §6b-6f. **Still explicitly required before the audit's own
-completion gate is met** (not started any prior pass this session): the full browser-runtime
-role-by-role walkthrough (anonymous/Guest/Owner/Admin, all 21 Owner+Admin sections, all Profile
-subroutes), auth provider runtime verification, booking end-to-end walkthrough, full RU/TJ/EN visual
-pass, full responsive matrix, IDOR/authorization testing, performance baseline, deployed-vs-local diff.
-This is genuinely multi-session runtime QA work, not something to fabricate. Continue the audit next
-session — do not start implementation, do not call the audit complete, do not silently narrow scope
-again.
+**AUDIT CONTINUES — not implementation, not "complete."** Layer 3 this pass, per the user's two
+explicit refinements plus new-pass instructions — see `docs/TAJSTAY_CURRENT_STATE_AUDIT.md` §6e-6g:
+
+- §6e `/api/seed`: added **deployed runtime evidence** (not just code) — `GET` against production
+  `https://www.tajstay.site/api/seed` with no credentials → `403 Forbidden` (`{"error":"Forbidden"}`);
+  `POST` same → `405 Method Not Allowed`. Confirms the fail-closed path actually executes in prod, not
+  just in code.
+- §6f Security headers: now split into **APPLICATION CONFIG: absent** (unchanged) vs. **DEPLOYED
+  RESPONSE: actual headers** (new) — checked `/`, `/auth/sign-in`, `/api/search` on production. Only
+  `Strict-Transport-Security` is present (Vercel platform default, not app config); CSP, X-Frame-Options,
+  X-Content-Type-Options, Referrer-Policy, Permissions-Policy all absent in both config AND live
+  response; `X-Powered-By: Next.js` also leaked. Authenticated route / mutating API response not checked
+  (stayed within GET-only, non-destructive scope).
+- §6b Phone-OTP: **Firebase client SDK trace completed.** `src/lib/firebase/client.ts` is a fully
+  implemented Firebase Phone Auth wrapper (recaptcha + `signInWithPhoneNumber` + `confirmationResult`)
+  with **zero call sites and zero DOM container anywhere else in the repo** → classified **(A)
+  DEAD/UNUSED PLUMBING**, not partially wired. The actual live system for `phoneVerified` is the custom
+  `/api/phone-otp/*` subsystem (fully documented: 10min TTL, 60s resend cooldown, 5-attempt lock/15min,
+  layered IP+phone+pair rate limits, timing-safe hash compare) — but *that* subsystem also has zero UI
+  callers found. What `/profile/phone`'s actual button calls, if anything, is **still unknown** —
+  requires a live click-through, queued for the Guest Profile walkthrough below.
+- §6g `lib/pms/*`/`HotelStaff` deepened to file-by-file classification: 7 of 10 files are **REAL
+  FEATURE** with confirmed call sites (bookingContext, prismaIncludes, inventory, amenities,
+  ownerQueries, bulkRooms, assignment — all wired into live Owner/booking/chat/review flows).
+  `staff.ts` (`resolveHotelAccess`, the only code that reads `HotelStaff` for permissions) has **zero
+  callers anywhere** → **BACKEND FOUNDATION ONLY, unreachable** — a `HotelStaff` row today has no effect
+  on anything, access is governed purely by `User.role`. `migrate.ts` → **LEGACY-UNUSED** one-off
+  backfill script, zero callers.
+
+**Runtime role-walkthrough: STARTED, far from complete.** Opened local dev (`localhost:3000`) in the
+in-app Browser pane as Anonymous: home page loads clean, zero console errors, nav links present
+(`/`, `/search`, `/tours`, `/history`, `/profile` all visible unauthenticated — worth checking during
+Guest/Anonymous comparison whether `/history` and `/profile` properly redirect-to-login for anonymous
+users rather than rendering, not yet checked). One **UNVERIFIED, not confirmed** observation: the
+search card appeared to overflow the visible pane width at both the pane's default size and after
+requesting a 1280px desktop resize (the resize call reported viewport emulation was cleared rather than
+applied, so this may be a Browser-pane width artifact, not a genuine desktop layout bug — needs
+re-verification with a viewport that's confirmed to have actually changed before treating as a finding).
+
+**Still explicitly required before the audit's own completion gate is met** — this is the dominant
+remaining gap: full browser-runtime role-by-role walkthrough (Anonymous journey incl. mobile, Guest
+incl. full Profile click-tree, Owner all 11 sections individually, Admin all 10 sections individually),
+auth provider runtime verification (Google/Telegram/Phone), Cookie+Install actual timed sequencing,
+real RU/TJ/EN runtime pass (not dictionary grep), responsive runtime interaction at 360/390/412/768/
+1024/1280/1440, booking end-to-end on isolated QA data (`qa-claude-session@tajstay.local`), Tours
+data-source classification, non-destructive IDOR testing (Guest A vs Guest B, Owner A vs Owner B),
+performance baseline (dev vs deployed, clearly separated), deployed-vs-local diff (local SHA `f63443c`
+vs. production `https://www.tajstay.site` — not yet done). Continue next session — do not start
+implementation, do not call the audit complete, do not silently narrow scope again.
