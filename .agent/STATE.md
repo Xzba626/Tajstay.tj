@@ -622,3 +622,36 @@ duplicate top account card (avatar/name/role/verification badges/edit pencil, al
 Admin), reconsider Подписки vs. Notification Settings overlap, make the whole root role-aware
 (Admin/Owner/Guest each get only relevant rows). Target structure and full rationale already specified
 by the user — implement directly, then mini-regression at 390/412 + RU/TJ/EN.
+
+## Profile root compaction — DONE (commit `efee9c9`)
+
+Rewrote `ProfileMockupView.tsx` to the exact target structure the user specified: removed the giant
+identity card (avatar/name/role/verification badges/edit pencil — fully duplicated Личная информация),
+removed the История/Избранное counter grid (meaningless for Admin/Owner, already in bottom nav for
+Guest), removed the separate Подписки row. Root is now role-aware — GUEST sees the Become-Owner promo,
+OWNER/ADMIN see one "Доступ" section linking to their own workspace only. Also fixed a genuine
+copy/label bug found while touching this: the "Уведомления" row's subtitle was literally the Settings
+row's own text ("Язык, валюта и приложение") due to a reused message key — now correctly says
+"Настройки уведомлений" / "Каналы и типы уведомлений".
+
+**STATUS: FIXED, RUNTIME VERIFIED in a clean production build** at 390px — matches the target
+structure exactly (Профиль → Личная информация/Безопасность/Настройки/Настройки уведомлений →
+Админ-панель → Поддержка → Выйти), fits almost entirely on one screen without scrolling. **Dev-mode
+verification was abandoned this pass** after the service worker re-registered itself between checks
+despite being explicitly unregistered moments earlier (cause not isolated — worth a closer look if it
+recurs, but production was clean and consistent throughout, which is what ships). All linked routes
+(`/profile/personal`, `/profile/security`, `/profile/settings`, `/notifications`, `/profile/support`,
+`/dashboard/admin`, `/dashboard/owner`) were not modified — only which rows link to them and their
+labels — so the pages behind those links are unaffected by this change; not individually re-clicked
+through this pass.
+
+**Home hero** subtitle removal (external auto-commit `423d8a4`) — confirmed present in source, not
+re-verified live this pass (single-line, low-risk change, already covered by the Home mini-regression
+owed from earlier passes).
+
+**NEXT**: real-device defects still open — Bookings 500, Complaints/Reviews domain mix-up, Notifications
+top-content-disappearing + dev/maintenance UI in the inbox + developer-language copy, self-service
+`/auth/forgot-password` E2E, TST Assistant function/mobile regression. Also worth a short session someday
+on why this dev server's service worker keeps reappearing after explicit unregistration — it hasn't
+blocked any fix from shipping (production is unaffected and is the verification method being used), but
+it's now cost real time across multiple passes.
