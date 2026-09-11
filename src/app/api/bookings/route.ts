@@ -48,7 +48,10 @@ export async function POST(req: NextRequest) {
   const guestEmailRaw = String(form.get("guestEmail") || "").trim();
   const guestEmail = guestEmailRaw ? guestEmailRaw.toLowerCase() : null;
   const paymentMethodRaw = String(form.get("paymentMethod") || "ALIF").toUpperCase();
-  const paymentMethod = paymentMethodRaw === "DC" ? "DC" : "ALIF";
+  let paymentMethod = paymentMethodRaw === "DC" ? "DC" : "ALIF";
+  const hotelPaymentMethodIdRaw = Number(form.get("hotelPaymentMethodId"));
+  const hotelPaymentMethodId =
+    Number.isFinite(hotelPaymentMethodIdRaw) && hotelPaymentMethodIdRaw > 0 ? hotelPaymentMethodIdRaw : null;
   const guestCountRaw = Number(form.get("guestCount") ?? form.get("guests") ?? 1);
   const guestCount =
     Number.isFinite(guestCountRaw) && guestCountRaw >= 1 ? Math.min(99, Math.floor(guestCountRaw)) : 1;
@@ -119,6 +122,40 @@ export async function POST(req: NextRequest) {
       });
       resolvedRoomTypeId = r?.roomTypeId ?? null;
     }
+
+    const ownerTarget = resolvedRoomId
+      ? await prisma.room.findUnique({ where: { id: resolvedRoomId }, include: { hotel: true } })
+      : resolvedRoomTypeId
+        ? await prisma.roomType.findUnique({ where: { id: resolvedRoomTypeId }, include: { hotel: true } })
+        : null;
+    const hotelId = ownerTarget && "hotel" in ownerTarget ? ownerTarget.hotel.id : null;
+    const ownerId = ownerTarget && "hotel" in ownerTarget ? ownerTarget.hotel.ownerId : null;
+
+    // Snapshot the chosen hotel-owned payment method at selection time - if the owner edits their
+    // card number tomorrow, this booking must keep showing what the guest actually paid to.
+    let paymentMethodSnapshot: {
+      displayLabel: string;
+      recipientName: string;
+      paymentIdentifier: string;
+      instructions: string | null;
+    } | null = null;
+    let resolvedHotelPaymentMethodId: number | null = null;
+    if (hotelPaymentMethodId && hotelId) {
+      const method = await prisma.hotelPaymentMethod.findFirst({
+        where: { id: hotelPaymentMethodId, hotelId, isActive: true }
+      });
+      if (method) {
+        resolvedHotelPaymentMethodId = method.id;
+        paymentMethodSnapshot = {
+          displayLabel: method.displayLabel,
+          recipientName: method.recipientName,
+          paymentIdentifier: method.paymentIdentifier,
+          instructions: method.instructions
+        };
+        paymentMethod = method.displayLabel;
+      }
+    }
+
     // Guest has 15 minutes to submit payment proof after booking creation.
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
     const publicCode = await generateBookingCode("TJ");
@@ -141,6 +178,8 @@ export async function POST(req: NextRequest) {
         currency: "TJS",
         paymentStatus,
         paymentMethod,
+        hotelPaymentMethodId: resolvedHotelPaymentMethodId,
+        paymentMethodSnapshot: paymentMethodSnapshot ? JSON.parse(JSON.stringify(paymentMethodSnapshot)) : undefined,
         payOnArrival: false,
         phone,
         status: BOOKING_STATUS.WAITING_PAYMENT,
@@ -183,15 +222,6 @@ export async function POST(req: NextRequest) {
         })
       }
     });
-
-    const ownerTarget = resolvedRoomId
-      ? await prisma.room.findUnique({ where: { id: resolvedRoomId }, include: { hotel: true } })
-      : resolvedRoomTypeId
-        ? await prisma.roomType.findUnique({ where: { id: resolvedRoomTypeId }, include: { hotel: true } })
-        : null;
-
-    const ownerId =
-      ownerTarget && "hotel" in ownerTarget ? ownerTarget.hotel.ownerId : null;
 
     if (ownerId) {
       await prisma.notification.create({

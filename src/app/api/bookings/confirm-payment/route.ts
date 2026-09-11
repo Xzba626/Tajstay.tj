@@ -10,20 +10,28 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const body = (await req.json().catch(() => ({}))) as { bookingId?: unknown };
+  const body = (await req.json().catch(() => ({}))) as { bookingId?: unknown; reason?: unknown };
   const bookingId = Number(body?.bookingId);
+  const reason = String(body?.reason ?? "").trim();
   if (!Number.isFinite(bookingId) || bookingId < 1) {
     return NextResponse.json({ error: "Invalid bookingId" }, { status: 400 });
   }
+  if (!reason || reason.length < 3) {
+    // Admin is now an override, not the normal reviewer - a reason is mandatory and audited.
+    return NextResponse.json({ error: "Укажите причину административного подтверждения (минимум 3 символа)" }, { status: 400 });
+  }
 
   try {
-    await confirmBookingPaymentAdmin(bookingId, admin.id);
+    await confirmBookingPaymentAdmin(bookingId, admin.id, reason);
     return NextResponse.json({ ok: true }, { status: 200 });
   } catch (e) {
     const code = e instanceof Error ? e.message : "";
     if (code === "NOT_FOUND") return NextResponse.json({ error: "Not found" }, { status: 404 });
+    if (code === "REASON_REQUIRED") {
+      return NextResponse.json({ error: "Укажите причину административного подтверждения" }, { status: 400 });
+    }
     if (code === "NOT_ON_REVIEW") {
-      return NextResponse.json({ error: "Чек не ожидает подтверждения админом" }, { status: 400 });
+      return NextResponse.json({ error: "Чек не ожидает подтверждения" }, { status: 400 });
     }
     if (code === "NO_PROOF") return NextResponse.json({ error: "Нет загруженного чека" }, { status: 400 });
     if (code === "BAD_PAYMENT") {

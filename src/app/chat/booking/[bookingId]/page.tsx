@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getBookingGuestLabel } from "@/lib/domain/booking";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { BookingRoom } from "@/components/chat/BookingRoom";
-import { getOwnerPaymentMethods } from "@/lib/owner-payment-methods";
+import { getHotelPaymentMethods } from "@/lib/hotels/paymentMethods";
 import { getBookingTimeline } from "@/lib/chat/bookingTimeline";
 import { getProofMetaFromLogs } from "@/lib/chat/proofMeta";
 import { m } from "@/lib/i18n/messages";
@@ -69,7 +69,7 @@ export default async function BookingChatPage({
         : m(locale, "bookingRoom.titleOwner");
 
   const [paymentMethods, timeline, proofMeta] = await Promise.all([
-    getOwnerPaymentMethods(hotel.ownerId),
+    getHotelPaymentMethods(hotel.id),
     getBookingTimeline(bookingId),
     getProofMetaFromLogs(bookingId)
   ]);

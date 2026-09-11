@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect } from "react";
 import { BookingChatPanel } from "@/components/chat/BookingChatPanel";
 import { BookingChatHeader } from "@/components/chat/BookingChatHeader";
-import { PaymentMethodsBlock } from "@/components/chat/PaymentMethodsBlock";
+import { PaymentMethodsBlock, type PaymentMethodDisplay } from "@/components/chat/PaymentMethodsBlock";
 import { ProofUploadPanel } from "@/components/chat/ProofUploadPanel";
 import { BookingTimeline } from "@/components/chat/BookingTimeline";
 import { ReviewBanner } from "@/components/chat/ReviewBanner";
@@ -40,7 +40,7 @@ export type BookingRoomProps = {
   bookingStatus: string;
   paymentStatus: string;
   publicCode: string | null;
-  paymentMethods: string[];
+  paymentMethods: PaymentMethodDisplay[];
   timeline: BookingTimelineEvent[];
   proofSent?: boolean;
   paymentProofUrl?: string | null;
@@ -118,7 +118,7 @@ export function BookingRoom(props: BookingRoomProps) {
         <PaymentReviewCard
           locale={locale}
           bookingId={bookingId}
-          canAct={isAdmin}
+          actorRole={isOwner ? "OWNER" : isAdmin ? "ADMIN" : null}
           guestLabel={guestLabel}
           totalPrice={Number(totalPrice)}
           currency={currency}
@@ -139,6 +139,7 @@ export function BookingRoom(props: BookingRoomProps) {
             publicCode={publicCode}
             canSubmit={canSubmitProof}
             defaultAmount={Number(totalPrice)}
+            paymentMethods={paymentMethods}
           />
         </>
       ) : null}

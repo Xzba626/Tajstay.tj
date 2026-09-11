@@ -10,7 +10,8 @@ import { RejectProofModal } from "@/components/chat/RejectProofModal";
 export type PaymentReviewCardProps = {
   locale: Locale;
   bookingId: number;
-  canAct: boolean;
+  /** OWNER = the hotel's normal reviewer. ADMIN = scoped override (reason always required). null = read-only. */
+  actorRole: "OWNER" | "ADMIN" | null;
   guestLabel: string;
   totalPrice: number;
   currency: string;
@@ -26,7 +27,7 @@ export function PaymentReviewCard(props: PaymentReviewCardProps) {
   const {
     locale,
     bookingId,
-    canAct,
+    actorRole,
     guestLabel,
     totalPrice,
     currency,
@@ -38,25 +39,32 @@ export function PaymentReviewCard(props: PaymentReviewCardProps) {
     proofComment
   } = props;
 
+  const canAct = actorRole !== null;
+  const isAdmin = actorRole === "ADMIN";
+  const confirmEndpoint = isAdmin ? "/api/bookings/confirm-payment" : `/api/owner/bookings/${bookingId}/payment-approve`;
+  const rejectEndpoint = isAdmin ? "/api/bookings/reject-payment" : `/api/owner/bookings/${bookingId}/payment-reject`;
+
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [rejectOpen, setRejectOpen] = useState(false);
+  const [confirmReasonOpen, setConfirmReasonOpen] = useState(false);
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
-  async function confirmPayment() {
+  async function confirmPayment(reason?: string) {
     if (!canAct || busy) return;
     setBusy(true);
     setToast(null);
     try {
-      const res = await fetch("/api/bookings/confirm-payment", {
+      const res = await fetch(confirmEndpoint, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json", accept: "application/json" },
-        body: JSON.stringify({ bookingId })
+        body: JSON.stringify({ bookingId, reason })
       });
       const json = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) throw new Error(json.error || m(locale, "bookingRoom.review.confirmFailed"));
+      setConfirmReasonOpen(false);
       setToast(m(locale, "bookingRoom.review.confirmOk"));
       router.refresh();
     } catch (e) {
@@ -70,7 +78,7 @@ export function PaymentReviewCard(props: PaymentReviewCardProps) {
     if (!canAct || busy) return;
     setBusy(true);
     try {
-      const res = await fetch("/api/bookings/reject-payment", {
+      const res = await fetch(rejectEndpoint, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json", accept: "application/json" },
@@ -179,15 +187,21 @@ export function PaymentReviewCard(props: PaymentReviewCardProps) {
           ) : null}
         </div>
 
+        {isAdmin ? (
+          <p className="mt-4 rounded-lg border border-amber-400/25 bg-amber-500/10 px-3 py-2 text-[11px] text-amber-100">
+            {m(locale, "bookingRoom.review.adminOverrideNotice")}
+          </p>
+        ) : null}
+
         {canAct ? (
           <div className="mt-4 flex flex-col gap-2">
             <button
               type="button"
               disabled={busy}
-              onClick={() => void confirmPayment()}
+              onClick={() => (isAdmin ? setConfirmReasonOpen(true) : void confirmPayment())}
               className="w-full rounded-xl bg-gradient-to-r from-[#0f7a4d] to-[#0f7a4d] py-3.5 text-sm font-bold text-white shadow-lg shadow-[#0f3d2e]/25 disabled:opacity-55"
             >
-              {busy ? "…" : m(locale, "bookingRoom.review.confirm")}
+              {busy ? "…" : m(locale, isAdmin ? "bookingRoom.review.adminOverrideConfirm" : "bookingRoom.review.confirm")}
             </button>
             <button
               type="button"
@@ -195,7 +209,7 @@ export function PaymentReviewCard(props: PaymentReviewCardProps) {
               onClick={() => setRejectOpen(true)}
               className="w-full rounded-xl border border-red-400/35 bg-red-500/10 py-3 text-sm font-semibold text-red-100 disabled:opacity-55"
             >
-              {m(locale, "bookingRoom.review.reject")}
+              {m(locale, isAdmin ? "bookingRoom.review.adminOverrideReject" : "bookingRoom.review.reject")}
             </button>
           </div>
         ) : (
@@ -211,7 +225,24 @@ export function PaymentReviewCard(props: PaymentReviewCardProps) {
         busy={busy}
         onClose={() => setRejectOpen(false)}
         onSubmit={rejectPayment}
+        title={isAdmin ? m(locale, "bookingRoom.review.adminOverrideRejectTitle") : undefined}
+        description={isAdmin ? m(locale, "bookingRoom.review.adminOverrideRejectDesc") : undefined}
+        showPresets={!isAdmin}
       />
+
+      {isAdmin ? (
+        <RejectProofModal
+          locale={locale}
+          open={confirmReasonOpen}
+          busy={busy}
+          onClose={() => setConfirmReasonOpen(false)}
+          onSubmit={confirmPayment}
+          title={m(locale, "bookingRoom.review.adminOverrideConfirmTitle")}
+          description={m(locale, "bookingRoom.review.adminOverrideConfirmDesc")}
+          confirmLabel={m(locale, "bookingRoom.review.adminOverrideConfirm")}
+          showPresets={false}
+        />
+      ) : null}
 
       {lightbox ? (
         <button

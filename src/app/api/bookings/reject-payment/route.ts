@@ -27,6 +27,9 @@ export async function POST(req: NextRequest) {
   } catch (e) {
     const code = e instanceof Error ? e.message : "";
     if (code === "NOT_FOUND") return NextResponse.json({ error: "Not found" }, { status: 404 });
+    if (code === "REASON_REQUIRED") {
+      return NextResponse.json({ error: "Укажите причину административного отклонения" }, { status: 400 });
+    }
     if (code === "NOT_ON_REVIEW") {
       return NextResponse.json({ error: "Чек не ожидает проверки" }, { status: 400 });
     }

@@ -62,6 +62,9 @@ export async function POST(req: NextRequest) {
   const proofAmountRaw = String(form.get("proofAmount") ?? "").trim();
   const proofAmount = proofAmountRaw ? Number(proofAmountRaw) : null;
   const proofFile = form.get("proofFile");
+  const hotelPaymentMethodIdRaw = Number(form.get("hotelPaymentMethodId"));
+  const hotelPaymentMethodId =
+    Number.isFinite(hotelPaymentMethodIdRaw) && hotelPaymentMethodIdRaw > 0 ? hotelPaymentMethodIdRaw : null;
 
   let proofUrl = "";
   if (proofUrlInput && isSafeProofUrl(proofUrlInput)) proofUrl = proofUrlInput;
@@ -111,6 +114,31 @@ export async function POST(req: NextRequest) {
     return NextResponse.redirect(publicUrl(req, `/chat/booking/${booking.id}?expired=1`));
   }
 
+  // Snapshot which hotel-owned payment method the guest says they used, at the moment they submit
+  // proof - so a later edit to the owner's card number never changes what this booking shows.
+  const hotel = bookingHotel(booking);
+  let paymentMethodSnapshot: {
+    displayLabel: string;
+    recipientName: string;
+    paymentIdentifier: string;
+    instructions: string | null;
+  } | null = null;
+  let resolvedHotelPaymentMethodId: number | null = null;
+  if (hotelPaymentMethodId) {
+    const method = await prisma.hotelPaymentMethod.findFirst({
+      where: { id: hotelPaymentMethodId, hotelId: hotel.id, isActive: true }
+    });
+    if (method) {
+      resolvedHotelPaymentMethodId = method.id;
+      paymentMethodSnapshot = {
+        displayLabel: method.displayLabel,
+        recipientName: method.recipientName,
+        paymentIdentifier: method.paymentIdentifier,
+        instructions: method.instructions
+      };
+    }
+  }
+
   const proofReviewDeadlineAt = new Date(Date.now() + 5 * 60 * 1000);
   const transitioned = await prisma.booking.updateMany({
     where: {
@@ -124,14 +152,21 @@ export async function POST(req: NextRequest) {
       proofSubmittedAt: new Date(),
       proofReviewDeadlineAt,
       paymentTimerPaused: true,
-      expiresAt: null
+      expiresAt: null,
+      ...(resolvedHotelPaymentMethodId
+        ? {
+            hotelPaymentMethodId: resolvedHotelPaymentMethodId,
+            paymentMethodSnapshot: JSON.parse(JSON.stringify(paymentMethodSnapshot)),
+            paymentMethod: paymentMethodSnapshot!.displayLabel
+          }
+        : {})
     }
   });
 
   if (transitioned.count > 0) {
     await prisma.notification.create({
       data: {
-        userId: bookingHotel(booking).ownerId,
+        userId: hotel.ownerId,
         bookingId: booking.id,
         type: "PAYMENT_PROOF_SUBMITTED",
         isRead: false

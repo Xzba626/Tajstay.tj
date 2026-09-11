@@ -16,8 +16,7 @@ import { DataToolbar } from "@/components/ui/DataToolbar";
 import { Pagination } from "@/components/ui/Pagination";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { getSiteContent } from "@/lib/site-content";
-import { getOwnerPaymentMethods } from "@/lib/owner-payment-methods";
-import { OwnerPaymentMethodsPanel } from "@/components/owner/OwnerPaymentMethodsPanel";
+import { HotelPaymentMethodsManager } from "@/components/owner/HotelPaymentMethodsManager";
 import { Card } from "@/shared/ui";
 import { buildOwnerPricingInsights } from "@/lib/services/ownerInsights";
 import { BookingChatLauncher } from "@/components/chat/BookingChatPanel";
@@ -161,7 +160,6 @@ export default async function OwnerDashboardPage({
 
   const since30 = subDays(new Date(), 30);
   const content = await getSiteContent();
-  const ownerPaymentMethods = await getOwnerPaymentMethods(user.id);
 
   let hotels: any[] = [];
   let rooms: any[] = [];
@@ -329,7 +327,7 @@ export default async function OwnerDashboardPage({
       take: 50
     });
   } else if (activeSection === "finances") {
-    [ownerPayouts, revenueAgg, dashboardKpis] = await Promise.all([
+    [ownerPayouts, revenueAgg, dashboardKpis, hotels] = await Promise.all([
       prisma.payout.findMany({
         where: { ownerId: user.id },
         include: { booking: { include: bookingWithHotelInclude } },
@@ -345,7 +343,8 @@ export default async function OwnerDashboardPage({
         },
         _sum: { totalPrice: true, commission: true }
       }),
-      getOwnerDashboardKpis(user.id)
+      getOwnerDashboardKpis(user.id),
+      prisma.hotel.findMany({ where: { ownerId: user.id }, orderBy: { createdAt: "desc" }, select: { id: true, name: true } })
     ]);
   } else if (activeSection === "statistics" || activeSection === "help") {
     [hotels, dashboardKpis, pendingCount, recentBookings] = await Promise.all([
@@ -1470,11 +1469,7 @@ export default async function OwnerDashboardPage({
             <h2 className="owner-section-head__title">{m(locale, "owner.finances.title")}</h2>
           </div>
           <p className="owner-section-lead">{m(locale, "owner.finances.hint")}</p>
-          <OwnerPaymentMethodsPanel
-            locale={locale}
-            ownerPaymentMethods={ownerPaymentMethods}
-            catalogMethods={content.paymentCatalog.methods}
-          />
+          <HotelPaymentMethodsManager locale={locale} hotels={hotels} />
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="owner-kpi-card">
               <div className="owner-kpi-card__label">{m(locale, "owner.finances.revenueMonth")}</div>

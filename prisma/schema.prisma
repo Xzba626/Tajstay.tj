@@ -11,40 +11,40 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  name      String
-  phone     String   @unique
-  email     String?  @unique
-  emailVerified DateTime?
-  image     String?
-  password  String
+  id               Int       @id @default(autoincrement())
+  name             String
+  phone            String    @unique
+  email            String?   @unique
+  emailVerified    DateTime?
+  image            String?
+  password         String
   /// Firebase Auth UID after phone sign-in (production SMS OTP).
-  firebaseUid   String?  @unique
+  firebaseUid      String?   @unique
   /// True when phone was verified via Firebase Phone Auth (or legacy OTP).
-  phoneVerified Boolean  @default(false)
+  phoneVerified    Boolean   @default(false)
   /// Telegram user id (string for large ids).
-  telegramId        String?  @unique
-  telegramUsername  String?
-  telegramPhotoUrl  String?
-  role      String   @default("GUEST")
-  verified  Boolean  @default(false)
-  isBanned  Boolean   @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  telegramId       String?   @unique
+  telegramUsername String?
+  telegramPhotoUrl String?
+  role             String    @default("GUEST")
+  verified         Boolean   @default(false)
+  isBanned         Boolean   @default(false)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
-  hotels              Hotel[]             @relation("OwnerHotels")
-  bookings            Booking[]           @relation("BookingUser")
-  offlineBookingsCreated Booking[]          @relation("BookingsCreatedByOwner")
-  reviewedBookings    Booking[]           @relation("BookingProofReviewedBy")
-  notes               Notification[]      @relation("UserNotifications")
-  sessions            Session[]
-  passwordResetTokens PasswordResetToken[]
-  emailOtps           EmailOtp[]
-  favorites           Favorite[]
-  complaints          Complaint[]
-  accounts            Account[]
-  ownerApplications   OwnerApplication[]  @relation("OwnerApplications")
-  reviewedOwnerApps   OwnerApplication[]  @relation("OwnerApplicationReviewedBy")
+  hotels                 Hotel[]              @relation("OwnerHotels")
+  bookings               Booking[]            @relation("BookingUser")
+  offlineBookingsCreated Booking[]            @relation("BookingsCreatedByOwner")
+  reviewedBookings       Booking[]            @relation("BookingProofReviewedBy")
+  notes                  Notification[]       @relation("UserNotifications")
+  sessions               Session[]
+  passwordResetTokens    PasswordResetToken[]
+  emailOtps              EmailOtp[]
+  favorites              Favorite[]
+  complaints             Complaint[]
+  accounts               Account[]
+  ownerApplications      OwnerApplication[]   @relation("OwnerApplications")
+  reviewedOwnerApps      OwnerApplication[]   @relation("OwnerApplicationReviewedBy")
 
   hostProfile         HostProfile?
   paymentMethodsEntry OwnerPaymentMethod?
@@ -76,49 +76,50 @@ model Account {
 
 /// Заявка на статус владельца; доступ к owner panel только после APPROVED.
 model OwnerApplication {
-  id           Int       @id @default(autoincrement())
-  userId       Int
-  user         User      @relation("OwnerApplications", fields: [userId], references: [id])
-  fullName     String
-  phone        String
-  email        String
-  businessName String
-  documentUrl  String?
-  comment      String?
+  id              Int       @id @default(autoincrement())
+  userId          Int
+  user            User      @relation("OwnerApplications", fields: [userId], references: [id])
+  fullName        String
+  phone           String
+  email           String
+  businessName    String
+  documentUrl     String?
+  comment         String?
   /// Extended onboarding: property details, upload URLs, applicant type (JSON).
   applicationMeta Json?
-  status       String    @default("PENDING")
-  createdAt    DateTime  @default(now())
-  reviewedAt   DateTime?
-  reviewedById Int?
-  reviewedBy   User?     @relation("OwnerApplicationReviewedBy", fields: [reviewedById], references: [id])
+  status          String    @default("PENDING")
+  createdAt       DateTime  @default(now())
+  reviewedAt      DateTime?
+  reviewedById    Int?
+  reviewedBy      User?     @relation("OwnerApplicationReviewedBy", fields: [reviewedById], references: [id])
 }
 
 model Hotel {
-  id             Int      @id @default(autoincrement())
-  owner          User     @relation("OwnerHotels", fields: [ownerId], references: [id])
-  ownerId        Int
-  name           String
-  city           String
-  address        String
-  description    String
-  propertyType   String   @default("HOTEL")
+  id            Int      @id @default(autoincrement())
+  owner         User     @relation("OwnerHotels", fields: [ownerId], references: [id])
+  ownerId       Int
+  name          String
+  city          String
+  address       String
+  description   String
+  propertyType  String   @default("HOTEL")
   /// URL обложки (внешняя ссылка или /uploads/…)
-  coverImageUrl  String?
-  rating         Float    @default(0)
-  status         String   @default("PENDING")
-  latitude       Float
-  longitude      Float
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  coverImageUrl String?
+  rating        Float    @default(0)
+  status        String   @default("PENDING")
+  latitude      Float
+  longitude     Float
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  rooms      Room[]
-  roomTypes  RoomType[]
-  staff      HotelStaff[]
-  favorites  Favorite[]
+  rooms     Room[]
+  roomTypes RoomType[]
+  staff     HotelStaff[]
+  favorites Favorite[]
 
-  photos    HotelPhoto[]
-  amenities HotelAmenity[]
+  photos         HotelPhoto[]
+  amenities      HotelAmenity[]
+  paymentMethods HotelPaymentMethod[]
 }
 
 /// Категория номера (то, что видит гость): Стандарт, Полулюкс, …
@@ -147,10 +148,10 @@ model RoomType {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  rooms       Room[]
-  bookings    Booking[]    @relation("BookingRoomType")
-  ratePlans   RatePlan[]
-  photos      RoomTypePhoto[]
+  rooms     Room[]
+  bookings  Booking[]       @relation("BookingRoomType")
+  ratePlans RatePlan[]
+  photos    RoomTypePhoto[]
 
   @@unique([hotelId, name])
   @@index([hotelId])
@@ -185,33 +186,33 @@ model RatePlan {
 
 /// Физическая комната (101, 102, A-12) — управление владельцем/ресепшеном
 model Room {
-  id           Int     @id @default(autoincrement())
-  hotel        Hotel   @relation(fields: [hotelId], references: [id])
-  hotelId      Int
-  roomType     RoomType? @relation(fields: [roomTypeId], references: [id])
-  roomTypeId   Int?
+  id                 Int       @id @default(autoincrement())
+  hotel              Hotel     @relation(fields: [hotelId], references: [id])
+  hotelId            Int
+  roomType           RoomType? @relation(fields: [roomTypeId], references: [id])
+  roomTypeId         Int?
   /// Номер комнаты в отеле (уникален в рамках hotelId)
-  roomNumber   String?
-  title        String
-  price        Decimal
-  weekendPrice Decimal?
-  minNights    Int      @default(1)
-  extraGuestPrice Decimal?
-  capacity     Int
-  amenities    String // JSON stringified array (legacy + custom)
+  roomNumber         String?
+  title              String
+  price              Decimal
+  weekendPrice       Decimal?
+  minNights          Int       @default(1)
+  extraGuestPrice    Decimal?
+  capacity           Int
+  amenities          String // JSON stringified array (legacy + custom)
   /// JSON: extra amenities only on this physical room
-  customAmenities String @default("[]")
-  availability Boolean @default(true)
+  customAmenities    String    @default("[]")
+  availability       Boolean   @default(true)
   /// ACTIVE | OUT_OF_SERVICE | MAINTENANCE | CLEANING | DIRTY | INSPECTED | HIDDEN | ARCHIVED
-  status       String   @default("ACTIVE")
+  status             String    @default("ACTIVE")
   /// CLEAN | DIRTY | CLEANING | INSPECTED
-  housekeepingStatus String @default("CLEAN")
-  staffNote    String?
+  housekeepingStatus String    @default("CLEAN")
+  staffNote          String?
 
-  overrides       RoomDateOverride[]
-  bookings        Booking[]
-  assignedBookings Booking[] @relation("AssignedRoom")
-  photos          RoomPhoto[]
+  overrides        RoomDateOverride[]
+  bookings         Booking[]
+  assignedBookings Booking[]          @relation("AssignedRoom")
+  photos           RoomPhoto[]
 
   @@unique([hotelId, roomNumber])
   @@index([hotelId])
@@ -257,72 +258,80 @@ model RoomDateOverride {
 }
 
 model Booking {
-  id            Int      @id @default(autoincrement())
+  id                       Int                 @id @default(autoincrement())
   /// Public short code, e.g. TJ-7704 (shown to user for transfer comment)
-  publicCode    String?  @unique
+  publicCode               String?             @unique
   /// PLATFORM = guest checkout; OWNER_MANUAL = offline booking by host
-  source        String   @default("PLATFORM")
-  user          User?    @relation("BookingUser", fields: [userId], references: [id])
-  userId        Int?
-  createdByOwner   User?  @relation("BookingsCreatedByOwner", fields: [createdByOwnerId], references: [id])
-  createdByOwnerId Int?
-  guestName     String?
-  guestPhone    String?
-  guestEmail    String?
-  guestCount    Int      @default(1)
-  offlineNote   String?
+  source                   String              @default("PLATFORM")
+  user                     User?               @relation("BookingUser", fields: [userId], references: [id])
+  userId                   Int?
+  createdByOwner           User?               @relation("BookingsCreatedByOwner", fields: [createdByOwnerId], references: [id])
+  createdByOwnerId         Int?
+  guestName                String?
+  guestPhone               String?
+  guestEmail               String?
+  guestCount               Int                 @default(1)
+  offlineNote              String?
   /// OWNER_MANUAL lifecycle: PENDING | CONFIRMED | CHECKED_IN | CHECKED_OUT | CANCELLED
-  offlineStatus String?
-  prepayment       Decimal?
-  remainingAmount  Decimal?
-  offlinePaymentType String?
-  roomType      RoomType? @relation("BookingRoomType", fields: [roomTypeId], references: [id])
-  roomTypeId    Int?
-  assignedRoom  Room?     @relation("AssignedRoom", fields: [assignedRoomId], references: [id])
-  assignedRoomId Int?
+  offlineStatus            String?
+  prepayment               Decimal?
+  remainingAmount          Decimal?
+  offlinePaymentType       String?
+  roomType                 RoomType?           @relation("BookingRoomType", fields: [roomTypeId], references: [id])
+  roomTypeId               Int?
+  assignedRoom             Room?               @relation("AssignedRoom", fields: [assignedRoomId], references: [id])
+  assignedRoomId           Int?
   /// Legacy / denormalized physical room (assignedRoomId ?? roomId)
-  room          Room?     @relation(fields: [roomId], references: [id])
-  roomId        Int?
-  checkIn       DateTime
-  checkOut      DateTime
-  totalPrice    Decimal
-  commission    Decimal
-  subtotal      Decimal?  // auditable base amount (without fees/taxes)
-  serviceFee    Decimal?  // platform service fee
-  taxAmount     Decimal?  // tax/VAT if applicable
-  currency      String    @default("TJS")
-  paymentStatus String   @default("PENDING")
-  paymentMethod String   @default("ALIF") // ALIF | DC | ARRIVAL (MVP)
-  payOnArrival  Boolean  @default(false)
-  phone         String
+  room                     Room?               @relation(fields: [roomId], references: [id])
+  roomId                   Int?
+  checkIn                  DateTime
+  checkOut                 DateTime
+  totalPrice               Decimal
+  commission               Decimal
+  subtotal                 Decimal? // auditable base amount (without fees/taxes)
+  serviceFee               Decimal? // platform service fee
+  taxAmount                Decimal? // tax/VAT if applicable
+  currency                 String              @default("TJS")
+  paymentStatus            String              @default("PENDING")
+  paymentMethod            String              @default("ALIF") // display label; legacy ALIF | DC | ARRIVAL still used when hotelPaymentMethodId is not set
+  /// Structured hotel-owned payment method the guest selected (nullable: legacy bookings, or ARRIVAL/pay-on-site).
+  hotelPaymentMethodId     Int?
+  hotelPaymentMethod       HotelPaymentMethod? @relation(fields: [hotelPaymentMethodId], references: [id], onDelete: SetNull)
+  /// Immutable copy of {displayLabel, recipientName, paymentIdentifier, instructions} captured at
+  /// selection time, so a later edit to HotelPaymentMethod never changes what this booking shows.
+  paymentMethodSnapshot    Json?
+  /// Owner/admin note on reject, or admin override justification.
+  paymentReviewNote        String?
+  payOnArrival             Boolean             @default(false)
+  phone                    String
   /// WAIT_PROOF | ON_REVIEW | PENDING_OWNER | CONFIRMED | COMPLETED | REJECTED | CANCELLED | EXPIRED
-  status        String   @default("PENDING_OWNER")
+  status                   String              @default("PENDING_OWNER")
   /// Auto-expire if proof not submitted in time
-  expiresAt     DateTime?
+  expiresAt                DateTime?
   /// Админ: пауза окна оплаты (cron не помечает как EXPIRED, пока true)
-  paymentTimerPaused Boolean @default(false)
+  paymentTimerPaused       Boolean             @default(false)
   /// Proof URL (MVP: user pastes link / uploads elsewhere)
-  paymentProofUrl String?
-  proofSubmittedAt DateTime?
+  paymentProofUrl          String?
+  proofSubmittedAt         DateTime?
   /// Owner must confirm/reject proof within this deadline (MVP SLA)
-  proofReviewDeadlineAt DateTime?
-  proofReviewedAt  DateTime?
-  proofReviewedById Int?
-  proofReviewedBy   User?   @relation("BookingProofReviewedBy", fields: [proofReviewedById], references: [id])
+  proofReviewDeadlineAt    DateTime?
+  proofReviewedAt          DateTime?
+  proofReviewedById        Int?
+  proofReviewedBy          User?               @relation("BookingProofReviewedBy", fields: [proofReviewedById], references: [id])
   /// Guest identity document (passport/ID) for verification by owner/admin
-  guestDocumentUrl String?
+  guestDocumentUrl         String?
   guestDocumentSubmittedAt DateTime?
-  createdAt     DateTime @default(now())
+  createdAt                DateTime            @default(now())
 
   review        Review?
   notifications Notification[]
   complaints    Complaint[]
 
-  payment       Payment?
-  payouts       Payout[]
-  disputes      Dispute[]
-  logs          TransactionLog[]
-  chatMessages  ChatMessage[]
+  payment        Payment?
+  payouts        Payout[]
+  disputes       Dispute[]
+  logs           TransactionLog[]
+  chatMessages   ChatMessage[]
   /// Когда true — активные сообщения выгружены в ChatArchive; новые сообщения запрещены.
   chatArchivedAt DateTime?
 
@@ -338,23 +347,23 @@ model Booking {
 
 /// Активные сообщения чата по брони (после архивации удаляются, копия в ChatArchive).
 model ChatMessage {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   bookingId   Int
-  booking     Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  booking     Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   senderId    Int
   senderRole  String
   senderName  String
-  body        String   @default("")
+  body        String    @default("")
   imageUrl    String?
   /// Запись из TransactionLog при миграции со старого формата.
-  legacyLogId Int?     @unique
-  createdAt   DateTime @default(now())
+  legacyLogId Int?      @unique
+  createdAt   DateTime  @default(now())
   /// Мягкое удаление (владелец / модерация): в основном чате не показывается, в выгрузке остаётся.
   deletedAt   DateTime?
   /// Автоархив (политика хранения): не в основной ленте, доступно в выгрузке / истории.
-  isArchived  Boolean  @default(false)
+  isArchived  Boolean   @default(false)
   /// SENT | DELIVERED | READ
-  status      String   @default("SENT")
+  status      String    @default("SENT")
   readAt      DateTime?
 
   @@index([bookingId])
@@ -379,37 +388,37 @@ model ChatArchive {
 
 /// Owner verification + KYC-like profile.
 model HostProfile {
-  id              Int      @id @default(autoincrement())
-  userId          Int      @unique
-  user            User     @relation(fields: [userId], references: [id])
-  legalName       String?
-  businessName    String?
-  documentUrl     String?
-  kycStatus       String   @default("PENDING") // PENDING | APPROVED | REJECTED
-  riskScore       Int      @default(0)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id           Int      @id @default(autoincrement())
+  userId       Int      @unique
+  user         User     @relation(fields: [userId], references: [id])
+  legalName    String?
+  businessName String?
+  documentUrl  String?
+  kycStatus    String   @default("PENDING") // PENDING | APPROVED | REJECTED
+  riskScore    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 /// Payment transaction linked to booking (auditable).
 model Payment {
-  id            Int      @id @default(autoincrement())
-  bookingId     Int      @unique
-  booking       Booking  @relation(fields: [bookingId], references: [id])
-  userId        Int
-  user          User     @relation(fields: [userId], references: [id])
-  provider      String   @default("MANUAL") // MANUAL | CARD | LOCAL | WALLET
-  method        String   @default("card")
-  status        String   @default("PENDING") // PENDING | AUTHORIZED | CAPTURED | FAILED | REFUNDED
-  currency      String   @default("TJS")
-  amount        Decimal
-  fee           Decimal  @default(0) // processor fee if needed
-  externalRef   String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id          Int      @id @default(autoincrement())
+  bookingId   Int      @unique
+  booking     Booking  @relation(fields: [bookingId], references: [id])
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  provider    String   @default("MANUAL") // MANUAL | CARD | LOCAL | WALLET
+  method      String   @default("card")
+  status      String   @default("PENDING") // PENDING | AUTHORIZED | CAPTURED | FAILED | REFUNDED
+  currency    String   @default("TJS")
+  amount      Decimal
+  fee         Decimal  @default(0) // processor fee if needed
+  externalRef String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  refunds       Refund[]
-  logs          TransactionLog[]
+  refunds Refund[]
+  logs    TransactionLog[]
 
   @@index([userId])
   @@index([status])
@@ -417,15 +426,15 @@ model Payment {
 
 /// Payout to host after escrow release.
 model Payout {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   bookingId   Int
-  booking     Booking  @relation(fields: [bookingId], references: [id])
+  booking     Booking   @relation(fields: [bookingId], references: [id])
   ownerId     Int
-  owner       User     @relation("UserPayouts", fields: [ownerId], references: [id])
-  currency    String   @default("TJS")
+  owner       User      @relation("UserPayouts", fields: [ownerId], references: [id])
+  currency    String    @default("TJS")
   amount      Decimal
-  status      String   @default("PENDING") // PENDING | SENT | FAILED
-  createdAt   DateTime @default(now())
+  status      String    @default("PENDING") // PENDING | SENT | FAILED
+  createdAt   DateTime  @default(now())
   sentAt      DateTime?
   externalRef String?
 
@@ -435,15 +444,15 @@ model Payout {
 
 /// Refund linked to a payment.
 model Refund {
-  id         Int      @id @default(autoincrement())
-  paymentId  Int
-  payment    Payment  @relation(fields: [paymentId], references: [id])
-  amount     Decimal
-  currency   String   @default("TJS")
-  reason     String?
-  status     String   @default("PENDING") // PENDING | SENT | FAILED
-  createdAt  DateTime @default(now())
-  sentAt     DateTime?
+  id          Int       @id @default(autoincrement())
+  paymentId   Int
+  payment     Payment   @relation(fields: [paymentId], references: [id])
+  amount      Decimal
+  currency    String    @default("TJS")
+  reason      String?
+  status      String    @default("PENDING") // PENDING | SENT | FAILED
+  createdAt   DateTime  @default(now())
+  sentAt      DateTime?
   externalRef String?
 
   @@index([paymentId])
@@ -451,14 +460,14 @@ model Refund {
 
 /// Immutable-ish event log for finance and booking actions.
 model TransactionLog {
-  id         Int      @id @default(autoincrement())
-  bookingId  Int?
-  booking    Booking? @relation(fields: [bookingId], references: [id])
-  paymentId  Int?
-  payment    Payment? @relation(fields: [paymentId], references: [id])
-  type       String
-  payload    String?  // JSON string
-  createdAt  DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  bookingId Int?
+  booking   Booking? @relation(fields: [bookingId], references: [id])
+  paymentId Int?
+  payment   Payment? @relation(fields: [paymentId], references: [id])
+  type      String
+  payload   String? // JSON string
+  createdAt DateTime @default(now())
 
   @@index([bookingId])
   @@index([paymentId])
@@ -490,18 +499,18 @@ model HotelAmenity {
 
 /// Disputes/claims (separate from complaint).
 model Dispute {
-  id          Int      @id @default(autoincrement())
-  bookingId   Int
-  booking     Booking  @relation(fields: [bookingId], references: [id])
-  openedById  Int
-  openedBy    User     @relation("DisputesOpened", fields: [openedById], references: [id])
-  againstId   Int
-  against     User     @relation("DisputesAgainst", fields: [againstId], references: [id])
-  reason      String
-  status      String   @default("OPEN") // OPEN | RESOLVED | REJECTED
-  resolution  String?
-  createdAt   DateTime @default(now())
-  resolvedAt  DateTime?
+  id         Int       @id @default(autoincrement())
+  bookingId  Int
+  booking    Booking   @relation(fields: [bookingId], references: [id])
+  openedById Int
+  openedBy   User      @relation("DisputesOpened", fields: [openedById], references: [id])
+  againstId  Int
+  against    User      @relation("DisputesAgainst", fields: [againstId], references: [id])
+  reason     String
+  status     String    @default("OPEN") // OPEN | RESOLVED | REJECTED
+  resolution String?
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
 
   @@index([bookingId])
   @@index([status])
@@ -558,14 +567,14 @@ model Complaint {
 }
 
 model Session {
-  id           Int      @id @default(autoincrement())
-  sessionToken String?  @unique
-  token        String?  @unique
+  id           Int       @id @default(autoincrement())
+  sessionToken String?   @unique
+  token        String?   @unique
   userId       Int
   expires      DateTime?
   expiresAt    DateTime?
-  createdAt    DateTime @default(now())
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime  @default(now())
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model VerificationToken {
@@ -588,8 +597,8 @@ model PasswordResetToken {
 }
 
 model EmailOtp {
-  id        String   @id @default(cuid())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String    @id @default(cuid())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    Int
   email     String
   codeHash  String
@@ -597,23 +606,23 @@ model EmailOtp {
   purpose   String
   expiresAt DateTime
   usedAt    DateTime?
-  attempts  Int      @default(0)
-  createdAt DateTime @default(now())
+  attempts  Int       @default(0)
+  createdAt DateTime  @default(now())
 
   @@index([email, purpose])
   @@index([userId, purpose])
 }
 
 model OtpChallenge {
-  id        Int       @id @default(autoincrement())
-  phone     String    @unique
-  codeHash  String
-  expiresAt DateTime
-  usedAt    DateTime?
-  attempts  Int       @default(0)
+  id          Int       @id @default(autoincrement())
+  phone       String    @unique
+  codeHash    String
+  expiresAt   DateTime
+  usedAt      DateTime?
+  attempts    Int       @default(0)
   lockedUntil DateTime?
-  lastSentAt DateTime?
-  createdAt DateTime  @default(now())
+  lastSentAt  DateTime?
+  createdAt   DateTime  @default(now())
 }
 
 model Favorite {
@@ -645,20 +654,20 @@ model SiteContentState {
 /// Auth security / audit events (OTP, login, suspicious activity).
 /// One-time login via @TajstayBot (/start login_<token>).
 model TelegramLoginChallenge {
-  id                 Int       @id @default(autoincrement())
-  token              String    @unique
-  codeHash           String
-  telegramId         String?
-  telegramUsername   String?
-  telegramFirstName  String?
-  telegramPhotoUrl   String?
-  phone              String?
-  attemptCount       Int       @default(0)
-  lastCodeSentAt     DateTime?
-  expiresAt          DateTime
-  verifiedAt         DateTime?
-  usedAt             DateTime?
-  createdAt          DateTime  @default(now())
+  id                Int       @id @default(autoincrement())
+  token             String    @unique
+  codeHash          String
+  telegramId        String?
+  telegramUsername  String?
+  telegramFirstName String?
+  telegramPhotoUrl  String?
+  phone             String?
+  attemptCount      Int       @default(0)
+  lastCodeSentAt    DateTime?
+  expiresAt         DateTime
+  verifiedAt        DateTime?
+  usedAt            DateTime?
+  createdAt         DateTime  @default(now())
 
   @@index([expiresAt])
   @@index([telegramId])
@@ -702,9 +711,37 @@ model AdminAuditLog {
 }
 
 /// Per-owner payment requisites shown to guests during checkout / booking room.
+/// Deprecated in favor of HotelPaymentMethod (payment requisites belong to a Hotel, not an Owner
+/// account, since one owner can run several hotels with different requisites) - kept for now,
+/// no longer written to or read from any live page.
 model OwnerPaymentMethod {
   ownerId   Int      @id
   owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   methods   String[] @default([])
   updatedAt DateTime @updatedAt
+}
+
+/// Structured payment requisites belonging to a specific Hotel, managed by that hotel's owner.
+/// Booking captures an immutable snapshot (Booking.paymentMethodSnapshot) at selection time, so
+/// editing/removing a method here never retroactively changes what an existing booking shows.
+model HotelPaymentMethod {
+  id                Int      @id @default(autoincrement())
+  hotelId           Int
+  hotel             Hotel    @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  /// CARD | WALLET | BANK | OTHER
+  type              String
+  displayLabel      String
+  recipientName     String
+  /// Card/account/wallet number shown to the guest - sensitive, mask in logs/notifications.
+  paymentIdentifier String
+  instructions      String?
+  isActive          Boolean  @default(true)
+  sortOrder         Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  bookings Booking[]
+
+  @@index([hotelId])
+  @@index([hotelId, isActive])
 }

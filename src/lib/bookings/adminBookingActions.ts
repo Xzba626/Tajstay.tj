@@ -1,9 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { BOOKING_STATUS } from "@/lib/domain/booking";
-import { addBookingSystemMessage } from "@/lib/chat/bookingChat";
-import { assertDatesAvailable, DatesUnavailableError } from "@/lib/booking/availability";
-import { assertRoomTypeAvailable, RoomTypeUnavailableError } from "@/lib/pms/inventory";
-import { bookingHotel } from "@/lib/pms/bookingContext";
+import { confirmBookingPayment, rejectBookingPayment } from "@/lib/bookings/paymentReviewActions";
 
 const EXTEND_MS = 5 * 60 * 1000;
 
@@ -22,135 +19,16 @@ export async function extendBookingPaymentWindowAdmin(bookingId: number): Promis
   return { expiresAt: next, paymentTimerPaused: false };
 }
 
-export async function confirmBookingPaymentAdmin(bookingId: number, adminId: number): Promise<void> {
-  const booking = await prisma.booking.findUnique({
-    where: { id: bookingId },
-    include: {
-      room: { include: { hotel: true } },
-      roomType: { include: { hotel: true } },
-      assignedRoom: { include: { hotel: true } }
-    }
-  });
-  if (!booking) throw new Error("NOT_FOUND");
-  if (booking.status !== BOOKING_STATUS.ON_REVIEW) throw new Error("NOT_ON_REVIEW");
-  if (!booking.paymentProofUrl || !booking.proofSubmittedAt) throw new Error("NO_PROOF");
-  const hotel = bookingHotel(booking);
-
-  const payment = await prisma.payment.findUnique({ where: { bookingId } });
-  if (!payment || payment.status !== "PENDING") throw new Error("BAD_PAYMENT");
-
-  const physicalRoomId = booking.assignedRoomId ?? booking.roomId;
-  try {
-    if (physicalRoomId) {
-      await assertDatesAvailable({
-        roomId: physicalRoomId,
-        checkIn: booking.checkIn,
-        checkOut: booking.checkOut,
-        excludeBookingId: bookingId
-      });
-    } else if (booking.roomTypeId) {
-      await assertRoomTypeAvailable({
-        roomTypeId: booking.roomTypeId,
-        checkIn: booking.checkIn,
-        checkOut: booking.checkOut,
-        excludeBookingId: bookingId
-      });
-    }
-  } catch (e) {
-    if (e instanceof DatesUnavailableError || e instanceof RoomTypeUnavailableError) {
-      throw new Error("DATES_UNAVAILABLE");
-    }
-    throw e;
-  }
-
-  await prisma.booking.update({
-    where: { id: bookingId },
-    data: {
-      status: BOOKING_STATUS.CONFIRMED,
-      paymentStatus: "PAID",
-      proofReviewedAt: new Date(),
-      proofReviewedById: adminId
-    }
-  });
-  await prisma.payment.update({ where: { id: payment.id }, data: { status: "CAPTURED" } });
-
-  await prisma.transactionLog.create({
-    data: {
-      bookingId,
-      paymentId: payment.id,
-      type: "PAYMENT_CONFIRMED",
-      payload: JSON.stringify({ adminId, at: new Date().toISOString() })
-    }
-  });
-
-  await addBookingSystemMessage({
-    bookingId,
-    message: "🛡️ Система: Бронирование подтверждено! Ждем вас."
-  });
-
-  if (booking.userId != null) {
-    await prisma.notification.create({
-      data: { userId: booking.userId, bookingId, type: "PAYMENT_APPROVED", isRead: false }
-    });
-  }
-  await prisma.notification.create({
-    data: { userId: hotel.ownerId, bookingId, type: "PAYMENT_APPROVED", isRead: false }
-  });
+/**
+ * Admin override on a payment proof. Admin is no longer the normal reviewer (that's the owner's
+ * job now, see paymentReviewActions.ts) - this is a scoped, audited override for disputes/support,
+ * so a reason is mandatory and always logged (see paymentReviewActions.ts's ADMIN_PAYMENT_OVERRIDE
+ * TransactionLog entry).
+ */
+export async function confirmBookingPaymentAdmin(bookingId: number, adminId: number, reason: string): Promise<void> {
+  await confirmBookingPayment({ bookingId, actorId: adminId, actorRole: "ADMIN", reason });
 }
 
-export async function rejectBookingPaymentAdmin(
-  bookingId: number,
-  adminId: number,
-  reason: string
-): Promise<void> {
-  const booking = await prisma.booking.findUnique({
-    where: { id: bookingId },
-    include: {
-      room: { include: { hotel: true } },
-      roomType: { include: { hotel: true } },
-      assignedRoom: { include: { hotel: true } }
-    }
-  });
-  if (!booking) throw new Error("NOT_FOUND");
-  if (booking.status !== BOOKING_STATUS.ON_REVIEW) throw new Error("NOT_ON_REVIEW");
-  const hotel = bookingHotel(booking);
-
-  const trimmedReason = reason.trim() || "Причина не указана";
-  const payment = await prisma.payment.findUnique({ where: { bookingId } });
-
-  await prisma.booking.update({
-    where: { id: bookingId },
-    data: {
-      status: BOOKING_STATUS.REJECTED,
-      paymentStatus: "FAILED",
-      proofReviewedAt: new Date(),
-      proofReviewedById: adminId
-    }
-  });
-
-  if (payment) {
-    await prisma.payment.update({ where: { id: payment.id }, data: { status: "FAILED" } });
-  }
-
-  await prisma.transactionLog.create({
-    data: {
-      bookingId,
-      type: "PAYMENT_PROOF_REJECTED",
-      payload: JSON.stringify({ reason: trimmedReason, adminId, at: new Date().toISOString() })
-    }
-  });
-
-  await addBookingSystemMessage({
-    bookingId,
-    message: `🛡️ Система: Оплата отклонена. ${trimmedReason}`
-  });
-
-  if (booking.userId != null) {
-    await prisma.notification.create({
-      data: { userId: booking.userId, bookingId, type: "PAYMENT_REJECTED", isRead: false }
-    });
-  }
-  await prisma.notification.create({
-    data: { userId: hotel.ownerId, bookingId, type: "PAYMENT_REJECTED", isRead: false }
-  });
+export async function rejectBookingPaymentAdmin(bookingId: number, adminId: number, reason: string): Promise<void> {
+  await rejectBookingPayment({ bookingId, actorId: adminId, actorRole: "ADMIN", reason });
 }

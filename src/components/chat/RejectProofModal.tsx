@@ -11,13 +11,21 @@ export function RejectProofModal({
   open,
   busy,
   onClose,
-  onSubmit
+  onSubmit,
+  title,
+  description,
+  confirmLabel,
+  showPresets = true
 }: {
   locale: Locale;
   open: boolean;
   busy: boolean;
   onClose: () => void;
   onSubmit: (reason: string) => Promise<void>;
+  title?: string;
+  description?: string;
+  confirmLabel?: string;
+  showPresets?: boolean;
 }) {
   const [reason, setReason] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -49,22 +57,24 @@ export function RejectProofModal({
         }}
       />
       <div className="relative w-full max-w-md rounded-2xl border border-white/10 bg-slate-950/95 p-5 shadow-2xl backdrop-blur-xl">
-        <h2 className="text-base font-semibold text-white">{m(locale, "bookingRoom.review.rejectTitle")}</h2>
-        <p className="mt-1 text-sm text-slate-400">{m(locale, "bookingRoom.review.rejectDesc")}</p>
+        <h2 className="text-base font-semibold text-white">{title ?? m(locale, "bookingRoom.review.rejectTitle")}</h2>
+        <p className="mt-1 text-sm text-slate-400">{description ?? m(locale, "bookingRoom.review.rejectDesc")}</p>
 
-        <div className="mt-3 flex flex-wrap gap-2">
-          {PRESETS.map((key) => (
-            <button
-              key={key}
-              type="button"
-              disabled={busy}
-              onClick={() => setReason(m(locale, `bookingRoom.review.preset.${key}`))}
-              className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-medium text-slate-200 hover:bg-white/10 disabled:opacity-50"
-            >
-              {m(locale, `bookingRoom.review.preset.${key}`)}
-            </button>
-          ))}
-        </div>
+        {showPresets ? (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {PRESETS.map((key) => (
+              <button
+                key={key}
+                type="button"
+                disabled={busy}
+                onClick={() => setReason(m(locale, `bookingRoom.review.preset.${key}`))}
+                className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-medium text-slate-200 hover:bg-white/10 disabled:opacity-50"
+              >
+                {m(locale, `bookingRoom.review.preset.${key}`)}
+              </button>
+            ))}
+          </div>
+        ) : null}
 
         <textarea
           value={reason}
@@ -95,7 +105,7 @@ export function RejectProofModal({
             onClick={() => void handleSubmit()}
             className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
           >
-            {busy ? "…" : m(locale, "bookingRoom.review.rejectConfirm")}
+            {busy ? "…" : confirmLabel ?? m(locale, "bookingRoom.review.rejectConfirm")}
           </button>
         </div>
       </div>
