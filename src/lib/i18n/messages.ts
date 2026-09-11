@@ -1029,6 +1029,9 @@ const ru: Tree = {
     ownerVerified: "Владелец проверен"
   },
   ownerOnboarding: {
+    noticeAccessNone: "Хотите управлять объектом? Подайте короткую заявку владельца.",
+    noticeAccessPending: "Заявка владельца на проверке.",
+    noticeAccessRejected: "У вас пока нет доступа к кабинету владельца.",
     welcomeTitle: "Добро пожаловать, владелец!",
     welcomeDesc: "Добавьте первый объект — гости смогут бронировать после публикации.",
     addFirstProperty: "Добавить первый объект",
@@ -1227,9 +1230,8 @@ const ru: Tree = {
     reviewImagePh: "Ссылка на фото (необязательно)",
     reviewSending: "Отправка…",
     complaintPlaceholder: "Опишите проблему кратко…",
-    adminOnlyNotice:
-      "Раздел администратора доступен только учётной записи с ролью ADMIN. Войдите как admin@tajstay.local после npm run db:seed или попросите администратора выдать права.",
-    ownerOnlyNotice: "Панель владельца доступна только пользователям с ролью OWNER."
+    adminOnlyNotice: "У вас нет доступа к разделу администратора.",
+    ownerOnlyNotice: "У вас пока нет доступа к кабинету владельца."
   },
   roles: {
     GUEST: "Гость",
@@ -2953,6 +2955,9 @@ const tg: Tree = {
     ownerVerified: "Соҳиб санҷида шуд"
   },
   ownerOnboarding: {
+    noticeAccessNone: "Мехоҳед объектро идора кунед? Аризаи кӯтоҳи соҳиб пешниҳод кунед.",
+    noticeAccessPending: "Аризаи соҳиб дар санҷиш аст.",
+    noticeAccessRejected: "Шумо ҳанӯз ба кабинети соҳиб дастрасӣ надоред.",
     welcomeTitle: "Хуш омадед, соҳиб!",
     welcomeDesc: "Аввалин объектро илова кунед — пас аз нашр меҳмонон брон мекунанд.",
     addFirstProperty: "Объекти аввалин",
@@ -3151,9 +3156,8 @@ const tg: Tree = {
     reviewImagePh: "Пайванд ба сурат (ихтиёрӣ)",
     reviewSending: "Фиристода мешавад…",
     complaintPlaceholder: "Мушкилро кӯтоҳ нависед…",
-    adminOnlyNotice:
-      "Қисми администратор танҳо барои ҳисоби ADMIN дастрас аст. Баъд аз npm run db:seed ҳамчун admin@tajstay.local ворид шавед ё аз админ хоҳиш кунед, ки ҳуқуқ диҳад.",
-    ownerOnlyNotice: "Панели соҳибкор танҳо барои корбарони OWNER дастрас аст."
+    adminOnlyNotice: "Шумо ба қисми администратор дастрасӣ надоред.",
+    ownerOnlyNotice: "Шумо ҳанӯз ба кабинети соҳиб дастрасӣ надоред."
   },
   roles: { GUEST: "Меҳмон", OWNER: "Соҳиб", ADMIN: "Админ" },
   status: {
@@ -4844,6 +4848,9 @@ const en: Tree = {
     ownerVerified: "Verified host"
   },
   ownerOnboarding: {
+    noticeAccessNone: "Want to manage a property? Submit a short owner application.",
+    noticeAccessPending: "Your owner application is under review.",
+    noticeAccessRejected: "You don't have access to the owner workspace yet.",
     welcomeTitle: "Welcome, host!",
     welcomeDesc: "Add your first listing — guests can book after it is published.",
     addFirstProperty: "Add first listing",
@@ -5042,9 +5049,8 @@ const en: Tree = {
     reviewImagePh: "Image URL (optional)",
     reviewSending: "Sending…",
     complaintPlaceholder: "Briefly describe the issue…",
-    adminOnlyNotice:
-      "The admin area is only for accounts with the ADMIN role. After npm run db:seed sign in as admin@tajstay.local, or ask an admin to grant access.",
-    ownerOnlyNotice: "The owner panel is only available to users with the OWNER role."
+    adminOnlyNotice: "You don't have access to the admin area.",
+    ownerOnlyNotice: "You don't have access to the owner workspace yet."
   },
   roles: { GUEST: "Guest", OWNER: "Owner", ADMIN: "Administrator" },
   status: {

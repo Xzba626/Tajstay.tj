@@ -9,7 +9,10 @@ export async function requireOwner(): Promise<User> {
     redirect("/auth/sign-in?next=/dashboard/owner");
   }
   if (user.role !== "OWNER") {
-    redirect("/dashboard/bookings?notice=ownerOnly");
+    // Send to Become Owner, not History - that page already renders the guest's real
+    // application state (none/pending/rejected), so the notice above it can be short and
+    // contextual instead of a generic "you're not an OWNER" banner stuck on an unrelated page.
+    redirect("/profile/become-owner?notice=ownerOnly");
   }
   return user;
 }

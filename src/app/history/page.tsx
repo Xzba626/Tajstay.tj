@@ -104,12 +104,12 @@ export default async function HistoryPage({ searchParams }: Props) {
       </p>
 
       {notice === "adminOnly" ? (
-        <div className="mb-4 rounded-xl border border-brand-700 bg-brand-800 px-4 py-3 text-sm text-brand-200" role="status">
+        <div className="mb-4 rounded-xl bg-[#0f7a4d] px-4 py-3 text-sm font-medium text-white" role="status">
           {m(locale, "guestDash.adminOnlyNotice")}
         </div>
       ) : null}
       {notice === "ownerOnly" ? (
-        <div className="mb-4 rounded-xl border border-brand-700 bg-brand-800 px-4 py-3 text-sm text-brand-200" role="status">
+        <div className="mb-4 rounded-xl bg-[#0f7a4d] px-4 py-3 text-sm font-medium text-white" role="status">
           {m(locale, "guestDash.ownerOnlyNotice")}
         </div>
       ) : null}

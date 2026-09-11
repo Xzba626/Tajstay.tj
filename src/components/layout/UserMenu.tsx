@@ -225,7 +225,7 @@ export function UserMenu({
           <button
             type="button"
             disabled={loggingOut}
-            className="user-menu-item user-menu-item--danger mx-1 w-[calc(100%-0.5rem)] disabled:opacity-60"
+            className="user-menu-item user-menu-item--danger mx-1 w-[calc(100%-0.5rem)]"
             role="menuitem"
             onClick={() => void logout()}
           >

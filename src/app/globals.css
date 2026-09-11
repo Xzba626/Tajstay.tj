@@ -1841,6 +1841,13 @@ footer.site-footer a:hover {
   color: #ffffff !important;
 }
 
+/* BrandMark's name span sets its own color (text-[var(--taj-text)], dark-theme default) directly
+   on itself, so it doesn't inherit the white set on footer.site-footer a above - a directly-set
+   color always wins over an inherited one, regardless of the ancestor rule's specificity. */
+footer.site-footer .brand-mark-name {
+  color: #ffffff !important;
+}
+
 /* cleaner spacing / less empty dark gaps */
 .home-chapter {
   min-height: auto !important;

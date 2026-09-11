@@ -245,13 +245,34 @@
   font-weight: 600;
 }
 
-.user-menu-item--danger {
-  color: var(--taj-icon-error);
+/* Danger (logout) button: feedback must come from background/transform, never from dimming the
+   label - the generic .user-menu-item:hover rule above has equal CSS specificity to a single
+   modifier class, so source order alone decided the winner before; these selectors repeat the
+   base class to guarantee danger styling always wins regardless of rule order. */
+.user-menu-item.user-menu-item--danger {
+  background: #fff5f5;
+  color: #b91c1c;
 }
 
-.user-menu-item--danger:hover {
-  background: rgba(127, 29, 29, 0.35);
-  color: #fecaca;
+.user-menu-item.user-menu-item--danger:hover,
+.user-menu-item.user-menu-item--danger:focus-visible {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.user-menu-item.user-menu-item--danger:active {
+  background: #fecaca;
+  color: #991b1b;
+  transform: translateY(1px);
+}
+
+/* Loading (logging out): keep the label fully readable - dim only the background/border, never
+   apply opacity to the whole control (that was the original bug: it faded the text too). */
+.user-menu-item.user-menu-item--danger:disabled {
+  background: #fff5f5;
+  color: #b91c1c;
+  opacity: 1;
+  cursor: default;
 }
 
 .user-menu-notifications-compact {
