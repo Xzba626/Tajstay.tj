@@ -848,9 +848,49 @@ every owned hotel's card, not because a switcher exists). Map-pin location picke
 inputs), hotel-image crop fix, and second-hotel moderation policy are also open — same items flagged
 in the user's original spec, not newly discovered.
 
-**NEXT**: property switcher + Hotel-scoping for the remaining Owner Desk sections is the natural
-continuation, OR move to Subscription business model (also gated on multi-hotel, per master order) —
-pick whichever has the clearer next dependency when resuming; both are legitimately "next."
+### Multi-Hotel — property switcher + Hotel-scoped queries (commit `b3fc327`)
+
+Dependency audit first (Explore agent, read-only): confirmed `Hotel.ownerId -> User` is the only
+ownership relation (no second model to reconcile), `HotelStaff` is a separate RECEPTIONIST/HOUSEKEEPING
+concept (not ownership), Owner Desk is one monolithic `page.tsx` switched by `?section=`, and — the
+real finding — Bookings/Offline Bookings/Finance/Analytics-KPIs/Reviews had **no hotelId concept at
+all**, always aggregating every hotel an owner has. Rooms had a local, section-only hotelId filter;
+Calendar's API route accepted a client hotelId but only used it to filter an already-scoped in-memory
+array (soft spot, not exploited, but never `findFirst`-verified).
+
+Implemented: a single active-hotel scope carried in the URL (`?hotelId=`, same pattern as the existing
+`?section=`) — resolved once in `page.tsx`, verified against the real owner's hotels before use (an
+unrecognized/foreign hotelId is silently ignored, never trusted, never leaks another owner's data).
+Threaded through `ownerBookingWhere`/`ownerOfflineBookingWhere` (`src/lib/pms/ownerQueries.ts`),
+`getOwnerDashboardKpis`, `getOwnerCalendarData`, and every relevant `page.tsx` section (Overview,
+Bookings, Offline Bookings, Reviews, Finances, Statistics, Calendar). Objects/Properties intentionally
+stays unfiltered (it's the page used to see/pick between all owned hotels). New `PropertySwitcher`
+in `OwnerSidebar.tsx` (desktop + mobile drawer), shown only for 2+ hotels; every nav link now carries
+the active hotelId forward so switching sections never silently drops the selection. Hardened
+`api/owner/calendar/route.ts` to scope at the query level instead of filtering an already-fetched array.
+
+**Verified BROWSER + REAL HTTP** against a fresh local-DB-only 2-hotel owner fixture
+(`mh-owner@example.com`, hotels 33/34, still in local DB — not cleaned up yet, next session should
+either reuse or clean via a `mh_cleanup`-style script): switcher lists both hotels; selecting each
+hotel shows only that hotel's booking (confirmed via live page text); `hotelId` persists across every
+section link; a hand-injected `hotelId` belonging to a **different** owner (hotel 1, owner 2) is
+rejected both by the page (falls back to the owner's own aggregate, no error, no leak) and by
+`GET /api/owner/calendar` directly (returns empty rooms, confirmed via curl with the real session
+cookie).
+
+**Explicitly NOT done, still OPEN**: Notifications has no hotel relation on the `Notification` model
+at all — out of scope for this pass (schema change); Objects/Properties list is still one giant
+per-hotel form stacked vertically, not the compact thumbnail/name/city/room-count/status card list the
+spec calls for; map-pin location picker (still raw lat/lng); hotel-image crop/placeholder fixes; mobile
+switcher UX beyond the existing responsive drawer (not spot-checked at 390/412 yet); RU/TJ/EN beyond
+the 2 new keys (`switchProperty`, `allProperties`) not reviewed for the rest of the spec's new-label
+list (Add/Edit property, Location, Save location).
+
+**NEXT**: Objects/Properties compact-list redesign is the natural continuation (it's the page a
+multi-hotel owner actually uses to navigate between hotels day to day, and today it's still the
+"giant single photo" the spec explicitly calls out) — OR the map-pin location picker, OR Subscription
+business model (also gated on multi-hotel, per master order). Picking whichever has the clearer next
+dependency when resuming; all three are legitimately "next."
 
 ### Auth cleanup — DONE (uncommitted at time of writing this entry, commit to follow)
 
