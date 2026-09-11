@@ -655,3 +655,32 @@ top-content-disappearing + dev/maintenance UI in the inbox + developer-language 
 on why this dev server's service worker keeps reappearing after explicit unregistration — it hasn't
 blocked any fix from shipping (production is unaffected and is the verification method being used), but
 it's now cost real time across multiple passes.
+
+## Evidence-tier discipline (standing rule from here on — do not conflate these)
+
+Four distinct tiers, never treat one as proof of another:
+1. **LOCAL DEV** — `npm run dev`. This session found it unreliable multiple times (stale SW,
+   `.next` cache) — a fast signal, never sufficient evidence on its own for a "fixed" claim.
+2. **LOCAL PRODUCTION BUILD** — `next build` + `next start` on a diagnostic port. This session's
+   most reliable check when dev looked broken; confirms the code is correct and the production
+   *build process* produces the right output.
+3. **DEPLOYED PRODUCTION** — the actual `https://www.tajstay.site`. LOCAL PRODUCTION BUILD passing
+   does **not** mean this reflects the same code — it only does after an actual deployment. No
+   fixes from this branch have been confirmed live on this domain.
+4. **REAL DEVICE** — an actual phone, ideally on the deployed domain. The user's own screenshots
+   this session were tier 4 against a deployment that predates several of these fixes.
+
+**Current status of this session's Admin-mobile-nav work**: tiers 1-2 both PASS (code correct, local
+prod build correct). Tiers 3-4 are OPEN — after the next real deployment, re-check the actual
+`tajstay.site` on a real device before calling any of this "verified" in the sense the user's
+screenshots are evidence for.
+
+## SW dev-cleanup improved (commit `cb8164a`)
+
+`PwaProvider.tsx`'s dev-mode cleanup previously only called `unregister()` (stops future
+navigations from being controlled, not the current one, and never touched cached responses) — now
+also deletes TajStay-owned caches (`tajstay-` prefix only, matches `sw.js`'s own `CACHE_VERSION`
+scheme, never touches unrelated browser storage) and reloads once if anything stale was found. A
+developer should no longer need manual DevTools intervention for this specific failure mode.
+Also renamed Admin's mobile "Главная" tab to "Обзор" (RU/EN — reads as Consumer Home otherwise;
+matches Owner's existing "Обзор"/"Overview" convention for the same tab role).
