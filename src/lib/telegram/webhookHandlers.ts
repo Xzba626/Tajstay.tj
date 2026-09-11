@@ -33,7 +33,9 @@ export type TelegramUpdate = {
 };
 
 export async function handleTelegramUpdate(update: TelegramUpdate): Promise<void> {
-  console.log("[telegram/webhook] incoming update", JSON.stringify(update));
+  // SEC-003: do not log full update payloads — they carry phone numbers, names, and challenge
+  // state once a contact is shared. Log only the update kind for operational visibility.
+  console.log("[telegram/webhook] incoming update", { hasMessage: Boolean(update.message) });
 
   if (update.message) {
     await handleMessage(update.message);
@@ -50,10 +52,20 @@ async function handleMessage(message: TgMessage): Promise<void> {
   const telegramId = String(from.id);
 
   if (message.contact?.phone_number) {
-    console.log("[telegram/webhook] contact received", {
-      telegramId,
-      phone: message.contact.phone_number
-    });
+    // SEC-001: Telegram's "share contact" UI lets a user pick *any* contact from their address
+    // book, not just their own number — `contact.user_id` is the only field that actually proves
+    // the shared number belongs to the sender. Reject anything else before it ever touches a
+    // login challenge; this is the boundary that prevents attaching a victim's phone number to
+    // an attacker's own Telegram-authenticated session.
+    if (message.contact.user_id === undefined || message.contact.user_id !== from.id) {
+      console.warn("[telegram/webhook] rejected contact: user_id mismatch or missing", { telegramId });
+      const sent = await sendTelegramMessage({ chatId, text: L.phoneRequired });
+      console.log("[telegram/webhook] sendMessage result (contact rejected)", sent);
+      return;
+    }
+
+    // SEC-003: no raw phone number in logs.
+    console.log("[telegram/webhook] own contact received", { telegramId });
 
     const open = await findOpenChallengeForTelegram(telegramId);
     if (!open) {
@@ -79,14 +91,16 @@ async function handleMessage(message: TgMessage): Promise<void> {
       const sent = await sendTelegramMessage({ chatId, text });
       console.log("[telegram/webhook] sendMessage result (contact error)", sent, result.reason);
     } else {
-      console.log("[telegram/webhook] code sent for token", open.token);
+      // SEC-003: no challenge token in logs — it's a security-sensitive identifier.
+      console.log("[telegram/webhook] code sent", { telegramId });
     }
     return;
   }
 
   const text = message.text?.trim() ?? "";
   const startToken = parseLoginStartPayload(text);
-  console.log("[telegram/webhook] start payload", { text, startToken });
+  // SEC-003: no raw message text or token in logs.
+  console.log("[telegram/webhook] start payload", { hasStartToken: Boolean(startToken) });
 
   if (text.startsWith("/start")) {
     if (!startToken) {

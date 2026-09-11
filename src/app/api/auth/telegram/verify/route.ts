@@ -50,8 +50,20 @@ export async function POST(req: Request) {
           ? m(locale, "auth.telegramExpired")
           : result.reason === "no_code"
             ? m(locale, "auth.telegramNoCodeYet")
-            : m(locale, "auth.errInvalidOtp");
-    const status = result.reason === "too_many_attempts" ? 429 : 401;
+            : result.reason === "account_link_required"
+              ? m(locale, "auth.telegramAccountLinkRequired")
+              : m(locale, "auth.errInvalidOtp");
+    const status = result.reason === "too_many_attempts" ? 429 : result.reason === "account_link_required" ? 409 : 401;
+
+    if (result.reason === "account_link_required") {
+      // SEC-001 regression guard: log the conflict for monitoring, but never the phone number.
+      await logAuthEvent({
+        event: "suspicious_attempt",
+        ip,
+        userAgent: req.headers.get("user-agent") ?? undefined,
+        meta: { context: "telegram_verify", reason: "account_link_required" }
+      }).catch(() => undefined);
+    }
     return NextResponse.json({ error: msg, reason: result.reason }, { status });
   }
 

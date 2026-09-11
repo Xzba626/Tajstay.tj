@@ -11,16 +11,25 @@ const TOKEN_BYTES = 18;
 const MAX_ATTEMPTS = 5;
 const RESEND_COOLDOWN_MS = 60_000;
 
+// SEC-004: the hardcoded "tajstay-telegram-dev" fallback was reachable in production if neither
+// TELEGRAM_LOGIN_SECRET nor AUTH_SECRET were set — a known, guessable HMAC key would let an
+// attacker forge valid login codes. AUTH_SECRET as a fallback is an intentional, documented
+// policy (it's already required and validated in production via assertProdSecrets()), but the
+// hardcoded literal is not: production now fails closed instead of silently using a public value.
 function challengeSecret(): string {
-  return process.env.TELEGRAM_LOGIN_SECRET?.trim() || process.env.AUTH_SECRET?.trim() || "tajstay-telegram-dev";
+  const configured = process.env.TELEGRAM_LOGIN_SECRET?.trim() || process.env.AUTH_SECRET?.trim();
+  if (configured) return configured;
+  if (process.env.NODE_ENV !== "production") return "tajstay-telegram-dev";
+  throw new Error("Security misconfiguration: TELEGRAM_LOGIN_SECRET/AUTH_SECRET missing in production.");
 }
 
 export function hashTelegramLoginCode(token: string, code: string): string {
   return crypto.createHmac("sha256", challengeSecret()).update(`${token}:${code}`).digest("hex");
 }
 
+// SEC: security-sensitive OTP must use a CSPRNG, not Math.random().
 function generateLoginCode(): string {
-  return String(Math.floor(100000 + Math.random() * 900000));
+  return String(crypto.randomInt(100000, 1000000));
 }
 
 export function buildTelegramDeepLink(token: string): string {
@@ -200,7 +209,10 @@ export async function attachPhoneAndSendCode(
 
 export type VerifyTelegramCodeResult =
   | { ok: true; userId: number; telegramId: string; isNew: boolean }
-  | { ok: false; reason: "not_found" | "expired" | "invalid" | "too_many_attempts" | "no_code" };
+  | {
+      ok: false;
+      reason: "not_found" | "expired" | "invalid" | "too_many_attempts" | "no_code" | "account_link_required";
+    };
 
 /** User enters code on the website. */
 export async function verifyTelegramLoginCode(
@@ -238,17 +250,41 @@ export async function verifyTelegramLoginCode(
     return { ok: false, reason: "invalid" };
   }
 
-  const resolved = await resolveUserFromChallenge(challenge);
-  if (!resolved) return { ok: false, reason: "invalid" };
-
-  await prisma.telegramLoginChallenge.update({
-    where: { id: challenge.id },
+  // Atomic single-use claim: two concurrent requests can both reach this point with a correct
+  // code (both read usedAt: null above before either wrote). `updateMany` with `usedAt: null` in
+  // the WHERE clause is a conditional compare-and-set at the database level — only the request
+  // whose UPDATE actually matches a row (count === 1) may proceed to resolve/create a User;
+  // the loser sees count === 0 and is rejected, instead of both racing into
+  // resolveUserFromChallenge() and hitting a duplicate-user crash or, worse, a double session.
+  const claim = await prisma.telegramLoginChallenge.updateMany({
+    where: { id: challenge.id, usedAt: null },
     data: { verifiedAt: new Date(), usedAt: new Date() }
   });
+  if (claim.count !== 1) {
+    return { ok: false, reason: "invalid" };
+  }
 
-  return { ok: true, ...resolved };
+  const resolved = await resolveUserFromChallenge(challenge);
+  if (!resolved.ok) return resolved;
+
+  return { ok: true, ...resolved.value };
 }
 
+// SEC-001 follow-up: a verified Telegram identity (telegramId) only proves control of that
+// Telegram account, NOT ownership of whatever TajStay account happens to already use the shared
+// phone number. The previous `find by telegramId || find by phone` fallback let a brand-new
+// Telegram identity silently take over an existing User purely by phone match - this is the
+// authentication-boundary bug SEC-001 was filed against. Fixed policy:
+//   - telegramId already linked to a User -> that User (unambiguous, safe). Login proves Telegram
+//     identity; it does NOT authorize changing User.phone as a side effect (see Case E below) -
+//     authentication and profile/account mutation are different operations.
+//   - telegramId not linked, phone unused -> create a new User (safe, no collision).
+//   - phone (from the shared contact) belongs to a DIFFERENT existing User than the one resolved
+//     by telegramId -> FAIL CLOSED (account_link_required) instead of granting a session or
+//     mutating either account. No explicit, verified account-link flow exists yet - inventing one
+//     is out of scope for this hotfix; refusing is the safe default until one is built. The
+//     collision is checked BEFORE any write, so this never depends on catching a unique-constraint
+//     exception (a predictable identity conflict is a controlled outcome, not a 500).
 async function resolveUserFromChallenge(
   challenge: {
     id: number;
@@ -258,8 +294,11 @@ async function resolveUserFromChallenge(
     telegramPhotoUrl: string | null;
     phone: string | null;
   }
-): Promise<{ userId: number; telegramId: string; isNew: boolean } | null> {
-  if (!challenge.telegramId || !challenge.phone) return null;
+): Promise<
+  | { ok: true; value: { userId: number; telegramId: string; isNew: boolean } }
+  | { ok: false; reason: "invalid" | "account_link_required" }
+> {
+  if (!challenge.telegramId || !challenge.phone) return { ok: false, reason: "invalid" };
   const telegramId = challenge.telegramId;
   const phone = challenge.phone;
   const displayName =
@@ -267,44 +306,57 @@ async function resolveUserFromChallenge(
     (challenge.telegramUsername ? `@${challenge.telegramUsername.replace(/^@/, "")}` : null) ||
     `Telegram ${telegramId}`;
 
-  let user =
-    (await prisma.user.findUnique({ where: { telegramId } })) ||
-    (await prisma.user.findUnique({ where: { phone } }));
+  const byTelegramId = await prisma.user.findUnique({ where: { telegramId } });
 
-  let isNew = false;
-  if (!user) {
-    isNew = true;
-    user = await prisma.user.create({
+  if (byTelegramId) {
+    // Case E: the shared contact's phone number is NOT a command to change this account's phone.
+    // If it differs from what's on file, check ownership before touching anything.
+    if (byTelegramId.phone !== phone) {
+      const phoneOwner = await prisma.user.findUnique({ where: { phone } });
+      if (phoneOwner && phoneOwner.id !== byTelegramId.id) {
+        // Case D: known Telegram identity, but the shared number belongs to a different User.
+        // Controlled conflict - no mutation to either account, no session for either.
+        return { ok: false, reason: "account_link_required" };
+      }
+      // Number is unused (or, impossibly, already this same user's) - login proceeds, but we do
+      // NOT silently overwrite the stored phone. A phone change is a separate, explicit
+      // profile/settings action with its own confirmation, not a side effect of Telegram login.
+    }
+    const user = await prisma.user.update({
+      where: { id: byTelegramId.id },
       data: {
-        name: displayName,
-        phone,
-        password: await hashPassword(`tg-${crypto.randomBytes(12).toString("hex")}`),
-        role: "GUEST",
         verified: true,
-        phoneVerified: true,
-        telegramId,
-        telegramUsername: challenge.telegramUsername,
-        telegramPhotoUrl: challenge.telegramPhotoUrl,
-        image: challenge.telegramPhotoUrl ?? undefined
+        telegramUsername: challenge.telegramUsername ?? byTelegramId.telegramUsername,
+        telegramPhotoUrl: challenge.telegramPhotoUrl ?? byTelegramId.telegramPhotoUrl,
+        image: challenge.telegramPhotoUrl ?? byTelegramId.image,
+        name: byTelegramId.name?.trim() ? byTelegramId.name : displayName
       }
     });
-  } else {
-    user = await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        phone,
-        phoneVerified: true,
-        verified: true,
-        telegramId: user.telegramId ?? telegramId,
-        telegramUsername: challenge.telegramUsername ?? user.telegramUsername,
-        telegramPhotoUrl: challenge.telegramPhotoUrl ?? user.telegramPhotoUrl,
-        image: challenge.telegramPhotoUrl ?? user.image,
-        name: user.name?.trim() ? user.name : displayName
-      }
-    });
+    return { ok: true, value: { userId: user.id, telegramId, isNew: false } };
   }
 
-  return { userId: user.id, telegramId, isNew };
+  const byPhone = await prisma.user.findUnique({ where: { phone } });
+  if (byPhone) {
+    // This phone already belongs to a different account than the one authenticating via
+    // Telegram right now - do not log in as them.
+    return { ok: false, reason: "account_link_required" };
+  }
+
+  const user = await prisma.user.create({
+    data: {
+      name: displayName,
+      phone,
+      password: await hashPassword(`tg-${crypto.randomBytes(12).toString("hex")}`),
+      role: "GUEST",
+      verified: true,
+      phoneVerified: true,
+      telegramId,
+      telegramUsername: challenge.telegramUsername,
+      telegramPhotoUrl: challenge.telegramPhotoUrl,
+      image: challenge.telegramPhotoUrl ?? undefined
+    }
+  });
+  return { ok: true, value: { userId: user.id, telegramId, isNew: true } };
 }
 
 /** Notify user in Telegram after successful site verification. */

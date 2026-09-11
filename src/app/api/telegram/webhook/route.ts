@@ -23,6 +23,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true });
   }
 
+  // SEC-002: this used to skip signature verification entirely when TELEGRAM_WEBHOOK_SECRET was
+  // unset ("if (secret) { check }" — no secret meant no check, fail-OPEN). In production with
+  // Telegram login enabled, a missing webhook secret must reject the request, not silently accept
+  // unauthenticated updates claiming to be from Telegram. Dev keeps the previous permissive
+  // behavior (no secret configured locally is normal) via an explicit environment check, not a
+  // silent fallback.
   const secret = sanitizeTelegramWebhookSecret(getTelegramWebhookSecret());
   if (secret) {
     const header = req.headers.get("x-telegram-bot-api-secret-token");
@@ -30,6 +36,9 @@ export async function POST(req: Request) {
       console.warn("[telegram/webhook] forbidden: bad secret token");
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
+  } else if (process.env.NODE_ENV === "production") {
+    console.error("[telegram/webhook] misconfigured: TELEGRAM_WEBHOOK_SECRET missing in production");
+    return NextResponse.json({ error: "Service misconfigured" }, { status: 503 });
   }
 
   const update = (await req.json().catch(() => null)) as TelegramUpdate | null;
