@@ -100,7 +100,7 @@ export async function getBookingTimeline(bookingId: number): Promise<BookingTime
             : "bookingRoom.timeline.proofSubmitted"
       });
     }
-    if (log.type === "PAYMENT_CONFIRMED") {
+    if (log.type === "PAYMENT_CONFIRMED" || log.type === "OWNER_PAYMENT_CONFIRMED") {
       pushUnique(events, {
         id: `log-${log.id}`,
         kind: "CONFIRMED",
@@ -108,7 +108,7 @@ export async function getBookingTimeline(bookingId: number): Promise<BookingTime
         labelKey: "bookingRoom.timeline.confirmed"
       });
     }
-    if (log.type === "PAYMENT_PROOF_REJECTED") {
+    if (log.type === "PAYMENT_PROOF_REJECTED" || log.type === "OWNER_PAYMENT_PROOF_REJECTED") {
       let detail: string | undefined;
       try {
         const p = JSON.parse(log.payload ?? "{}") as { reason?: string };
@@ -122,6 +122,27 @@ export async function getBookingTimeline(bookingId: number): Promise<BookingTime
         at: log.createdAt.toISOString(),
         labelKey: "bookingRoom.timeline.rejected",
         detail
+      });
+    }
+    if (log.type === "ADMIN_PAYMENT_OVERRIDE") {
+      let reason: string | undefined;
+      let newStatus: string | undefined;
+      try {
+        const p = JSON.parse(log.payload ?? "{}") as { reason?: string; newStatus?: string };
+        if (p.reason?.trim()) reason = p.reason.trim();
+        newStatus = p.newStatus;
+      } catch {
+        /* ignore */
+      }
+      pushUnique(events, {
+        id: `log-${log.id}`,
+        kind: newStatus === BOOKING_STATUS.CONFIRMED ? "CONFIRMED" : "REJECTED",
+        at: log.createdAt.toISOString(),
+        labelKey:
+          newStatus === BOOKING_STATUS.CONFIRMED
+            ? "bookingRoom.timeline.adminOverrideConfirmed"
+            : "bookingRoom.timeline.adminOverrideRejected",
+        detail: reason
       });
     }
   }
