@@ -533,3 +533,86 @@ pass this session).
 
 No implementation should start on any of the above, or on redesign of Home/Profile/Admin, until the
 user reviews this document and issues the next explicit instruction.
+
+---
+
+# LAYER 3 — MASTER DEEP AUDIT (started, PARTIAL, SHA `01003dc733261d0f6c7b0f0f1c991c4eef509023`)
+
+Many implementation commits landed between Layer 2 above and this layer (shell isolation, Admin KPI
+fixes, Applications photo/reject-flow fixes, identity-capability model, TST Assistant theme, Profile
+compaction, mobile nav dedup — see `.agent/STATE.md` for the full commit trail). This layer is a
+**separate, explicitly requested 42-section Master Deep Audit** (architecture/backend/DB/auth/
+security/UX/mobile/desktop/PWA), not a resumption of Layer 1-2's pre-implementation gate. Given the
+scope (38 Prisma models, 100 API routes, 40 page routes), **this single pass covers only a bounded
+subset with real evidence** — the two explicitly flagged runtime bugs, and Auth reality (the area with
+the most new architectural requirements). The remaining ~38 sections of the master spec are listed as
+NOT YET AUDITED at the end, not silently dropped.
+
+## L3.1 — Two flagged runtime bugs, ROOT-CAUSED with evidence (not fixed — audit only, per instruction)
+
+**Bug A — Home mobile: dead vertical space between Search card and bottom nav.**
+Reproduced at 390×844: Search card ends ~y590, bottom nav starts ~y815 — ~225px of pure empty white
+space. Root cause via DOM/CSSOM inspection: `<main class="flex-1">` sits inside the root layout's
+`<div class="flex min-h-screen flex-col">` sticky-footer pattern (`Header` → `main.flex-1` → `Footer`).
+`min-h-screen` forces the wrapper to 100vh; `flex: 1 1 0%` then force-stretches `main` to consume all
+remaining space (771px measured) regardless of actual content height (549.7px measured) — a real
+mismatch, not intentional whitespace. This pattern exists to push `Footer` to the bottom on
+content-light desktop pages; on mobile, the bottom nav is a separately fixed/overlaid element, not part
+of this flex flow, so the stretch produces pure dead space with no sticky-footer benefit. **Classification:
+architecture-level layout bug, not a content or copy issue** — the fix (when authorized) belongs in the
+root layout's flex/height model for the mobile breakpoint specifically, not in `HomeHeroMobile` padding
+tweaks.
+
+**Bug B — "Войти"/"Sign in" opens a cropped, mispositioned modal instead of a real Sign-In screen.**
+Reproduced: clicking the mobile header's Sign-in button (`HeaderMobileActions.tsx` → `AuthEntryModal`)
+opens `.auth-entry-modal`, confirmed via `getBoundingClientRect()`: `top: -77.65px`, i.e. the modal
+renders **partially above the visible viewport**, with only its bottom ~150px actually visible —
+exactly reproducing the user's screenshot (cropped auth block over a visible Home search card
+underneath). Root cause: `position: fixed; top: 50%; transform: translate(-50%,-50%)` in
+`home-mobile-first.css` centers the modal against the viewport by a self-height calculation that is
+demonstrably wrong at this content height/viewport combination. **Second, more fundamental finding**:
+this is architecturally the wrong pattern regardless of the centering math — a real `/auth/sign-in`
+route already exists and is fully built (confirmed: `<a href="/auth/sign-in">` also present on the
+same header, a second, currently-redundant sign-in entry point). The product decision implied by the
+user's instruction (§8: "Войти" → directly the real Sign-In screen, not an intermediate modal) means
+`AuthEntryModal` should very likely be retired in favor of always navigating to `/auth/sign-in`, not
+patched for centering — but that is a product/architecture decision for the implementation phase, not
+decided here.
+
+## L3.2 — Auth reality matrix (code-traced + env-verified, this pass)
+
+| Method | Code | Env configured (local) | Classification |
+|---|---|---|---|
+| Email + password | `src/app/api/auth/email/{register,login}` — bcrypt-class hashing via `hashPassword`, `normalizePhone`, session cookie on success | N/A (no external dependency) | **WORKING** (already exhaustively verified earlier this session — rate limits, no plaintext storage) |
+| Google OAuth | `src/app/api/auth/[...nextauth]/route.ts` — real `@auth/core` + `@auth/prisma-adapter`, `Google({clientId, clientSecret})`, conditionally registered via `isGoogleOAuthConfigured()`, custom `createUser` adapter hook creates a compatible `User` row (random unusable password + `google_<ts>_<n>` placeholder phone — matches the identity-capability model built earlier this session) | `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` **present** in `.env` | **WORKING** (code-complete, real OAuth, credentials present) — not yet re-driven through an actual browser OAuth round-trip this pass, so not full E2E-verified, but this is materially stronger than "button exists" |
+| Telegram | `src/lib/telegram/loginChallenge.ts` — real HMAC-SHA256 challenge/code flow (`crypto.createHmac`), token TTL, `MAX_ATTEMPTS` limit, hashed code comparison, same random-password/placeholder-phone pattern on account creation | `TELEGRAM_BOT_TOKEN` **present** in `.env` | **WORKING** (code-complete, real crypto, not a stub) — not re-driven through an actual Telegram bot round-trip this pass |
+| Phone OTP (custom) | `src/lib/auth/otp.ts`/`phoneOtpHandlers.ts` | N/A | Already fully documented in Layer 2 (§6b): real, secure, but **zero UI callers found** — dead-but-functional subsystem, unchanged this pass |
+
+**Account model** (per user's requested target): already effectively matches the target shape in the
+DB — `User` has one row with `password` (always set, real or random-placeholder), optional
+`firebaseUid`/`telegramId` fields, and a separate `Account` table (NextAuth's own, `provider` +
+`providerAccountId`) for OAuth identities. This is **already** "one User, several identity methods,"
+not three separate account types — confirmed by the `resolveIdentityCapabilities()` helper built
+earlier this session, which reads exactly this shape. The target architecture in the user's spec is
+largely already in place at the schema level; not a green-field design task.
+
+## L3.3 — NOT YET AUDITED this pass (explicit, not silently skipped)
+
+Password change flow (session-ownership enforcement), Google/Telegram account **replacement** flow
+(does a re-link path exist at all today? — not checked), Owner onboarding bureaucracy re-check post
+this-session's KYC removal, full Owner/Admin workspace entity-relationship audit, tenant isolation
+(Owner A vs Owner B) — not tested this pass despite being flagged repeatedly as owed, Tours (data model,
+category structure — confirmed in Layer 2 as "no Tour model in schema," not re-verified), full Database
+ER audit (38 models), booking concurrency/race conditions, money/currency handling, timezone handling,
+migration/portability review, full OWASP-class security pass, file upload validation, PWA/SW production
+lifecycle (dev-mode SW behavior exhaustively covered in `.agent/STATE.md` this session; production
+update-safety across deployments still not tested), chat/messaging security, notifications delivery
+logic, dead/legacy code sweep beyond what's been found incidentally, i18n beyond Profile (already
+verified) and Admin Overview (already verified), Impeccable installation and design-system pass,
+desktop widths beyond spot checks, full human-like click-through of every route.
+
+**This is intentionally a partial first layer of the 42-section master spec, not a rejection of its
+scope.** Continuing it requires several more dedicated passes — the two flagged bugs and the Auth
+reality matrix were prioritized because they were named explicitly and are foundational to everything
+downstream (you cannot correctly audit Owner/Admin permission flows without first trusting the identity
+layer they're built on).

@@ -684,3 +684,40 @@ scheme, never touches unrelated browser storage) and reloads once if anything st
 developer should no longer need manual DevTools intervention for this specific failure mode.
 Also renamed Admin's mobile "Главная" tab to "Обзор" (RU/EN — reads as Consumer Home otherwise;
 matches Owner's existing "Обзор"/"Overview" convention for the same tab role).
+
+## MODE = MASTER DEEP AUDIT (started, PARTIAL) — see `docs/TAJSTAY_CURRENT_STATE_AUDIT.md` Layer 3
+
+User requested a full 42-section architecture/backend/DB/auth/security/UX audit before any further
+implementation blocks. **AUDIT-ONLY — do not fix anything found until the user reviews and authorizes
+a specific block.** This session's first pass (SHA `01003dc733261d0f6c7b0f0f1c991c4eef509023`) covered:
+
+- **Bug A (Home mobile dead space) root-caused**: `main.flex-1` inside `min-h-screen flex flex-col`
+  force-stretches to fill viewport regardless of content height; bottom nav is a separate
+  fixed/overlaid element so the stretch has no sticky-footer purpose on mobile. Fix belongs in the
+  root layout's mobile-breakpoint height model, not local page padding.
+- **Bug B ("Войти" mixed state) root-caused**: `AuthEntryModal` (`position:fixed; top:50%;
+  transform:translate(-50%,-50%)`) renders with `top:-77.65px` — genuinely off-screen-top, confirmed
+  via `getBoundingClientRect()`, exactly reproducing the user's screenshot. Deeper finding: a real
+  `/auth/sign-in` page already exists and is already linked from the same header — the modal is
+  arguably the wrong pattern entirely, not just mis-centered. Product decision for implementation
+  phase, not made here.
+- **Auth reality matrix**: Email/password (already WORKING, verified earlier this session), Google
+  OAuth (WORKING — real NextAuth+Prisma adapter, `GOOGLE_CLIENT_ID`/`SECRET` present in `.env`, not yet
+  driven through a live browser OAuth round-trip), Telegram (WORKING — real HMAC-SHA256 challenge flow,
+  `TELEGRAM_BOT_TOKEN` present, not yet driven through a live bot round-trip), custom Phone OTP
+  (already known from Layer 2: real but zero UI callers). The "one User, several identity methods"
+  target architecture is **already substantially in place** at the schema level (`Account` table +
+  `resolveIdentityCapabilities()` built earlier this session) — not a green-field design task.
+
+**NOT YET AUDITED** (explicit, per `docs/TAJSTAY_CURRENT_STATE_AUDIT.md` Layer 3, §L3.3): password
+change ownership enforcement, Google/Telegram account *replacement* flow (may not exist at all — not
+checked), Owner onboarding re-check, Owner/Admin entity-relationship + tenant isolation, Tours, full DB
+ER audit, booking concurrency, money/timezone handling, migration/portability, full OWASP pass, file
+upload validation, PWA production update-safety, chat/messaging security, notification delivery logic,
+broader dead-code sweep, i18n beyond Profile/Admin-Overview, Impeccable/design-system pass, desktop
+beyond spot checks, full click-through of all ~40 routes. This is a genuinely partial first layer of a
+42-section spec — continuing it is multiple more sessions of work, not something to fake completing.
+
+**NEXT**: continue the master audit (do not fix Bug A/B yet, per explicit instruction), or — if the
+user reviews this partial layer and wants to prioritize differently — take direction from them rather
+than mechanically working section-by-section through the remaining 38 items.
