@@ -13,11 +13,19 @@ export type PaymentMethodDisplay = {
   instructions?: string | null;
 };
 
+export type PaymentMethodSnapshot = {
+  displayLabel: string;
+  recipientName: string;
+  paymentIdentifier: string;
+  instructions: string | null;
+};
+
 export function PaymentMethodsBlock({
   locale,
   bookingId,
   methods,
   selectedMethodId,
+  frozenSnapshot,
   locked
 }: {
   locale: Locale;
@@ -25,6 +33,13 @@ export function PaymentMethodsBlock({
   methods: PaymentMethodDisplay[];
   /** Already-selected method (Booking.hotelPaymentMethodId) - null if the guest hasn't picked one yet. */
   selectedMethodId: number | null;
+  /**
+   * Booking.paymentMethodSnapshot - the immutable requisites frozen at selection time. Once set,
+   * this is what's actually shown for the selected method, NOT the live entry in `methods` - the
+   * owner may have edited or deactivated that method since, and the guest must keep seeing exactly
+   * what they were told to pay to.
+   */
+  frozenSnapshot: PaymentMethodSnapshot | null;
   /** True once proof has been submitted - the snapshot is frozen, selection can no longer change. */
   locked: boolean;
 }) {
@@ -34,7 +49,15 @@ export function PaymentMethodsBlock({
   const [currentSelectedId, setCurrentSelectedId] = useState<number | null>(selectedMethodId);
   const [error, setError] = useState<string | null>(null);
 
-  if (!methods.length) {
+  // The guest's already-selected method must stay visible even if the owner deactivates or
+  // deletes it afterward - getHotelPaymentMethods() only returns active methods, so it can
+  // disappear from `methods` entirely. Re-inject it from the frozen snapshot when that happens.
+  const displayMethods: PaymentMethodDisplay[] =
+    currentSelectedId && frozenSnapshot && !methods.some((m2) => m2.id === currentSelectedId)
+      ? [{ id: currentSelectedId, ...frozenSnapshot }, ...methods]
+      : methods;
+
+  if (!displayMethods.length) {
     return (
       <section className="rounded-2xl border border-dashed border-white/15 bg-white/[0.03] p-4 text-sm text-slate-400">
         {m(locale, "bookingRoom.payment.empty")}
@@ -80,15 +103,18 @@ export function PaymentMethodsBlock({
         {locked ? m(locale, "bookingRoom.payment.hintLocked") : m(locale, "bookingRoom.payment.hintSelect")}
       </p>
       <ul className="mt-3 space-y-3">
-        {methods.map((method) => {
+        {displayMethods.map((method) => {
           const isSelected = currentSelectedId === method.id;
+          // Once selected, the frozen snapshot (if the server has one) is the source of truth for
+          // what's displayed - never the live method row, which the owner may have edited since.
+          const display: PaymentMethodDisplay = isSelected && frozenSnapshot ? { id: method.id, ...frozenSnapshot } : method;
           return (
             <li
               key={method.id}
               className={`rounded-xl border p-3 ${isSelected ? "border-[#0f7a4d] bg-[#0f7a4d]/10" : "border-white/10 bg-black/20"}`}
             >
               <div className="flex items-center justify-between gap-2">
-                <div className="text-sm font-semibold text-slate-100">{method.displayLabel}</div>
+                <div className="text-sm font-semibold text-slate-100">{display.displayLabel}</div>
                 {!locked && !isSelected ? (
                   <button
                     type="button"
@@ -106,20 +132,20 @@ export function PaymentMethodsBlock({
               </div>
               {isSelected ? (
                 <>
-                  <div className="mt-1 text-xs text-slate-400">{method.recipientName}</div>
+                  <div className="mt-1 text-xs text-slate-400">{display.recipientName}</div>
                   <div className="mt-2 flex items-center justify-between gap-3">
                     <span className="min-w-0 flex-1 break-all font-mono text-sm text-slate-100">
-                      {method.paymentIdentifier}
+                      {display.paymentIdentifier}
                     </span>
                     <button
                       type="button"
-                      onClick={() => void copyText(method.id, method.paymentIdentifier)}
+                      onClick={() => void copyText(display.id, display.paymentIdentifier)}
                       className="shrink-0 rounded-lg bg-[#0f7a4d] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#0f7a4d]"
                     >
-                      {copiedId === method.id ? m(locale, "bookingRoom.payment.copied") : m(locale, "bookingRoom.payment.copy")}
+                      {copiedId === display.id ? m(locale, "bookingRoom.payment.copied") : m(locale, "bookingRoom.payment.copy")}
                     </button>
                   </div>
-                  {method.instructions ? <div className="mt-2 text-xs text-slate-400">{method.instructions}</div> : null}
+                  {display.instructions ? <div className="mt-2 text-xs text-slate-400">{display.instructions}</div> : null}
                 </>
               ) : null}
             </li>

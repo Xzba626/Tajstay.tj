@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect } from "react";
 import { BookingChatPanel } from "@/components/chat/BookingChatPanel";
 import { BookingChatHeader } from "@/components/chat/BookingChatHeader";
-import { PaymentMethodsBlock, type PaymentMethodDisplay } from "@/components/chat/PaymentMethodsBlock";
+import { PaymentMethodsBlock, type PaymentMethodDisplay, type PaymentMethodSnapshot } from "@/components/chat/PaymentMethodsBlock";
 import { ProofUploadPanel } from "@/components/chat/ProofUploadPanel";
 import { BookingTimeline } from "@/components/chat/BookingTimeline";
 import { ReviewBanner } from "@/components/chat/ReviewBanner";
@@ -43,6 +43,8 @@ export type BookingRoomProps = {
   paymentMethods: PaymentMethodDisplay[];
   /** Already-selected hotel payment method (Booking.hotelPaymentMethodId), if any. */
   selectedHotelPaymentMethodId?: number | null;
+  /** Booking.paymentMethodSnapshot - immutable requisites frozen at selection time. */
+  paymentMethodSnapshot?: PaymentMethodSnapshot | null;
   timeline: BookingTimelineEvent[];
   proofSent?: boolean;
   paymentProofUrl?: string | null;
@@ -81,6 +83,7 @@ export function BookingRoom(props: BookingRoomProps) {
     publicCode,
     paymentMethods,
     selectedHotelPaymentMethodId = null,
+    paymentMethodSnapshot = null,
     timeline,
     proofSent,
     paymentProofUrl = null,
@@ -140,6 +143,7 @@ export function BookingRoom(props: BookingRoomProps) {
             bookingId={bookingId}
             methods={paymentMethods}
             selectedMethodId={selectedHotelPaymentMethodId}
+            frozenSnapshot={paymentMethodSnapshot}
             locked={Boolean(paymentProofUrl)}
           />
           <ProofUploadPanel

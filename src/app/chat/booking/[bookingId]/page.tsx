@@ -111,6 +111,7 @@ export default async function BookingChatPage({
       publicCode={booking.publicCode}
       paymentMethods={paymentMethods}
       selectedHotelPaymentMethodId={booking.hotelPaymentMethodId}
+      paymentMethodSnapshot={booking.paymentMethodSnapshot as { displayLabel: string; recipientName: string; paymentIdentifier: string; instructions: string | null } | null}
       timeline={timeline}
       proofSent={proofSent}
       paymentProofUrl={booking.paymentProofUrl}
