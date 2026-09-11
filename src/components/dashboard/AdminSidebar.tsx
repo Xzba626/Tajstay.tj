@@ -59,7 +59,7 @@ export type AdminSidebarLabels = {
     dashboard: string;
     applications: string;
     users: string;
-    bookings: string;
+    hotels: string;
   };
 };
 
@@ -70,10 +70,12 @@ type SidebarItem = {
 };
 
 const DRAWER_GROUP_SECTIONS = [
-  { key: "hotels" as const, sections: ["hotels"] },
   { key: "platform" as const, sections: ["content"] },
   { key: "finance" as const, sections: ["finance"] },
-  { key: "operations" as const, sections: ["complaints", "notifications"] },
+  // "bookings" moved out of the primary mobile tabs (replaced by "hotels", now primary) but was
+  // never added to any drawer group, so it silently had nowhere to appear on mobile at all —
+  // real gap, fixed here.
+  { key: "operations" as const, sections: ["bookings", "complaints", "notifications"] },
   { key: "access" as const, sections: ["owner-access"] }
 ];
 
@@ -101,7 +103,10 @@ function buildItems(labels: AdminSidebarLabels): SidebarItem[] {
   ];
 }
 
-const MOBILE_PRIMARY = ["dashboard", "applications", "users", "bookings"] as const;
+// "bookings" removed from primary mobile tabs per product decision: Admin needs booking
+// oversight for support/disputes/payments, but it isn't one of the 5 most common daily mobile
+// destinations — it now lives in "Ещё" (still in SIDEBAR_GROUPS/buildItems above, unchanged).
+const MOBILE_PRIMARY = ["dashboard", "applications", "hotels", "users"] as const;
 
 function sectionHref(pathname: string, section: string) {
   return `${pathname}?section=${section}`;

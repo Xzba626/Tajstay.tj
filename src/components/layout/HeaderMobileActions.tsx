@@ -1,51 +1,28 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Menu } from "lucide-react";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
 import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
 import { AuthEntryModal } from "@/components/layout/AuthEntryModal";
-import { openWorkspaceDrawer } from "@/lib/workspace/workspace-nav-bridge";
 
 type Props = {
   locale: Locale;
   user: { name: string; image: string | null; telegramPhotoUrl: string | null } | null;
 };
 
+// This component only renders inside the Consumer shell's Header, which the root layout no
+// longer mounts on Admin/Owner routes (see src/middleware.ts x-tajstay-shell + src/app/layout.tsx
+// shell isolation). Admin/Owner mobile have their own single "Ещё" bottom-nav trigger for the
+// More drawer (AdminSidebar.tsx / OwnerSidebar.tsx) — this file previously also rendered a
+// hamburger for those two routes via openWorkspaceDrawer(), a second trigger for the same drawer
+// that's exactly the duplicate-navigation bug flagged from a production screenshot (that
+// deployment predates the shell-isolation fix). Removed rather than left as dead-but-reachable
+// code, so a future accidental regression in the shell-isolation check can't silently resurrect
+// the duplicate hamburger.
 export function HeaderMobileActions({ locale, user }: Props) {
   const [authOpen, setAuthOpen] = useState(false);
-  const pathname = usePathname();
-  const isAdminWorkspace = pathname.startsWith("/dashboard/admin");
-  const isOwnerWorkspace = pathname.startsWith("/dashboard/owner");
-
-  if (user && isAdminWorkspace) {
-    return (
-      <button
-        type="button"
-        className="header-workspace-menu"
-        aria-label={m(locale, "admin.mobileMore")}
-        onClick={() => openWorkspaceDrawer("admin")}
-      >
-        <Menu size={22} aria-hidden />
-      </button>
-    );
-  }
-
-  if (user && isOwnerWorkspace) {
-    return (
-      <button
-        type="button"
-        className="header-workspace-menu"
-        aria-label={m(locale, "owner.mobileMore")}
-        onClick={() => openWorkspaceDrawer("owner")}
-      >
-        <Menu size={22} aria-hidden />
-      </button>
-    );
-  }
 
   if (user) {
     return (

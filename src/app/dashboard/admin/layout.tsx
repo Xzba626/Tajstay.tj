@@ -46,7 +46,7 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
       dashboard: m(locale, "adminNav.dashboardShort"),
       applications: m(locale, "adminNav.applicationsShort"),
       users: m(locale, "adminNav.usersShort"),
-      bookings: m(locale, "adminNav.bookingsShort")
+      hotels: m(locale, "adminNav.hotelsShort")
     }
   };
 
