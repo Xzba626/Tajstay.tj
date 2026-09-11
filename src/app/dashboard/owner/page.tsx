@@ -617,12 +617,6 @@ export default async function OwnerDashboardPage({
             </div>
           )}
 
-          {hasHotels && (
-            <div className="owner-status-banner owner-status-banner--success" role="status">
-              {m(locale, "owner.oneHotelRule")}
-            </div>
-          )}
-
           {!hasHotels && createHotelForm}
 
           {hasHotels && (
@@ -773,6 +767,12 @@ export default async function OwnerDashboardPage({
                   </form>
                 </div>
               ))}
+              <details className="owner-panel">
+                <summary className="owner-btn owner-btn--secondary cursor-pointer select-none list-none">
+                  {m(locale, "owner.addAnotherHotel")}
+                </summary>
+                <div className="mt-4">{createHotelFormInner}</div>
+              </details>
             </div>
           )}
         </section>

@@ -59,7 +59,12 @@ function uploadErrorCode(err: ImageUploadError): string {
   }
 }
 
-/** Создание объекта владельцем после одобрения заявки — без повторной модерации админом. */
+/**
+ * Создание объекта владельцем. One owner -> many Hotels: a real hotelier can run several
+ * properties, each with its own rooms/bookings/payment methods (already Hotel-scoped, see
+ * HotelPaymentMethod). Matches the existing first-hotel behavior - auto-approved, no repeated
+ * admin moderation for a second/third property either.
+ */
 export async function POST(req: NextRequest) {
   try {
     const owner = await getOwnerUser();
@@ -72,11 +77,6 @@ export async function POST(req: NextRequest) {
     );
     // #endregion
     if (!owner) return forbiddenJson();
-
-    const existingCount = await prisma.hotel.count({ where: { ownerId: owner.id } });
-    if (existingCount >= 1) {
-      return redirectBack(req, "hotel_limit");
-    }
 
     const form = await req.formData();
     const name = String(form.get("name") ?? "").trim();
