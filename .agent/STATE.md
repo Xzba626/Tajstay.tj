@@ -878,19 +878,30 @@ rejected both by the page (falls back to the owner's own aggregate, no error, no
 `GET /api/owner/calendar` directly (returns empty rooms, confirmed via curl with the real session
 cookie).
 
-**Explicitly NOT done, still OPEN**: Notifications has no hotel relation on the `Notification` model
-at all — out of scope for this pass (schema change); Objects/Properties list is still one giant
-per-hotel form stacked vertically, not the compact thumbnail/name/city/room-count/status card list the
-spec calls for; map-pin location picker (still raw lat/lng); hotel-image crop/placeholder fixes; mobile
-switcher UX beyond the existing responsive drawer (not spot-checked at 390/412 yet); RU/TJ/EN beyond
-the 2 new keys (`switchProperty`, `allProperties`) not reviewed for the rest of the spec's new-label
-list (Add/Edit property, Location, Save location).
+### Multi-Hotel — Objects/Properties compact list (commit `17cfc9e`)
 
-**NEXT**: Objects/Properties compact-list redesign is the natural continuation (it's the page a
-multi-hotel owner actually uses to navigate between hotels day to day, and today it's still the
-"giant single photo" the spec explicitly calls out) — OR the map-pin location picker, OR Subscription
-business model (also gated on multi-hotel, per master order). Picking whichever has the clearer next
-dependency when resuming; all three are legitimately "next."
+Replaced the "one giant stacked full-edit-form per hotel, always rendered, big cover photo" layout
+with a compact row per hotel: small (3rem) thumbnail, name, city, room count, status badge, "Open"
+(real public `/hotel/[id]` link) and "Edit" (native `<details>` toggle, collapsed by default — same
+pattern as the existing "Add another hotel" disclosure). The full edit form itself is untouched, just
+nested inside the collapsed `<details>` instead of always rendered — no save/upload/coordinate logic
+was touched. **Verified BROWSER**: both fixture hotels render as compact rows; clicking "Edit" on one
+expands only that hotel's form (pre-filled, confirmed via `input[name=name]` value), the other stays
+collapsed; no horizontal overflow at 375px mobile.
+
+**Explicitly NOT done, still OPEN**: Notifications has no hotel relation on the `Notification` model
+at all — out of scope for this pass (schema change); map-pin location picker (still raw lat/lng inputs
+inside the edit form, unchanged); hotel-image crop/placeholder fixes (thumbnail now uses `object-cover`
+in a fixed 3rem box, not yet checked against the "never fall back to the TajStay logo" requirement);
+mobile switcher UX beyond the existing responsive drawer (not spot-checked at 390/412 for the
+*switcher* itself, only the properties list); RU/TJ/EN beyond the 5 new keys (`switchProperty`,
+`allProperties`, `roomsShort`, `openProperty`, `editProperty`).
+
+**NEXT**: map-pin location picker (replaces raw lat/lng, becomes the one canonical Hotel location
+shared across Owner Desk/Public Hotel Detail/Search map/Admin moderation per the spec) is the next
+architecturally-interesting item, OR hotel-image crop/placeholder fixes, OR Subscription business
+model (also gated on multi-hotel, per master order). Picking whichever has the clearer next dependency
+when resuming.
 
 ### Auth cleanup — DONE (uncommitted at time of writing this entry, commit to follow)
 
