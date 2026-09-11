@@ -144,31 +144,37 @@ export async function rejectBookingPayment({ bookingId, actorId, actorRole, reas
   const payment = await prisma.payment.findUnique({ where: { bookingId } });
   const previousStatus = booking.status;
 
+  // Rejecting a payment PROOF is not the same as rejecting the whole booking - a blurry photo or
+  // wrong amount is a reason to ask for a new receipt, not to kill the reservation. Send the
+  // booking back to WAITING_PAYMENT with a fresh payment window instead of a terminal REJECTED
+  // status, so the guest can simply submit a corrected proof through the normal flow. A genuine
+  // booking cancellation is a separate, distinct action - not a side effect of a bad receipt.
+  const retryWindowMs = 15 * 60 * 1000;
   await prisma.booking.update({
     where: { id: bookingId },
     data: {
-      status: BOOKING_STATUS.REJECTED,
-      paymentStatus: "FAILED",
+      status: BOOKING_STATUS.WAITING_PAYMENT,
+      paymentProofUrl: null,
+      proofSubmittedAt: null,
+      proofReviewDeadlineAt: null,
+      paymentTimerPaused: false,
+      expiresAt: new Date(Date.now() + retryWindowMs),
       proofReviewedAt: new Date(),
       proofReviewedById: actorId,
       paymentReviewNote: trimmedReason
     }
   });
 
-  if (payment) {
-    await prisma.payment.update({ where: { id: payment.id }, data: { status: "FAILED" } });
-  }
-
   await prisma.transactionLog.create({
     data: {
       bookingId,
-      type: actorRole === "ADMIN" ? "ADMIN_PAYMENT_OVERRIDE" : "OWNER_PAYMENT_REJECTED",
+      type: actorRole === "ADMIN" ? "ADMIN_PAYMENT_OVERRIDE" : "OWNER_PAYMENT_PROOF_REJECTED",
       payload: JSON.stringify({
         actorId,
         actorRole,
         reason: trimmedReason,
         previousStatus,
-        newStatus: BOOKING_STATUS.REJECTED,
+        newStatus: BOOKING_STATUS.WAITING_PAYMENT,
         at: new Date().toISOString()
       })
     }
@@ -176,7 +182,7 @@ export async function rejectBookingPayment({ bookingId, actorId, actorRole, reas
 
   await addBookingSystemMessage({
     bookingId,
-    message: `🛡️ Система: Оплата отклонена. ${trimmedReason}`
+    message: `🛡️ Система: Чек отклонён. ${trimmedReason} Пожалуйста, отправьте новый чек.`
   });
 
   if (booking.userId != null) {

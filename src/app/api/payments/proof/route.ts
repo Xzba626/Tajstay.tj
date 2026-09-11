@@ -62,9 +62,6 @@ export async function POST(req: NextRequest) {
   const proofAmountRaw = String(form.get("proofAmount") ?? "").trim();
   const proofAmount = proofAmountRaw ? Number(proofAmountRaw) : null;
   const proofFile = form.get("proofFile");
-  const hotelPaymentMethodIdRaw = Number(form.get("hotelPaymentMethodId"));
-  const hotelPaymentMethodId =
-    Number.isFinite(hotelPaymentMethodIdRaw) && hotelPaymentMethodIdRaw > 0 ? hotelPaymentMethodIdRaw : null;
 
   let proofUrl = "";
   if (proofUrlInput && isSafeProofUrl(proofUrlInput)) proofUrl = proofUrlInput;
@@ -114,23 +111,32 @@ export async function POST(req: NextRequest) {
     return NextResponse.redirect(publicUrl(req, `/chat/booking/${booking.id}?expired=1`));
   }
 
-  // Snapshot which hotel-owned payment method the guest says they used, at the moment they submit
-  // proof - so a later edit to the owner's card number never changes what this booking shows.
   const hotel = bookingHotel(booking);
-  let paymentMethodSnapshot: {
+
+  // The payment-method snapshot is frozen earlier, at selection time (see
+  // /api/bookings/[id]/select-payment-method and selectHotelPaymentMethodForBooking) - NOT here.
+  // By the time the guest uploads a receipt, money may already have moved against whatever
+  // requisites they were shown; re-snapshotting now could silently swap in the owner's
+  // meanwhile-edited card number. Fallback only: if the guest never went through an explicit
+  // selection step (e.g. a hotel with exactly one active method and older client code that never
+  // called select-payment-method), auto-select that single method now - still before review, and
+  // only when nothing was chosen yet.
+  let fallbackHotelPaymentMethodId: number | null = null;
+  let fallbackSnapshot: {
     displayLabel: string;
     recipientName: string;
     paymentIdentifier: string;
     instructions: string | null;
   } | null = null;
-  let resolvedHotelPaymentMethodId: number | null = null;
-  if (hotelPaymentMethodId) {
-    const method = await prisma.hotelPaymentMethod.findFirst({
-      where: { id: hotelPaymentMethodId, hotelId: hotel.id, isActive: true }
+  if (!booking.hotelPaymentMethodId) {
+    const activeMethods = await prisma.hotelPaymentMethod.findMany({
+      where: { hotelId: hotel.id, isActive: true },
+      take: 2
     });
-    if (method) {
-      resolvedHotelPaymentMethodId = method.id;
-      paymentMethodSnapshot = {
+    if (activeMethods.length === 1) {
+      const method = activeMethods[0];
+      fallbackHotelPaymentMethodId = method.id;
+      fallbackSnapshot = {
         displayLabel: method.displayLabel,
         recipientName: method.recipientName,
         paymentIdentifier: method.paymentIdentifier,
@@ -153,11 +159,11 @@ export async function POST(req: NextRequest) {
       proofReviewDeadlineAt,
       paymentTimerPaused: true,
       expiresAt: null,
-      ...(resolvedHotelPaymentMethodId
+      ...(fallbackHotelPaymentMethodId
         ? {
-            hotelPaymentMethodId: resolvedHotelPaymentMethodId,
-            paymentMethodSnapshot: JSON.parse(JSON.stringify(paymentMethodSnapshot)),
-            paymentMethod: paymentMethodSnapshot!.displayLabel
+            hotelPaymentMethodId: fallbackHotelPaymentMethodId,
+            paymentMethodSnapshot: JSON.parse(JSON.stringify(fallbackSnapshot)),
+            paymentMethod: fallbackSnapshot!.displayLabel
           }
         : {})
     }

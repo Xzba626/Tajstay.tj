@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
-import type { PaymentMethodDisplay } from "@/components/chat/PaymentMethodsBlock";
 
 export function ProofUploadPanel({
   locale,
@@ -12,20 +11,20 @@ export function ProofUploadPanel({
   publicCode,
   canSubmit,
   defaultAmount,
-  paymentMethods
+  hasSelectedMethod
 }: {
   locale: Locale;
   bookingId: number;
   publicCode: string | null;
   canSubmit: boolean;
   defaultAmount?: number;
-  paymentMethods: PaymentMethodDisplay[];
+  /** Whether the guest has already picked a payment method above (see PaymentMethodsBlock). */
+  hasSelectedMethod: boolean;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedMethodId, setSelectedMethodId] = useState<number | null>(paymentMethods[0]?.id ?? null);
 
   if (!canSubmit) return null;
 
@@ -37,7 +36,6 @@ export function ProofUploadPanel({
     const fd = new FormData(form);
     fd.set("bookingId", String(bookingId));
     if (publicCode) fd.set("code", publicCode);
-    if (selectedMethodId) fd.set("hotelPaymentMethodId", String(selectedMethodId));
 
     try {
       const res = await fetch("/api/payments/proof?json=1", {
@@ -76,23 +74,8 @@ export function ProofUploadPanel({
             </button>
           </div>
           <span className="chat-proof-card__status chat-proof-card__status--pending">{m(locale, "status.ON_REVIEW")}</span>
-          {paymentMethods.length > 1 ? (
-            <div className="space-y-1.5">
-              <span className="text-xs font-semibold text-[var(--taj-color-text-muted)]">
-                {m(locale, "bookingRoom.proof.methodUsed")}
-              </span>
-              {paymentMethods.map((method) => (
-                <label key={method.id} className="flex items-center gap-2 text-xs text-[var(--taj-color-text)]">
-                  <input
-                    type="radio"
-                    name="hotelPaymentMethodRadio"
-                    checked={selectedMethodId === method.id}
-                    onChange={() => setSelectedMethodId(method.id)}
-                  />
-                  {method.displayLabel}
-                </label>
-              ))}
-            </div>
+          {!hasSelectedMethod ? (
+            <p className="text-xs text-amber-300">{m(locale, "bookingRoom.proof.selectMethodFirst")}</p>
           ) : null}
           <label className="flex cursor-pointer flex-col items-center gap-2 rounded-xl border border-dashed border-[var(--taj-color-border-strong)] bg-[var(--taj-[#ecfdf5])] px-3 py-4">
             <span className="text-xs font-semibold text-[var(--taj-color-primary)]">{m(locale, "bookingRoom.proof.file")}</span>

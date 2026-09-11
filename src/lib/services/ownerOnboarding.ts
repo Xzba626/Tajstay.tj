@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma";
-import { getOwnerPaymentMethods } from "@/lib/owner-payment-methods";
 
 export type OwnerOnboardingStep = {
   id: "property" | "photos" | "payment" | "calendar" | "publish";
@@ -12,14 +11,14 @@ export async function getOwnerOnboardingSteps(ownerId: number): Promise<OwnerOnb
     where: { ownerId },
     include: {
       photos: { take: 1 },
-      rooms: { include: { photos: { take: 1 }, overrides: { take: 1 } } }
+      rooms: { include: { photos: { take: 1 }, overrides: { take: 1 } } },
+      paymentMethods: { take: 1 }
     }
   });
 
-  const paymentMethods = await getOwnerPaymentMethods(ownerId);
   const hasProperty = hotels.length > 0;
   const hasPhotos = hotels.some((h) => Boolean(h.coverImageUrl) || h.photos.length > 0 || h.rooms.some((r) => r.photos.length > 0));
-  const hasPayment = paymentMethods.length > 0;
+  const hasPayment = hotels.some((h) => h.paymentMethods.length > 0);
   const hasCalendar = hotels.some((h) => h.rooms.some((r) => r.overrides.length > 0));
   const hasPublished = hotels.some((h) => h.status === "APPROVED");
 

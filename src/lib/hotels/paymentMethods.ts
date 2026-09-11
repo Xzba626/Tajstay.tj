@@ -94,6 +94,75 @@ export async function updateHotelPaymentMethod(
   });
 }
 
+type PaymentMethodSnapshot = {
+  displayLabel: string;
+  recipientName: string;
+  paymentIdentifier: string;
+  instructions: string | null;
+};
+
+export function buildPaymentMethodSnapshot(method: {
+  displayLabel: string;
+  recipientName: string;
+  paymentIdentifier: string;
+  instructions: string | null;
+}): PaymentMethodSnapshot {
+  return {
+    displayLabel: method.displayLabel,
+    recipientName: method.recipientName,
+    paymentIdentifier: method.paymentIdentifier,
+    instructions: method.instructions
+  };
+}
+
+/**
+ * Guest selects which hotel-owned payment method they'll pay with. This is the moment the
+ * requisites shown to the guest become an immutable snapshot on the Booking - BEFORE any money
+ * moves, not when the guest later uploads a receipt. If the owner edits/removes the method
+ * afterward, this booking keeps showing exactly what the guest was told to pay to.
+ *
+ * Re-selectable up until the guest actually submits proof (they may change their mind about which
+ * method to use); locked once paymentProofUrl is set, since by then real money may have already
+ * moved against the snapshot shown.
+ */
+export async function selectHotelPaymentMethodForBooking(
+  bookingId: number,
+  guestId: number,
+  hotelPaymentMethodId: number
+): Promise<{ ok: true; snapshot: PaymentMethodSnapshot } | { ok: false; reason: "not_found" | "forbidden" | "locked" | "invalid_method" }> {
+  const booking = await prisma.booking.findUnique({
+    where: { id: bookingId },
+    include: {
+      room: { include: { hotel: true } },
+      roomType: { include: { hotel: true } },
+      assignedRoom: { include: { hotel: true } }
+    }
+  });
+  if (!booking) return { ok: false, reason: "not_found" };
+  if (booking.userId !== guestId) return { ok: false, reason: "forbidden" };
+  if (booking.paymentProofUrl) return { ok: false, reason: "locked" };
+
+  const hotelId = booking.assignedRoom?.hotel.id ?? booking.room?.hotel.id ?? booking.roomType?.hotel.id;
+  if (!hotelId) return { ok: false, reason: "not_found" };
+
+  const method = await prisma.hotelPaymentMethod.findFirst({
+    where: { id: hotelPaymentMethodId, hotelId, isActive: true }
+  });
+  if (!method) return { ok: false, reason: "invalid_method" };
+
+  const snapshot = buildPaymentMethodSnapshot(method);
+  await prisma.booking.update({
+    where: { id: bookingId },
+    data: {
+      hotelPaymentMethodId: method.id,
+      paymentMethodSnapshot: JSON.parse(JSON.stringify(snapshot)),
+      paymentMethod: snapshot.displayLabel
+    }
+  });
+
+  return { ok: true, snapshot };
+}
+
 export async function deleteHotelPaymentMethod(hotelId: number, methodId: number, ownerId: number) {
   const hotel = await prisma.hotel.findFirst({ where: { id: hotelId, ownerId } });
   if (!hotel) throw new Error("FORBIDDEN");

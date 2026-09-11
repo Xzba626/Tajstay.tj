@@ -41,6 +41,8 @@ export type BookingRoomProps = {
   paymentStatus: string;
   publicCode: string | null;
   paymentMethods: PaymentMethodDisplay[];
+  /** Already-selected hotel payment method (Booking.hotelPaymentMethodId), if any. */
+  selectedHotelPaymentMethodId?: number | null;
   timeline: BookingTimelineEvent[];
   proofSent?: boolean;
   paymentProofUrl?: string | null;
@@ -78,6 +80,7 @@ export function BookingRoom(props: BookingRoomProps) {
     paymentStatus,
     publicCode,
     paymentMethods,
+    selectedHotelPaymentMethodId = null,
     timeline,
     proofSent,
     paymentProofUrl = null,
@@ -132,14 +135,20 @@ export function BookingRoom(props: BookingRoomProps) {
       ) : null}
       {showPaymentFlow ? (
         <>
-          <PaymentMethodsBlock locale={locale} methods={paymentMethods} />
+          <PaymentMethodsBlock
+            locale={locale}
+            bookingId={bookingId}
+            methods={paymentMethods}
+            selectedMethodId={selectedHotelPaymentMethodId}
+            locked={Boolean(paymentProofUrl)}
+          />
           <ProofUploadPanel
             locale={locale}
             bookingId={bookingId}
             publicCode={publicCode}
             canSubmit={canSubmitProof}
             defaultAmount={Number(totalPrice)}
-            paymentMethods={paymentMethods}
+            hasSelectedMethod={Boolean(selectedHotelPaymentMethodId)}
           />
         </>
       ) : null}
