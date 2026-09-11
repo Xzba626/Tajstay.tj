@@ -11,9 +11,8 @@ export async function GET(req: NextRequest) {
   const hotelId = Number(req.nextUrl.searchParams.get("hotelId") || "") || undefined;
   const roomId = Number(req.nextUrl.searchParams.get("roomId") || "") || undefined;
 
-  const data = await getOwnerCalendarData(owner.id, days);
+  const data = await getOwnerCalendarData(owner.id, days, hotelId);
   let { rooms } = data;
-  if (hotelId) rooms = rooms.filter((r) => r.hotelId === hotelId);
   if (roomId) rooms = rooms.filter((r) => r.id === roomId);
 
   return NextResponse.json({ ok: true, ...data, rooms });

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   BarChart3,
   BedDouble,
@@ -21,6 +21,8 @@ import { cn } from "@/lib/cn";
 import { WorkspaceMobileDrawer } from "@/components/navigation/WorkspaceMobileDrawer";
 import { BodyPortal } from "@/components/navigation/BodyPortal";
 import { subscribeWorkspaceDrawerOpen } from "@/lib/workspace/workspace-nav-bridge";
+
+export type OwnerSwitcherHotel = { id: number; name: string; city: string };
 
 export type OwnerSidebarLabels = {
   sectionTitle: string;
@@ -61,6 +63,8 @@ export type OwnerSidebarLabels = {
     bookings: string;
     finances: string;
   };
+  switchProperty: string;
+  allProperties: string;
 };
 
 type SidebarItem = {
@@ -103,9 +107,10 @@ const OWNER_SIDEBAR_GROUPS = [
   { key: "support" as const, sections: ["help"], hrefs: ["/dashboard/messages"] as string[] }
 ];
 
-function resolveHref(pathname: string, item: SidebarItem): string {
+function resolveHref(pathname: string, item: SidebarItem, hotelId?: string | null): string {
   if (item.href) return item.href;
-  return `${pathname}?section=${item.section ?? "overview"}`;
+  const suffix = hotelId ? `&hotelId=${hotelId}` : "";
+  return `${pathname}?section=${item.section ?? "overview"}${suffix}`;
 }
 
 function isActive(pathname: string, section: string, item: SidebarItem): boolean {
@@ -113,16 +118,64 @@ function isActive(pathname: string, section: string, item: SidebarItem): boolean
   return section === (item.section ?? "overview");
 }
 
-export function OwnerSidebar({ labels }: { labels: OwnerSidebarLabels }) {
+function PropertySwitcher({
+  hotels,
+  labels,
+  className
+}: {
+  hotels: OwnerSwitcherHotel[];
+  labels: OwnerSidebarLabels;
+  className?: string;
+}) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const search = useSearchParams();
+  const activeHotelId = Number(search.get("hotelId") ?? "") || 0;
+
+  if (hotels.length <= 1) return null;
+
+  function goToHotel(nextId: string) {
+    const params = new URLSearchParams(search.toString());
+    if (nextId) params.set("hotelId", nextId);
+    else params.delete("hotelId");
+    params.delete("page");
+    router.push(`${pathname}?${params.toString()}`);
+  }
+
+  return (
+    <div className={cn("owner-sidebar__switcher", className)}>
+      <label className="owner-sidebar__switcher-label" htmlFor="owner-property-switcher">
+        {labels.switchProperty}
+      </label>
+      <select
+        id="owner-property-switcher"
+        className="owner-sidebar__switcher-select"
+        value={activeHotelId || ""}
+        onChange={(e) => goToHotel(e.target.value)}
+      >
+        <option value="">{labels.allProperties}</option>
+        {hotels.map((h) => (
+          <option key={h.id} value={h.id}>
+            {h.name} — {h.city}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+export function OwnerSidebar({ labels, hotels }: { labels: OwnerSidebarLabels; hotels: OwnerSwitcherHotel[] }) {
   const pathname = usePathname();
   const search = useSearchParams();
   const section = search.get("section") ?? "overview";
+  const hotelId = search.get("hotelId");
   const items = buildItems(labels);
   const itemsBySection = new Map(items.filter((i) => i.section).map((item) => [item.section!, item]));
 
   return (
     <aside className="owner-sidebar" aria-label={labels.navLabel}>
       <p className="owner-sidebar__title">{labels.sectionTitle}</p>
+      <PropertySwitcher hotels={hotels} labels={labels} />
       <nav className="owner-sidebar__nav">
         {OWNER_SIDEBAR_GROUPS.map((group) => {
           const groupItems = [
@@ -138,7 +191,7 @@ export function OwnerSidebar({ labels }: { labels: OwnerSidebarLabels }) {
               ) : null}
               {groupItems.map((item) => {
                 const active = isActive(pathname, section, item);
-                const href = resolveHref(pathname, item);
+                const href = resolveHref(pathname, item, hotelId);
                 return (
                   <Link
                     key={href + item.label}
@@ -161,10 +214,11 @@ export function OwnerSidebar({ labels }: { labels: OwnerSidebarLabels }) {
   );
 }
 
-export function OwnerMobileNav({ labels }: { labels: OwnerSidebarLabels }) {
+export function OwnerMobileNav({ labels, hotels }: { labels: OwnerSidebarLabels; hotels: OwnerSwitcherHotel[] }) {
   const pathname = usePathname();
   const search = useSearchParams();
   const section = search.get("section") ?? "overview";
+  const hotelId = search.get("hotelId");
   const items = buildItems(labels);
   const [moreOpen, setMoreOpen] = useState(false);
 
@@ -186,7 +240,7 @@ export function OwnerMobileNav({ labels }: { labels: OwnerSidebarLabels }) {
       <nav className="workspace-mobile-bottom-nav owner-mobile-bottom-nav lg:hidden" aria-label={labels.mobileNav}>
         {primaryItems.map((item) => {
           const active = isActive(pathname, section, item);
-          const href = resolveHref(pathname, item);
+          const href = resolveHref(pathname, item, hotelId);
           const shortLabel =
             labels.mobileShort?.[item.section as keyof NonNullable<OwnerSidebarLabels["mobileShort"]>] ?? item.label;
           return (
@@ -222,6 +276,7 @@ export function OwnerMobileNav({ labels }: { labels: OwnerSidebarLabels }) {
         ariaLabel={labels.mobileMore}
         onClose={() => setMoreOpen(false)}
       >
+        <PropertySwitcher hotels={hotels} labels={labels} className="owner-sidebar__switcher--mobile" />
         {labels.drawerGroups
           ? OWNER_DRAWER_GROUPS.map((group) => {
               const groupItems = [
@@ -235,7 +290,7 @@ export function OwnerMobileNav({ labels }: { labels: OwnerSidebarLabels }) {
                   <p className="workspace-mobile-drawer__group-title">{labels.drawerGroups![group.key]}</p>
                   {groupItems.map((item) => {
                     const active = isActive(pathname, section, item);
-                    const href = resolveHref(pathname, item);
+                    const href = resolveHref(pathname, item, hotelId);
                     return (
                       <Link
                         key={href + item.label}
@@ -260,7 +315,7 @@ export function OwnerMobileNav({ labels }: { labels: OwnerSidebarLabels }) {
           </p>
           {moreItems.map((item) => {
             const active = isActive(pathname, section, item);
-            const href = resolveHref(pathname, item);
+            const href = resolveHref(pathname, item, hotelId);
             return (
               <Link
                 key={href + item.label}

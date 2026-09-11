@@ -153,13 +153,24 @@ export default async function OwnerDashboardPage({
   const status = (params?.status ?? "").trim();
   const paymentStatus = (params?.paymentStatus ?? "").trim();
   const availability = (params?.availability ?? "").trim();
-  const hotelId = Number(params?.hotelId ?? "") || 0;
+  const requestedHotelId = Number(params?.hotelId ?? "") || 0;
   const ownerError = (params?.error ?? "").trim();
   const offlineCreated = (params?.created ?? "").trim() === "1";
   const offlineUpdated = (params?.updated ?? "").trim() === "1";
 
   const since30 = subDays(new Date(), 30);
   const content = await getSiteContent();
+
+  // Global active-hotel scope: never trust the client-supplied hotelId directly — verify it's
+  // actually one of this owner's hotels before using it anywhere below. Lives in the URL (not
+  // client-only state) so it survives reload/back-forward/deep-link. Single-hotel owners never
+  // see a switcher and this stays 0 (unscoped == "my one hotel" anyway).
+  const ownerHotelsForSwitcher = await prisma.hotel.findMany({
+    where: { ownerId: user.id },
+    orderBy: { createdAt: "asc" },
+    select: { id: true, name: true, city: true, status: true }
+  });
+  const hotelId = ownerHotelsForSwitcher.some((h) => h.id === requestedHotelId) ? requestedHotelId : 0;
 
   let hotels: any[] = [];
   let rooms: any[] = [];
@@ -185,13 +196,15 @@ export default async function OwnerDashboardPage({
   let totalRows = 0;
   let totalPages = 1;
 
+  const hotelRoomFilter = hotelId ? { id: hotelId, ownerId: user.id } : { ownerId: user.id };
+
   if (activeSection === "overview") {
     [hotels, pendingCount, revenueAgg, recentBookings, dashboardKpis] = await Promise.all([
-      prisma.hotel.findMany({ where: { ownerId: user.id }, include: { rooms: true } }),
-      prisma.booking.count({ where: { room: { hotel: { ownerId: user.id } }, status: "PENDING_OWNER" } }),
+      prisma.hotel.findMany({ where: hotelRoomFilter, include: { rooms: true } }),
+      prisma.booking.count({ where: { room: { hotel: hotelRoomFilter }, status: "PENDING_OWNER" } }),
       prisma.booking.aggregate({
         where: {
-          room: { hotel: { ownerId: user.id } },
+          room: { hotel: hotelRoomFilter },
           status: "CONFIRMED",
           paymentStatus: "PAID",
           createdAt: { gte: since30 }
@@ -199,25 +212,24 @@ export default async function OwnerDashboardPage({
         _sum: { totalPrice: true }
       }),
       prisma.booking.findMany({
-        where: { room: { hotel: { ownerId: user.id } } },
+        where: { room: { hotel: hotelRoomFilter } },
         select: { roomId: true, status: true, createdAt: true },
         orderBy: { createdAt: "desc" },
         take: 200
       }),
-      getOwnerDashboardKpis(user.id)
+      getOwnerDashboardKpis(user.id, hotelId || undefined)
     ]);
   } else if (activeSection === "properties") {
     hotels = await prisma.hotel.findMany({ where: { ownerId: user.id }, include: { rooms: true }, orderBy: { createdAt: "desc" } });
   } else if (activeSection === "rooms") {
     hotels = await prisma.hotel.findMany({ where: { ownerId: user.id }, orderBy: { createdAt: "desc" } });
     roomTypes = await prisma.roomType.findMany({
-      where: { hotel: { ownerId: user.id } },
+      where: { hotel: hotelRoomFilter },
       include: { _count: { select: { rooms: true } } },
       orderBy: [{ sortOrder: "asc" }, { name: "asc" }]
     });
     const where = {
-      hotel: { ownerId: user.id },
-      ...(hotelId ? { hotelId } : {}),
+      hotel: hotelRoomFilter,
       ...(availability ? { availability: availability === "1" } : {}),
       ...(q
         ? {
@@ -241,7 +253,7 @@ export default async function OwnerDashboardPage({
   } else if (activeSection === "bookings") {
     const where = {
       AND: [
-        ownerBookingWhere(user.id),
+        ownerBookingWhere(user.id, hotelId || undefined),
         ...(status ? [{ status }] : []),
         ...(paymentStatus ? [{ paymentStatus }] : []),
         ...(q
@@ -268,23 +280,23 @@ export default async function OwnerDashboardPage({
       take: pageSize
     });
     assignRooms = await prisma.room.findMany({
-      where: { hotel: { ownerId: user.id }, roomTypeId: { not: null } },
+      where: { hotel: hotelRoomFilter, roomTypeId: { not: null } },
       select: { id: true, title: true, roomNumber: true, roomTypeId: true },
       orderBy: [{ roomNumber: "asc" }, { id: "asc" }]
     });
   } else if (activeSection === "offline-bookings") {
-    hotels = await prisma.hotel.findMany({ where: { ownerId: user.id }, include: { rooms: true }, orderBy: { createdAt: "desc" } });
+    hotels = await prisma.hotel.findMany({ where: hotelRoomFilter, include: { rooms: true }, orderBy: { createdAt: "desc" } });
     roomTypes = await prisma.roomType.findMany({
-      where: { hotel: { ownerId: user.id } },
+      where: { hotel: hotelRoomFilter },
       include: { hotel: true },
       orderBy: [{ hotelId: "asc" }, { name: "asc" }]
     });
     rooms = await prisma.room.findMany({
-      where: { hotel: { ownerId: user.id } },
+      where: { hotel: hotelRoomFilter },
       include: { hotel: true },
       orderBy: [{ roomNumber: "asc" }, { id: "asc" }]
     });
-    const where = ownerOfflineBookingWhere(user.id);
+    const where = ownerOfflineBookingWhere(user.id, hotelId || undefined);
     totalRows = await prisma.booking.count({ where });
     totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
     offlineBookings = await prisma.booking.findMany({
@@ -314,7 +326,7 @@ export default async function OwnerDashboardPage({
     });
   } else if (activeSection === "reviews") {
     ownerReviews = await prisma.review.findMany({
-      where: { booking: ownerBookingWhere(user.id) },
+      where: { booking: ownerBookingWhere(user.id, hotelId || undefined) },
       include: {
         booking: {
           include: {
@@ -329,39 +341,39 @@ export default async function OwnerDashboardPage({
   } else if (activeSection === "finances") {
     [ownerPayouts, revenueAgg, dashboardKpis, hotels] = await Promise.all([
       prisma.payout.findMany({
-        where: { ownerId: user.id },
+        where: { ownerId: user.id, booking: ownerBookingWhere(user.id, hotelId || undefined) },
         include: { booking: { include: bookingWithHotelInclude } },
         orderBy: { createdAt: "desc" },
         take: 50
       }),
       prisma.booking.aggregate({
         where: {
-          room: { hotel: { ownerId: user.id } },
+          room: { hotel: hotelRoomFilter },
           status: "CONFIRMED",
           paymentStatus: "PAID",
           createdAt: { gte: since30 }
         },
         _sum: { totalPrice: true, commission: true }
       }),
-      getOwnerDashboardKpis(user.id),
+      getOwnerDashboardKpis(user.id, hotelId || undefined),
       prisma.hotel.findMany({ where: { ownerId: user.id }, orderBy: { createdAt: "desc" }, select: { id: true, name: true } })
     ]);
   } else if (activeSection === "statistics" || activeSection === "help") {
     [hotels, dashboardKpis, pendingCount, recentBookings] = await Promise.all([
-      prisma.hotel.findMany({ where: { ownerId: user.id }, include: { rooms: true } }),
-      getOwnerDashboardKpis(user.id),
+      prisma.hotel.findMany({ where: hotelRoomFilter, include: { rooms: true } }),
+      getOwnerDashboardKpis(user.id, hotelId || undefined),
       prisma.booking.count({
-        where: { AND: [ownerBookingWhere(user.id), { status: "PENDING_OWNER" }] }
+        where: { AND: [ownerBookingWhere(user.id, hotelId || undefined), { status: "PENDING_OWNER" }] }
       }),
       prisma.booking.findMany({
-        where: ownerBookingWhere(user.id),
+        where: ownerBookingWhere(user.id, hotelId || undefined),
         select: { roomId: true, status: true, createdAt: true },
         orderBy: { createdAt: "desc" },
         take: 200
       })
     ]);
   } else if (activeSection === "calendar") {
-    const cal = await getOwnerCalendarData(user.id, 30);
+    const cal = await getOwnerCalendarData(user.id, 30, hotelId || undefined);
     hotels = await prisma.hotel.findMany({ where: { ownerId: user.id }, orderBy: { createdAt: "desc" } });
     rooms = cal.rooms;
     calendarCells = cal.cells;
@@ -370,7 +382,7 @@ export default async function OwnerDashboardPage({
     calendarDaysFromService = cal.days;
     calendarBookings = cal.bookings ?? [];
     const where = {
-      room: { hotel: { ownerId: user.id } },
+      room: { hotel: hotelRoomFilter },
       date: { gte: new Date(), lt: addDays(new Date(), 30) }
     } as any;
     totalRows = await prisma.roomDateOverride.count({ where });

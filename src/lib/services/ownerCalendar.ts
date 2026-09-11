@@ -59,18 +59,19 @@ function classifyBooking(
   return null;
 }
 
-export async function getOwnerCalendarData(ownerId: number, days = 30) {
+export async function getOwnerCalendarData(ownerId: number, days = 30, hotelId?: number) {
   const start = toUtcDayStart(new Date());
   const end = addDays(start, days);
+  const hotelFilter = hotelId ? { id: hotelId, ownerId } : { ownerId };
 
   const rooms = await prisma.room.findMany({
-    where: { hotel: { ownerId } },
+    where: { hotel: hotelFilter },
     include: { hotel: true, roomType: true },
     orderBy: [{ hotelId: "asc" }, { roomNumber: "asc" }, { id: "asc" }]
   });
 
   const roomTypes = await prisma.roomType.findMany({
-    where: { hotel: { ownerId } },
+    where: { hotel: hotelFilter },
     include: { hotel: true },
     orderBy: [{ hotelId: "asc" }, { sortOrder: "asc" }, { name: "asc" }]
   });

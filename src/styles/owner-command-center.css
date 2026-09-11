@@ -59,6 +59,38 @@
   color: var(--owner-text-muted);
 }
 
+.owner-sidebar__switcher {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin: 0 0 0.85rem;
+  padding: 0 0.15rem;
+}
+
+.owner-sidebar__switcher-label {
+  padding: 0 0.35rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--owner-text-muted);
+}
+
+.owner-sidebar__switcher-select {
+  width: 100%;
+  border: 1px solid var(--owner-border);
+  border-radius: 0.625rem;
+  background: var(--owner-surface-muted);
+  color: var(--owner-text);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 0.5rem 0.6rem;
+}
+
+.owner-sidebar__switcher--mobile {
+  margin: 0 0 1rem;
+}
+
 .owner-sidebar__nav {
   display: flex;
   flex: 1;

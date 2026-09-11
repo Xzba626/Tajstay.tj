@@ -4,10 +4,16 @@ import { DashboardShell } from "@/components/ds";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
 import { requireOwner } from "@/lib/auth/requireOwner";
+import { prisma } from "@/lib/prisma";
 
 export default async function OwnerDashboardLayout({ children }: { children: ReactNode }) {
-  await requireOwner();
+  const user = await requireOwner();
   const locale = getLocale();
+  const hotels = await prisma.hotel.findMany({
+    where: { ownerId: user.id },
+    orderBy: { createdAt: "asc" },
+    select: { id: true, name: true, city: true }
+  });
   const labels: OwnerSidebarLabels = {
     sectionTitle: m(locale, "roles.OWNER"),
     navLabel: m(locale, "owner.mobileNav"),
@@ -46,14 +52,16 @@ export default async function OwnerDashboardLayout({ children }: { children: Rea
       properties: m(locale, "owner.navPropertiesShort"),
       bookings: m(locale, "owner.navBookingsShort"),
       finances: m(locale, "owner.navFinancesShort")
-    }
+    },
+    switchProperty: m(locale, "owner.switchProperty"),
+    allProperties: m(locale, "owner.allProperties")
   };
 
   return (
     <DashboardShell
       className="owner-command-center-shell ts-workspace-light"
-      sidebar={<OwnerSidebar labels={labels} />}
-      mobileNav={<OwnerMobileNav labels={labels} />}
+      sidebar={<OwnerSidebar labels={labels} hotels={hotels} />}
+      mobileNav={<OwnerMobileNav labels={labels} hotels={hotels} />}
     >
       {children}
     </DashboardShell>

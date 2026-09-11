@@ -13,13 +13,14 @@ export type OwnerDashboardKpis = {
   pendingOnlineBookings: number;
 };
 
-export async function getOwnerDashboardKpis(ownerId: number): Promise<OwnerDashboardKpis> {
+export async function getOwnerDashboardKpis(ownerId: number, hotelId?: number): Promise<OwnerDashboardKpis> {
   const now = new Date();
   const todayStart = startOfDay(now);
   const todayEnd = endOfDay(now);
   const monthStart = startOfMonth(now);
 
-  const ownerRoomFilter = { room: { hotel: { ownerId } } };
+  const hotelFilter = hotelId ? { id: hotelId, ownerId } : { ownerId };
+  const ownerRoomFilter = { room: { hotel: hotelFilter } };
 
   const [
     bookingsToday,
@@ -84,8 +85,8 @@ export async function getOwnerDashboardKpis(ownerId: number): Promise<OwnerDashb
         booking: ownerRoomFilter
       }
     }),
-    prisma.hotel.count({ where: { ownerId, status: "PENDING" } }),
-    prisma.hotel.count({ where: { ownerId, status: "APPROVED" } }),
+    prisma.hotel.count({ where: { ...hotelFilter, status: "PENDING" } }),
+    prisma.hotel.count({ where: { ...hotelFilter, status: "APPROVED" } }),
     prisma.booking.count({
       where: {
         ...ownerRoomFilter,
