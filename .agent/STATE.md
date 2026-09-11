@@ -824,6 +824,29 @@ needed. Also cleared the confirmed-inert stale `?error=OAuthAccountNotLinked` fr
 verify → session) is BLOCKED EXTERNAL QA — no real Telegram account available in this environment to
 complete that leg. DEPLOYED PROD and REAL DEVICE unchanged, still OPEN.
 
-**NEXT**: Multi-Hotel Owner foundation (property switcher, Hotel-scoped everything) — Auth Desktop
-visual fix (commit `9d29514`, done by the user directly from this session's working tree) and the
-Telegram functional fix above both close item 3/4 of the master order.
+### Multi-Hotel Owner foundation — STARTED, PARTIAL (commit `104dcaf`)
+
+Removed the actual blocker: a single hardcoded `existingCount >= 1` gate in
+`POST /api/owner/hotels`. Not a deep architectural limit — the properties page already `.map()`s
+over all owner hotels for editing, only "add new" was hidden once `hasHotels`. Added a persistent
+`<details>` disclosure so "Добавить объект" is always reachable; removed the now-false "one account
+— one hotel" banner/copy (all 3 locales). Second/third hotel auto-approves like the first (matches
+existing behavior — not a new moderation workflow, flag to the user if a real gate is wanted later).
+
+**Verified real HTTP + browser**: an owner who already had one hotel logged in for real, created a
+second via the actual UI/POST route (confirmed in DB: same ownerId, both APPROVED). Then proved the
+actual point of this foundation — `HotelPaymentMethod` (built in Phase A) was already correctly
+Hotel-scoped, not Owner-scoped; added a method to hotel 1 via real API, hotel 2's list (same owner)
+stayed empty. First time that property was exercised with a genuine multi-hotel owner, not just two
+different owners.
+
+**Explicitly NOT done, still OPEN**: property switcher / active-hotel context for Rooms, Bookings,
+Calendar, Finance, Analytics, Notifications, Reviews, Messages — none of these sections let an owner
+pick which hotel they're looking at yet (Payment Methods already works per-hotel because it lists
+every owned hotel's card, not because a switcher exists). Map-pin location picker (still raw lat/lng
+inputs), hotel-image crop fix, and second-hotel moderation policy are also open — same items flagged
+in the user's original spec, not newly discovered.
+
+**NEXT**: property switcher + Hotel-scoping for the remaining Owner Desk sections is the natural
+continuation, OR move to Subscription business model (also gated on multi-hotel, per master order) —
+pick whichever has the clearer next dependency when resuming; both are legitimately "next."
