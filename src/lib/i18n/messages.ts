@@ -5302,7 +5302,7 @@ const en: Tree = {
   },
   adminNav: {
     dashboard: "Dashboard",
-    dashboardShort: "Home",
+    dashboardShort: "Overview",
     content: "Content & banners",
     applications: "Applications",
     applicationsShort: "Apps",

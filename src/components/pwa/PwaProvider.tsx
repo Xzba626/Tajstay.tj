@@ -18,9 +18,23 @@ export function PwaProvider() {
     // while fresh SSR HTML and a clean production build both showed the current source
     // correctly). A dev server is not a static asset host; a SW has no reason to run there.
     if (process.env.NODE_ENV !== "production") {
-      navigator.serviceWorker.getRegistrations().then((regs) => {
-        for (const reg of regs) reg.unregister();
-      });
+      // Full dev cleanup, not just unregister: a registration from an earlier session (before
+      // this gate existed, or from a stale browser profile) can keep controlling the current
+      // page's navigation *and* keep serving its own cached responses even after unregister() -
+      // unregister only stops it from controlling *future* loads. Only touch TajStay's own
+      // cache (name-prefixed "tajstay-", matches public/sw.js's CACHE_VERSION scheme) - never
+      // delete unrelated browser storage. If a stale registration/cache was actually found and
+      // removed, reload once so the developer sees current content immediately instead of
+      // needing manual DevTools intervention.
+      Promise.all([navigator.serviceWorker.getRegistrations(), caches.keys()]).then(
+        async ([regs, cacheKeys]) => {
+          const tajstayCacheKeys = cacheKeys.filter((k) => k.startsWith("tajstay-"));
+          const foundStale = regs.length > 0 || tajstayCacheKeys.length > 0;
+          await Promise.all(regs.map((reg) => reg.unregister()));
+          await Promise.all(tajstayCacheKeys.map((k) => caches.delete(k)));
+          if (foundStale) window.location.reload();
+        }
+      );
       return;
     }
 
