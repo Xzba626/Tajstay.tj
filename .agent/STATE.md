@@ -721,3 +721,95 @@ beyond spot checks, full click-through of all ~40 routes. This is a genuinely pa
 **NEXT**: continue the master audit (do not fix Bug A/B yet, per explicit instruction), or — if the
 user reviews this partial layer and wants to prioritize differently — take direction from them rather
 than mechanically working section-by-section through the remaining 38 items.
+
+## MODE = MASTER SCOPE IMPLEMENTATION (current, supersedes audit-only framing above)
+
+User approved a full architectural contract spanning Payment/Multi-Hotel/Subscription/Admin
+Analytics/Auth/Chat/Messages/Profile/Help/Contacts/Resend, to be implemented autonomously in
+dependency order — **do not ask "what's next" between blocks**, the order below is already final.
+Only stop for the standing hard-stops (prod destructive ops, force-push, prod data deletion, prod
+payment mutation) or a genuine missing-secret/business-decision blocker.
+
+**Evidence discipline (binding for every claim from here on)**: never call service-function/local-DB
+tests "E2E". Use exactly these tiers, reported separately: SCHEMA / SERVICE / INTEGRATION TESTS /
+BUILD / REAL HTTP / BROWSER E2E / DEPLOYED PROD / REAL DEVICE.
+
+**Master order** (micro-order inside a block may shift for a real dependency; the block order itself
+does not):
+1. Payment architecture — hotel-scoped methods, snapshot, owner review ✅ DONE (real HTTP+browser closed)
+2. Admin Settings runtime cleanup ✅ DONE (real browser-verified)
+3. Telegram first-click bug — investigated, **no reproducible code defect found** (see below) — OPEN,
+   blocked on real Telegram account access
+4. Auth Desktop visual fix (dark-green panel, contrast, empty space) — NOT STARTED, next up
+5. Multi-Hotel Owner foundation (property switcher, Hotel-scoped everything)
+6. Subscription business model (0% commission → Hotel subscription revenue)
+7. Admin financial analytics correction (Booking GMV ≠ TajStay Revenue)
+8. Booking Chat/payment-lifecycle UI + copy (remove "admin also reviews" semantics)
+9. Chat/timeline visual (dark unreadable timeline, duplicate events, fake timers)
+10. Messages inbox (localization leak, dark card, desktop density)
+11. Small visual-regression batch (logout contrast ✅ DONE, History owner-notice ✅ DONE, footer
+    contrast ✅ DONE, remaining: Help/FAQ/Contacts greens, Support header clip, floating-widget
+    duplication, Assistant overlap)
+12. Help/FAQ/Contacts rebuild (after payment/subscription copy is final)
+13. Resend transactional email
+14. Full regression/security/performance pass
+
+### DONE this pass (commits, newest first, branch `feature/tajstay-full-ui-ux-rebuild`)
+
+- `8b5a65d` — fixed guest saw **live** payment-method data instead of the **frozen snapshot** after
+  selecting (found via real browser E2E, not caught by service-level tests — the backend froze the
+  snapshot correctly, but `PaymentMethodsBlock` rendered live data for the selected item regardless).
+  Also handles the owner deactivating/deleting the selected method after the fact.
+- `5540b2e` — fixed a real regression: Phase A's TransactionLog rename
+  (`PAYMENT_CONFIRMED`→`OWNER_PAYMENT_CONFIRMED` etc.) broke `getBookingTimeline()`'s matching, so
+  confirm/reject events silently stopped appearing in the timeline guests/owners actually see.
+  Confirmed (and preserved) that rejected-proof history is NOT lost: each attempt's file URL is
+  written immutably into its own `PAYMENT_PROOF_SUBMITTED` TransactionLog entry at upload time,
+  independent of the mutable `Booking.paymentProofUrl` that gets cleared on reject to allow retry.
+- `76239b0` — logout button contrast (CSS specificity bug + whole-button opacity on disabled state),
+  unauthorized-owner-panel flow (redirect target moved from History to
+  `/profile/become-owner?notice=ownerOnly` with real application-state-aware copy, no more raw
+  `OWNER` enum shown to users), footer `TajStay` brand-text contrast (BrandMark's own `color`
+  override was beating the inherited white).
+- `9f28cbf` — Admin Settings: removed global payment catalog + runtime brand editor (UI *and* their
+  write APIs — verified via real HTTP that both now 404), fixed the shared stale-toast bug (every
+  content card now gets its own scoped success/error message instead of one page-wide pair).
+- `093bb73` — Phase A corrections: payment-method snapshot now freezes at **selection** time (not
+  proof-upload time — closes the window where an owner could edit their card between the guest
+  seeing it and paying), proof rejection returns the booking to `WAITING_PAYMENT` for retry instead
+  of terminally `REJECTED`, fixed a dependency the source-of-truth swap broke (Owner Onboarding's
+  "payment" checklist step still read the deprecated `OwnerPaymentMethod`).
+- `795a867` — Phase A foundation: `HotelPaymentMethod` model (hotel-scoped, replaces owner-scoped
+  free-text `OwnerPaymentMethod`, which is deprecated not deleted), real Owner confirm/reject
+  (previously hard-stubbed to 403 — only Admin could review), Admin demoted to a reason-required,
+  audited override path.
+
+### Verified this pass, by tier
+
+- **REAL HTTP** (against a running local-prod server, real login → real cookie → real fetch, not
+  service functions): payment method CRUD authorization (owner-of-hotel allowed, other owner denied
+  on both method-mutation and booking-review endpoints — 6/6), guest denied on owner-only mutation,
+  unauthenticated denied on selection, full reject→resubmit→confirm lifecycle, both removed Admin
+  write APIs confirmed 404.
+- **BROWSER E2E**: Owner added a real payment method through the actual UI (persisted after reload);
+  Guest booked, selected the method, saw the frozen snapshot survive a live owner edit; Admin Settings
+  opened for real — confirmed the 2 removed cards are gone and the toast-scoping fix works live (saved
+  the home-banner form, success message appeared only under that card, not under Security).
+- **DEPLOYED PROD / REAL DEVICE**: none of the above — still OPEN, unchanged from before this pass.
+
+### Telegram first-click bug — investigation closed without a fix (honest non-result)
+
+Reviewed `TelegramLoginPanel.tsx`, `useCountdown.ts`, `/api/auth/telegram/challenge`,
+`/api/auth/telegram/verify` end to end. Found: `OAuthAccountNotLinked` (from the user's screenshot)
+does not exist anywhere in this codebase — it's a NextAuth/Google-only error code, unrelated to
+Telegram's fully custom challenge/OTP system, and the sign-in page has no code path that even reads
+`searchParams.error`, so that query string was inert leftover, not an active cause. The
+challenge-creation route is stateless (no first-vs-second-call state dependency found), and the
+countdown/expiry logic is a straightforward `expiresAt - Date.now()` that resets correctly on every
+new challenge. **No reproducible code defect located.** Real reproduction needs a live Telegram
+account completing the actual bot handshake (not available in this environment) — that's the
+concrete blocker, not a scope choice. Do not re-attempt this by re-reading the same files; it needs
+live network capture from an actual attempt.
+
+**NEXT**: Auth Desktop visual fix (item 4 above) — concrete, confirmed, fixable independent of the
+still-open Telegram functional bug. Then Multi-Hotel Owner foundation.
