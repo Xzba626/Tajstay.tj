@@ -578,6 +578,26 @@
   padding: 0.75rem 0.85rem;
 }
 
+/* Compact root header replacing the old giant identity card (avatar/name/role/verification
+   badges/edit pencil) — that fully duplicated Личная информация. Just a page title + a single
+   compact identity line, no card, no avatar, no edit action here. */
+.profile-hub__compact-head {
+  padding: 0.15rem 0.1rem 0.35rem;
+}
+
+.profile-hub__compact-title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.profile-hub__compact-subtitle {
+  margin: 0.2rem 0 0;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
 .profile-hub__identity-row {
   display: flex;
   align-items: flex-start;
