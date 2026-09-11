@@ -1413,12 +1413,12 @@ article {
     radial-gradient(920px 520px at 10% 0%, rgba(15, 61, 46, 0.20), transparent 72%) !important;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6,
+/* h1-h6 default color lives at the :where() rule further down this file (zero specificity,
+   so real component rules win without needing !important). This rule now only forces
+   .text-slate-100/.text-slate-200 utility classes, which is its actual job — it used to also
+   list h1-h6 with !important, which was a duplicate, higher-priority override of the same
+   default and the direct cause of white headings (e.g. the Auth promo panel) rendering dark
+   even after fixing the other global heading rule. */
 .text-slate-100,
 .text-slate-200 {
   color: var(--ds-text-primary) !important;
@@ -1768,13 +1768,14 @@ textarea::placeholder {
   color: var(--taj-text-muted, var(--ds-text-muted)) !important;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  color: var(--ds-text-primary) !important;
+/* Zero-specificity default (via :where()), not !important: this was leaking a hardcoded dark
+   heading color into every page site-wide, including ones that deliberately want white headings
+   on a green surface (e.g. the Auth promo panel), forcing those components to fight back with
+   their own !important - the same class of bug already fixed once for the global button reset.
+   :where() still supplies this as the fallback default when nothing else sets a heading color,
+   but any real component rule (no !important needed) now wins on its own. */
+:where(h1, h2, h3, h4, h5, h6) {
+  color: var(--ds-text-primary);
 }
 
 /* Marketing-canvas text lock — DO NOT target bare `span`/`label`/`li` globally.

@@ -738,9 +738,10 @@ BUILD / REAL HTTP / BROWSER E2E / DEPLOYED PROD / REAL DEVICE.
 does not):
 1. Payment architecture — hotel-scoped methods, snapshot, owner review ✅ DONE (real HTTP+browser closed)
 2. Admin Settings runtime cleanup ✅ DONE (real browser-verified)
-3. Telegram first-click bug — investigated, **no reproducible code defect found** (see below) — OPEN,
-   blocked on real Telegram account access
-4. Auth Desktop visual fix (dark-green panel, contrast, empty space) — NOT STARTED, next up
+3. Telegram first-click bug — ✅ FIXED (`e7f453b`), first-click countdown VERIFIED live; full external
+   bot handshake still BLOCKED EXTERNAL QA (see below)
+4. Auth Desktop visual fix (dark-green panel, contrast, empty space) — ✅ DONE (heading root-cause fix +
+   empty-space check, see "Auth cleanup" section below)
 5. Multi-Hotel Owner foundation (property switcher, Hotel-scoped everything)
 6. Subscription business model (0% commission → Hotel subscription revenue)
 7. Admin financial analytics correction (Booking GMV ≠ TajStay Revenue)
@@ -850,3 +851,53 @@ in the user's original spec, not newly discovered.
 **NEXT**: property switcher + Hotel-scoping for the remaining Owner Desk sections is the natural
 continuation, OR move to Subscription business model (also gated on multi-hotel, per master order) —
 pick whichever has the clearer next dependency when resuming; both are legitimately "next."
+
+### Auth cleanup — DONE (uncommitted at time of writing this entry, commit to follow)
+
+Three items closed, per explicit user directive not to counter-patch global CSS conflicts with local
+`!important` again:
+
+1. **Global heading `!important` root-cause fix.** Two separate global rules were forcing dark
+   heading color with `!important`, not one — the second (`globals.css` line ~1416, combining
+   `h1-h6` with `.text-slate-100`/`.text-slate-200` into one `!important` block, part of the
+   light-theme DS-token foundation) was undiscovered until live `getComputedStyle`/CSSOM
+   inspection surfaced it as the actual winning rule even after the first (`globals.css` line
+   ~1771, part of an orphaned `.dashboard-skin`-scoped block that's never applied in any real
+   markup) was converted to a zero-specificity `:where(h1..h6)` default. Fix: removed `h1-h6` from
+   the second rule (kept `.text-slate-100`/`.text-slate-200`, which legitimately still needs
+   `!important` as a Tailwind-utility override), leaving the `:where()` rule as the single default
+   heading color, overridable by any real component rule without a local `!important`. Removed the
+   now-unnecessary `!important` from `.taj-auth-panel-v2__heading` in `auth-premium.css`.
+   **Verified BROWSER** (real prod-build diagnostic server, `getComputedStyle`): Auth panel heading
+   white (`rgb(255,255,255)`) on the green promo surface; Home hero/section headings correctly dark
+   (`rgb(20,35,27)`) on white surfaces and white on photo/green surfaces; Hotel Detail headings
+   white-on-photo; FAQ heading correctly dark. No regression found across the 4 pages checked
+   (Home, Auth, Hotel Detail, FAQ) — Owner/Admin/Profile not exercised live (require auth session
+   not set up in this diagnostic pass), lower risk since they use their own scoped
+   `.owner-command-center`/`.admin-command-center` wrapper classes, not the fixed global rule.
+2. **Empty-space-under-Telegram-panel defect — re-investigated live, NOT reproducible in current
+   build.** Measured `.taj-auth-shell`/`.taj-auth-card`/`.taj-auth-panel-v2` heights vs content
+   `scrollHeight` at 1440×900, 1366×768, and 375×812 (mobile), both in the default password-form
+   state and after clicking "Продолжить с Telegram": container height matched content
+   `scrollHeight` within ~1px in every case, no forced near-full-viewport stretch, no visible dead
+   zone. The codebase already has a `.taj-telegram-panel--compact` variant
+   (`TelegramLoginPanel.tsx` / `auth-premium.css`) that appears to have already resolved this —
+   likely from earlier work in this same session, before the point this was last summarized.
+   **Verified BROWSER** at all 3 viewports; no CSS change was needed or made for this item.
+3. **Telegram first-click split status — VERIFIED.** Fresh browser tab → click → real
+   `POST /api/auth/telegram/challenge` (200, captured via network tab) → response carried a genuine
+   `expiresAt` 300s out (`expiresInSec: 300`) and real `deepLink`/`appDeepLink` values
+   (`t.me/Tajstay_Bot?start=login_<token>`, `tg://resolve?domain=Tajstay_Bot&start=login_<token>`)
+   → client immediately rendered `"Осталось 4:52"` (not expired) → status polling
+   (`GET /api/auth/telegram/status/<token>`) started immediately and returned 200 repeatedly.
+   **`TELEGRAM CHALLENGE FIRST-CLICK = VERIFIED`** (BROWSER + REAL HTTP, via captured network
+   requests on the local prod-build diagnostic server). **`TELEGRAM EXTERNAL HANDSHAKE = BLOCKED
+   EXTERNAL QA`** — completing the bot-side conversation and return leg still requires a real
+   Telegram account, unavailable in this environment; not conflated with the above. The stale
+   `?error=OAuthAccountNotLinked` URL-clearing fix (already shipped in `e7f453b`) is good practice,
+   confirmed unrelated to this bug's actual root cause (documented above in the Telegram section).
+
+**NEXT**: commit these CSS fixes, then continue directly into the full Multi-Hotel Owner Foundation
+build-out (property switcher, Hotel-scoped context across Rooms/Bookings/Finance/etc., backend
+authorization audit, Objects-page redesign, map-pin picker) per the already-approved master order —
+no new sequencing question needed.

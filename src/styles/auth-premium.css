@@ -114,8 +114,7 @@ body:has(.taj-auth-page) .taj-auth-page {
   font-size: clamp(24px, 2.4vw, 34px);
   line-height: 1.15;
   font-weight: 700;
-  /* globals.css locks h1-h6 to var(--ds-text-primary) with !important - must match to win. */
-  color: #ffffff !important;
+  color: #ffffff;
 }
 
 .taj-auth-panel-v2__subtitle {
