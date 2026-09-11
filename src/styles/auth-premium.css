@@ -85,7 +85,71 @@ body:has(.taj-auth-page) .taj-auth-page {
   box-shadow: var(--taj-shadow);
 }
 
-/* —— Left promo —— */
+/* —— Left promo (v2, compact) —— */
+.taj-auth-panel-v2 {
+  flex-direction: column;
+  justify-content: center;
+  gap: 14px;
+  border-radius: 24px;
+  padding: 32px 30px;
+  background: #0f7a4d;
+  color: #ffffff;
+}
+
+.taj-auth-panel-v2__badge {
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.taj-auth-panel-v2__heading {
+  margin: 0;
+  font-size: clamp(24px, 2.4vw, 34px);
+  line-height: 1.15;
+  font-weight: 700;
+  /* globals.css locks h1-h6 to var(--ds-text-primary) with !important - must match to win. */
+  color: #ffffff !important;
+}
+
+.taj-auth-panel-v2__subtitle {
+  margin: 0;
+  max-width: 380px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.taj-auth-panel-v2__list {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.taj-auth-panel-v2__list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.taj-auth-panel-v2__list svg {
+  flex-shrink: 0;
+  color: #ffffff;
+}
+
+/* —— Legacy left promo (unused, kept only until fully removed) —— */
 .taj-promo-card {
   position: relative;
   min-height: 0;
@@ -892,7 +956,9 @@ body:has(.taj-auth-page) .taj-auth-page {
 .taj-back-button {
   align-self: center;
   margin-top: 4px;
-  color: rgba(236, 253, 245, 0.72);
+  /* Renders on the white auth card, not the green promo panel - the previous light-mint-on-white
+     was nearly invisible (a screenshot-confirmed contrast bug). */
+  color: #0f7a4d;
   font-size: 14px;
   font-weight: 650;
 }
@@ -900,7 +966,7 @@ body:has(.taj-auth-page) .taj-auth-page {
 .taj-back-button:hover,
 .taj-telegram-help button:hover,
 .taj-telegram-help-link:hover {
-  color: #86efac;
+  color: #0c6640;
   text-decoration: underline;
   text-underline-offset: 4px;
 }
