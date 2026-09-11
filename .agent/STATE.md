@@ -580,3 +580,45 @@ inbox + developer-language notification copy, mobile nav duplication (header ham
 Also still open from earlier: self-service `/auth/forgot-password` E2E click-through (backend inspected,
 not live-tested), TST Assistant function/mobile regression (visual theme fixed, interaction not
 re-verified), Users list mobile density (cards still show the full recovery paragraph per row).
+
+## Admin mobile nav dedup + Home hero (commit `f45e544`, external auto-commit `423d8a4` for hero)
+
+**Duplicate hamburger — root-caused, not just hidden.** `HeaderMobileActions.tsx` had dead-but-reachable
+code rendering a second hamburger for Admin/Owner routes via `openWorkspaceDrawer()`, opening the same
+"Ещё" drawer as the bottom-nav's own trigger. Confirmed via live testing that this component is
+unreachable on the current branch (Header.tsx doesn't mount on Admin/Owner routes at all per the
+earlier shell-isolation fix — `menuBtnExists: false` checked directly in the DOM), so the user's
+screenshot showing both a top hamburger and bottom "Ещё" reflects the **deployed production
+version, which predates this branch's fixes** — not a regression here. Removed the dead code anyway
+so it can't silently resurface if shell isolation ever regresses. **STATUS: FIXED (dead code removed),
+RUNTIME VERIFIED in production build** that only one trigger ("Ещё") exists.
+
+**"Брони" moved out of primary mobile tabs** into "Ещё" (now under a widened "Операции" group with
+Жалобы/Уведомления); "Отели" takes its place among the 5 primary tabs. Found and fixed an associated
+real gap while wiring this: the drawer's group list never actually included a "bookings" entry in any
+group at all, so it would have had nowhere to appear on mobile once removed from primary. **STATUS:
+FIXED, RUNTIME VERIFIED in production build** (`Главная/Заявки/Отели/Пользов./Ещё` primary; drawer
+correctly lists Контент/Финансы/**Бронирования**/Жалобы/Уведомления/Доступ владельцев).
+
+**Home hero subtitle removed** ("Проверенные объекты • Безопасное бронирование" dropped, title-only
+now) — already committed by the project's external auto-commit tool before I could commit it myself;
+confirmed present in current source, not re-verified live this pass (low-risk, single-line change).
+
+**Notable process finding this turn**: this session's dev server showed a genuinely confusing
+false-negative — after editing `AdminSidebar.tsx`, the bottom nav picked up the fix immediately but the
+"Ещё" drawer kept showing the pre-fix bookings-list across multiple full server restarts, a full `.next`
+wipe, cache-busted URLs, and brand-new tabs, while the served JS bundle was independently confirmed
+byte-for-byte correct each time. Root cause: a **leftover `sw.js` service-worker registration from
+before this session's dev-gating fix** was still active in the test browser profile (confirmed via
+`navigator.serviceWorker.getRegistrations()`), silently serving a cached response for that one request
+class. Unregistering it and clearing `caches` resolved it in dev; a clean production build was
+unaffected throughout and remains the fastest way to settle "is this a real bug" when dev looks broken
+but the compiled source is confirmed correct — don't sink more time re-diagnosing dev itself once
+source+bundle are confirmed right, go straight to a production build check.
+
+**NEXT (not started this pass, explicit instruction pending)**: Mobile Profile compaction — remove the
+duplicate top account card (avatar/name/role/verification badges/edit pencil, all already covered by
+Личная информация), remove History/Favorites counters (already in bottom nav / not meaningful for
+Admin), reconsider Подписки vs. Notification Settings overlap, make the whole root role-aware
+(Admin/Owner/Guest each get only relevant rows). Target structure and full rationale already specified
+by the user — implement directly, then mini-regression at 390/412 + RU/TJ/EN.
