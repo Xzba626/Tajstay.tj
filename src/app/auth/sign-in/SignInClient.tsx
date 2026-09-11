@@ -187,6 +187,19 @@ export function SignInClient({
     setTelegramFlowActive(false);
   }
 
+  // A stale ?error=... from an earlier NextAuth (Google) redirect is never read by this custom UI
+  // (googleSignInError only ever comes from a live client-side rejection, not the URL), but leaving
+  // it sitting in the address bar is confusing when the visitor then switches to a different
+  // sign-in method - strip it once, without a navigation/reload.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    if (url.searchParams.has("error")) {
+      url.searchParams.delete("error");
+      window.history.replaceState(window.history.state, "", url.toString());
+    }
+  }, []);
+
   function mapApiErrorMessage(raw: string): string {
     const v = (raw || "").toLowerCase();
     if (v.includes("invalid credentials")) return L.errInvalidCredentials;

@@ -13,14 +13,31 @@ type Options = {
 
 export function useCountdown({ expiresAt, durationSec, enabled = true }: Options) {
   const endRef = useRef(0);
-  const [secondsLeft, setSecondsLeft] = useState(0);
+  // `null` means "not computed yet for the current expiry" - deliberately distinct from 0. See the
+  // reset-during-render block below for why this alone isn't sufficient.
+  const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
   const [expired, setExpired] = useState(false);
 
   const endKey = expiresAt ?? (durationSec != null ? `d:${durationSec}` : "");
 
+  // Reset synchronously DURING render when endKey changes (React's documented pattern for
+  // deriving state from a changed prop without an extra flash) - not in an effect. A previous
+  // version reset secondsLeft to null inside a useEffect, which runs AFTER render/commit: the
+  // render that first shows a NEW endKey would still carry the PREVIOUS challenge's secondsLeft
+  // (0, if that one had expired), making `expired` a false positive again on every repeat attempt,
+  // not just the first. This is also why the fix cannot rely on useLayoutEffect running "before"
+  // a consumer's useEffect - instrumented and confirmed React does not guarantee that ordering
+  // reliably corrects a stale render before a watching effect observes it.
+  const [trackedKey, setTrackedKey] = useState(endKey);
+  if (trackedKey !== endKey) {
+    setTrackedKey(endKey);
+    setSecondsLeft(null);
+    setExpired(false);
+  }
+
   useEffect(() => {
     if (!enabled || !endKey) {
-      setSecondsLeft(0);
+      setSecondsLeft(null);
       setExpired(false);
       return;
     }
@@ -33,8 +50,6 @@ export function useCountdown({ expiresAt, durationSec, enabled = true }: Options
       return;
     }
 
-    setExpired(false);
-
     const tick = () => {
       const left = Math.max(0, Math.floor((endRef.current - Date.now()) / 1000));
       setSecondsLeft(left);
@@ -46,11 +61,11 @@ export function useCountdown({ expiresAt, durationSec, enabled = true }: Options
     return () => clearInterval(id);
   }, [enabled, endKey, expiresAt, durationSec]);
 
-  const formatted = useMemo(() => formatCountdownMmSs(secondsLeft), [secondsLeft]);
+  const formatted = useMemo(() => formatCountdownMmSs(secondsLeft ?? 0), [secondsLeft]);
 
   return {
-    secondsLeft,
+    secondsLeft: secondsLeft ?? 0,
     formatted,
-    expired: enabled && Boolean(endKey) && (expired || secondsLeft <= 0)
+    expired: enabled && Boolean(endKey) && (expired || (secondsLeft !== null && secondsLeft <= 0))
   };
 }
