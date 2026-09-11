@@ -634,24 +634,45 @@ export default async function OwnerDashboardPage({
           {hasHotels && (
             <div className="space-y-8">
               {hotels.map((h) => (
-                <div
-                  key={h.id}
-                  className="owner-panel"
-                >
-                  {h.coverImageUrl ? (
-                    <div className="relative mb-4 aspect-video w-full overflow-hidden rounded-2xl bg-slate-900/40 ring-1 ring-white/10">
-                      <AppImage src={h.coverImageUrl} alt="" fill className="object-cover" sizes="400px" />
+                <div key={h.id} className="owner-property-card">
+                  <div className="owner-property-card__row">
+                    <div className="owner-property-card__thumb">
+                      {h.coverImageUrl ? (
+                        <AppImage src={h.coverImageUrl} alt="" fill className="object-cover" sizes="72px" />
+                      ) : (
+                        <div className="owner-property-card__thumb-placeholder" aria-hidden />
+                      )}
                     </div>
-                  ) : null}
-                  <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-                    <div className="min-w-0">
+                    <div className="owner-property-card__info min-w-0">
                       <div className="owner-record-card__title truncate">
                         {safeText(h.name, m(locale, "owner.demoHidden"))}
                       </div>
-                      <div className="mt-1 owner-section-lead">{safeText(h.city, m(locale, "owner.fieldCityPh"))}</div>
+                      <div className="owner-property-card__meta">
+                        {safeText(h.city, m(locale, "owner.fieldCityPh"))} · {h.rooms?.length ?? 0}{" "}
+                        {m(locale, "owner.roomsShort")}
+                      </div>
                     </div>
                     <StatusBadge variant={hotelStatusVariant(h.status)}>{tStatus(locale, h.status)}</StatusBadge>
+                    <div className="owner-property-card__actions">
+                      <a
+                        href={`/hotel/${h.id}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="owner-btn owner-btn--secondary owner-btn--sm"
+                      >
+                        {m(locale, "owner.openProperty")}
+                      </a>
+                    </div>
                   </div>
+
+                  <details className="owner-property-card__edit">
+                    <summary className="owner-property-card__edit-toggle">{m(locale, "owner.editProperty")}</summary>
+
+                  {h.coverImageUrl ? (
+                    <div className="relative mb-4 mt-4 aspect-video w-full overflow-hidden rounded-2xl bg-slate-900/40 ring-1 ring-white/10">
+                      <AppImage src={h.coverImageUrl} alt="" fill className="object-cover" sizes="400px" />
+                    </div>
+                  ) : null}
 
                   <form action={`/api/owner/hotels/${h.id}`} method="post" encType="multipart/form-data" className="space-y-6">
                     <section className="owner-form__section">
@@ -777,6 +798,7 @@ export default async function OwnerDashboardPage({
                       {m(locale, "owner.saveHotel")}
                     </button>
                   </form>
+                  </details>
                 </div>
               ))}
               <details className="owner-panel">
