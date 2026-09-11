@@ -2,7 +2,7 @@ import { runAdminContentPost } from "@/lib/admin/content-route";
 import { saveSupportContacts } from "@/lib/site-content";
 
 export async function POST(req: Request) {
-  return runAdminContentPost(req, async () => {
+  return runAdminContentPost(req, "support", async () => {
     const form = await req.formData();
     await saveSupportContacts({
       supportTitle: String(form.get("supportTitle") ?? ""),

@@ -4,7 +4,7 @@ import { saveHomeBanner } from "@/lib/site-content";
 import { publicUrl } from "@/lib/http/publicOrigin";
 
 export async function POST(req: Request) {
-  return runAdminContentPost(req, async () => {
+  return runAdminContentPost(req, "home-banner", async () => {
     const form = await req.formData();
     const title = String(form.get("title") || "").trim();
     const subtitle = String(form.get("subtitle") || "").trim();
@@ -15,6 +15,7 @@ export async function POST(req: Request) {
     if (!title || !subtitle || !ctaText) {
       const url = publicUrl(req, "/dashboard/admin?section=content");
       url.searchParams.set("error", "content-required");
+      url.searchParams.set("form", "home-banner");
       return NextResponse.redirect(url);
     }
 

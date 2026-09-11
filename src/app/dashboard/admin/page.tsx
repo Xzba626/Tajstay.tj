@@ -64,8 +64,8 @@ export default async function AdminDashboardPage({
   searchParams
 }: {
   searchParams?:
-    | Promise<{ section?: string; page?: string; q?: string; status?: string; role?: string; paymentStatus?: string; resetToken?: string; resetUser?: string; error?: string; ok?: string }>
-    | { section?: string; page?: string; q?: string; status?: string; role?: string; paymentStatus?: string; resetToken?: string; resetUser?: string; error?: string; ok?: string };
+    | Promise<{ section?: string; page?: string; q?: string; status?: string; role?: string; paymentStatus?: string; resetToken?: string; resetUser?: string; error?: string; ok?: string; form?: string }>
+    | { section?: string; page?: string; q?: string; status?: string; role?: string; paymentStatus?: string; resetToken?: string; resetUser?: string; error?: string; ok?: string; form?: string };
 }) {
   const admin = await requireAdmin();
   const locale = getLocale();
@@ -83,6 +83,10 @@ export default async function AdminDashboardPage({
   const paymentStatus = (params?.paymentStatus ?? "").trim();
   const securityError = (params?.error ?? "").trim();
   const securityOk = (params?.ok ?? "").trim();
+  // Which content card actually submitted - scopes the ok/error message to that one card instead
+  // of every card on this page sharing one generic status (previously caused a save on one form,
+  // e.g. brand or payment catalog, to show its "saved" toast under an unrelated card like Security).
+  const contentForm = (params?.form ?? "").trim();
   const adminSecurityResetAvailable = isAdminSecurityResetConfigured();
   const securityMessage =
     securityError === "security-required"
@@ -112,14 +116,10 @@ export default async function AdminDashboardPage({
                             : securityError === "recovery_no_password_credential"
                               ? m(locale, "admin.noPasswordCredentialHint")
                               : securityError === "credentials_disabled"
-                              ? m(locale, "admin.credentialsDisabledMsg")
-                              : securityError === "content-save"
-                                ? "Не удалось сохранить контент сайта. Проверьте DATABASE_URL и выполните prisma migrate deploy на Vercel."
-                                : securityError === "content-required"
-                                  ? "Заполните обязательные поля баннера."
-                                  : securityError
-                                    ? `Security update failed: ${securityError}`
-                                    : "";
+                                ? m(locale, "admin.credentialsDisabledMsg")
+                                : securityError && contentForm !== "home-banner" && contentForm !== "support" && contentForm !== "legal"
+                                  ? `Security update failed: ${securityError}`
+                                  : "";
   const securityOkMessage =
     securityOk === "security-reset"
       ? m(locale, "admin.securityResetOkMsg")
@@ -127,9 +127,17 @@ export default async function AdminDashboardPage({
         ? m(locale, "admin.securityUpdatedOkMsg")
         : securityOk === "recovery_sent"
           ? m(locale, "admin.recoverySentOkMsg")
-          : securityOk === "content-saved"
-            ? "Контент сайта сохранён."
-            : "";
+          : "";
+
+  // Generic content-card save status (home banner / support / legal), scoped by `form` to the
+  // card that actually submitted - see contentForm above.
+  function contentStatusFor(formKey: "home-banner" | "support" | "legal") {
+    if (contentForm !== formKey) return { ok: false, error: false, message: "" };
+    if (securityOk === "content-saved") return { ok: true, error: false, message: m(locale, "admin.contentSavedMsg") };
+    if (securityError === "content-save") return { ok: false, error: true, message: m(locale, "admin.contentSaveFailedMsg") };
+    if (securityError === "content-required") return { ok: false, error: true, message: m(locale, "admin.contentRequiredMsg") };
+    return { ok: false, error: false, message: "" };
+  }
 
   // We keep list item typing flexible because each section uses different Prisma includes.
   let hotels: any[] = [];
@@ -408,12 +416,19 @@ export default async function AdminDashboardPage({
       )}
 
       {activeSection === "content" && <section id="content" className="admin-section scroll-mt-28">
-        <AdminSectionHead title={m(locale, "admin.contentSection")} subtitle={m(locale, "admin.brandHint")} />
+        <AdminSectionHead title={m(locale, "admin.contentSection")} subtitle={m(locale, "admin.contentSectionHint")} />
         <AdminNativeForm
           action="/api/admin/content/home-banner"
           method="post"
           className="admin-panel admin-form-grid admin-form-grid--2"
         >
+          {contentStatusFor("home-banner").message && (
+            <div
+              className={`admin-alert md:col-span-2 ${contentStatusFor("home-banner").error ? "admin-alert--error" : "admin-alert--success"}`}
+            >
+              {contentStatusFor("home-banner").message}
+            </div>
+          )}
           <label className="admin-field">
             {m(locale, "admin.bannerTitle")}
             <input name="title" defaultValue={content!.homeBanner.title} required />
@@ -440,47 +455,13 @@ export default async function AdminDashboardPage({
         </AdminNativeForm>
 
         <div className="admin-panel">
-          <div className="text-sm font-semibold">{m(locale, "admin.brandSection")}</div>
-          <p className="mt-1 text-sm text-[var(--admin-text-muted)]">{m(locale, "admin.brandHint")}</p>
-          <AdminNativeForm action="/api/admin/content/brand" method="post" className="admin-form-grid admin-form-grid--2 mt-4">
-            <label className="admin-field md:col-span-2">
-              {m(locale, "admin.brandSiteName")}
-              <input name="siteName" defaultValue={content!.brand.siteName} />
-            </label>
-            <label className="admin-field">
-              {m(locale, "admin.brandLogoMain")}
-              <input name="logoMainUrl" defaultValue={content!.brand.logoMainUrl} />
-            </label>
-            <label className="admin-field">
-              {m(locale, "admin.brandLogoMark")}
-              <input name="logoMarkUrl" defaultValue={content!.brand.logoMarkUrl} />
-            </label>
-            <label className="admin-field md:col-span-2">
-              {m(locale, "admin.brandFavicon")}
-              <input name="faviconUrl" defaultValue={content!.brand.faviconUrl} />
-            </label>
-            <AdminSubmitButton className="md:col-span-2" loadingLabel={m(locale, "admin.processing")}>
-              {m(locale, "admin.saveBrand")}
-            </AdminSubmitButton>
-          </AdminNativeForm>
-        </div>
-
-        <div className="admin-panel">
-          <div className="text-sm font-semibold">{m(locale, "admin.paymentCatalogTitle")}</div>
-          <p className="mt-1 text-sm text-[var(--admin-text-muted)]">{m(locale, "admin.paymentCatalogHint")}</p>
-          <AdminNativeForm action="/api/admin/content/payment-methods" method="post" className="mt-4 space-y-3">
-            <input
-              name="methods"
-              defaultValue={content!.paymentCatalog.methods.join(", ")}
-              placeholder={m(locale, "admin.paymentCatalogPlaceholder")}
-            />
-            <AdminSubmitButton loadingLabel={m(locale, "admin.processing")}>{m(locale, "admin.paymentCatalogSave")}</AdminSubmitButton>
-          </AdminNativeForm>
-        </div>
-
-        <div className="admin-panel">
           <div className="text-sm font-semibold">{m(locale, "admin.supportContactsTitle")}</div>
           <p className="mt-1 text-sm text-[var(--admin-text-muted)]">{m(locale, "admin.supportContactsHint")}</p>
+          {contentStatusFor("support").message && (
+            <div className={`admin-alert mt-3 ${contentStatusFor("support").error ? "admin-alert--error" : "admin-alert--success"}`}>
+              {contentStatusFor("support").message}
+            </div>
+          )}
           <AdminNativeForm action="/api/admin/content/support" method="post" className="admin-form-grid admin-form-grid--2 mt-4">
             <label className="admin-field md:col-span-2">
               {m(locale, "admin.supportTitleLabel")}
@@ -519,6 +500,11 @@ export default async function AdminDashboardPage({
         <div className="admin-panel">
           <div className="text-sm font-semibold">{m(locale, "admin.legalPagesTitle")}</div>
           <p className="mt-1 text-sm text-[var(--admin-text-muted)]">{m(locale, "admin.legalPagesHint")}</p>
+          {contentStatusFor("legal").message && (
+            <div className={`admin-alert mt-3 ${contentStatusFor("legal").error ? "admin-alert--error" : "admin-alert--success"}`}>
+              {contentStatusFor("legal").message}
+            </div>
+          )}
           <AdminNativeForm action="/api/admin/content/legal" method="post" className="mt-4 space-y-3">
             <label className="admin-field">
               {m(locale, "admin.legalPrivacyLabel")}
