@@ -797,19 +797,33 @@ does not):
   the home-banner form, success message appeared only under that card, not under Security).
 - **DEPLOYED PROD / REAL DEVICE**: none of the above — still OPEN, unchanged from before this pass.
 
-### Telegram first-click bug — investigation closed without a fix (honest non-result)
+### Telegram "code shows expired instantly" bug — FOUND AND FIXED (commit `e7f453b`)
 
-Reviewed `TelegramLoginPanel.tsx`, `useCountdown.ts`, `/api/auth/telegram/challenge`,
-`/api/auth/telegram/verify` end to end. Found: `OAuthAccountNotLinked` (from the user's screenshot)
-does not exist anywhere in this codebase — it's a NextAuth/Google-only error code, unrelated to
-Telegram's fully custom challenge/OTP system, and the sign-in page has no code path that even reads
-`searchParams.error`, so that query string was inert leftover, not an active cause. The
-challenge-creation route is stateless (no first-vs-second-call state dependency found), and the
-countdown/expiry logic is a straightforward `expiresAt - Date.now()` that resets correctly on every
-new challenge. **No reproducible code defect located.** Real reproduction needs a live Telegram
-account completing the actual bot handshake (not available in this environment) — that's the
-concrete blocker, not a scope choice. Do not re-attempt this by re-reading the same files; it needs
-live network capture from an actual attempt.
+Static analysis alone (see the now-superseded note this replaces) did not find it — user was right
+not to accept that as closure. Reproduced live instead: fresh browser, one click, network capture
+showed the server was correct every time (`expiresAt` a genuine 5 minutes out, status poll returned
+`pending`) while the UI showed "expired" regardless. Root cause (confirmed via temporary instrumented
+logging, added and removed, no prod logging added): `useCountdown`'s `secondsLeft` defaulted to
+`useState(0)`; when a challenge's `expiresAt` first arrives via an async response (not at mount), the
+render that turns the hook on still carries that stale `0` for one pass before the effect ticks a
+real value, so `expired` (`secondsLeft <= 0`) is a false positive on that render.
+`TelegramLoginPanel`'s own effect watches that value and **latches** — once it observes `expired:
+true` even once, it calls `setStatus("expired")` permanently, with nothing to ever undo it. A first
+fix attempt (`useLayoutEffect`, expecting layout effects to run before the consumer's passive effect)
+did **not** work — re-instrumented and confirmed the passive effect fires using the stale value
+before the layout effect's correction is observable; do not rely on that ordering assumption in this
+codebase. Fixed instead without depending on effect ordering at all: `secondsLeft` is `number | null`
+(null = not computed yet), reset to null synchronously **during render** (React's "adjust state while
+rendering" pattern) whenever the expiry key changes — covers both the first attempt and every repeat
+"Request a new code" attempt. Verified live, same reproduction, before and after — before: "Время
+кода истекло" instantly; after: "Осталось 4:53" on the first click, fresh tab, no second attempt
+needed. Also cleared the confirmed-inert stale `?error=OAuthAccountNotLinked` from the URL on mount
+(it was never read/rendered by any code path here, but is confusing in the address bar).
 
-**NEXT**: Auth Desktop visual fix (item 4 above) — concrete, confirmed, fixable independent of the
-still-open Telegram functional bug. Then Multi-Hotel Owner foundation.
+**Still open**: the full external Telegram bot handshake (deep-link → bot conversation → return →
+verify → session) is BLOCKED EXTERNAL QA — no real Telegram account available in this environment to
+complete that leg. DEPLOYED PROD and REAL DEVICE unchanged, still OPEN.
+
+**NEXT**: Multi-Hotel Owner foundation (property switcher, Hotel-scoped everything) — Auth Desktop
+visual fix (commit `9d29514`, done by the user directly from this session's working tree) and the
+Telegram functional fix above both close item 3/4 of the master order.
