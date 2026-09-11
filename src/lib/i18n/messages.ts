@@ -1564,7 +1564,7 @@ const ru: Tree = {
   },
   adminNav: {
     dashboard: "Дашборд",
-    dashboardShort: "Главная",
+    dashboardShort: "Обзор",
     content: "Контент и баннеры",
     applications: "Заявки на подключение",
     applicationsShort: "Заявки",
