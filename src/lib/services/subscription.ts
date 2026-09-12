@@ -49,10 +49,27 @@ export async function ensureHotelSubscriptionOnApproval(hotelId: number) {
 
   const trialStartAt = new Date();
   const trialEndAt = addMonths(trialStartAt, 1);
+  // The reference price at the moment the trial started - not charged (the period below is
+  // FREE), but recorded so a later price change never rewrites what this trial's "would-be"
+  // price was, matching the same freeze-at-the-moment-it-mattered pattern as every other period.
+  const referencePrice = (await getPlatformSetting()).subscriptionMonthlyPriceTjs;
 
   try {
     return await prisma.hotelSubscription.create({
-      data: { hotelId, status: "TRIAL", trialStartAt, trialEndAt }
+      data: {
+        hotelId,
+        status: "TRIAL",
+        trialStartAt,
+        trialEndAt,
+        periods: {
+          create: {
+            periodStart: trialStartAt,
+            periodEnd: trialEndAt,
+            status: "FREE",
+            priceSnapshot: referencePrice
+          }
+        }
+      }
     });
   } catch (err: any) {
     if (err?.code === "P2002") {
@@ -65,5 +82,5 @@ export async function ensureHotelSubscriptionOnApproval(hotelId: number) {
 }
 
 export async function getHotelSubscription(hotelId: number) {
-  return prisma.hotelSubscription.findUnique({ where: { hotelId } });
+  return prisma.hotelSubscription.findUnique({ where: { hotelId }, include: { periods: { orderBy: { periodStart: "desc" } } } });
 }

@@ -66,10 +66,15 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       return redirectProperties(req, "hotel");
     }
 
-    // Editing never lets the owner set status directly (no `status` form field is ever read here) -
-    // the one exception is a REJECTED hotel: saving edits on it is the "fix and resubmit" action,
-    // so it goes back to PENDING for another Admin look. Every other status is preserved as-is.
-    const nextStatus = hotel.status === "REJECTED" ? "PENDING" : hotel.status;
+    // Editing never lets the owner set status directly (no `status` form field is ever read
+    // here). A REJECTED hotel keeps its rejected status when merely saving edits - resubmitting
+    // is a separate, explicit action (`intent=resubmit`), not an automatic side effect of Save.
+    // That matters because an owner may want to fix several things across multiple saves before
+    // asking for another review, and because auto-resubmitting on every keystroke-adjacent save
+    // would spam Admin with re-review notifications for edits that aren't actually ready yet.
+    const intent = String(form.get("intent") ?? "");
+    const isResubmit = intent === "resubmit" && hotel.status === "REJECTED";
+    const nextStatus = isResubmit ? "PENDING" : hotel.status;
 
     await prisma.hotel.update({
       where: { id },
@@ -82,11 +87,14 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         longitude: longitude ?? hotel.longitude,
         propertyType,
         coverImageUrl,
-        status: nextStatus
+        status: nextStatus,
+        // Cleared only on an actual resubmit - otherwise the owner keeps seeing why it was
+        // rejected while they're still working on the fix across possibly several saves.
+        currentRejectionReason: isResubmit ? null : hotel.currentRejectionReason
       }
     });
 
-    if (nextStatus === "PENDING" && hotel.status === "REJECTED") {
+    if (isResubmit) {
       await notifyAdminsHotelPending(id, name);
     }
 

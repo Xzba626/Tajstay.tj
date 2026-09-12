@@ -18,16 +18,30 @@ export async function POST(req: NextRequest) {
   if (!id || !["APPROVED", "REJECTED", "PENDING"].includes(status)) {
     return NextResponse.redirect(publicUrl(req, "/dashboard/admin"));
   }
+  // A rejection without a reason leaves the owner with nothing to act on - reject is the one
+  // transition that must always carry one.
+  if (status === "REJECTED" && !reason) {
+    const u = publicUrl(req, "/dashboard/admin");
+    u.searchParams.set("section", "hotels");
+    u.searchParams.set("error", "reject_reason_required");
+    return NextResponse.redirect(u);
+  }
 
   const beforeHotel = await prisma.hotel.findUnique({ where: { id }, select: { status: true } });
 
   await prisma.hotel.update({
     where: { id },
-    data: { status: status as "APPROVED" | "REJECTED" | "PENDING" }
+    data: {
+      status: status as "APPROVED" | "REJECTED" | "PENDING",
+      // currentRejectionReason is CURRENT STATE, not history - AdminAuditLog below is the
+      // append-only record of every past transition. Only REJECTED ever sets it; every other
+      // transition (including a resubmit back to PENDING, or an APPROVE) clears it, so the Owner
+      // UI never has to infer "why rejected" from an audit-log lookup that would break across a
+      // reject -> resubmit -> reject cycle.
+      currentRejectionReason: status === "REJECTED" ? reason : null
+    }
   });
 
-  // Reuses the existing AdminAuditLog.reason field (no new Hotel column) - this is also where
-  // the owner-facing rejection reason is read back from, see getLatestHotelModerationReason.
   await writeAdminAudit({
     actorUserId: admin.id,
     action: "hotel_moderated",

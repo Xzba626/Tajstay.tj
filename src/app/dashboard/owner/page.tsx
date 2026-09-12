@@ -39,7 +39,6 @@ import { OwnerRoomTypesPanel } from "@/components/owner/OwnerRoomTypesPanel";
 import { HotelLocationPicker } from "@/components/owner/HotelLocationPicker";
 import { PhotoPlaceholder } from "@/components/ui/PhotoPlaceholder";
 import { isBrandAssetUrl } from "@/lib/brand";
-import { getLatestHotelModerationReason } from "@/lib/admin/hotelModeration";
 import { getHotelSubscription } from "@/lib/services/subscription";
 import { OwnerSubscriptionCard } from "@/components/owner/OwnerSubscriptionCard";
 import { OwnerAssignRoomSelect } from "@/components/owner/OwnerAssignRoomSelect";
@@ -217,7 +216,6 @@ export default async function OwnerDashboardPage({
 
   let hotels: any[] = [];
   let hotelSubscription: Awaited<ReturnType<typeof getHotelSubscription>> | null = null;
-  const hotelRejectionReasons: Record<number, string | null> = {};
   let rooms: any[] = [];
   let roomTypes: any[] = [];
   let assignRooms: { id: number; title: string; roomNumber?: string | null; roomTypeId: number | null }[] = [];
@@ -271,13 +269,6 @@ export default async function OwnerDashboardPage({
     }
   } else if (activeSection === "properties") {
     hotels = await prisma.hotel.findMany({ where: { ownerId: user.id }, include: { rooms: true }, orderBy: { createdAt: "desc" } });
-    const rejectedIds = hotels.filter((h) => h.status === "REJECTED").map((h) => h.id);
-    if (rejectedIds.length) {
-      const reasons = await Promise.all(rejectedIds.map((id) => getLatestHotelModerationReason(id)));
-      rejectedIds.forEach((id, i) => {
-        hotelRejectionReasons[id] = reasons[i];
-      });
-    }
   } else if (activeSection === "rooms") {
     hotels = await prisma.hotel.findMany({ where: { ownerId: user.id }, orderBy: { createdAt: "desc" } });
     roomTypes = await prisma.roomType.findMany({
@@ -709,9 +700,9 @@ export default async function OwnerDashboardPage({
                     </div>
                   </div>
 
-                  {h.status === "REJECTED" && hotelRejectionReasons[h.id] && (
+                  {h.status === "REJECTED" && h.currentRejectionReason && (
                     <div className="owner-property-card__reject-reason">
-                      <strong>{m(locale, "owner.rejectionReasonLabel")}:</strong> {hotelRejectionReasons[h.id]}
+                      <strong>{m(locale, "owner.rejectionReasonLabel")}:</strong> {h.currentRejectionReason}
                     </div>
                   )}
 
@@ -825,12 +816,24 @@ export default async function OwnerDashboardPage({
                       </div>
                     </section>
 
-                    <button
-                      type="submit"
-                      className="owner-btn owner-btn--primary w-full md:w-auto active:scale-[0.99] md:w-auto"
-                    >
-                      {m(locale, "owner.saveHotel")}
-                    </button>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="submit"
+                        className="owner-btn owner-btn--primary w-full md:w-auto active:scale-[0.99]"
+                      >
+                        {m(locale, "owner.saveHotel")}
+                      </button>
+                      {h.status === "REJECTED" && (
+                        <button
+                          type="submit"
+                          name="intent"
+                          value="resubmit"
+                          className="owner-btn owner-btn--secondary w-full md:w-auto active:scale-[0.99]"
+                        >
+                          {m(locale, "owner.resubmitForReview")}
+                        </button>
+                      )}
+                    </div>
                   </form>
                   </details>
                 </div>

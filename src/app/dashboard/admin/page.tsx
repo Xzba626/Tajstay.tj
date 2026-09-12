@@ -34,6 +34,9 @@ import { AdminSubmitButton } from "@/components/admin/AdminSubmitButton";
 import { isAdminSecurityResetConfigured } from "@/lib/admin-security";
 import { getPlatformSetting } from "@/lib/services/subscription";
 import { formatStayDay } from "@/lib/i18n/format";
+import { AppImage } from "@/components/ui/AppImage";
+import { PhotoPlaceholder } from "@/components/ui/PhotoPlaceholder";
+import { isBrandAssetUrl } from "@/lib/brand";
 
 export const dynamic = "force-dynamic";
 
@@ -653,6 +656,11 @@ export default async function AdminDashboardPage({
       </section>}
 
       {activeSection === "hotels" && <section id="hotels" className="admin-section scroll-mt-28">
+        {securityError === "reject_reason_required" && (
+          <div className="admin-panel admin-panel--flat border border-red-300 bg-red-50 text-sm text-red-800" role="alert">
+            {m(locale, "admin.rejectReasonRequired")}
+          </div>
+        )}
         <AdminSectionHead
           title={m(locale, "admin.moderateHotels")}
           subtitle={m(locale, "admin.emptyResultsHint")}
@@ -720,6 +728,16 @@ export default async function AdminDashboardPage({
                 </AdminNativeForm>
               }
             >
+              {hotel.coverImageUrl && !isBrandAssetUrl(hotel.coverImageUrl) ? (
+                <div className="relative mb-3 aspect-video w-full overflow-hidden rounded-xl bg-slate-100">
+                  {/* Admin's simplified verification (no KYC/passport) leans on seeing the
+                      Owner's one submitted photo directly - object-contain, not cover, since a
+                      cropped guess defeats the point of actually looking at it. */}
+                  <AppImage src={hotel.coverImageUrl} alt="" fill className="object-contain" sizes="360px" />
+                </div>
+              ) : (
+                <PhotoPlaceholder locale={locale} variant="hotel" className="mb-3 aspect-video w-full rounded-xl" />
+              )}
               <div className="admin-record-card__title-row">
                 <div className="admin-record-card__title">{hotel.name}</div>
                 <StatusBadge variant={hotelStatusVariant(hotel.status)}>{tStatus(hotel.status)}</StatusBadge>

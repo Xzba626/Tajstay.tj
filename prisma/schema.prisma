@@ -107,6 +107,12 @@ model Hotel {
   coverImageUrl String?
   rating        Float    @default(0)
   status        String   @default("PENDING")
+  /// Current-state reason for the current `status` when REJECTED (null once resubmitted or
+  /// approved) - AdminAuditLog stays the append-only history of every past transition, this is
+  /// the one field the Owner-facing UI actually reads. Never infer "why is my Hotel rejected"
+  /// from the latest audit row - that conflates history with current state and breaks the moment
+  /// there's a reject -> resubmit -> reject cycle.
+  currentRejectionReason String?
   latitude      Float
   longitude     Float
   createdAt     DateTime @default(now())
