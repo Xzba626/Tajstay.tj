@@ -176,8 +176,13 @@ export function NotificationBell({
           setOpen((o) => !o);
         }}
         className={cn(
-          "relative flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-white/5 text-slate-100 shadow-sm transition hover:bg-white/10 md:border-slate-200 md:bg-white md:text-slate-700 md:hover:bg-slate-50",
-          open && "ring-2 ring-[#0f7a4d]/30"
+          // The header (site-header) is canonical green (#0F7A4D) at every viewport, not white on
+          // desktop - this used to switch to `md:bg-white md:text-slate-700`, a dark-on-green
+          // contrast bug baked into the component's own classes rather than a shared/global CSS
+          // fight. Same translucent-white pattern as the header's language switcher (see
+          // home.css .locale-switcher--icon-only) for a visually unified set of header actions.
+          "relative flex h-10 w-10 items-center justify-center rounded-xl border border-white/35 bg-white/[0.08] text-white shadow-sm transition hover:bg-white/[0.16]",
+          open && "ring-2 ring-white/40"
         )}
         aria-expanded={open}
         aria-label={labels.ariaLabel}
@@ -191,7 +196,7 @@ export function NotificationBell({
           />
         </svg>
         {unreadCount > 0 ? (
-          <span className="absolute -right-1 -top-1 flex min-h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white shadow-md ring-2 ring-slate-950 md:ring-white">
+          <span className="absolute -right-1 -top-1 flex min-h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white shadow-md ring-2 ring-[#0f7a4d]">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         ) : null}

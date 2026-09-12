@@ -67,17 +67,30 @@ a[role="button"],
   box-shadow: 0 10px 24px rgba(2, 6, 23, 0.24), 0 2px 8px rgba(2, 6, 23, 0.16);
 }
 
-/* :where() zeroes this rule's specificity to (0,0,0) — it's a baseline default (unstyled
-   buttons inherit surrounding text color instead of the browser default), not a component style,
-   and must never be able to outrank a real component's own color rule. Before this fix it had
-   specificity (0,1,1) via the attribute+tag selector, which silently beat every bare
-   `.component-name` class rule (0,1,0) sharing a `<button>` element — the exact bug that hit the
-   cookie-consent Accept button and three TST Assistant buttons this session (all needed
-   `!important` patches as a workaround). Root-caused instead of patched per-component. */
-:where([data-theme="light"] button),
-:where([data-theme="light"] a[role="button"]) {
-  color: inherit;
-  border-color: #e4e4e7;
+/* This is a baseline default (unstyled buttons inherit surrounding text color instead of the
+   browser default), not a component style — it must never be able to outrank a real component's
+   own color, including a plain Tailwind utility like `text-white`. Two separate problems were
+   silently stacking here:
+   1. `:where()` zeroes selector specificity, but that only settles fights against OTHER unlayered
+      rules — it does nothing against a *layered* rule. Tailwind's own utilities compile into
+      `@layer utilities`, and per the CSS Cascade Layers spec, ANY unlayered declaration beats ANY
+      layered one regardless of specificity. This rule was declared unlayered (after
+      `@tailwind utilities` in source, but layers are not source-order-bound), so it was silently
+      beating `text-white`/`text-slate-100`/etc. on every plain `<button>` — not just an
+      occasional specificity loss.
+   2. Each time this surfaced (cookie-consent Accept, three separate TST Assistant buttons, this
+      session), it was patched with a fresh component-local `!important` instead of the root cause
+      — a pattern explicitly flagged as unacceptable to keep repeating.
+   Real fix: put this rule INSIDE `@layer base`. Cascade layer order is base < components <
+   utilities, so Tailwind's utilities now always win over this default without needing any
+   `!important` anywhere — including on components that haven't hit this bug yet. The `:where()`
+   specificity-zeroing stays, since it's still correct/useful against other unlayered rules. */
+@layer base {
+  :where([data-theme="light"] button),
+  :where([data-theme="light"] a[role="button"]) {
+    color: inherit;
+    border-color: #e4e4e7;
+  }
 }
 
 html,
