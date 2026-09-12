@@ -6,7 +6,9 @@
  * still see Hotel B's bookings via whichever branch forgot the extra clause.
  */
 export function ownerBookingWhere(ownerId: number, hotelId?: number) {
-  const hotelFilter = hotelId ? { id: hotelId, ownerId } : { ownerId };
+  // Unscoped ("all my hotels") must mean "all my APPROVED hotels" - a PENDING/REJECTED hotel has
+  // no real bookings to show, and must never silently become part of an aggregate view either.
+  const hotelFilter = hotelId ? { id: hotelId, ownerId } : { ownerId, status: "APPROVED" };
   return {
     OR: [
       { room: { hotel: hotelFilter } },

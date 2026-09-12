@@ -22,7 +22,7 @@ import { WorkspaceMobileDrawer } from "@/components/navigation/WorkspaceMobileDr
 import { BodyPortal } from "@/components/navigation/BodyPortal";
 import { subscribeWorkspaceDrawerOpen } from "@/lib/workspace/workspace-nav-bridge";
 
-export type OwnerSwitcherHotel = { id: number; name: string; city: string };
+export type OwnerSwitcherHotel = { id: number; name: string; city: string; status: string };
 
 export type OwnerSidebarLabels = {
   sectionTitle: string;
@@ -65,6 +65,8 @@ export type OwnerSidebarLabels = {
   };
   switchProperty: string;
   allProperties: string;
+  pendingSuffix: string;
+  rejectedSuffix: string;
 };
 
 type SidebarItem = {
@@ -154,11 +156,16 @@ function PropertySwitcher({
         onChange={(e) => goToHotel(e.target.value)}
       >
         <option value="">{labels.allProperties}</option>
-        {hotels.map((h) => (
-          <option key={h.id} value={h.id}>
-            {h.name} — {h.city}
-          </option>
-        ))}
+        {hotels.map((h) => {
+          const isApproved = h.status === "APPROVED";
+          const suffix = h.status === "PENDING" ? ` — ${labels.pendingSuffix}` : h.status === "REJECTED" ? ` — ${labels.rejectedSuffix}` : "";
+          return (
+            <option key={h.id} value={h.id} disabled={!isApproved}>
+              {h.name} — {h.city}
+              {suffix}
+            </option>
+          );
+        })}
       </select>
     </div>
   );

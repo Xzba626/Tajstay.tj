@@ -19,7 +19,7 @@ export async function getOwnerDashboardKpis(ownerId: number, hotelId?: number): 
   const todayEnd = endOfDay(now);
   const monthStart = startOfMonth(now);
 
-  const hotelFilter = hotelId ? { id: hotelId, ownerId } : { ownerId };
+  const hotelFilter = hotelId ? { id: hotelId, ownerId } : { ownerId, status: "APPROVED" };
   const ownerRoomFilter = { room: { hotel: hotelFilter } };
 
   const [

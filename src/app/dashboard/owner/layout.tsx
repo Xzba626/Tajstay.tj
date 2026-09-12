@@ -12,7 +12,7 @@ export default async function OwnerDashboardLayout({ children }: { children: Rea
   const hotels = await prisma.hotel.findMany({
     where: { ownerId: user.id },
     orderBy: { createdAt: "asc" },
-    select: { id: true, name: true, city: true }
+    select: { id: true, name: true, city: true, status: true }
   });
   const labels: OwnerSidebarLabels = {
     sectionTitle: m(locale, "roles.OWNER"),
@@ -54,7 +54,9 @@ export default async function OwnerDashboardLayout({ children }: { children: Rea
       finances: m(locale, "owner.navFinancesShort")
     },
     switchProperty: m(locale, "owner.switchProperty"),
-    allProperties: m(locale, "owner.allProperties")
+    allProperties: m(locale, "owner.allProperties"),
+    pendingSuffix: m(locale, "owner.pendingSuffix"),
+    rejectedSuffix: m(locale, "owner.rejectedSuffix")
   };
 
   return (

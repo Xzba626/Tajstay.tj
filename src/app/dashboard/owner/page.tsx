@@ -164,13 +164,21 @@ export default async function OwnerDashboardPage({
   // Global active-hotel scope: never trust the client-supplied hotelId directly — verify it's
   // actually one of this owner's hotels before using it anywhere below. Lives in the URL (not
   // client-only state) so it survives reload/back-forward/deep-link. Single-hotel owners never
-  // see a switcher and this stays 0 (unscoped == "my one hotel" anyway).
+  // see a switcher and this stays 0 (unscoped == "all my approved hotels" anyway).
+  //
+  // Only an APPROVED hotel can become the active operations context. A PENDING/REJECTED hotel is
+  // still visible to its owner (Objects list, switcher shown as "На проверке"/"Отклонён") but
+  // cannot be selected to drive real Bookings/Finance/Rooms/etc — those don't exist yet for an
+  // object an admin hasn't reviewed. Unlimited applications never implies self-approval.
   const ownerHotelsForSwitcher = await prisma.hotel.findMany({
     where: { ownerId: user.id },
     orderBy: { createdAt: "asc" },
     select: { id: true, name: true, city: true, status: true }
   });
-  const hotelId = ownerHotelsForSwitcher.some((h) => h.id === requestedHotelId) ? requestedHotelId : 0;
+  const approvedOwnerHotelIds = new Set(
+    ownerHotelsForSwitcher.filter((h) => h.status === "APPROVED").map((h) => h.id)
+  );
+  const hotelId = approvedOwnerHotelIds.has(requestedHotelId) ? requestedHotelId : 0;
 
   let hotels: any[] = [];
   let rooms: any[] = [];
@@ -196,7 +204,9 @@ export default async function OwnerDashboardPage({
   let totalRows = 0;
   let totalPages = 1;
 
-  const hotelRoomFilter = hotelId ? { id: hotelId, ownerId: user.id } : { ownerId: user.id };
+  const hotelRoomFilter = hotelId
+    ? { id: hotelId, ownerId: user.id }
+    : { ownerId: user.id, status: "APPROVED" };
 
   if (activeSection === "overview") {
     [hotels, pendingCount, revenueAgg, recentBookings, dashboardKpis] = await Promise.all([

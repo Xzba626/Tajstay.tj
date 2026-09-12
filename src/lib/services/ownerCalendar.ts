@@ -62,7 +62,7 @@ function classifyBooking(
 export async function getOwnerCalendarData(ownerId: number, days = 30, hotelId?: number) {
   const start = toUtcDayStart(new Date());
   const end = addDays(start, days);
-  const hotelFilter = hotelId ? { id: hotelId, ownerId } : { ownerId };
+  const hotelFilter = hotelId ? { id: hotelId, ownerId } : { ownerId, status: "APPROVED" };
 
   const rooms = await prisma.room.findMany({
     where: { hotel: hotelFilter },

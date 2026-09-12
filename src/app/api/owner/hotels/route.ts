@@ -43,6 +43,21 @@ function vercelLog(event: string, data: Record<string, unknown>) {
   console.error(JSON.stringify({ tag: "owner-hotels", event, ...data }));
 }
 
+async function notifyAdminsOfNewHotel(hotelId: number, hotelName: string) {
+  const admins = await prisma.user.findMany({ where: { role: "ADMIN" }, select: { id: true } });
+  if (!admins.length) return;
+  await prisma.notification.createMany({
+    data: admins.map((a) => ({
+      userId: a.id,
+      bookingId: null,
+      type: "HOTEL_PENDING_REVIEW",
+      title: `Новый объект на проверку: ${hotelName}`,
+      link: "/dashboard/admin?section=hotels",
+      isRead: false
+    }))
+  });
+}
+
 function uploadErrorCode(err: ImageUploadError): string {
   switch (err.code) {
     case "blob_not_configured":
@@ -62,8 +77,12 @@ function uploadErrorCode(err: ImageUploadError): string {
 /**
  * Создание объекта владельцем. One owner -> many Hotels: a real hotelier can run several
  * properties, each with its own rooms/bookings/payment methods (already Hotel-scoped, see
- * HotelPaymentMethod). Matches the existing first-hotel behavior - auto-approved, no repeated
- * admin moderation for a second/third property either.
+ * HotelPaymentMethod). Unlimited applications/hotels per owner does NOT mean self-approval -
+ * every new Hotel (first or Nth) goes through the existing Admin moderation pipeline
+ * (/api/admin/hotels/moderate, already wired into the Admin dashboard's Hotels section) exactly
+ * like it does today for risk-scoring/visibility. A PENDING hotel is visible to its owner (in
+ * Objects and the property switcher) but is not a selectable active operations context until
+ * an admin approves it - see resolveActiveHotel in dashboard/owner/page.tsx.
  */
 export async function POST(req: NextRequest) {
   try {
@@ -125,7 +144,7 @@ export async function POST(req: NextRequest) {
         longitude,
         propertyType,
         coverImageUrl,
-        status: "APPROVED"
+        status: "PENDING"
       }
     });
 
@@ -137,6 +156,8 @@ export async function POST(req: NextRequest) {
       "H5"
     );
     // #endregion
+
+    await notifyAdminsOfNewHotel(hotel.id, name);
 
     return redirectBack(req);
   } catch (err) {
