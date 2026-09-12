@@ -1325,6 +1325,45 @@ paid, `amountPaid` set, `status` → PAID) so `getSubscriptionRevenue()` has rea
 against, then re-verify multi-Hotel isolation, then the repo-wide commission sweep — after which
 Admin Financial Analytics can be started honestly.
 
+### Payment-architecture/Admin-Settings screenshot block — mostly already-shipped, deploy-gap confirmed (commit `531733d`)
+
+User sent a large architectural block referencing real device screenshots off `tajstay.site`
+(global "Каталог способов оплаты", a duplicate "Безопасность админа" card with developer copy and a
+stale-toast leak, a runtime brand editor, dark-green unreadable FAQ/Contacts cards, a clipped Support
+header). **Verified before touching anything**: every one of these — hotel-scoped payment methods
+replacing the global catalog, Admin Settings' payment-catalog/brand-editor/duplicate-security-form
+removal, the stale-toast fix, white-card FAQ/Contacts — was already shipped in this session's earlier
+commits (`795a867`, `093bb73`, `9f28cbf`, `76239b0`), confirmed absent from current code (no
+"Каталог способов оплаты"/"Безопасность админа" string anywhere) and confirmed correct via live
+computed-style checks on this build (white-bg/dark-text Contacts+FAQ cards, no Support-header overlap).
+**The screenshots are stale DEPLOYED PROD evidence — DEPLOYED PROD remains OPEN and needs an actual
+deploy**, not further local work, to show any of this. Did not re-do already-shipped work.
+
+**What was genuinely real and still present, fixed this pass**:
+- Contacts page imported `getSiteContent()` but then used a hardcoded `SUPPORT_EMAIL` constant
+  instead of the actual configured `content.support.email` — a real single-source-of-truth bug
+  (whatever an admin configures was silently never shown). Fixed; verified live it now reads the
+  real value.
+- WhatsApp/Telegram rendered as raw URLs — converted to a canonical `#0F7A4D` card with real
+  icon+label actions (email/phone/WhatsApp/Telegram); dropped the redundant "TajStay Support"
+  sub-heading.
+- FAQ was 8 always-expanded cards — converted to a real accordion (`FaqAccordion.tsx`), verified
+  live (collapsed by default, click expands).
+- FAQ payment-confirmation copy (RU/TJ/EN) still said "admin reviews the receipt, then owner
+  confirms" — stale relative to Phase A's owner-confirms model from earlier this session. Updated
+  all three locales. Also softened the absolute "never shared with third parties" privacy promise to
+  acknowledge real infrastructure providers (hosting, notifications).
+- **A genuinely new, separate bug found live** (not from the screenshots): the mobile bottom tab
+  bar's active state used the same "white rgba overlay on `#0F7A4D`" anti-pattern already fixed for
+  the header controls — not caught there. Fixed; verified live (`rgba(0,0,0,0)` at rest).
+
+**Still not investigated this pass** (not claimed fixed): duplicate circular header logo/avatar
+question (no screenshot was attached to this exact message to confirm against; a live check found
+only one logo + one language icon in the logged-out header — worth re-checking against a logged-in
+Admin session specifically if the user still sees it), Support page row-density/consistency beyond
+the clipping check, Owner Payment Methods mobile density (already built in Phase A, not re-spot-
+checked this pass).
+
 ### Moderation current-state architecture + Admin photo + price-snapshot period (commit `be6683f`)
 
 Review correctly rejected the prior pass's "reuse AdminAuditLog for the rejection reason" as not
