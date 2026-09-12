@@ -32,6 +32,8 @@ import { AdminRecordCard } from "@/components/admin/AdminRecordCard";
 import { AdminNativeForm } from "@/components/admin/AdminNativeForm";
 import { AdminSubmitButton } from "@/components/admin/AdminSubmitButton";
 import { isAdminSecurityResetConfigured } from "@/lib/admin-security";
+import { getPlatformSetting } from "@/lib/services/subscription";
+import { formatStayDay } from "@/lib/i18n/format";
 
 export const dynamic = "force-dynamic";
 
@@ -146,6 +148,8 @@ export default async function AdminDashboardPage({
   let payments: any[] = [];
   let payouts: any[] = [];
   let refunds: any[] = [];
+  let platformSetting: Awaited<ReturnType<typeof getPlatformSetting>> | null = null;
+  let hotelSubscriptions: any[] = [];
   let notes: any[] = [];
   let complaints: any[] = [];
   let unreadCount = 0;
@@ -329,7 +333,7 @@ export default async function AdminDashboardPage({
       take: pageSize
     });
   } else if (activeSection === "finance") {
-    [payments, payouts, refunds] = await Promise.all([
+    [payments, payouts, refunds, platformSetting, hotelSubscriptions] = await Promise.all([
       prisma.payment.findMany({
         include: { booking: { include: { room: { include: { hotel: true } }, user: true } } },
         orderBy: { createdAt: "desc" },
@@ -342,6 +346,12 @@ export default async function AdminDashboardPage({
       }),
       prisma.refund.findMany({
         include: { payment: { include: { booking: { include: { user: true } } } } },
+        orderBy: { createdAt: "desc" },
+        take: 50
+      }),
+      getPlatformSetting(),
+      prisma.hotelSubscription.findMany({
+        include: { hotel: { select: { id: true, name: true, ownerId: true, owner: { select: { name: true } } } } },
         orderBy: { createdAt: "desc" },
         take: 50
       })
@@ -691,14 +701,22 @@ export default async function AdminDashboardPage({
               key={hotel.id}
               highlight={risk.level === "HIGH" ? "danger" : risk.level === "MEDIUM" ? "warning" : "default"}
               footer={
-                <AdminNativeForm action="/api/admin/hotels/moderate" method="post" className="admin-record-card__actions">
+                <AdminNativeForm action="/api/admin/hotels/moderate" method="post" className="admin-record-card__actions admin-record-card__actions--column">
                   <input type="hidden" name="id" value={hotel.id} />
-                  <select name="status" defaultValue={hotel.status} className="admin-field min-w-[8rem]">
-                    <option value="PENDING">{tStatus("PENDING")}</option>
-                    <option value="APPROVED">{tStatus("APPROVED")}</option>
-                    <option value="REJECTED">{tStatus("REJECTED")}</option>
-                  </select>
-                  <AdminSubmitButton loadingLabel={m(locale, "admin.processing")}>{m(locale, "admin.save")}</AdminSubmitButton>
+                  <input
+                    type="text"
+                    name="reason"
+                    placeholder={m(locale, "admin.hotelModerationReasonPh")}
+                    className="admin-field admin-field--full"
+                  />
+                  <div className="flex gap-2">
+                    <select name="status" defaultValue={hotel.status} className="admin-field min-w-[8rem]">
+                      <option value="PENDING">{tStatus("PENDING")}</option>
+                      <option value="APPROVED">{tStatus("APPROVED")}</option>
+                      <option value="REJECTED">{tStatus("REJECTED")}</option>
+                    </select>
+                    <AdminSubmitButton loadingLabel={m(locale, "admin.processing")}>{m(locale, "admin.save")}</AdminSubmitButton>
+                  </div>
                 </AdminNativeForm>
               }
             >
@@ -986,7 +1004,61 @@ export default async function AdminDashboardPage({
       </section>}
 
       {activeSection === "finance" && (
-        <AdminFinanceSection locale={locale} payments={payments} payouts={payouts} refunds={refunds} />
+        <>
+          <section className="admin-section scroll-mt-28 space-y-3">
+            <AdminSectionHead title={m(locale, "admin.subscriptionPricing")} />
+            <AdminNativeForm
+              action="/api/admin/subscription/price"
+              method="post"
+              className="admin-panel admin-panel--flat flex flex-wrap items-end gap-3"
+            >
+              <label className="admin-field w-32">
+                {m(locale, "admin.subscriptionMonthlyPrice")}
+                <input
+                  type="number"
+                  name="subscriptionMonthlyPriceTjs"
+                  min={0}
+                  step="any"
+                  defaultValue={platformSetting ? Number(platformSetting.subscriptionMonthlyPriceTjs) : 99}
+                />
+              </label>
+              <AdminSubmitButton loadingLabel={m(locale, "admin.processing")}>{m(locale, "admin.save")}</AdminSubmitButton>
+              <span className="text-sm text-[var(--admin-text-muted)]">{m(locale, "admin.subscriptionFreeFirstMonth")}</span>
+            </AdminNativeForm>
+
+            {hotelSubscriptions.length > 0 && (
+              <div className="admin-record-grid">
+                {hotelSubscriptions.map((sub) => (
+                  <AdminRecordCard key={sub.id}>
+                    <div className="admin-record-card__title-row">
+                      <div className="admin-record-card__title">{sub.hotel.name}</div>
+                      <StatusBadge
+                        variant={
+                          sub.status === "ACTIVE"
+                            ? "success"
+                            : sub.status === "PAST_DUE" || sub.status === "SUSPENDED"
+                              ? "danger"
+                              : "neutral"
+                        }
+                      >
+                        {m(locale, `owner.subscriptionStatus.${sub.status}`)}
+                      </StatusBadge>
+                    </div>
+                    <div className="admin-record-card__meta">
+                      {sub.hotel.owner.name} ·{" "}
+                      {sub.status === "TRIAL"
+                        ? m(locale, "owner.subscriptionTrialUntil", { date: formatStayDay(locale, sub.trialEndAt) })
+                        : sub.currentPeriodEnd
+                          ? m(locale, "owner.subscriptionActiveUntil", { date: formatStayDay(locale, sub.currentPeriodEnd) })
+                          : ""}
+                    </div>
+                  </AdminRecordCard>
+                ))}
+              </div>
+            )}
+          </section>
+          <AdminFinanceSection locale={locale} payments={payments} payouts={payouts} refunds={refunds} />
+        </>
       )}
 
       {activeSection === "notifications" && <section id="notifications" className="admin-section scroll-mt-28">

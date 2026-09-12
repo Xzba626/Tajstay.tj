@@ -130,6 +130,16 @@ export async function POST(req: NextRequest) {
         : null;
     const hotelId = ownerTarget && "hotel" in ownerTarget ? ownerTarget.hotel.id : null;
     const ownerId = ownerTarget && "hotel" in ownerTarget ? ownerTarget.hotel.ownerId : null;
+    const hotelStatus = ownerTarget && "hotel" in ownerTarget ? ownerTarget.hotel.status : null;
+
+    // A PENDING/REJECTED hotel has no real inventory yet - never let a handcrafted request create
+    // a real booking against one just because its roomId/roomTypeId leaked somewhere (a stale
+    // link, a scraped page, direct API knowledge). The public UI already can't reach this hotel
+    // (see hotel/[id]/page.tsx's own status gate), this is the same rule enforced server-side.
+    if (!hotelId || hotelStatus !== "APPROVED") {
+      if (wantsJson) return NextResponse.json({ error: "hotel_unavailable" }, { status: 404 });
+      return bookingFormRedirect(req, { roomId, checkIn: checkInRaw, checkOut: checkOutRaw, code: "failed" });
+    }
 
     // Snapshot the chosen hotel-owned payment method at selection time - if the owner edits their
     // card number tomorrow, this booking must keep showing what the guest actually paid to.

@@ -15,7 +15,12 @@ function round2(n: number) {
 
 export function calculateCheckoutBreakdown(params: { subtotal: number; commissionRate?: number }): CheckoutBreakdown {
   const subtotal = round2(Math.max(0, params.subtotal));
-  const commissionRate = params.commissionRate ?? Number(process.env.COMMISSION_RATE ?? "0.12");
+  // Canonical revenue model: TajStay takes 0% booking commission - Hotel keeps the full booking
+  // amount, TajStay revenue comes from the Hotel's own subscription instead (see
+  // lib/services/subscription.ts). COMMISSION_RATE stays overridable for now only so historical/
+  // legacy env deployments aren't silently changed without a deploy step, but the code default is
+  // now 0, not the old 12%.
+  const commissionRate = params.commissionRate ?? Number(process.env.COMMISSION_RATE ?? "0");
   const serviceFeeRate = Number(process.env.SERVICE_FEE_RATE ?? "0.03");
   const taxRate = Number(process.env.TAX_RATE ?? "0.05");
   const fxRateUsd = Number(process.env.FX_TJS_USD ?? "10.9");

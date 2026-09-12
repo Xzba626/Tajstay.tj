@@ -138,6 +138,12 @@ export default async function HotelDetailPage({
   });
 
   if (!hotel) notFound();
+  // A PENDING/REJECTED hotel isn't public inventory yet - only its own owner (previewing their
+  // own submission) or an Admin (reviewing it) may view it here. Everyone else gets the same 404
+  // as a hotel that doesn't exist at all - never leak that a non-public hotel id is real.
+  if (hotel.status !== "APPROVED" && user?.role !== "ADMIN" && user?.id !== hotel.ownerId) {
+    notFound();
+  }
 
   const isFavorite =
     user?.role === "GUEST"

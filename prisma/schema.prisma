@@ -120,6 +120,62 @@ model Hotel {
   photos         HotelPhoto[]
   amenities      HotelAmenity[]
   paymentMethods HotelPaymentMethod[]
+  subscription   HotelSubscription?
+}
+
+/// Per-Hotel TajStay subscription (canonical revenue: 0% booking commission, Hotel pays a
+/// monthly platform subscription instead). One row per Hotel, created exactly once - the first
+/// time that specific Hotel transitions PENDING -> APPROVED - and never again, even if the Hotel
+/// is later suspended/reactivated. See HotelSubscription creation in
+/// /api/admin/hotels/moderate/route.ts.
+model HotelSubscription {
+  id                 Int       @id @default(autoincrement())
+  hotelId            Int       @unique
+  hotel              Hotel     @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  /// TRIAL | ACTIVE | PAST_DUE | SUSPENDED | CANCELLED
+  status             String    @default("TRIAL")
+  /// Immutable anchor - the Hotel's first-ever APPROVED timestamp. Never reset by a later
+  /// re-approval/reactivation.
+  trialStartAt       DateTime
+  /// Calendar-month from trialStartAt (date-fns addMonths, not a blind 30-day offset).
+  trialEndAt         DateTime
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  periods SubscriptionPeriod[]
+
+  @@index([status])
+}
+
+/// One billed (or free-trial) period for a Hotel's subscription. `priceSnapshot` freezes the
+/// price actually charged for that period, independent of later PlatformSetting price changes -
+/// same "freeze at the moment it mattered" pattern already used for HotelPaymentMethod snapshots.
+model SubscriptionPeriod {
+  id             Int               @id @default(autoincrement())
+  subscriptionId Int
+  subscription   HotelSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  periodStart    DateTime
+  periodEnd      DateTime
+  /// PENDING | PAID | FREE
+  status         String            @default("PENDING")
+  currency       String            @default("TJS")
+  priceSnapshot  Decimal
+  paidAt         DateTime?
+  createdAt      DateTime          @default(now())
+
+  @@index([subscriptionId])
+}
+
+/// Singleton platform-wide business settings (Admin-only, audited). Currently just the
+/// subscription monthly price - kept as its own tiny table rather than folded into
+/// SiteContentState's JSON blob, since this is a financial control, not marketing/support copy.
+model PlatformSetting {
+  id                          Int      @id @default(1)
+  subscriptionMonthlyPriceTjs Decimal  @default(99)
+  updatedAt                   DateTime @updatedAt
+  updatedById                 Int?
 }
 
 /// Категория номера (то, что видит гость): Стандарт, Полулюкс, …

@@ -8,6 +8,7 @@ import { savePublicImageFile } from "@/lib/uploads/savePublicImage";
 import { ImageUploadError } from "@/lib/uploads/imageUploadError";
 import { agentLog } from "@/lib/debug/agentLog";
 import { getPublicOriginFromRequest } from "@/lib/http/publicOrigin";
+import { notifyAdminsHotelPending } from "@/lib/notifications/notifyAdminsHotelPending";
 
 export const runtime = "nodejs";
 
@@ -41,21 +42,6 @@ function redirectBack(req: NextRequest, error?: string): NextResponse {
 
 function vercelLog(event: string, data: Record<string, unknown>) {
   console.error(JSON.stringify({ tag: "owner-hotels", event, ...data }));
-}
-
-async function notifyAdminsOfNewHotel(hotelId: number, hotelName: string) {
-  const admins = await prisma.user.findMany({ where: { role: "ADMIN" }, select: { id: true } });
-  if (!admins.length) return;
-  await prisma.notification.createMany({
-    data: admins.map((a) => ({
-      userId: a.id,
-      bookingId: null,
-      type: "HOTEL_PENDING_REVIEW",
-      title: `Новый объект на проверку: ${hotelName}`,
-      link: "/dashboard/admin?section=hotels",
-      isRead: false
-    }))
-  });
 }
 
 function uploadErrorCode(err: ImageUploadError): string {
@@ -157,7 +143,7 @@ export async function POST(req: NextRequest) {
     );
     // #endregion
 
-    await notifyAdminsOfNewHotel(hotel.id, name);
+    await notifyAdminsHotelPending(hotel.id, name);
 
     return redirectBack(req);
   } catch (err) {

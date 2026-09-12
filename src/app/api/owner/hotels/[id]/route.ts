@@ -6,6 +6,7 @@ import { forbiddenJson } from "@/lib/auth/apiResponses";
 import { publicUrl } from "@/lib/http/publicOrigin";
 import { savePublicImageFile } from "@/lib/uploads/savePublicImage";
 import { ImageUploadError } from "@/lib/uploads/imageUploadError";
+import { notifyAdminsHotelPending } from "@/lib/notifications/notifyAdminsHotelPending";
 
 const PROPERTY_TYPES = new Set(["HOTEL", "HOSTEL", "GUESTHOUSE", "APARTMENT", "ECO"]);
 
@@ -65,6 +66,11 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       return redirectProperties(req, "hotel");
     }
 
+    // Editing never lets the owner set status directly (no `status` form field is ever read here) -
+    // the one exception is a REJECTED hotel: saving edits on it is the "fix and resubmit" action,
+    // so it goes back to PENDING for another Admin look. Every other status is preserved as-is.
+    const nextStatus = hotel.status === "REJECTED" ? "PENDING" : hotel.status;
+
     await prisma.hotel.update({
       where: { id },
       data: {
@@ -76,9 +82,13 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         longitude: longitude ?? hotel.longitude,
         propertyType,
         coverImageUrl,
-        status: hotel.status
+        status: nextStatus
       }
     });
+
+    if (nextStatus === "PENDING" && hotel.status === "REJECTED") {
+      await notifyAdminsHotelPending(id, name);
+    }
 
     return NextResponse.redirect(publicUrl(req, "/dashboard/owner?section=properties"));
   } catch (err) {

@@ -39,6 +39,9 @@ import { OwnerRoomTypesPanel } from "@/components/owner/OwnerRoomTypesPanel";
 import { HotelLocationPicker } from "@/components/owner/HotelLocationPicker";
 import { PhotoPlaceholder } from "@/components/ui/PhotoPlaceholder";
 import { isBrandAssetUrl } from "@/lib/brand";
+import { getLatestHotelModerationReason } from "@/lib/admin/hotelModeration";
+import { getHotelSubscription } from "@/lib/services/subscription";
+import { OwnerSubscriptionCard } from "@/components/owner/OwnerSubscriptionCard";
 import { OwnerAssignRoomSelect } from "@/components/owner/OwnerAssignRoomSelect";
 import { ownerBookingWhere, ownerOfflineBookingWhere } from "@/lib/pms/ownerQueries";
 import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
@@ -213,6 +216,8 @@ export default async function OwnerDashboardPage({
   }
 
   let hotels: any[] = [];
+  let hotelSubscription: Awaited<ReturnType<typeof getHotelSubscription>> | null = null;
+  const hotelRejectionReasons: Record<number, string | null> = {};
   let rooms: any[] = [];
   let roomTypes: any[] = [];
   let assignRooms: { id: number; title: string; roomNumber?: string | null; roomTypeId: number | null }[] = [];
@@ -261,8 +266,18 @@ export default async function OwnerDashboardPage({
       }),
       getOwnerDashboardKpis(user.id, hotelId || undefined)
     ]);
+    if (hotelId) {
+      hotelSubscription = await getHotelSubscription(hotelId);
+    }
   } else if (activeSection === "properties") {
     hotels = await prisma.hotel.findMany({ where: { ownerId: user.id }, include: { rooms: true }, orderBy: { createdAt: "desc" } });
+    const rejectedIds = hotels.filter((h) => h.status === "REJECTED").map((h) => h.id);
+    if (rejectedIds.length) {
+      const reasons = await Promise.all(rejectedIds.map((id) => getLatestHotelModerationReason(id)));
+      rejectedIds.forEach((id, i) => {
+        hotelRejectionReasons[id] = reasons[i];
+      });
+    }
   } else if (activeSection === "rooms") {
     hotels = await prisma.hotel.findMany({ where: { ownerId: user.id }, orderBy: { createdAt: "desc" } });
     roomTypes = await prisma.roomType.findMany({
@@ -579,6 +594,7 @@ export default async function OwnerDashboardPage({
               <span className="owner-section-head__bar" aria-hidden />
               <h2 className="owner-section-head__title">{m(locale, "owner.overview")}</h2>
             </div>
+            {hotelId ? <OwnerSubscriptionCard locale={locale} subscription={hotelSubscription} /> : null}
             <div className="owner-panel space-y-4">
               {dashboardKpis ? <OwnerDashboardKpis locale={locale} kpis={dashboardKpis} /> : null}
               <div className="owner-quick-actions">
@@ -680,19 +696,29 @@ export default async function OwnerDashboardPage({
                     </div>
                     <StatusBadge variant={hotelStatusVariant(h.status)}>{tStatus(locale, h.status)}</StatusBadge>
                     <div className="owner-property-card__actions">
-                      <a
-                        href={`/hotel/${h.id}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="owner-btn owner-btn--secondary owner-btn--sm"
-                      >
-                        {m(locale, "owner.openProperty")}
-                      </a>
+                      {h.status !== "REJECTED" && (
+                        <a
+                          href={`/hotel/${h.id}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="owner-btn owner-btn--secondary owner-btn--sm"
+                        >
+                          {m(locale, "owner.openProperty")}
+                        </a>
+                      )}
                     </div>
                   </div>
 
+                  {h.status === "REJECTED" && hotelRejectionReasons[h.id] && (
+                    <div className="owner-property-card__reject-reason">
+                      <strong>{m(locale, "owner.rejectionReasonLabel")}:</strong> {hotelRejectionReasons[h.id]}
+                    </div>
+                  )}
+
                   <details className="owner-property-card__edit">
-                    <summary className="owner-property-card__edit-toggle">{m(locale, "owner.editProperty")}</summary>
+                    <summary className="owner-property-card__edit-toggle">
+                      {h.status === "REJECTED" ? m(locale, "owner.fixAndResubmit") : m(locale, "owner.editProperty")}
+                    </summary>
 
                   {h.coverImageUrl && !isBrandAssetUrl(h.coverImageUrl) ? (
                     <div className="relative mb-4 mt-4 aspect-video w-full overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-slate-200">

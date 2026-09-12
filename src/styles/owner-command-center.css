@@ -264,6 +264,33 @@
   background: var(--owner-surface-muted);
 }
 
+.owner-subscription-card {
+  border: 1px solid var(--owner-border);
+  border-radius: 0.75rem;
+  background: var(--owner-surface);
+  padding: 0.75rem 0.9rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.owner-subscription-card__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.owner-subscription-card__title {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--owner-text);
+}
+
+.owner-subscription-card__hint {
+  margin: 0.3rem 0 0;
+  font-size: 0.75rem;
+  color: var(--owner-text-muted);
+}
+
 .owner-property-card {
   border: 1px solid var(--owner-border);
   border-radius: 0.75rem;
@@ -307,6 +334,16 @@
 
 .owner-property-card__actions {
   flex: none;
+}
+
+.owner-property-card__reject-reason {
+  margin-top: 0.6rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.6rem;
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+  font-size: 0.8125rem;
+  color: #991b1b;
 }
 
 .owner-property-card__edit {

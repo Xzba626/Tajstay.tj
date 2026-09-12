@@ -870,6 +870,15 @@
   margin-top: 0.65rem;
 }
 
+.admin-record-card__actions--column {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.admin-field--full {
+  width: 100%;
+}
+
 @media (min-width: 1024px) {
   .admin-users-grid {
     display: grid;
