@@ -1047,11 +1047,26 @@ map click updates both hidden inputs and visibly moves the marker; no horizontal
 integrated in this repo; flagged rather than silently dropped, not blocking the core requirement
 (stop typing raw coordinates).
 
-**NEXT**: hotel-image crop/placeholder fix (user has shown a real distorted-crop screenshot — do not
-defer further), then the remaining mobile/i18n passes, then the full real-QA matrix (A/B/C-pending/
-foreign owner) before Multi-Hotel can honestly be marked PASS — only then proceed to Subscription,
-since the free-trial-starts-at-approval-timestamp design explicitly depends on the approval pipeline
-fixed this pass.
+### Hotel-image destructive crop + brand-logo-fallback guard (commit `b1a3045`)
+
+Explore-agent audit (read-only) mapped every `Hotel.coverImageUrl` render site and found two
+distinct bugs: (1) the Owner's own Edit Hotel cover preview forced every photo into a fixed
+`aspect-video` box with `object-cover`, destructively cropping any non-16:9 upload (the exact
+surface where an owner must see the real photo to judge quality) — fixed to `object-contain`; card
+grids elsewhere (`HotelCard.tsx`) already crop correctly and were left unchanged, that's the right
+UX there. (2) `isBrandAssetUrl()` (already correctly used in `HotelCard.tsx`/`BookingChatHeader.tsx`/
+`TripChatRow.tsx`/`MessagesInbox.tsx`) was missing from `dashboard/owner/page.tsx` (both spots),
+`hotel/[id]/page.tsx` (hero + gallery), and `HistoryRecordCard.tsx` — standardized across all of
+them, with `PhotoPlaceholder` filling in wherever a spot previously rendered nothing for a missing
+photo. **Verified BROWSER**: hotel #1 (genuinely no cover/photos in local DB) now shows a proper
+full-size placeholder instead of a blank gap; fixture hotels with real photos render
+`object-contain` (confirmed via computed className); fixture hotels without a photo show the
+placeholder in the owner edit form too.
+
+**NEXT**: remaining mobile/i18n passes on the switcher itself (not yet spot-checked at 390/412),
+then the full real-QA matrix (A/B/C-pending/foreign-owner) before Multi-Hotel can honestly be marked
+PASS — only then proceed to Subscription, since the free-trial-starts-at-approval-timestamp design
+explicitly depends on the approval pipeline fixed this pass.
 
 ### Auth cleanup — DONE (uncommitted at time of writing this entry, commit to follow)
 
