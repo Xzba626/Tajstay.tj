@@ -1034,13 +1034,24 @@ Per the Definition-of-Done checklist:
 - ✗ mobile verified beyond Objects list — switcher itself not spot-checked at 390/412
 - ✗ RU/TJ/EN checked beyond the new switcher/status labels — no full copy pass
 
-**NEXT**: map-pin location picker (replaces raw lat/lng, becomes the one canonical Hotel location
-shared across Owner Desk/Public Hotel Detail/Search map/Admin moderation per the spec), then
-hotel-image crop/placeholder fixes (user has shown a real distorted-crop screenshot — do not defer
-further), then the remaining mobile/i18n passes, then the full real-QA matrix (A/B/C-pending/foreign
-owner) before Multi-Hotel can honestly be marked PASS — only then proceed to Subscription, since the
-free-trial-starts-at-approval-timestamp design explicitly depends on the approval pipeline fixed this
-pass.
+### Map-pin location picker (commit `bdc7bf5`)
+
+Replaced the raw latitude/longitude number inputs in both Add Hotel and Edit Hotel forms with a
+real Leaflet map (`HotelLocationPicker`/`HotelLocationPickerMap`, dynamically imported client-only)
+— tap-to-place, drag-to-move, reusing the `react-leaflet` stack already in the repo for the public
+Search map (no new dependency). Emits the same `latitude`/`longitude` form fields the backend
+already expects via hidden inputs, so no API changes were needed. **Verified BROWSER**: real Leaflet
+container renders; hidden inputs pre-fill from the hotel's actual stored coordinates; a simulated
+map click updates both hidden inputs and visibly moves the marker; no horizontal overflow at 375px.
+**Not built**: address/city-to-coordinates search ("Найти") — needs a geocoding provider, none
+integrated in this repo; flagged rather than silently dropped, not blocking the core requirement
+(stop typing raw coordinates).
+
+**NEXT**: hotel-image crop/placeholder fix (user has shown a real distorted-crop screenshot — do not
+defer further), then the remaining mobile/i18n passes, then the full real-QA matrix (A/B/C-pending/
+foreign owner) before Multi-Hotel can honestly be marked PASS — only then proceed to Subscription,
+since the free-trial-starts-at-approval-timestamp design explicitly depends on the approval pipeline
+fixed this pass.
 
 ### Auth cleanup — DONE (uncommitted at time of writing this entry, commit to follow)
 
