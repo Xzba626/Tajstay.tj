@@ -1063,10 +1063,57 @@ full-size placeholder instead of a blank gap; fixture hotels with real photos re
 `object-contain` (confirmed via computed className); fixture hotels without a photo show the
 placeholder in the owner edit form too.
 
-**NEXT**: remaining mobile/i18n passes on the switcher itself (not yet spot-checked at 390/412),
-then the full real-QA matrix (A/B/C-pending/foreign-owner) before Multi-Hotel can honestly be marked
-PASS — only then proceed to Subscription, since the free-trial-starts-at-approval-timestamp design
-explicitly depends on the approval pipeline fixed this pass.
+### Mobile switcher spot-check + duplicate-id fix (commit `f2cf5b5`)
+
+At 390×844: found and fixed a real bug — `PropertySwitcher` renders once in the desktop sidebar
+(CSS-hidden below `lg`, but still mounted) and once in the mobile "Ещё" drawer, both hardcoding
+`id="owner-property-switcher"` (invalid duplicate-id HTML, ambiguous label association). Switched to
+`useId()` per instance, exposed `data-testid="owner-property-switcher"` for anything that was
+targeting the old id. **Verified BROWSER**: both instances now have distinct ids; the mobile drawer's
+switcher renders at 322px wide inside a 390px viewport, no overflow.
+
+### Real-QA matrix — Rooms/Calendar/Payment Methods (real HTTP, this pass)
+
+Rounded out the sections not yet individually exercised after the fail-closed rework:
+- **Rooms**: `?section=rooms&hotelId=33` shows only Room H1-101; `&hotelId=34` shows only Room
+  H2-101 — confirmed via real HTTP body content, not code reading.
+- **Calendar**: `GET /api/owner/calendar?hotelId=33` returns only Room H1-101 in `rooms`;
+  `hotelId=34` returns only Room H2-101.
+- **Payment Methods**: `GET /api/owner/hotels/33/payment-methods` and `.../34/...` both return
+  independently (empty, no fixture data seeded there this pass, but isolated).
+- **Cross-owner denial**: `GET /api/owner/hotels/1/payment-methods` (hotel 1 belongs to a different
+  owner) → real `403 Forbidden` — this is a true Route Handler, not an RSC page, so it gets a real
+  HTTP status with no streaming-redirect caveat.
+
+### Multi-Hotel Foundation — updated Definition-of-Done status
+
+- ✓ Owner can have many Hotels
+- ✓ new Hotels require moderation
+- ✓ approved Hotels switch correctly
+- ✓ pending/rejected are not operational
+- ✓ URL context persists and is canonical/explicit
+- ✓ foreign hotelId fails closed (browser-verified; curl-level RSC-redirect caveat documented,
+  but Route Handlers like payment-methods already return true 403/404 regardless)
+- ✓ no silent aggregate fallback
+- ✓ Rooms/Bookings/Calendar/Finance/Analytics/Reviews/Payment Methods scoped and cross-verified
+  this pass via real HTTP
+- ✓ mobile switcher verified at 390px, duplicate-id bug fixed
+- ✓ hotel-image crop + brand-logo-fallback fixed and guard standardized repo-wide
+- ✓ map-pin picker replaces manual lat/lng
+- ○ Messages correctly contextual — still NOT verified (booking-thread-based already; deep-link
+  context-switch behavior not exercised this pass)
+- ✓ Notifications semantics explicitly decided (Owner-global) — per-row Hotel display still NOT built
+  (confirmed low-risk: derivable from existing `booking.room.hotel` relation, no schema change needed)
+- ✗ RU/TJ/EN full copy pass — only the new switcher/status/location-picker labels were localized;
+  no broader Owner Desk copy-cleanup pass done this session
+
+**Everything schema/data/authorization/routing-relevant for Multi-Hotel is now DONE and evidence-
+backed.** The two remaining open items (Messages deep-link context-switch, a full copy-cleanup pass)
+are real but lower-risk UI polish, not data-isolation or security gaps — reasonable to track as
+follow-up rather than blocking Subscription, which is what actually depends on the approval pipeline
+(now fixed) via the trial-starts-at-approval-timestamp design. Proceeding to Subscription business
+model next per the master order, per explicit "no new sequencing question" instruction; Messages
+context-switch and the copy pass remain flagged OPEN, not silently dropped.
 
 ### Auth cleanup — DONE (uncommitted at time of writing this entry, commit to follow)
 
