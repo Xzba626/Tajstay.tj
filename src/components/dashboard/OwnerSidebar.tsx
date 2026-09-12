@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   BarChart3,
@@ -138,6 +138,7 @@ function PropertySwitcher({
   // "all properties" state. There is no aggregate mode any more: every operational section always
   // resolves to one concrete Hotel (see the canonical redirect in dashboard/owner/page.tsx).
   const firstApprovedId = hotels.find((h) => h.status === "APPROVED")?.id ?? "";
+  const selectId = useId();
 
   if (hotels.length <= 1) return null;
 
@@ -150,11 +151,12 @@ function PropertySwitcher({
 
   return (
     <div className={cn("owner-sidebar__switcher", className)}>
-      <label className="owner-sidebar__switcher-label" htmlFor="owner-property-switcher">
+      <label className="owner-sidebar__switcher-label" htmlFor={selectId}>
         {labels.switchProperty}
       </label>
       <select
-        id="owner-property-switcher"
+        id={selectId}
+        data-testid="owner-property-switcher"
         className="owner-sidebar__switcher-select"
         value={activeHotelId || firstApprovedId}
         onChange={(e) => goToHotel(e.target.value)}
