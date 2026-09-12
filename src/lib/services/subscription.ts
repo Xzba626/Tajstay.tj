@@ -49,10 +49,11 @@ export async function ensureHotelSubscriptionOnApproval(hotelId: number) {
 
   const trialStartAt = new Date();
   const trialEndAt = addMonths(trialStartAt, 1);
-  // The reference price at the moment the trial started - not charged (the period below is
-  // FREE), but recorded so a later price change never rewrites what this trial's "would-be"
-  // price was, matching the same freeze-at-the-moment-it-mattered pattern as every other period.
-  const referencePrice = (await getPlatformSetting()).subscriptionMonthlyPriceTjs;
+  // The reference tariff at the moment the trial started - recorded for audit ("what was the
+  // list price when this trial began"), NOT charged. amountDue/amountPaid both stay 0 - a FREE
+  // period owes nothing and collects nothing, full stop. Never derive revenue from
+  // tariffSnapshot; see the model comment in schema.prisma.
+  const referenceTariff = (await getPlatformSetting()).subscriptionMonthlyPriceTjs;
 
   try {
     return await prisma.hotelSubscription.create({
@@ -66,7 +67,9 @@ export async function ensureHotelSubscriptionOnApproval(hotelId: number) {
             periodStart: trialStartAt,
             periodEnd: trialEndAt,
             status: "FREE",
-            priceSnapshot: referencePrice
+            tariffSnapshot: referenceTariff,
+            amountDue: 0,
+            amountPaid: 0
           }
         }
       }
@@ -83,4 +86,25 @@ export async function ensureHotelSubscriptionOnApproval(hotelId: number) {
 
 export async function getHotelSubscription(hotelId: number) {
   return prisma.hotelSubscription.findUnique({ where: { hotelId }, include: { periods: { orderBy: { periodStart: "desc" } } } });
+}
+
+/**
+ * The ONE canonical definition of TajStay subscription revenue: SUM(amountPaid) WHERE
+ * status = 'PAID'. Never SUM(tariffSnapshot), never inferred from status alone - a FREE trial
+ * period has a real tariffSnapshot (what the price was) but amountPaid is always 0, so it
+ * correctly contributes nothing here regardless of what the tariff happened to be. Establishing
+ * this now, ahead of Admin Financial Analytics, so that later work has one shared, already-correct
+ * query to call rather than re-deriving revenue logic (and re-risking the free-trial-counted-as-
+ * revenue mistake) from scratch.
+ */
+export async function getSubscriptionRevenue(params?: { since?: Date; hotelId?: number }) {
+  const agg = await prisma.subscriptionPeriod.aggregate({
+    where: {
+      status: "PAID",
+      ...(params?.since ? { paidAt: { gte: params.since } } : {}),
+      ...(params?.hotelId ? { subscription: { hotelId: params.hotelId } } : {})
+    },
+    _sum: { amountPaid: true }
+  });
+  return Number(agg._sum.amountPaid ?? 0);
 }

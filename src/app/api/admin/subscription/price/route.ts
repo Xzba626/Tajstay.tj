@@ -9,8 +9,14 @@ export async function POST(req: NextRequest) {
   if (!admin) return forbiddenJson();
 
   const form = await req.formData();
-  const price = Number(form.get("subscriptionMonthlyPriceTjs"));
-  if (!Number.isFinite(price) || price < 0) {
+  const raw = form.get("subscriptionMonthlyPriceTjs");
+  const price = Number(raw);
+  // Reject NaN/Infinity, non-positive (a subscription with a 0 or negative price isn't a business
+  // decision to make silently here), and implausibly large values (guards against a malformed/
+  // injected value being accepted at face value) - a reasonable upper bound, not a hardcoded
+  // "real" ceiling the business has chosen.
+  const isValid = Number.isFinite(price) && price > 0 && price <= 100000;
+  if (!isValid) {
     const u = publicUrl(req, "/dashboard/admin");
     u.searchParams.set("section", "finance");
     u.searchParams.set("error", "subscription_price");

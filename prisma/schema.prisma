@@ -155,21 +155,32 @@ model HotelSubscription {
   @@index([status])
 }
 
-/// One billed (or free-trial) period for a Hotel's subscription. `priceSnapshot` freezes the
-/// price actually charged for that period, independent of later PlatformSetting price changes -
-/// same "freeze at the moment it mattered" pattern already used for HotelPaymentMethod snapshots.
+/// One billed (or free-trial) period for a Hotel's subscription. Three DELIBERATELY separate
+/// money fields - conflating them is exactly how a free trial month ends up counted as revenue:
+/// - `tariffSnapshot`: the platform's list price AT THE TIME this period was created, frozen
+///   independent of later PlatformSetting changes (same pattern as HotelPaymentMethod). This is
+///   "what the tariff was", not "what was charged" - a FREE trial period still records it, purely
+///   for reference/audit, and it must NEVER be read as revenue.
+/// - `amountDue`: what this specific period actually owes. 0 for FREE, equal to tariffSnapshot
+///   (normally) for a real paid period.
+/// - `amountPaid`: what has actually been collected so far. 0 until a real payment is confirmed;
+///   for FREE it stays 0 forever (nothing was ever owed).
+/// TajStay subscription revenue MUST be defined as SUM(amountPaid) WHERE status = 'PAID' - never
+/// SUM(tariffSnapshot), and never inferred from status + tariffSnapshot alone.
 model SubscriptionPeriod {
-  id             Int               @id @default(autoincrement())
-  subscriptionId Int
-  subscription   HotelSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
-  periodStart    DateTime
-  periodEnd      DateTime
+  id              Int               @id @default(autoincrement())
+  subscriptionId  Int
+  subscription    HotelSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  periodStart     DateTime
+  periodEnd       DateTime
   /// PENDING | PAID | FREE
-  status         String            @default("PENDING")
-  currency       String            @default("TJS")
-  priceSnapshot  Decimal
-  paidAt         DateTime?
-  createdAt      DateTime          @default(now())
+  status          String            @default("PENDING")
+  currency        String            @default("TJS")
+  tariffSnapshot  Decimal
+  amountDue       Decimal           @default(0)
+  amountPaid      Decimal           @default(0)
+  paidAt          DateTime?
+  createdAt       DateTime          @default(now())
 
   @@index([subscriptionId])
 }
