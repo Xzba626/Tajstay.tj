@@ -1222,6 +1222,51 @@ Regression-checked white surfaces (Profile page buttons/pills) after the layer c
 render dark text on white/green-accent correctly, confirming the fix is surface-aware as required
 (did not touch any explicit component color rule, only the default for genuinely unstyled buttons).
 
+### Moderation current-state architecture + Admin photo + price-snapshot period (commit `be6683f`)
+
+Review correctly rejected the prior pass's "reuse AdminAuditLog for the rejection reason" as not
+being final architecture — AdminAuditLog is append-only history, not a current-state source, and
+would have broken across a reject→resubmit→reject cycle. Fixed properly:
+
+- **`Hotel.currentRejectionReason`** (additive migration
+  `20260912150000_hotel_current_rejection_reason`) is the real current-state field — set only on
+  REJECTED, cleared on APPROVED or an explicit resubmit. AdminAuditLog still records every
+  transition as history, unchanged — the two now have distinct correct roles. Removed the dead
+  `getLatestHotelModerationReason()` helper entirely.
+- **Reject now requires a reason** — `POST /api/admin/hotels/moderate` blocks an empty-reason
+  REJECTED transition (real HTTP verified: hotel status unchanged, redirected with
+  `error=reject_reason_required`; a real reason correctly sets both status and the current-state
+  field).
+- **Resubmit is now an explicit Owner action**, not an automatic side effect of any Save — a plain
+  save on a REJECTED hotel now preserves REJECTED + the reason (verified real HTTP); a second,
+  explicit submit button (`intent=resubmit`) is what flips REJECTED→PENDING, clears the reason, and
+  re-notifies admins (verified real HTTP, both paths independently).
+- **Admin moderation now shows the submitted Hotel photo** — the prior pass's "nothing to guard"
+  conclusion was backwards per review: TajStay's simplified (no-KYC) onboarding relies on Admin
+  actually seeing the one required photo to judge a listing. Added (guarded +
+  `PhotoPlaceholder`-fallback, `object-contain`) to each Admin hotel card — verified live, a hotel
+  with a real cover now renders it there.
+- **`SubscriptionPeriod` price-snapshot proven, not just schema-shaped** —
+  `ensureHotelSubscriptionOnApproval` previously created only the `HotelSubscription` row, never a
+  `SubscriptionPeriod`, so the "frozen price per period" design was unproven. Now creates an initial
+  `FREE` period alongside the subscription with `priceSnapshot` frozen to the `PlatformSetting`
+  price at that exact moment. Verified real HTTP: approved a fresh hotel with platform price at 149
+  → confirmed a `SubscriptionPeriod` row exists with `status: "FREE"`, `priceSnapshot: "149"`.
+
+**Subscription domain — still explicitly NOT closed, Admin Financial Analytics correctly still not
+started**: full lifecycle after trial (PAST_DUE/SUSPENDED — no scheduled trigger exists yet); paid-
+period creation once a payment channel exists (still not decided, correctly not invented); repo-wide
+0%-commission audit beyond `checkoutFinance.ts`'s default (schema/services/Owner Finance/Admin
+Finance/exports/tests not yet swept); multi-Hotel subscription isolation not re-verified after this
+pass's changes; full RU/TJ/EN beyond this pass's labels; mobile spot-check of the new Admin photo
+card and resubmit button.
+
+**NEXT**: per explicit "no new sequencing question" instruction, the remaining Subscription-domain
+items above (lifecycle, repo-wide commission audit, multi-Hotel isolation re-verification) come
+before Admin Financial Analytics — building revenue metrics on top of an unfinished financial model
+risks exactly the "beautiful Revenue number that doesn't match the business model" the user
+explicitly warned against.
+
 ### Auth cleanup — DONE (uncommitted at time of writing this entry, commit to follow)
 
 Three items closed, per explicit user directive not to counter-patch global CSS conflicts with local
