@@ -1187,6 +1187,41 @@ analytics still reflects the old booking-commission-shaped numbers (next master 
 depends on the zero-commission cutover just landed. Messages deep-link context-switching remains
 tracked as a real functional gap to close, not deferred indefinitely.
 
+### Green-surface contrast audit — root-caused, not patched again (commit `069a3f4`)
+
+User sent real screenshots (pixel-checked: canonical green confirmed as the correct `#0F7A4D` /
+`rgb(15,122,77)` on the CTA and footer background — not a second brand shade) showing dark text/
+icons on green in 5 places. Explore-agent audit found the real mechanism: the light-theme `<button>`
+default (`:where([data-theme="light"] button){color:inherit}`, `globals.css`) was declared
+**unlayered**, and Tailwind's utilities compile into `@layer utilities` — per the CSS Cascade Layers
+spec, any unlayered rule beats any layered one regardless of specificity, so this default was
+silently beating plain `text-white` everywhere it hadn't already been individually patched
+(cookie-consent Accept, 3 TST Assistant buttons, earlier this session — each patched locally instead
+of root-caused, exactly the anti-pattern flagged repeatedly this session). **Fixed at the root**:
+moved the rule into `@layer base`, so Tailwind utilities now always win with zero `!important`
+needed anywhere, including on buttons that haven't hit the bug yet.
+
+Per-item outcome (**verified BROWSER, computed styles, not screenshot-only**):
+- "Отметить все прочитанными" (mark all read) button — was the clearest real bug (`color:` near-
+  black on `#0F7A4D`). Fixed by the layer change alone, zero component-local patch needed. Confirmed:
+  `background-color: rgb(15,122,77)`, `color: rgb(255,255,255)`.
+- Footer "TajStay" wordmark, floating TST Assistant button — confirmed **already correct** (prior
+  session's targeted fixes, `76239b0` and the assistant's own unlayered `.tst-assistant__fab{color:
+  #fff}` which already out-specificities the old bug rule) — not touched, no regression.
+- Notification bell — a **separate, real, local bug**: hardcoded `md:bg-white md:text-slate-700`
+  assuming the header goes white at desktop width, but `header.site-header` is canonical green at
+  every viewport. Fixed to the same translucent-white treatment as the header's language switcher
+  (`rgba(255,255,255,.08)` + white icon) for a visually unified header-action set; badge ring color
+  changed from `ring-slate-950 md:ring-white` to a fixed `ring-[#0f7a4d]` matching the always-green
+  header. Verified live at both desktop and 375px mobile.
+- Language/globe button's visually-lighter green — confirmed intentional design (`rgba(255,255,255,
+  0.08)` translucent overlay on top of canonical `#0F7A4D`, not a second hardcoded green), not
+  changed — flagged as a design call if the product wants that "glass pill" treatment removed later.
+
+Regression-checked white surfaces (Profile page buttons/pills) after the layer change — all still
+render dark text on white/green-accent correctly, confirming the fix is surface-aware as required
+(did not touch any explicit component color rule, only the default for genuinely unstyled buttons).
+
 ### Auth cleanup — DONE (uncommitted at time of writing this entry, commit to follow)
 
 Three items closed, per explicit user directive not to counter-patch global CSS conflicts with local
