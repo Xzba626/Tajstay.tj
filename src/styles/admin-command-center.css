@@ -863,6 +863,13 @@
   line-height: 1.45;
 }
 
+.admin-record-card__meta--link {
+  display: block;
+  color: var(--admin-accent, #0f7a4d);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .admin-record-card__actions {
   display: flex;
   flex-wrap: wrap;

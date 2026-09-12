@@ -727,6 +727,14 @@ export default async function AdminDashboardPage({
               <div className="admin-record-card__meta">
                 {hotel.city} · {hotel.owner.name}
               </div>
+              <a
+                href={`https://www.openstreetmap.org/?mlat=${hotel.latitude}&mlon=${hotel.longitude}#map=15/${hotel.latitude}/${hotel.longitude}`}
+                target="_blank"
+                rel="noreferrer"
+                className="admin-record-card__meta admin-record-card__meta--link"
+              >
+                {m(locale, "admin.hotelLocationLink")}: {hotel.latitude.toFixed(5)}, {hotel.longitude.toFixed(5)}
+              </a>
               <div className="admin-chip-row mt-2">
                 <span
                   className={`admin-risk-chip ${
