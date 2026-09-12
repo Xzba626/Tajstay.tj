@@ -1107,13 +1107,85 @@ Rounded out the sections not yet individually exercised after the fail-closed re
 - ✗ RU/TJ/EN full copy pass — only the new switcher/status/location-picker labels were localized;
   no broader Owner Desk copy-cleanup pass done this session
 
-**Everything schema/data/authorization/routing-relevant for Multi-Hotel is now DONE and evidence-
-backed.** The two remaining open items (Messages deep-link context-switch, a full copy-cleanup pass)
-are real but lower-risk UI polish, not data-isolation or security gaps — reasonable to track as
-follow-up rather than blocking Subscription, which is what actually depends on the approval pipeline
-(now fixed) via the trial-starts-at-approval-timestamp design. Proceeding to Subscription business
-model next per the master order, per explicit "no new sequencing question" instruction; Messages
-context-switch and the copy pass remain flagged OPEN, not silently dropped.
+### Moderation finalization — closing the real remaining gaps (commits `d534791`, `b607a1d`)
+
+User review correctly caught that several claims from the prior pass were stated more strongly than
+their evidence supported. Addressed each:
+
+- **Public exposure of non-APPROVED hotels — real gap, fixed.** `/hotel/[id]/page.tsx` had no status
+  filter at all; any guest could view a PENDING/REJECTED hotel directly by URL even though it was
+  already correctly hidden from Search/the switcher. Now 404s for anyone except the owner or an
+  admin. `POST /api/bookings` hardened the same way — a handcrafted request against a non-APPROVED
+  hotel's room/roomType now 404s server-side, independent of UI reachability.
+- **Owner self-approval — checked, already safe, not a gap.** `PATCH /api/owner/hotels/[id]`
+  hardcodes `status: hotel.status`, never reads a client field. Confirmed by reading the code, not
+  assumed.
+- **Rejection reason / resubmit — was OPEN, now closed**, reusing `AdminAuditLog.reason` (no schema
+  addition). Admin moderate form takes a reason, Owner Objects page displays it on REJECTED cards,
+  saving edits on a REJECTED hotel flips it back to PENDING and re-notifies admins.
+- **hotelId fail-closed semantics — re-confirmed correct**, and clarified: the RSC page-level
+  redirect only works for JS-executing clients (documented Next.js App Router limitation, not new);
+  Route Handlers (payment-methods, the new subscription price route) already return true HTTP
+  403/404 regardless, confirmed via curl with no JS involved.
+- **Map-pin persistence — was only proven at "click changes hidden inputs", now proven end-to-end**:
+  real Save via the edit form → confirmed in DB → Owner reload shows the same marker (real browser
+  session) → new Admin "Точка на карте" link (added this pass — Admin previously showed no location
+  at all) shows the same point → `/map`'s existing query reads `Hotel.latitude/longitude` directly
+  with no duplicate field, so any public consumer is structurally guaranteed to match.
+- **Image-crop/fallback guard — "every render site" was overstated, now actually enumerated**: Admin
+  moderation renders no hotel cover image at all (nothing to guard there); Search card
+  (`HotelCard.tsx`) and Messages/chat thumbnails (`BookingChatHeader.tsx`/`MessagesInbox.tsx`/
+  `TripChatRow.tsx`) were already correctly guarded per the original Explore-agent audit; Booking
+  (`BookingRoom.tsx`) threads `coverImageUrl` straight into the already-guarded
+  `BookingChatHeader` — confirmed by reading each file, not assumed from the component name.
+
+**Everything schema/data/authorization/routing/public-exposure-relevant for Multi-Hotel is now DONE
+and evidence-backed at the local/REAL HTTP/BROWSER tier.** Two items remain explicitly OPEN, and are
+correctly classified as **functional gaps, not cosmetic polish**:
+- **Messages deep-link hotel-context switching** — if an owner working in Hotel A opens a
+  notification/message belonging to Hotel B, the shell should switch active context to B before
+  showing it; not yet built, not yet even attempted.
+- **Owner Desk copy-cleanup pass** — genuinely cosmetic, lower priority than the above.
+
+DEPLOYED PROD and REAL DEVICE remain OPEN for all of Multi-Hotel, unchanged.
+
+### Subscription business model — foundation (commit `d534791`)
+
+Canonical model: 0% booking commission (checkoutFinance.ts default commissionRate changed
+0.12→0, `.env`/`.env.example` updated — **deployed prod's own env var is untouched, OPEN**), TajStay
+revenue comes from a Hotel's own monthly subscription. Schema audit confirmed no
+Subscription/Plan/Billing/PlatformSetting model existed yet — added three additive tables via a real
+local migration (`20260912120000_subscription_domain_foundation`, hand-reviewed against `prisma
+migrate diff`'s output to exclude unrelated pre-existing schema drift the diff also surfaced — a
+Booking FK drop/re-add and a PushSubscription column drop that were NOT part of this change):
+
+- `HotelSubscription` (1:1 Hotel): TRIAL/ACTIVE/PAST_DUE/SUSPENDED/CANCELLED, immutable
+  `trialStartAt`/`trialEndAt` anchor.
+- `SubscriptionPeriod`: frozen `priceSnapshot` per period (same pattern as HotelPaymentMethod).
+- `PlatformSetting`: singleton admin-controlled monthly price.
+
+`ensureHotelSubscriptionOnApproval()` is the only creation path — called only on a genuine
+PENDING/REJECTED→APPROVED transition; `hotelId` is `@unique` so even a real race can create at most
+one row. **Verified REAL HTTP**: approved a fresh hotel twice in a row (double-click simulation) →
+exactly one `HotelSubscription` row, calendar-month trial dates (`addMonths`, not a 30-day blind
+offset — Sep 12 approval → Oct 12 trial end, confirmed, not assumed). Admin price-setting verified
+persisted; Owner Overview card verified live via both curl and a real browser session, correctly
+shows nothing for hotels approved *before* this domain existed (the session's older fixture
+hotels) rather than being silently backfilled — this is the exact "existing approved hotels" case
+the user flagged as a **business decision blocker, not a technical one**: no production backfill
+policy has been decided, and none was invented here.
+
+**Explicitly OPEN, not built this pass**: the actual Owner→TajStay payment channel (no gateway
+decided — correctly not invented); PAST_DUE/SUSPENDED transition logic (no scheduled job exists to
+move a lapsed TRIAL into PAST_DUE yet); trial-ending-soon reminders; Admin override actions (extend
+trial, manual-payment activation) with their own audit trail; Resend hooks into lifecycle events;
+full RU/TJ/EN beyond this pass's new labels; mobile spot-check of the new cards; Admin financial
+analytics still reflects the old booking-commission-shaped numbers (next master block).
+
+**NEXT**: per explicit "no new sequencing question" instruction — Admin Financial Analytics
+(remove commission semantics, Booking GMV vs Subscription Revenue) is the next master item, since it
+depends on the zero-commission cutover just landed. Messages deep-link context-switching remains
+tracked as a real functional gap to close, not deferred indefinitely.
 
 ### Auth cleanup — DONE (uncommitted at time of writing this entry, commit to follow)
 
