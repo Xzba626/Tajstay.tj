@@ -36,6 +36,7 @@ import { OwnerOnboardingPanel } from "@/components/owner/OwnerOnboardingPanel";
 import { BOOKING_SOURCE, getBookingGuestLabel } from "@/lib/domain/booking";
 import { AppImage } from "@/components/ui/AppImage";
 import { OwnerRoomTypesPanel } from "@/components/owner/OwnerRoomTypesPanel";
+import { HotelLocationPicker } from "@/components/owner/HotelLocationPicker";
 import { OwnerAssignRoomSelect } from "@/components/owner/OwnerAssignRoomSelect";
 import { ownerBookingWhere, ownerOfflineBookingWhere } from "@/lib/pms/ownerQueries";
 import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
@@ -524,25 +525,9 @@ export default async function OwnerDashboardPage({
               className="owner-input owner-input--lg"
             />
           </div>
-          <div>
-            <label className="owner-field__label owner-field__label--caps">{m(locale, "owner.fieldLat")}</label>
-            <input
-              name="latitude"
-              type="number"
-              step="any"
-              placeholder="38.56"
-              className="owner-input owner-input--lg"
-            />
-          </div>
-          <div>
-            <label className="owner-field__label owner-field__label--caps">{m(locale, "owner.fieldLng")}</label>
-            <input
-              name="longitude"
-              type="number"
-              step="any"
-              placeholder="68.78"
-              className="owner-input owner-input--lg"
-            />
+          <div className="md:col-span-2">
+            <label className="owner-field__label">{m(locale, "owner.fieldCoords")}</label>
+            <HotelLocationPicker labelHint={m(locale, "owner.fieldCoordsHelp")} />
           </div>
         </div>
       <button
@@ -799,33 +784,11 @@ export default async function OwnerDashboardPage({
 
                         <div className="md:col-span-2">
                           <div className="owner-field__label">{m(locale, "owner.fieldCoords")}</div>
-                          <div className="grid gap-4 md:grid-cols-2">
-                            <div>
-                              <label className="owner-field__label owner-field__label--caps">
-                                {m(locale, "owner.fieldLat")}
-                              </label>
-                              <input
-                                name="latitude"
-                                type="number"
-                                step="any"
-                                defaultValue={h.latitude}
-                                className="owner-input owner-input--lg"
-                              />
-                            </div>
-                            <div>
-                              <label className="owner-field__label owner-field__label--caps">
-                                {m(locale, "owner.fieldLng")}
-                              </label>
-                              <input
-                                name="longitude"
-                                type="number"
-                                step="any"
-                                defaultValue={h.longitude}
-                                className="owner-input owner-input--lg"
-                              />
-                            </div>
-                          </div>
-                          <div className="owner-field__hint">{m(locale, "owner.fieldCoordsHelp")}</div>
+                          <HotelLocationPicker
+                            defaultLat={h.latitude}
+                            defaultLng={h.longitude}
+                            labelHint={m(locale, "owner.fieldCoordsHelp")}
+                          />
                         </div>
                       </div>
                     </section>
