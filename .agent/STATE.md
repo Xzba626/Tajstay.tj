@@ -1250,6 +1250,81 @@ Two corrections from review, both accepted as right:
      closed until re-checked against the real deployed site after the next deploy.
    - **REAL DEVICE**: OPEN, unchanged.
 
+### Subscription money semantics — CRITICAL fix (commit `64dbe57`)
+
+Review caught a real latent accounting bug before it could matter: `SubscriptionPeriod` only had
+one `priceSnapshot` field, so a FREE trial period and a real paid period were distinguishable only
+by re-deriving it from `status` every time a query touched them — exactly how a naive future
+`SUM(priceSnapshot)` in Admin Financial Analytics would have silently counted every free trial
+month as real revenue.
+
+**Fixed**: migration `20260912160000_subscription_period_money_semantics` renames
+`priceSnapshot`→`tariffSnapshot` (still frozen at period-creation time — "what the list price was")
+and adds `amountDue`/`amountPaid` as genuinely separate fields. `ensureHotelSubscriptionOnApproval`
+now explicitly sets `amountDue: 0, amountPaid: 0` on the trial's FREE period. Added
+`getSubscriptionRevenue()` — the one canonical revenue definition (`SUM(amountPaid) WHERE
+status = 'PAID'`) — established now, ahead of Analytics, so that block has a ready-correct query
+instead of re-deriving this distinction under time pressure. **Verified real HTTP**: fresh trial →
+`tariffSnapshot="149"`, `amountDue="0"`, `amountPaid="0"` → `getSubscriptionRevenue({hotelId})`
+returns exactly `0`. Also hardened Admin price validation (rejects zero and >100,000 TJS in
+addition to the existing NaN/negative checks) — verified all three invalid inputs rejected with the
+persisted price unchanged.
+
+### Subscription domain — comprehensive open-items list (explicit, not silently dropped)
+
+Moderation architecture is now solid at the local/REAL HTTP tier (current-state field, mandatory
+reject reason, explicit resubmit, Admin photo, money semantics separated). The Subscription domain
+remains **foundation + verified happy path**, not a closed domain. Everything below is real,
+identified, and intentionally not built yet — listed so a future session doesn't have to
+rediscover the gap:
+
+- **Post-trial lifecycle**: only APPROVED→TRIAL is implemented. No TRIAL→PAST_DUE/PAYMENT_REQUIRED
+  transition exists — trial is currently an unbounded terminal state with no scheduled trigger.
+- **Payment domain**: no Owner→TajStay payment channel exists or has been chosen (correctly not
+  invented — explicitly deferred by the user). No paid-period creation path exists yet since there's
+  nothing to confirm a payment against.
+- **Price-change-preserves-old-snapshot**: logically guaranteed by the freeze-at-creation pattern,
+  but not re-verified end-to-end after this pass's rename (old period keeps its tariffSnapshot when
+  PlatformSetting changes later — should be a trivial confirming test, not yet run).
+- **Re-approval / idempotency beyond the DB row**: verified exactly one `HotelSubscription` row and
+  exactly one `SubscriptionPeriod` on double-approve, but not verified: exactly one trial-start
+  notification, one audit transition, no duplicate future period on a later suspend→reactivate cycle.
+- **Multi-Hotel subscription isolation**: not re-verified after this pass's schema/service changes —
+  the A/B switcher mechanism itself was proven earlier for other domains (Bookings/Finance/etc.), but
+  not specifically re-run against subscription cards since money-semantics landed.
+- **Calendar-month edge cases**: Sep 12→Oct 12 confirmed; Jan 31, leap years, and timezone boundaries
+  not tested.
+- **Post-expiry data-survival policy**: no destructive behavior exists (nothing built yet touches
+  Hotel/Rooms/Bookings on subscription state), so nothing to fix, but also nothing to point to as
+  "proven safe" beyond "the feature doesn't exist yet."
+- **Public restriction policy for unpaid Hotels**: correctly not decided/invented — no
+  `canAcceptNewBookings`/`canRemainPublished` capability exists yet, matching the instruction not to
+  guess production policy.
+- **Repo-wide 0%-commission audit**: only `checkoutFinance.ts`'s default rate was changed. Owner
+  Finance UI, Admin Finance UI, notification copy, and any other `commission`/`ownerNet`/
+  `platformRevenue` reference have NOT been swept.
+- **Owner/Admin subscription UI depth**: Owner card handles TRIAL display only (ACTIVE/PAST_DUE
+  paths exist in the CSS/copy but are unexercised — no real ACTIVE/PAST_DUE subscription has ever
+  been created to check against). Admin's compact list exists but is not yet the fuller "Hotel /
+  Owner / state / tariff / amount due / payment status" operational view requested.
+- **Notifications**: only the existing "new hotel pending" notification is wired. No
+  TRIAL_STARTED/TRIAL_ENDING/PAYMENT_REQUIRED/SUBSCRIPTION_ACTIVATED events exist.
+- **Mobile/RU/TJ/EN**: only this pass's new labels were localized; no dedicated mobile pass on the
+  subscription card or Admin pricing UI.
+
+**Existing-approved-hotels-before-cutover** remains the one item correctly held as a **business
+decision blocker**, not a technical task — no backfill has been done or will be done without an
+explicit user decision.
+
+**NEXT**: per the master order, Admin Financial Analytics still does not start until enough of the
+above closes that Analytics can honestly distinguish FREE/owed/paid — the money-semantics fix this
+pass is necessary but not sufficient on its own (there's currently exactly one PAID period... in
+fact zero, only FREE ones exist locally, so "paid period math" has never been exercised at all).
+Reasonable next slice: implement a minimal manual-confirm paid-period path (Admin marks a period
+paid, `amountPaid` set, `status` → PAID) so `getSubscriptionRevenue()` has real data to prove itself
+against, then re-verify multi-Hotel isolation, then the repo-wide commission sweep — after which
+Admin Financial Analytics can be started honestly.
+
 ### Moderation current-state architecture + Admin photo + price-snapshot period (commit `be6683f`)
 
 Review correctly rejected the prior pass's "reuse AdminAuditLog for the rejection reason" as not
