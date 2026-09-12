@@ -897,6 +897,46 @@ mobile switcher UX beyond the existing responsive drawer (not spot-checked at 39
 *switcher* itself, only the properties list); RU/TJ/EN beyond the 5 new keys (`switchProperty`,
 `allProperties`, `roomsShort`, `openProperty`, `editProperty`).
 
+### P0 CORRECTION — new owner hotels were self-approved, now go through Admin moderation (commit `6c5eba8`)
+
+User feedback caught a real authority gap in the switcher work above before it shipped further:
+`POST /api/owner/hotels` hardcoded `status: "APPROVED"` on every hotel a hotelier creates — the
+existing first-hotel behavior, unchanged since before this session, just newly exercisable for a
+2nd/3rd hotel via the switcher's "Добавить объект". Unlimited hotels per owner was correctly built
+(no cap), but that silently doubled as "each one goes live with zero review" — a full Admin
+moderation pipeline already existed (`/api/admin/hotels/moderate`, already wired into the Admin
+dashboard's Hotels section with risk scoring and a status selector) and was simply never reached,
+because nothing ever created a hotel in `PENDING` state.
+
+**Fixed**: hotel creation now sets `status: "PENDING"` (reusing the existing enum/pipeline, no new
+model — same discipline as Phase A), notifies admins the same way `OwnerApplication` submissions
+already do (title + link into `/dashboard/admin?section=hotels`). Cascading correction to the
+switcher/scoping work: a PENDING/REJECTED hotel is visible to its owner (Objects list, switcher) but
+can never become the active operations context — `page.tsx`'s hotelId resolution now only accepts an
+APPROVED hotel id (a pending/foreign one is rejected, same as a cross-owner one); the unscoped
+"all my hotels" fallback in `ownerQueries.ts`/`ownerDashboardKpis.ts`/`ownerCalendar.ts` now also
+filters to `status: "APPROVED"` so a pending hotel's (nonexistent) data can never leak into an
+owner's aggregate view; `PropertySwitcher` shows every hotel but renders non-approved ones as
+disabled `<option>`s suffixed "— На проверке"/"— Отклонён".
+
+**Verified BROWSER + REAL HTTP, full acceptance loop**: created a 3rd hotel via the real multipart
+`POST /api/owner/hotels` exactly as the UI does → confirmed `PENDING` in DB (not auto-APPROVED) →
+confirmed live: switcher lists it as a disabled option with the correct suffix, Objects list shows
+"НА ПРОВЕРКЕ" badge → manually forced `?hotelId=35` (the pending one) in the URL → Bookings correctly
+fell back to the owner's 2 real APPROVED hotels' aggregate, no pending-hotel data leaked anywhere →
+logged in as the real local admin (`admin@tajstay.local`, password reset for this local test only)
+and called the real `/api/admin/hotels/moderate` route with `status=APPROVED` → confirmed DB flipped
+to `APPROVED` → re-requested `?hotelId=35` with the owner's session → now correctly scoped to Hotel
+3 only (empty, since it has no bookings yet — critically, Hotel 1/2's bookings did NOT leak into
+this view either). Full create → PENDING → invisible-as-context → admin-approves → selectable →
+correctly-scoped loop proven end to end, not just the individual pieces.
+
+**Still OPEN, explicitly flagged, not built this pass**: a structured rejection-reason field on
+`Hotel` for the "fix and resubmit" flow the spec describes — Admin can already set `REJECTED` via
+the existing moderate route, but there's no field to store *why*, so owner-facing reason display and
+resubmit aren't implemented (this is a schema change, a protected domain — needs its own explicit
+go-ahead, not bundled into this fix).
+
 **NEXT**: map-pin location picker (replaces raw lat/lng, becomes the one canonical Hotel location
 shared across Owner Desk/Public Hotel Detail/Search map/Admin moderation per the spec) is the next
 architecturally-interesting item, OR hotel-image crop/placeholder fixes, OR Subscription business
