@@ -133,13 +133,17 @@ function PropertySwitcher({
   const router = useRouter();
   const search = useSearchParams();
   const activeHotelId = Number(search.get("hotelId") ?? "") || 0;
+  // Hotel-agnostic pages (Properties/Notifications/Help) carry no hotelId in the URL at all - fall
+  // back to the first APPROVED hotel purely so the control shows *something* real, never a blank
+  // "all properties" state. There is no aggregate mode any more: every operational section always
+  // resolves to one concrete Hotel (see the canonical redirect in dashboard/owner/page.tsx).
+  const firstApprovedId = hotels.find((h) => h.status === "APPROVED")?.id ?? "";
 
   if (hotels.length <= 1) return null;
 
   function goToHotel(nextId: string) {
     const params = new URLSearchParams(search.toString());
-    if (nextId) params.set("hotelId", nextId);
-    else params.delete("hotelId");
+    params.set("hotelId", nextId);
     params.delete("page");
     router.push(`${pathname}?${params.toString()}`);
   }
@@ -152,10 +156,9 @@ function PropertySwitcher({
       <select
         id="owner-property-switcher"
         className="owner-sidebar__switcher-select"
-        value={activeHotelId || ""}
+        value={activeHotelId || firstApprovedId}
         onChange={(e) => goToHotel(e.target.value)}
       >
-        <option value="">{labels.allProperties}</option>
         {hotels.map((h) => {
           const isApproved = h.status === "APPROVED";
           const suffix = h.status === "PENDING" ? ` — ${labels.pendingSuffix}` : h.status === "REJECTED" ? ` — ${labels.rejectedSuffix}` : "";

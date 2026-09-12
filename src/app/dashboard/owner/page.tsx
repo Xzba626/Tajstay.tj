@@ -1,4 +1,5 @@
 ﻿import { addDays, subDays } from "date-fns";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireOwner } from "@/lib/auth/requireOwner";
 import { OwnerEmptyState } from "@/components/dashboard/OwnerEmptyState";
@@ -69,6 +70,24 @@ const VALID_OWNER_SECTIONS = new Set<OwnerSection>([
   "finances",
   "statistics",
   "help"
+]);
+
+/**
+ * Sections that operate on exactly one Hotel at a time — no implicit "all my hotels" aggregate.
+ * Properties/Notifications/Help are legitimately Owner-global (a full list, or a Owner-wide inbox);
+ * everything else must resolve to one concrete active Hotel so the URL and the rendered content
+ * always agree, and a foreign/pending/invalid hotelId never gets silently swapped for something
+ * else — see the canonical-redirect block below.
+ */
+const HOTEL_SCOPED_SECTIONS = new Set<OwnerSection>([
+  "overview",
+  "rooms",
+  "bookings",
+  "offline-bookings",
+  "calendar",
+  "reviews",
+  "finances",
+  "statistics"
 ]);
 
 function looksLikeTestValue(v: unknown) {
@@ -162,12 +181,9 @@ export default async function OwnerDashboardPage({
   const content = await getSiteContent();
 
   // Global active-hotel scope: never trust the client-supplied hotelId directly — verify it's
-  // actually one of this owner's hotels before using it anywhere below. Lives in the URL (not
-  // client-only state) so it survives reload/back-forward/deep-link. Single-hotel owners never
-  // see a switcher and this stays 0 (unscoped == "all my approved hotels" anyway).
-  //
-  // Only an APPROVED hotel can become the active operations context. A PENDING/REJECTED hotel is
-  // still visible to its owner (Objects list, switcher shown as "На проверке"/"Отклонён") but
+  // actually one of this owner's APPROVED hotels before using it anywhere below. Lives in the URL
+  // (not client-only state) so it survives reload/back-forward/deep-link. A PENDING/REJECTED hotel
+  // is still visible to its owner (Objects list, switcher shown as "На проверке"/"Отклонён") but
   // cannot be selected to drive real Bookings/Finance/Rooms/etc — those don't exist yet for an
   // object an admin hasn't reviewed. Unlimited applications never implies self-approval.
   const ownerHotelsForSwitcher = await prisma.hotel.findMany({
@@ -175,10 +191,23 @@ export default async function OwnerDashboardPage({
     orderBy: { createdAt: "asc" },
     select: { id: true, name: true, city: true, status: true }
   });
-  const approvedOwnerHotelIds = new Set(
-    ownerHotelsForSwitcher.filter((h) => h.status === "APPROVED").map((h) => h.id)
-  );
-  const hotelId = approvedOwnerHotelIds.has(requestedHotelId) ? requestedHotelId : 0;
+  const approvedOwnerHotels = ownerHotelsForSwitcher.filter((h) => h.status === "APPROVED");
+  const approvedOwnerHotelIds = new Set(approvedOwnerHotels.map((h) => h.id));
+
+  // Fail-closed canonical resolution, not a silent aggregate fallback: a hotel-scoped section
+  // always resolves to exactly one concrete active Hotel, and the URL is made to say so
+  // explicitly — never "the request said Hotel X but the page quietly rendered something else".
+  // - foreign/pending/rejected/nonexistent hotelId -> redirect to a hotel the owner actually has
+  // - no hotelId given but 2+ approved hotels exist -> redirect to make the choice explicit
+  // - no hotelId given and exactly 1 approved hotel -> use it directly, nothing ambiguous to state
+  let hotelId = 0;
+  if (HOTEL_SCOPED_SECTIONS.has(activeSection) && approvedOwnerHotels.length > 0) {
+    const requestedIsInvalid = requestedHotelId !== 0 && !approvedOwnerHotelIds.has(requestedHotelId);
+    if (requestedIsInvalid || (requestedHotelId === 0 && approvedOwnerHotels.length > 1)) {
+      redirect(`/dashboard/owner?section=${activeSection}&hotelId=${approvedOwnerHotels[0].id}`);
+    }
+    hotelId = requestedHotelId !== 0 ? requestedHotelId : approvedOwnerHotels[0].id;
+  }
 
   let hotels: any[] = [];
   let rooms: any[] = [];
