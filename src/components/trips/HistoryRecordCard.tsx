@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AppImage } from "@/components/ui/AppImage";
+import { isBrandAssetUrl } from "@/lib/brand";
 import { normalizePaymentBadge } from "@/lib/trips/classify";
 import {
   bookingDetailPath,
@@ -83,7 +84,7 @@ function HistoryRecordCardInner({ locale, record }: { locale: Locale; record: Hi
   const dates = record.kind === "hotel" ? formatHotelDates(locale, record) : formatTourDate(locale, record);
   const stayMeta = record.kind === "hotel" ? formatHotelStayMeta(locale, record) : formatTourStayMeta(locale, record);
   const icon = recordKindIcon(record.kind);
-  const cover = record.coverImageUrl;
+  const cover = record.coverImageUrl && !isBrandAssetUrl(record.coverImageUrl) ? record.coverImageUrl : null;
 
   return (
     <article className="mockup-list-card mockup-list-card--history">

@@ -37,6 +37,8 @@ import { BOOKING_SOURCE, getBookingGuestLabel } from "@/lib/domain/booking";
 import { AppImage } from "@/components/ui/AppImage";
 import { OwnerRoomTypesPanel } from "@/components/owner/OwnerRoomTypesPanel";
 import { HotelLocationPicker } from "@/components/owner/HotelLocationPicker";
+import { PhotoPlaceholder } from "@/components/ui/PhotoPlaceholder";
+import { isBrandAssetUrl } from "@/lib/brand";
 import { OwnerAssignRoomSelect } from "@/components/owner/OwnerAssignRoomSelect";
 import { ownerBookingWhere, ownerOfflineBookingWhere } from "@/lib/pms/ownerQueries";
 import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
@@ -661,7 +663,7 @@ export default async function OwnerDashboardPage({
                 <div key={h.id} className="owner-property-card">
                   <div className="owner-property-card__row">
                     <div className="owner-property-card__thumb">
-                      {h.coverImageUrl ? (
+                      {h.coverImageUrl && !isBrandAssetUrl(h.coverImageUrl) ? (
                         <AppImage src={h.coverImageUrl} alt="" fill className="object-cover" sizes="72px" />
                       ) : (
                         <div className="owner-property-card__thumb-placeholder" aria-hidden />
@@ -692,11 +694,15 @@ export default async function OwnerDashboardPage({
                   <details className="owner-property-card__edit">
                     <summary className="owner-property-card__edit-toggle">{m(locale, "owner.editProperty")}</summary>
 
-                  {h.coverImageUrl ? (
-                    <div className="relative mb-4 mt-4 aspect-video w-full overflow-hidden rounded-2xl bg-slate-900/40 ring-1 ring-white/10">
-                      <AppImage src={h.coverImageUrl} alt="" fill className="object-cover" sizes="400px" />
+                  {h.coverImageUrl && !isBrandAssetUrl(h.coverImageUrl) ? (
+                    <div className="relative mb-4 mt-4 aspect-video w-full overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-slate-200">
+                      {/* object-contain, not cover: this is the owner's own quality check on their
+                          real uploaded photo - it must show the whole image, not a cropped guess. */}
+                      <AppImage src={h.coverImageUrl} alt="" fill className="object-contain" sizes="400px" />
                     </div>
-                  ) : null}
+                  ) : (
+                    <PhotoPlaceholder locale={locale} variant="hotel" className="mb-4 mt-4 aspect-video w-full rounded-2xl" />
+                  )}
 
                   <form action={`/api/owner/hotels/${h.id}`} method="post" encType="multipart/form-data" className="space-y-6">
                     <section className="owner-form__section">

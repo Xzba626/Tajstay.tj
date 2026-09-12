@@ -10,6 +10,8 @@ import { getHotelPaymentMethods } from "@/lib/hotels/paymentMethods";
 import { Card } from "@/shared/ui";
 import { RoomPhotoCarousel } from "@/components/RoomPhotoCarousel";
 import { AppImage } from "@/components/ui/AppImage";
+import { PhotoPlaceholder } from "@/components/ui/PhotoPlaceholder";
+import { isBrandAssetUrl } from "@/lib/brand";
 import { HotelViewTracker } from "@/components/guest/HotelViewTracker";
 import { getBookingGuestLabel } from "@/lib/domain/booking";
 import { HotelRoomCategories } from "@/components/hotel/HotelRoomCategories";
@@ -183,7 +185,11 @@ export default async function HotelDetailPage({
   const galleryUrls = [
     hotel.coverImageUrl,
     ...hotel.photos.map((photo) => photo.url)
-  ].filter((url, index, list): url is string => Boolean(url) && list.indexOf(url) === index);
+  ].filter(
+    (url, index, list): url is string =>
+      Boolean(url) && !isBrandAssetUrl(url) && list.indexOf(url) === index
+  );
+  const heroCoverUrl = hotel.coverImageUrl && !isBrandAssetUrl(hotel.coverImageUrl) ? hotel.coverImageUrl : null;
 
   const propertyTypeKey = PROPERTY_TYPE_KEYS[hotel.propertyType];
 
@@ -197,16 +203,18 @@ export default async function HotelDetailPage({
             <RoomPhotoCarousel urls={galleryUrls} title={hotel.name} variant="dark" />
           ) : (
             <div className="relative h-80">
-              {hotel.coverImageUrl ? (
+              {heroCoverUrl ? (
                 <AppImage
-                  src={hotel.coverImageUrl}
+                  src={heroCoverUrl}
                   alt={hotel.name}
                   fill
                   className="object-cover"
                   sizes="(max-width:1024px) 100vw, 1200px"
                   priority
                 />
-              ) : null}
+              ) : (
+                <PhotoPlaceholder locale={locale} variant="hotel" className="absolute inset-0" />
+              )}
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
             </div>
           )}
