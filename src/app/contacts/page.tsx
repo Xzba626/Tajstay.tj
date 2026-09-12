@@ -1,8 +1,7 @@
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
 import { getSiteContent } from "@/lib/site-content";
-
-const SUPPORT_EMAIL = "support@tajstay.site";
+import { Mail, MessageCircle, Phone, Send } from "lucide-react";
 
 export default async function ContactsPage() {
   const locale = getLocale();
@@ -10,37 +9,34 @@ export default async function ContactsPage() {
   const s = content.support;
   return (
     <section className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
-      <h1 className="text-3xl font-bold tracking-tight text-slate-100">{m(locale, "footer.contacts")}</h1>
-      <p className="mt-4 text-slate-300">{m(locale, "legal.contactsLead")}</p>
-      <div className="surface-1 mt-6 rounded-2xl p-5 text-sm text-slate-200 shadow-sm">
-        <div className="font-semibold text-slate-100">{s.supportTitle}</div>
-        {s.workingHours ? <div className="mt-2 text-slate-300">{s.workingHours}</div> : null}
-        <div className="mt-2">
-          Email:{" "}
-          <a
-            className="text-[#0f7a4d] underline underline-offset-2"
-            href={`mailto:${SUPPORT_EMAIL}`}
-          >
-            {SUPPORT_EMAIL}
+      <h1 className="text-3xl font-bold tracking-tight text-[#14231b]">{m(locale, "footer.contacts")}</h1>
+      <p className="mt-4 text-slate-600">{m(locale, "legal.contactsLead")}</p>
+      <div className="contacts-card mt-6">
+        {s.workingHours ? <div className="contacts-card__hours">{s.workingHours}</div> : null}
+        <div className="contacts-card__actions">
+          <a className="contacts-card__action" href={`mailto:${s.email}`}>
+            <Mail size={18} aria-hidden />
+            <span>{s.email}</span>
           </a>
+          {s.phone ? (
+            <a className="contacts-card__action" href={`tel:${s.phone.replace(/\s+/g, "")}`}>
+              <Phone size={18} aria-hidden />
+              <span>{s.phone}</span>
+            </a>
+          ) : null}
+          {s.whatsapp ? (
+            <a className="contacts-card__action" href={s.whatsapp} target="_blank" rel="noreferrer">
+              <MessageCircle size={18} aria-hidden />
+              <span>{m(locale, "legal.contactWhatsapp")}</span>
+            </a>
+          ) : null}
+          {s.telegram ? (
+            <a className="contacts-card__action" href={s.telegram} target="_blank" rel="noreferrer">
+              <Send size={18} aria-hidden />
+              <span>{m(locale, "legal.contactTelegram")}</span>
+            </a>
+          ) : null}
         </div>
-        {s.phone ? <div className="mt-1">Phone: {s.phone}</div> : null}
-        {s.whatsapp ? (
-          <div className="mt-1">
-            WhatsApp:{" "}
-            <a className="text-[#0f7a4d] underline underline-offset-2" href={s.whatsapp} target="_blank" rel="noreferrer">
-              {s.whatsapp}
-            </a>
-          </div>
-        ) : null}
-        {s.telegram ? (
-          <div className="mt-1">
-            Telegram:{" "}
-            <a className="text-[#0f7a4d] underline underline-offset-2" href={s.telegram} target="_blank" rel="noreferrer">
-              {s.telegram}
-            </a>
-          </div>
-        ) : null}
       </div>
     </section>
   );

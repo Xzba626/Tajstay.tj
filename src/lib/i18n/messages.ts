@@ -217,6 +217,8 @@ const ru: Tree = {
     aboutText:
       "TajStay — сервис поиска и бронирования жилья по всему Таджикистану. Мы объединяем гостей и владельцев, чтобы бронировать было просто и прозрачно.",
     contactsLead: "Свяжитесь с нами, если нужна помощь с бронированием или размещением объекта.",
+    contactWhatsapp: "Написать в WhatsApp",
+    contactTelegram: "Написать в Telegram",
     policyText: "Здесь будет опубликована политика конфиденциальности TajStay. Текст будет дополнен перед запуском продукта.",
     termsText: "Здесь будут опубликованы условия использования TajStay. Текст будет дополнен перед запуском продукта.",
     faqQ1: "Как отменить бронирование?",
@@ -224,13 +226,13 @@ const ru: Tree = {
       "В разделе «Брони» откройте нужную бронь. До заезда доступна отмена гостем — статус изменится, а средства возвращаются по правилам объекта и платформы.",
     faqQ2: "Когда придёт подтверждение?",
     faqA2:
-      "После оплаты администратор проверяет чек (обычно в течение нескольких часов). Затем владелец подтверждает бронь — вы получите уведомление и сообщение в чате брони.",
+      "После оплаты отправьте чек в чат брони — объект проверяет его и подтверждает оплату (обычно в течение нескольких часов). Вы получите уведомление и сообщение в чате, как только бронь подтверждена.",
     faqQ3: "Как загрузить чек оплаты?",
     faqA3:
-      "На шаге оплаты прикрепите скриншот перевода. Также можно отправить чек в чат брони после оформления — администратор увидит его там же.",
+      "На шаге оплаты прикрепите скриншот перевода. Также можно отправить чек в чат брони после оформления — его проверит сам объект.",
     faqQ4: "Что делать, если владелец не отвечает?",
     faqA4:
-      "Напишите в чат брони — там есть администратор TajStay. Если ответа нет, обратитесь в поддержку через Telegram или email support@tajstay.site.",
+      "Напишите в чат брони. Если владелец долго не отвечает, обратитесь в поддержку TajStay через Telegram или email — мы поможем разобраться.",
     faqQ5: "Какие способы оплаты принимаются?",
     faqA5:
       "Банковский перевод на карту (TJS), а также наличные при заезде — если объект это поддерживает. Точные реквизиты показываются при бронировании.",
@@ -238,7 +240,7 @@ const ru: Tree = {
     faqA6: "В профиле выберите «Стать владельцем», заполните заявку и дождитесь проверки администратором.",
     faqQ7: "Безопасны ли мои данные?",
     faqA7:
-      "Мы храним данные на защищённых серверах, используем HTTPS и не передаём личную информацию третьим лицам без вашего согласия. Подробнее — в политике конфиденциальности.",
+      "Мы храним данные на защищённых серверах и используем HTTPS. Мы не продаём личные данные и передаём их только сервисам, необходимым для работы TajStay (например, хостинг и уведомления). Подробнее — в политике конфиденциальности.",
     faqQ8: "Как написать отзыв?",
     faqA8:
       "После завершения проживания в разделе «Брони» → «История» откройте поездку и оставьте отзыв с оценкой — он поможет другим гостям."
@@ -2179,6 +2181,8 @@ const tg: Tree = {
     aboutText:
       "TajStay — хизматрасонии ҷустуҷӯ ва бронкунии ҷойгиршавӣ дар саросари Тоҷикистон. Мо меҳмонон ва соҳибонро пайваст мекунем, то бронкунӣ содда ва шаффоф бошад.",
     contactsLead: "Агар ба кӯмак барои бронкунӣ ё ҷойгиркунии объект ниёз дошта бошед, бо мо тамос гиред.",
+    contactWhatsapp: "Дар WhatsApp навиштан",
+    contactTelegram: "Дар Telegram навиштан",
     policyText: "Дар ин ҷо сиёсати махфияти TajStay нашр мешавад. Матн пеш аз оғоз пурра карда мешавад.",
     termsText: "Дар ин ҷо шартҳои истифодаи TajStay нашр мешавад. Матн пеш аз оғоз пурра карда мешавад.",
     faqQ1: "Чӣ тавр бронро бекор кунам?",
@@ -2186,13 +2190,13 @@ const tg: Tree = {
       "Дар «Бронҳо» брони лозимаро кушоед. Пеш аз заезд бекоркунии меҳмон дастрас аст — ҳолат тағйир меёбад, пардохт мувофиқи қоидаҳои объект ва платформа баргардонида мешавад.",
     faqQ2: "Тасдиқ кай меояд?",
     faqA2:
-      "Пас аз пардохт админ чекро месанҷад (одатан дар якчанд соат). Баъд соҳиб бронро тасдиқ мекунад — огоҳӣ ва паём дар чати брон мерасад.",
+      "Пас аз пардохт чекро дар чати брон фиристед — объект онро месанҷад ва пардохтро тасдиқ мекунад (одатан дар якчанд соат). Огоҳӣ ва паём дар чати брон мерасад.",
     faqQ3: "Чӣ тавр чеки пардохтро бор кунам?",
     faqA3:
-      "Дар қадами пардохт скриншоти интиқолро замима кунед. Инчунин пас аз брон дар чати брон фиристед — админ онро ҳамон ҷо мебинад.",
+      "Дар қадами пардохт скриншоти интиқолро замима кунед. Инчунин пас аз брон дар чати брон фиристед — худи объект онро месанҷад.",
     faqQ4: "Агар соҳиб ҷавоб надиҳад чӣ кунам?",
     faqA4:
-      "Дар чати брон нависед — админи TajStay низ ҳаст. Агар ҷавоб набошад, ба дастгирӣ тавассути Telegram ё support@tajstay.site муроҷиат кунед.",
+      "Дар чати брон нависед. Агар соҳиб дер ҷавоб надиҳад, ба дастгирии TajStay тавассути Telegram ё email муроҷиат кунед.",
     faqQ5: "Кадом усулҳои пардохт қабул мешаванд?",
     faqA5:
       "Интиқоли бонкӣ ба корт (TJS) ва нақд ҳангоми заезд — агар объект дастгирӣ кунад. Реквизитҳо ҳангоми брон нишон дода мешаванд.",
@@ -2200,7 +2204,7 @@ const tg: Tree = {
     faqA6: "Дар профил «Соҳиб шудан»-ро интихоб кунед, дархостро пур кунед ва санҷиши админро интизор шавед.",
     faqQ7: "Оё маълумоти ман бехатар аст?",
     faqA7:
-      "Маълумот дар серверҳои ҳифзшуда нигоҳ дошта мешавад, HTTPS истифода мешавад. Бе иҷозати шумо ба тарафи сеюм дода намешавад. Тафсилот дар сиёсати махфият.",
+      "Маълумот дар серверҳои ҳифзшуда нигоҳ дошта мешавад, HTTPS истифода мешавад. Мо маълумоти шахсиро намефурӯшем ва танҳо ба хизматрасониҳои заруриӣ (масалан, хостинг ва огоҳиномаҳо) медиҳем. Тафсилот дар сиёсати махфият.",
     faqQ8: "Чӣ тавр барраса навиштам?",
     faqA8:
       "Пас аз анҷоми истиқомат дар «Бронҳо» → «Таърих» сафарро кушоед ва барраса бо баҳо гузоред."
@@ -4102,6 +4106,8 @@ const en: Tree = {
     aboutText:
       "TajStay is a search and booking service for stays across Tajikistan. We connect guests and property owners to keep booking simple and transparent.",
     contactsLead: "Contact us if you need help with booking or listing a property.",
+    contactWhatsapp: "Message on WhatsApp",
+    contactTelegram: "Message on Telegram",
     policyText: "TajStay’s privacy policy will be published here. The text will be finalized before launch.",
     termsText: "TajStay’s terms of use will be published here. The text will be finalized before launch.",
     faqQ1: "How do I cancel a booking?",
@@ -4109,13 +4115,13 @@ const en: Tree = {
       "Open the booking under Trips. Before check-in you can cancel as a guest — the status updates and refunds follow the property and platform rules.",
     faqQ2: "When will I get confirmation?",
     faqA2:
-      "After payment an admin reviews your receipt (usually within a few hours). Then the host confirms — you’ll get a notification and a message in the booking chat.",
+      "After payment, send your receipt in the booking chat — the property reviews it and confirms payment (usually within a few hours). You'll get a notification and a message in the chat once confirmed.",
     faqQ3: "How do I upload a payment receipt?",
     faqA3:
-      "Attach a transfer screenshot at the payment step. You can also send it in the booking chat after checkout — the admin will see it there.",
+      "Attach a transfer screenshot at the payment step. You can also send it in the booking chat after checkout — the property will review it there.",
     faqQ4: "What if the host doesn’t respond?",
     faqA4:
-      "Message in the booking chat — a TajStay admin is included. If there’s still no reply, contact support via Telegram or support@tajstay.site.",
+      "Message in the booking chat. If the host doesn't respond for a while, contact TajStay support via Telegram or email — we'll help.",
     faqQ5: "Which payment methods are accepted?",
     faqA5:
       "Bank transfer to card (TJS) and cash on arrival when the property supports it. Exact details are shown during booking.",
@@ -4123,7 +4129,7 @@ const en: Tree = {
     faqA6: "In Profile choose “Become a host”, complete the application, and wait for admin approval.",
     faqQ7: "Is my data safe?",
     faqA7:
-      "We store data on secured servers, use HTTPS, and don’t share personal information with third parties without your consent. See our privacy policy.",
+      "We store data on secured servers and use HTTPS. We don't sell personal data and only share it with services TajStay needs to operate (e.g. hosting, notifications). See our privacy policy for details.",
     faqQ8: "How do I leave a review?",
     faqA8:
       "After your stay, go to Trips → History, open the trip, and submit a rating and review for other guests."

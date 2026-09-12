@@ -193,9 +193,12 @@
   transform: scale(0.92);
 }
 
+/* No background tint for the active tab - a white rgba overlay on the canonical #0F7A4D bar
+   still reads as a second, lighter green surface (same issue already fixed for the header's
+   language/notification controls). Full-opacity white icon+label vs the inactive 78%-opacity
+   white is distinction enough on its own. */
 .app-tab-bar__item.is-active {
   color: #ffffff;
-  background: rgba(255, 255, 255, 0.14);
 }
 
 .app-tab-bar__item.is-active .app-tab-bar__icon {
@@ -215,7 +218,7 @@
 }
 
 .app-tab-bar__icon-wrap.is-active {
-  background: rgba(255, 255, 255, 0.12);
+  background: transparent;
 }
 
 .app-tab-bar__dot {
