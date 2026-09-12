@@ -677,6 +677,12 @@ body:has(.ts-workspace-light) .header-auth-signin-mobile {
   }
 }
 
+/* Transparent, not a translucent white fill: a white rgba overlay on top of the canonical
+   #0F7A4D header still reads as a second, lighter green surface to the eye - TajStay's contract
+   is that a green surface is exactly #0F7A4D, not "green plus some opacity math". Transparent
+   background lets the header's own #0F7A4D show through unchanged; the white border+icon still
+   make the control legible and match the notification bell's same treatment (see
+   NotificationBell.tsx) for one consistent header-action pattern. */
 .locale-switcher--icon-only .locale-switcher-trigger--icon {
   display: inline-flex;
   align-items: center;
@@ -686,14 +692,14 @@ body:has(.ts-workspace-light) .header-auth-signin-mobile {
   padding: 0;
   border-radius: var(--taj-radius-lg);
   border: 1px solid rgba(255, 255, 255, 0.35);
-  background: rgba(255, 255, 255, 0.08);
+  background: transparent;
   color: #ffffff;
   box-shadow: none;
 }
 
 .locale-switcher--icon-only .locale-switcher-trigger--icon:hover,
 .locale-switcher--icon-only .locale-switcher-trigger--icon[aria-expanded="true"] {
-  background: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.12);
   border-color: rgba(255, 255, 255, 0.6);
   color: #ffffff;
 }

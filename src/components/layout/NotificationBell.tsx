@@ -179,9 +179,13 @@ export function NotificationBell({
           // The header (site-header) is canonical green (#0F7A4D) at every viewport, not white on
           // desktop - this used to switch to `md:bg-white md:text-slate-700`, a dark-on-green
           // contrast bug baked into the component's own classes rather than a shared/global CSS
-          // fight. Same translucent-white pattern as the header's language switcher (see
-          // home.css .locale-switcher--icon-only) for a visually unified set of header actions.
-          "relative flex h-10 w-10 items-center justify-center rounded-xl border border-white/35 bg-white/[0.08] text-white shadow-sm transition hover:bg-white/[0.16]",
+          // fight. Resting background is transparent (not a translucent white fill) so the
+          // header's own #0F7A4D shows through unchanged - a white rgba overlay still reads as a
+          // second, lighter green surface, which breaks the "green surface is exactly #0F7A4D"
+          // contract. Same treatment as the header's language switcher (home.css
+          // .locale-switcher--icon-only) for one consistent header-action pattern; the hover
+          // overlay is a transient interaction state, not the resting brand surface.
+          "relative flex h-10 w-10 items-center justify-center rounded-xl border border-white/35 bg-transparent text-white shadow-sm transition hover:bg-white/[0.12]",
           open && "ring-2 ring-white/40"
         )}
         aria-expanded={open}
