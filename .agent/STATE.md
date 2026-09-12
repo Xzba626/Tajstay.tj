@@ -1222,6 +1222,34 @@ Regression-checked white surfaces (Profile page buttons/pills) after the layer c
 render dark text on white/green-accent correctly, confirming the fix is surface-aware as required
 (did not touch any explicit component color rule, only the default for genuinely unstyled buttons).
 
+### Green-surface contrast — final correction (commit `2cdb83e`)
+
+Two corrections from review, both accepted as right:
+
+1. **"It's an rgba overlay, not a hardcoded second green" was not an acceptable answer.** A white
+   translucent fill on top of `#0F7A4D` still visually reads as a different, lighter green surface
+   — the contract is "exactly `#0F7A4D`", not "green plus opacity math". Changed the language
+   switcher's icon button (`home.css` `.locale-switcher--icon-only`) and the notification bell from
+   a resting `rgba(255,255,255,.08)` fill to fully transparent, so the header's own `#0F7A4D` shows
+   through unmodified at rest (white border + white icon for legibility; the hover state keeps a
+   light overlay as a transient interaction cue, not a permanent second surface). **Verified
+   BROWSER**: both controls' `background-color` is `rgba(0,0,0,0)` against the header's
+   `rgb(15,122,77)`, at desktop and 375px mobile — confirmed via computed styles, not visual guess.
+   Regression-swept more button types than the single prior spot-check: public green CTAs,
+   cookie-consent Accept, the white outline "Войти" button, sign-in's primary button,
+   Telegram/Google OAuth buttons — all correctly contrasted.
+2. **Evidence-tier honesty correction, not a technical fix**: the footer wordmark and Assistant
+   icon being confirmed white via `getComputedStyle` on this **local build** does NOT mean the
+   defect is closed — the user's original screenshots were presumably taken against **deployed
+   production** (`tajstay.site`), a separate, unverified revision. Correct status is:
+   - **LOCAL CURRENT**: footer wordmark = white ✓, Assistant icon = white ✓, mark-all-read = correct
+     ✓, language/notification controls = exactly `#0F7A4D` ✓ — all confirmed via computed styles on
+     this session's local build.
+   - **DEPLOYED PROD**: OPEN — the screenshots that reported this bug are evidence of *that*
+     revision's actual behavior, which may or may not match local HEAD. Do not mark this defect
+     closed until re-checked against the real deployed site after the next deploy.
+   - **REAL DEVICE**: OPEN, unchanged.
+
 ### Moderation current-state architecture + Admin photo + price-snapshot period (commit `be6683f`)
 
 Review correctly rejected the prior pass's "reuse AdminAuditLog for the rejection reason" as not
