@@ -937,11 +937,110 @@ the existing moderate route, but there's no field to store *why*, so owner-facin
 resubmit aren't implemented (this is a schema change, a protected domain — needs its own explicit
 go-ahead, not bundled into this fix).
 
+### Fail-closed canonical Hotel context — no more silent "all my hotels" fallback (commit `c1c4738`, external — see note below)
+
+User feedback correctly rejected the previous behavior as not truly fail-closed: an invalid/foreign
+`?hotelId=` was being silently swapped for an aggregate "all my hotels" view instead of a real
+authorization failure, and `?hotelId=` being *absent* was quietly treated as "aggregate" as a
+universal default across every section — never explicitly decided per-domain.
+
+**Fixed** (`HOTEL_SCOPED_SECTIONS` + a canonical resolver in `page.tsx`): Overview/Rooms/Bookings/
+Offline Bookings/Calendar/Reviews/Finances/Statistics now always resolve to exactly one concrete
+APPROVED Hotel — never an aggregate. A foreign hotelId (belongs to another owner), a pending/rejected
+hotelId, or a nonexistent one all hit the same path: `redirect()` to the same section with a real
+owned-and-approved hotelId explicit in the URL (deterministically the owner's first approved hotel).
+No hotelId given at all, with 2+ approved hotels, does the same — canonicalizes the URL rather than
+silently picking one behind the scenes. Exactly 1 approved hotel needs no redirect (nothing
+ambiguous to state). Properties/Notifications/Help remain intentionally Owner-global by definition
+(a full object list; a future Owner-wide inbox) — `hotelId` is simply not meaningful there, per the
+section-scope matrix below. The switcher's old `"Все объекты"` option is gone — there is no aggregate
+mode left to select.
+
+**Section-scope matrix** (requested explicitly — current source, target, status):
+
+| Section | Scope | Status |
+|---|---|---|
+| Overview | active Hotel | DONE |
+| Rooms | active Hotel | DONE |
+| Bookings | active Hotel | DONE |
+| Offline Bookings | active Hotel | DONE |
+| Calendar | active Hotel | DONE |
+| Finance | active Hotel | DONE |
+| Statistics/Analytics | active Hotel | DONE |
+| Reviews | active Hotel | DONE |
+| Payment Methods | active Hotel (Phase A, hotel-scoped by construction) | DONE |
+| Properties/Objects | Owner-global (by definition — it's the list used to pick a Hotel) | DONE, unchanged |
+| Notifications | Owner-global inbox (product decision, not a schema gap — see below) | DECIDED, per-notification Hotel display NOT built |
+| Messages | booking-thread-based already; a deep link should switch active Hotel context | NOT VERIFIED this pass |
+| Help | Owner-global | unaffected |
+
+**Notifications semantics — decided, not a schema blocker**: Owner-global inbox is correct (an owner
+with 5 hotels needs one place to see events across all of them) — this does NOT need a new
+`hotelId` column on `Notification` as I'd previously flagged; a booking-related notification can
+already derive its Hotel via the existing `booking.room.hotel`/`booking.roomType.hotel` relation
+through `Notification.bookingId`, no schema change needed. **Still OPEN**: actually rendering that
+Hotel name on each notification row and making tap-through switch the active Hotel context before
+opening the booking — not built this pass, correctly scoped as a UI task now that the data path is
+confirmed to already exist.
+
+**Important limitation found and understood, not a bug in the logic**: Next.js App Router's
+`redirect()` thrown from a Server Component nested under an already-async layout (this one calls
+`requireOwner()`/`prisma.hotel.findMany` before rendering `{children}`) does not produce a real
+top-level HTTP 30x for a plain non-JS request (confirmed via `curl -v` — genuinely a `200` with a
+`NEXT_REDIRECT` digest embedded in the streamed RSC payload, never a `Location` header). A real
+browser (or anything executing the RSC runtime) follows it correctly — confirmed live: the address
+bar itself changes from `?hotelId=1` to `?hotelId=33` after navigation, and content is correctly
+scoped to the corrected hotel. This is pre-existing behavior already shared by `requireOwner()`'s own
+redirect (same nested-component limitation, not a regression introduced here) — a non-JS client
+(curl, a bot, a server-to-server health check) hitting a hotel-scoped URL with a bad hotelId gets a
+`200` it can't act on, but critically **does not receive any other owner's data** — Next aborts
+rendering the redirecting segment entirely, so the "both hotels visible" I misread during debugging
+turned out to be the sidebar switcher's own `<option>` list (present regardless, rendered by the
+layout before the redirect fires), not a data leak. Flagging this limitation honestly rather than
+silently — a fully non-JS-safe fail-closed response (real 404/403 at the HTTP layer) would need the
+authorization check moved into `middleware.ts` or a Route Handler ahead of the RSC render, which is a
+larger change than this pass's scope; not doing it now, but not hiding that the curl-level guarantee
+is weaker than the browser-level one either.
+
+**Verified BROWSER** (the correct tier for this specific mechanism, per the limitation above):
+logged in as the 4-hotel fixture owner, navigated to `?section=bookings&hotelId=1` (hotel 1 belongs
+to a different owner) — address bar corrected itself to `?hotelId=33` and content showed only Hotel
+33's booking (Guest H1), not Hotel 34's; navigated to `?section=finances` with no hotelId at
+all — address bar canonicalized to `?hotelId=33` automatically.
+
+**Note on git state**: an external commit `c1c4738` ("понятное описание изменений77777", author
+`xzba`) appeared containing exactly this in-progress diff (fail-closed resolver + switcher changes,
+confirmed via `git show --stat`/diff — nothing foreign, matches what was being worked on). Not
+amended or altered; continued from that HEAD after verifying its contents.
+
+### Multi-Hotel Foundation — honest status: IN PROGRESS, not PASS
+
+Per the Definition-of-Done checklist:
+
+- ✓ Owner can have many Hotels
+- ✓ new Hotels require moderation (fixed this pass, `6c5eba8`)
+- ✓ approved Hotels switch correctly
+- ✓ pending/rejected are not operational (disabled in switcher, rejected server-side even via
+  direct URL injection)
+- ✓ URL context persists and is now canonical/explicit (this pass)
+- ✓ foreign hotelId fails closed (browser-verified; curl-level caveat documented above)
+- ✓ no silent aggregate fallback (removed this pass)
+- ✓ Rooms/Bookings/Calendar/Finance/Analytics/Reviews scoped
+- ✓ Payment Methods scoped (Phase A)
+- ○ Messages correctly contextual — NOT verified this pass
+- ✓ Notifications semantics explicitly decided (Owner-global) — Hotel display on each row NOT built
+- ✗ map replaces manual coordinates — NOT built
+- ✗ image crop/placeholder fix — NOT built
+- ✗ mobile verified beyond Objects list — switcher itself not spot-checked at 390/412
+- ✗ RU/TJ/EN checked beyond the new switcher/status labels — no full copy pass
+
 **NEXT**: map-pin location picker (replaces raw lat/lng, becomes the one canonical Hotel location
-shared across Owner Desk/Public Hotel Detail/Search map/Admin moderation per the spec) is the next
-architecturally-interesting item, OR hotel-image crop/placeholder fixes, OR Subscription business
-model (also gated on multi-hotel, per master order). Picking whichever has the clearer next dependency
-when resuming.
+shared across Owner Desk/Public Hotel Detail/Search map/Admin moderation per the spec), then
+hotel-image crop/placeholder fixes (user has shown a real distorted-crop screenshot — do not defer
+further), then the remaining mobile/i18n passes, then the full real-QA matrix (A/B/C-pending/foreign
+owner) before Multi-Hotel can honestly be marked PASS — only then proceed to Subscription, since the
+free-trial-starts-at-approval-timestamp design explicitly depends on the approval pipeline fixed this
+pass.
 
 ### Auth cleanup — DONE (uncommitted at time of writing this entry, commit to follow)
 
