@@ -22,10 +22,14 @@ import { BackNav } from "@/components/hotel/BackNav";
 
 const REVIEWS_PREVIEW_COUNT = 4;
 
-function buildSearchFallbackHref(city: string, searchParams?: { checkIn?: string; checkOut?: string }): string {
+function buildSearchFallbackHref(
+  city: string,
+  searchParams?: { checkIn?: string; checkOut?: string; guests?: string }
+): string {
   const params = new URLSearchParams({ city });
   if (searchParams?.checkIn) params.set("checkIn", searchParams.checkIn);
   if (searchParams?.checkOut) params.set("checkOut", searchParams.checkOut);
+  if (searchParams?.guests) params.set("guests", searchParams.guests);
   return `/search?${params.toString()}`;
 }
 
@@ -132,7 +136,7 @@ export default async function HotelDetailPage({
   searchParams
 }: {
   params: { id: string };
-  searchParams?: { checkIn?: string; checkOut?: string };
+  searchParams?: { checkIn?: string; checkOut?: string; guests?: string };
 }) {
   const locale = getLocale();
   const id = Number(params.id);
@@ -252,8 +256,8 @@ export default async function HotelDetailPage({
 
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-semibold text-white">{hotel.name}</h1>
-            <p className="text-sm text-brand-200">
+            <h1 className="text-2xl font-semibold text-[var(--taj-color-text)]">{hotel.name}</h1>
+            <p className="text-sm text-[var(--taj-color-text-secondary)]">
               {hotel.city}
               {hotel.address ? `, ${hotel.address}` : ""}
             </p>
@@ -264,7 +268,7 @@ export default async function HotelDetailPage({
               <button
                 className={
                   isFavorite
-                    ? "rounded-xl border border-brand-600 px-3 py-2 text-sm font-medium text-brand-200 hover:bg-brand-800"
+                    ? "rounded-xl border border-brand-600 px-3 py-2 text-sm font-medium text-brand-700 hover:bg-brand-50"
                     : "rounded-xl bg-brand-500 px-3 py-2 text-sm font-medium text-white hover:bg-brand-400"
                 }
               >
@@ -274,17 +278,17 @@ export default async function HotelDetailPage({
           )}
         </div>
 
-        {descriptionOk ? <p className="text-sm text-brand-200">{hotel.description}</p> : null}
+        {descriptionOk ? <p className="text-sm text-[var(--taj-color-text-secondary)]">{hotel.description}</p> : null}
 
         {priceRange ? (
-          <p className="text-lg font-semibold text-white">
+          <p className="text-lg font-semibold text-[var(--taj-color-text)]">
             {priceRange.min === priceRange.max
               ? `${m(locale, "search.fromPrice")} ${priceRange.min} TJS`
               : `${priceRange.min}–${priceRange.max} TJS`}
           </p>
         ) : null}
 
-        <div className="flex flex-wrap items-center gap-3 text-sm text-brand-200">
+        <div className="flex flex-wrap items-center gap-3 text-sm text-[var(--taj-color-text-secondary)]">
           {propertyTypeKey ? <span>{m(locale, propertyTypeKey)}</span> : null}
           {showRating ? (
             <span className="inline-flex items-center gap-2">
@@ -300,7 +304,7 @@ export default async function HotelDetailPage({
 
       <section className="space-y-3" data-reveal>
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-xl font-semibold text-white">{m(locale, "owner.rooms")}</h2>
+          <h2 className="text-xl font-semibold text-[var(--taj-color-text)]">{m(locale, "owner.rooms")}</h2>
           {datesAreValid && !hotelFullySoldOut ? (
             <HotelDateChange
               locale={locale}
@@ -312,7 +316,7 @@ export default async function HotelDetailPage({
         </div>
         {hotelFullySoldOut ? (
           <div className="glass-panel space-y-3 rounded-xl p-5">
-            <p className="text-sm text-white">{m(locale, "hotelPage.hotelFullySoldOut")}</p>
+            <p className="text-sm text-[var(--taj-color-text)]">{m(locale, "hotelPage.hotelFullySoldOut")}</p>
             <div className="flex flex-wrap items-center gap-3">
               <HotelDateChange
                 locale={locale}
@@ -320,7 +324,7 @@ export default async function HotelDetailPage({
                 checkIn={searchParams?.checkIn}
                 checkOut={searchParams?.checkOut}
               />
-              <Link href="/search" className="text-sm font-medium text-brand-100 underline">
+              <Link href="/search" className="text-sm font-medium text-brand-700 underline">
                 {m(locale, "hotelPage.backToSearch")}
               </Link>
             </div>
@@ -328,7 +332,7 @@ export default async function HotelDetailPage({
         ) : roomGroups.length ? (
           <HotelRoomCategories locale={locale} groups={roomGroups} />
         ) : (
-          <p className="text-sm text-brand-200">{m(locale, "admin.emptyResults")}</p>
+          <p className="text-sm text-[var(--taj-color-text-secondary)]">{m(locale, "admin.emptyResults")}</p>
         )}
       </section>
 
@@ -336,7 +340,7 @@ export default async function HotelDetailPage({
         <section className="space-y-3" data-reveal>
           {acceptedPaymentMethods.length > 0 ? (
             <Card className="space-y-2 p-5">
-              <div className="text-xs font-semibold uppercase tracking-wide text-brand-200">Accepted payment methods</div>
+              <div className="text-xs font-semibold uppercase tracking-wide text-[var(--taj-color-text-secondary)]">Accepted payment methods</div>
               <div className="flex flex-wrap gap-2">
                 {acceptedPaymentMethods.map((method) => (
                   <span
@@ -354,14 +358,14 @@ export default async function HotelDetailPage({
 
       {similarHotels.length > 0 && (
         <section className="space-y-3" data-reveal>
-          <h2 className="text-xl font-semibold text-white">Похожие варианты</h2>
+          <h2 className="text-xl font-semibold text-[var(--taj-color-text)]">Похожие варианты</h2>
           <div className="grid gap-3 md:grid-cols-3">
             {similarHotels.map((item) => (
               <Card key={item.id} className="space-y-2 p-4">
-                <h3 className="text-base font-semibold text-white">{item.name}</h3>
-                <p className="text-sm text-brand-200">{item.city}</p>
-                <p className="text-sm text-brand-200">Рейтинг: {item.rating.toFixed(1)}</p>
-                <Link href={`/hotel/${item.id}`} className="text-sm font-semibold text-brand-200 hover:text-white">
+                <h3 className="text-base font-semibold text-[var(--taj-color-text)]">{item.name}</h3>
+                <p className="text-sm text-[var(--taj-color-text-secondary)]">{item.city}</p>
+                <p className="text-sm text-[var(--taj-color-text-secondary)]">Рейтинг: {item.rating.toFixed(1)}</p>
+                <Link href={`/hotel/${item.id}`} className="text-sm font-semibold text-brand-600 hover:text-brand-800">
                   Смотреть отель
                 </Link>
               </Card>
@@ -372,9 +376,9 @@ export default async function HotelDetailPage({
 
       <section className="space-y-3" data-reveal>
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-xl font-semibold text-white">{m(locale, "hotelPage.reviews")}</h2>
+          <h2 className="text-xl font-semibold text-[var(--taj-color-text)]">{m(locale, "hotelPage.reviews")}</h2>
           {reviews.length > REVIEWS_PREVIEW_COUNT ? (
-            <Link href={`/hotel/${hotel.id}/reviews`} className="text-sm font-medium text-brand-100 underline">
+            <Link href={`/hotel/${hotel.id}/reviews`} className="text-sm font-medium text-brand-700 underline">
               {m(locale, "hotelPage.allReviews")}
             </Link>
           ) : null}
@@ -382,8 +386,8 @@ export default async function HotelDetailPage({
         {reviews.length ? (
           <>
             <Card className="space-y-2 p-5">
-              <p className="text-sm text-brand-200">{aiReviewSummary.positive}</p>
-              <p className="text-sm text-brand-200">{aiReviewSummary.negative}</p>
+              <p className="text-sm text-[var(--taj-color-text-secondary)]">{aiReviewSummary.positive}</p>
+              <p className="text-sm text-[var(--taj-color-text-secondary)]">{aiReviewSummary.negative}</p>
             </Card>
             <div className="space-y-3">
               {reviews.slice(0, REVIEWS_PREVIEW_COUNT).map((r) => (
@@ -392,7 +396,7 @@ export default async function HotelDetailPage({
             </div>
           </>
         ) : (
-          <p className="text-brand-200">{m(locale, "hotelPage.noReviewsYet")}</p>
+          <p className="text-[var(--taj-color-text-secondary)]">{m(locale, "hotelPage.noReviewsYet")}</p>
         )}
       </section>
     </div>

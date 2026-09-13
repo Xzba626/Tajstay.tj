@@ -30,24 +30,35 @@ function PriceLine({
   if (!min && !max) return null;
   if (min === max) {
     return (
-      <div className="font-semibold text-white">
+      <div className="font-semibold text-[var(--taj-color-text)]">
         {m(locale, "search.fromPrice")} {min} TJS
       </div>
     );
   }
   return (
-    <div className="font-semibold text-white">
+    <div className="font-semibold text-[var(--taj-color-text)]">
       {min}–{max} TJS
     </div>
   );
 }
 
-function AmenityList({ locale, amenities }: { locale: Locale; amenities: string[] }) {
+/** `tone` matches the surface this renders on - "light" for the white glass-panel card, "dark"
+ *  for the self-contained black/20 variant chip - never assume one shared color works on both. */
+function AmenityList({
+  locale,
+  amenities,
+  tone = "light"
+}: {
+  locale: Locale;
+  amenities: string[];
+  tone?: "light" | "dark";
+}) {
   if (!amenities.length) return null;
+  const textClass = tone === "dark" ? "text-brand-200" : "text-[var(--taj-color-text-secondary)]";
   return (
     <div className="mt-2 flex flex-wrap gap-1">
       {amenities.map((item) => (
-        <span key={item} className="rounded-full border border-brand-700 px-2 py-0.5 text-[11px] text-brand-200">
+        <span key={item} className={`rounded-full border border-brand-700 px-2 py-0.5 text-[11px] ${textClass}`}>
           {amenityLabel(locale, item)}
         </span>
       ))}
@@ -68,7 +79,6 @@ function SoldOutBadge({ locale }: { locale: Locale }) {
     <span
       role="status"
       className="inline-flex cursor-not-allowed items-center rounded-lg border border-white/15 bg-black/20 px-4 py-2 text-sm font-medium text-brand-200"
-      aria-disabled="true"
     >
       {m(locale, "hotelPage.soldOut")}
     </span>
@@ -90,7 +100,7 @@ function VariantCard({
       <div className="mt-1 text-sm text-brand-200">
         {m(locale, "owner.capacity")}: {variant.capacity}
       </div>
-      <AmenityList locale={locale} amenities={variant.amenities} />
+      <AmenityList locale={locale} amenities={variant.amenities} tone="dark" />
       <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
         <div className="font-semibold text-white">{variant.price} TJS</div>
         {soldOut ? <SoldOutBadge locale={locale} /> : <BookButton href={variant.bookHref} locale={locale} />}
@@ -115,13 +125,15 @@ function CategoryCard({
       </div>
       <div className="flex min-w-0 flex-1 flex-col justify-between gap-3">
         <div>
-          <div className="font-semibold text-white">{group.name}</div>
-          {group.description ? <p className="mt-1 text-sm text-brand-200">{group.description}</p> : null}
-          <p className="mt-2 text-sm text-brand-200">
+          <div className="font-semibold text-[var(--taj-color-text)]">{group.name}</div>
+          {group.description ? (
+            <p className="mt-1 text-sm text-[var(--taj-color-text-secondary)]">{group.description}</p>
+          ) : null}
+          <p className="mt-2 text-sm text-[var(--taj-color-text-secondary)]">
             {m(locale, "hotelPage.categoryCount", { count: group.count })}
           </p>
           {group.identical && group.capacity != null ? (
-            <div className="mt-1 text-sm text-brand-200">
+            <div className="mt-1 text-sm text-[var(--taj-color-text-secondary)]">
               {m(locale, "owner.capacity")}: {group.capacity}
             </div>
           ) : null}
@@ -142,7 +154,7 @@ function CategoryCard({
             <PriceLine locale={locale} min={group.minPrice} max={group.maxPrice} />
             <button
               type="button"
-              className="rounded-lg border border-brand-500 px-4 py-2 text-sm font-medium text-brand-100"
+              className="rounded-lg border border-brand-500 px-4 py-2 text-sm font-medium text-brand-700"
               onClick={() => setOpen((value) => !value)}
             >
               {m(locale, "hotelPage.viewVariants")}

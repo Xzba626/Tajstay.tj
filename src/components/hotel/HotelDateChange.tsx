@@ -29,7 +29,7 @@ export function HotelDateChange({
 
   return (
     <form onSubmit={submit} className="flex flex-wrap items-end gap-2">
-      <label className="flex flex-col text-xs text-brand-200">
+      <label className="flex flex-col text-xs text-[var(--taj-color-text-secondary)]">
         {m(locale, "search.checkIn")}
         <input
           type="date"
@@ -38,7 +38,7 @@ export function HotelDateChange({
           className="mt-1 rounded-lg border border-brand-700 bg-black/20 px-3 py-2 text-sm text-white"
         />
       </label>
-      <label className="flex flex-col text-xs text-brand-200">
+      <label className="flex flex-col text-xs text-[var(--taj-color-text-secondary)]">
         {m(locale, "search.checkOut")}
         <input
           type="date"

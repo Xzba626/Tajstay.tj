@@ -29,13 +29,13 @@ export function ReviewCard({
     <div className="glass-panel rounded-2xl p-5">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <div className="font-semibold text-white">
+          <div className="font-semibold text-[var(--taj-color-text)]">
             {m(locale, "profile.rating")}: {review.rating}/5
           </div>
-          <div className="text-sm text-brand-200">
+          <div className="text-sm text-[var(--taj-color-text-secondary)]">
             {name} · {new Intl.DateTimeFormat(locale === "ru" ? "ru-RU" : locale === "tg" ? "tg-TJ" : "en-US").format(review.createdAt)}
           </div>
-          <div className="mt-3 whitespace-pre-wrap text-sm text-brand-200">{review.comment}</div>
+          <div className="mt-3 whitespace-pre-wrap text-sm text-[var(--taj-color-text-secondary)]">{review.comment}</div>
           {review.imageUrl && (
             <div className="mt-3">
               <AppImage
