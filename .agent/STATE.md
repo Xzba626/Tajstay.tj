@@ -1733,3 +1733,64 @@ still never rendered as stars, `Hotel.rating` remains the only star display.
 **NEXT**: STOPPED for review. Full BLOCK 3.2 report delivered to the user for the CODE/TEST/BUILD/
 REAL RUNTIME/PERFORMANCE/ACCESSIBILITY/DEPLOYED/EVIDENCE gate. Awaiting explicit go-ahead before
 BLOCK 4 (Booking Form/Payment/Chat).
+
+### BLOCK 3.3 — Search/Hotel final verification gate (no code change, HEAD stayed `30009ff`)
+
+Verification-only gate confirming the 3 runtime cases BLOCK 3.2 left `NOT RE-CHECKED`: Search
+zero-results (clean empty state, no crash), invalid dates both `checkOut < checkIn` and
+`checkOut == checkIn` (UI never claims false availability; real HTTP POST to `/api/bookings`
+confirmed a controlled `400 {"error":"dates"}` for both), and Hotel not-found for both a
+nonexistent numeric id and a malformed string id (correct 404 UX in both dev and a genuine
+production build - though the actual HTTP status code is `200`, not `404`, flagged as a real but
+non-blocking technical debt item, not fixed in this gate). The persistent hydration console
+warning was reclassified `KNOWN DEV-MODE WARNING — NON-BLOCKING` per explicit criteria (no
+application failure, no visible DOM mismatch, re-verified fresh). Result: **BLOCK 3 CLOSED
+TECHNICALLY** (`DEPLOYED` still `NOT PROVEN`, `OWNER VISUAL VALIDATION` still `REQUIRED`).
+
+## BLOCK 4 — Booking Form → Authoritative Availability → State Preservation (commit `20a33a9`,
+START_SHA `30009ff`, END_SHA `20a33a9`)
+
+Traced the real guest-facing booking-creation path (`/booking` page → `BookingWizard` → `POST
+/api/bookings`) before changing anything, per instruction. **Headline finding, proven live, not
+assumed**: booking *creation* performs **zero availability check** - `POST /api/bookings` calls
+`computeRoomTotalPrice`/`computeRoomTypeTotalPrice` for pricing only, then goes straight to
+`prisma.booking.create()` with `status: WAITING_PAYMENT`. Two independent guests racing for the
+identical physical Room + dates both got a clean `200 {"ok":true}` with a distinct
+`WAITING_PAYMENT` booking each (proven via a real concurrent HTTP test, bookingId 609 vs 610) -
+the Block 2 EXCLUDE constraint doesn't catch this either, since `WAITING_PAYMENT` is deliberately
+outside `OCCUPYING_ONLINE_STATUSES`. Confirmed where the real invariant actually lives: at
+**confirmation** time (`confirmBookingPayment`, requires `ON_REVIEW` + submitted payment proof) -
+tried to confirm both duplicate bookings and got exactly one `ok` + one clean `conflict`,
+proving the Block 2/2.1 machinery is correct and does eventually catch this, just much later in
+the lifecycle than booking creation.
+
+**This is an existing, real product consequence — not invented, not silently fixed**: two guests
+can both be told "booking created, proceed to payment" for what turns out to be the same last
+unit, before either learns only one can be confirmed. Per explicit instruction, no hold/lock/
+expiry/first-payment-wins policy was invented to fix this - documented as **PRODUCT DECISION
+REQUIRED** in the delivered report, stopped at that safe boundary.
+
+**Separately and safely fixed** (does not require any cross-user capacity policy decision): the
+SAME authenticated user firing two near-simultaneous submits got two separate WAITING_PAYMENT
+rows for the identical room+dates (bookingId 612 vs 613, proven live) - the frontend's
+`submitInFlight` guard only protects one browser tab's own state. Added a narrow, `userId`-scoped
+idempotency check in `src/app/api/bookings/route.ts`: before creating a booking, look for an
+existing non-terminal booking by the same user for the same room/roomType + exact same dates, and
+return it instead of creating a duplicate. Re-tested live: the same near-simultaneous double-POST
+now returns the identical bookingId from both requests, DB confirms one row. Explicitly **not**
+claimed as a DB-level atomic guarantee (that would need a migration/unique constraint - a
+protected domain) - it's a SELECT-then-INSERT check verified to close the specific race
+reproduced, not a mathematical proof against all adversarial timing.
+
+**Verified live**: 1-night and 2-night price calculations both correct (200 TJS / 400 TJS for a
+200 TJS/night room); mobile (375×812) form renders cleanly as a natural continuation of the Hotel
+page, no console errors; checkIn/checkOut correctly restored on a hard refresh (URL-derived);
+typed guest-name/phone text is lost on refresh (plain React state, no persistence) - documented,
+not fixed, per the instruction that this doesn't require a persistent-draft feature in this Block.
+Re-ran Block 2's physical-room concurrency (5/5) and 14-case regression suite after the write-path
+change - no regression. `npx tsc --noEmit`, targeted `eslint`, `npm run build` all clean. All test
+fixtures cleaned up against local Postgres only.
+
+**NEXT**: STOPPED for review, per instruction. Not starting Payment redesign, Chat, or BLOCK 5.
+Full report delivered to the user with the reservation-lifecycle finding as the headline item,
+explicitly flagged PRODUCT DECISION REQUIRED rather than resolved unilaterally.
