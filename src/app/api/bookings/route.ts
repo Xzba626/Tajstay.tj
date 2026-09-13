@@ -166,6 +166,43 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Idempotency guard against a literal double-submit (double-tap, a retried request, two
+    // near-simultaneous POSTs from the same browser) - proven live to otherwise create two
+    // separate WAITING_PAYMENT rows for the identical room+dates, since booking creation itself
+    // does not check availability at all (that only happens at confirmation time via the Block
+    // 2/2.1 invariants - a deliberate, documented architecture gap, not something this guard
+    // changes). This only recognizes the SAME user resubmitting the SAME exact request; it is
+    // not a capacity hold and says nothing about two DIFFERENT guests racing for the same room.
+    const duplicateWhere = resolvedRoomId
+      ? { roomId: resolvedRoomId }
+      : { roomTypeId: resolvedRoomTypeId, roomId: null };
+    const existingLiveBooking = await prisma.booking.findFirst({
+      where: {
+        userId,
+        ...duplicateWhere,
+        checkIn,
+        checkOut,
+        status: { notIn: ["REJECTED", "CANCELLED", "EXPIRED", "COMPLETED"] }
+      },
+      orderBy: { createdAt: "desc" }
+    });
+    if (existingLiveBooking) {
+      if (wantsJson) {
+        return NextResponse.json(
+          {
+            ok: true,
+            bookingId: existingLiveBooking.id,
+            publicCode: existingLiveBooking.publicCode,
+            status: existingLiveBooking.status,
+            expiresAt: existingLiveBooking.expiresAt?.toISOString() ?? null,
+            chatUrl: `/chat/booking/${existingLiveBooking.id}`
+          },
+          { status: 200 }
+        );
+      }
+      return NextResponse.redirect(publicUrl(req, `/chat/booking/${existingLiveBooking.id}`));
+    }
+
     // Guest has 15 minutes to submit payment proof after booking creation.
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
     const publicCode = await generateBookingCode("TJ");
