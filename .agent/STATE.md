@@ -1579,6 +1579,39 @@ changes. All test fixtures (hotels/rooms/roomTypes/bookings/owners/sessions) cre
 against local Postgres only — no migration, no production touch. Evidence tiers: CODE=PASS,
 TEST=PASS (real concurrent DB writes), REAL HTTP=PASS (local dev server), DEPLOYED=NOT PROVEN.
 
-**NEXT**: per explicit user instruction, STOPPED after Block 2.1 — not proceeding into the
-Search→Hotel→Rooms→Booking-form→mobile-UX master block, Manager, or Expenses without further
-direction. Awaiting review of the Block 2.1 report before any further work.
+### BLOCK 3 — Search→Hotel→Rooms date-availability gap (commit `bfa8bb3`, START_SHA `042bf6c`, END_SHA `bfa8bb3`) — PARTIAL
+
+Closed the BLOCK 1-confirmed gap: `checkIn`/`checkOut` were read by the search route/page but never
+applied — `searchApprovedHotelsQuery` had no date fields at all, so a fully-booked hotel still
+appeared as a normal result for the exact dates searched. The hotel detail page had the same gap one
+level deeper: `groupHotelRooms`/`isBookable` only checked static `Room.availability`/`status`, never
+real occupancy — a sold-out RoomType simply vanished instead of showing sold-out, and a fully-booked
+hotel showed a generic empty state indistinguishable from misconfiguration.
+
+New `getHotelDateAvailability(hotelId, checkIn, checkOut)` (`src/lib/pms/inventory.ts`) built entirely
+on the existing canonical invariants (`getRoomTypeAvailability`, `assertDatesAvailable`) — not a third
+parallel availability implementation. Wired into `search.ts` (filters hotels with zero real
+availability before ranking/sorting, when dates given), the search API route + SSR page (dates now
+actually passed through, not just echoed), and the hotel detail page (`groupHotelRooms` now keeps a
+sold-out RoomType/room in its output flagged `soldOut` instead of dropping it; a fully sold-out hotel
+renders an explicit empty state with an inline date-change form + back-to-search link, new
+`HotelDateChange` component). `HotelRoomCategories` renders a disabled "no rooms for these dates"
+badge instead of a live Book button for `soldOut` groups/variants.
+
+**Verified real, not assumed**: fixture hotel with a capacity=1 RoomType + a CONFIRMED booking on
+specific dates. `GET /api/search` for the occupied range returns the hotel 0/N times; for free dates,
+1/N times. Hotel detail page for the occupied range renders the sold-out empty state (checked desktop
++ 375×812 mobile, no console errors, no overflow); for free dates renders a live Book button.
+`npx tsc --noEmit` and `npm run build` both clean. Re-ran Block 2 (5/5) and Block 2.1's physical-room
+regression (14/14) suites — no regression.
+
+**Explicitly PARTIAL, not COMPLETE** (stated honestly, not hidden): only the confirmed date-integrity
+gap and its direct UI consequences (acceptance items 1/2/15/16/27) were done. NOT done: full
+mobile-first layout audit (hero density, scroll length, touch targets), back-control redesign, local
+color-token cleanup on these pages, room-card content review beyond sold-out, reviews-preview polish,
+loading-state review, accessibility pass, performance check, and QA scenarios B (full mobile
+normal-flow) and D (back-preserves-params re-verification). Full report delivered with an explicit
+list of what remains.
+
+**NEXT**: per explicit user instruction, STOPPED after this pass for review — not continuing further
+into BLOCK 3's remaining scope or BLOCK 4 (Booking Form/Payment/Chat) without further direction.
