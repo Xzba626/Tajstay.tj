@@ -1537,6 +1537,48 @@ check (no DB-level backstop for that specific case). This is why BLOCK 2 is self
 **PARTIAL**, not COMPLETE, per its own acceptance-criteria rule that one uncovered item keeps it from
 being declared done.
 
-**NEXT**: per explicit user instruction, STOPPED after Block 2 — not proceeding into Search/Hotel/
-Booking UX, Manager, Expenses, or the next master block without further direction. Awaiting review of
-the Block 2 report before any further work.
+### BLOCK 2.1 — RoomType capacity concurrency (commit `154f47a`, START_SHA `c62003c`, END_SHA `154f47a`)
+
+Closed the exact gap Block 2 flagged as PARTIAL: a RoomType-only booking (no physical room resolved
+yet) has no single column for the Block 2 EXCLUDE constraint to range-exclude on — capacity there is
+a counting problem, not a range-overlap problem, and remained protected only by an app-level
+SELECT-then-write with no concurrency control. Full RoomType/Room capacity model traced first (no
+assumptions): `availableCount = max(0, sellableRoomsOfType - occupiedRoomsOfType -
+unassignedOccupyingTypeBookings)`.
+
+**Proved the race live before fixing**: a probe reproducing the exact old unguarded code shape
+(`assertRoomTypeAvailable` against the plain global `prisma` client, then a separate unprotected
+`create`) double-booked a capacity=1 RoomType 5/5 runs for PLATFORM-vs-OWNER_MANUAL and
+OWNER_MANUAL-vs-OWNER_MANUAL; PLATFORM-vs-PLATFORM did not reliably reproduce in this harness shape
+(same timing-sensitivity artifact Block 2 noted for its own Test A — reported honestly, not forced).
+
+**Fix**: `withRoomTypeCapacityGuard(roomTypeId, fn)` (`src/lib/pms/inventory.ts`) — a Postgres
+transaction-scoped advisory lock (`pg_advisory_xact_lock`, keyed on `roomTypeId`) held for one short
+`prisma.$transaction` that re-checks capacity and performs the write together. Concurrent requests
+for the SAME RoomType serialize; different RoomTypes (even in the same Hotel) never block each
+other — confirmed via a non-conflict test completing in ~52ms, no serialization delay. Lock releases
+automatically on commit/rollback, no separate unlock call. Threaded an optional
+`Prisma.TransactionClient` through `getRoomBookingsInRange`/`getPhysicalRoomsForType`/
+`getRoomTypeAvailability`/`assertRoomTypeAvailable` so the re-check inside the guard sees the same
+transaction's own writes. Wired into all 4 real check-then-write paths:
+`paymentReviewActions.confirmBookingPayment`, `owner/bookings/[id]/confirm` route,
+`ownerOfflineBooking.createOwnerOfflineBooking`/`updateOwnerOfflineBooking` — each now folds the
+availability check and the write into one atomic operation per branch (physical-room vs
+RoomType-only). Also fixed `owner/offline-bookings` route to return 409 (not 400) for a
+`dates_unavailable` conflict, matching the contract already established for `/api/bookings`.
+
+**Verified real, not assumed**: RoomType test matrix (capacity=1/2/3 across all 3 source
+combinations, pre-occupied scenarios, non-conflict different-RoomType and adjacent-date cases,
+CANCELLED/REJECTED/EXPIRED freeing capacity) — 10/10 PASS against local Postgres. Re-ran Block 2's
+original physical-room concurrency (5/5) and regression (14/14) suites after this change — confirmed
+no regression, both constraints now coexist correctly. Real HTTP integration test: a genuine
+DB-backed session cookie against a running local dev server, `POST /api/owner/offline-bookings` —
+first request 200 `{ok:true}`, second conflicting request a controlled 409
+`{"error":"dates_unavailable"}`, never a raw 500. Production build (`npm run build`) clean after all
+changes. All test fixtures (hotels/rooms/roomTypes/bookings/owners/sessions) created and cleaned up
+against local Postgres only — no migration, no production touch. Evidence tiers: CODE=PASS,
+TEST=PASS (real concurrent DB writes), REAL HTTP=PASS (local dev server), DEPLOYED=NOT PROVEN.
+
+**NEXT**: per explicit user instruction, STOPPED after Block 2.1 — not proceeding into the
+Search→Hotel→Rooms→Booking-form→mobile-UX master block, Manager, or Expenses without further
+direction. Awaiting review of the Block 2.1 report before any further work.
