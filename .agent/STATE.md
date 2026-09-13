@@ -1844,6 +1844,45 @@ time pressure.
 
 **NEXT**: STOPPED for review. Not starting Payment redesign, Chat, or BLOCK 5.
 
+## BLOCK 5.0 — Payment Lifecycle Full Read-Only Audit (no implementation)
+
+Full report: `BLOCK_5.0_REPORT.md` (delivered via SendUserFile). Audit only - no code changed,
+production not touched.
+
+**Headline finding**: the guest-facing "pay now" step in `BookingWizard.tsx` (step 2) is a
+hardcoded `DcNextPaymentCard` with a fixed, platform-wide account (`+992 901 317 727`,
+"Мухаммадали Р. А.") baked in as module constants - NOT the real per-hotel `HotelPaymentMethod`
+system, which is fully built (schema, owner CRUD, `PaymentMethodsBlock`, cross-hotel isolation
+proven safe by real test) but only reachable AFTER booking creation, on `/chat/booking/[id]`. A
+guest can tap the wizard's live DC Next deep link before ever reaching the real hotel-specific
+requisites, sending money to the wrong (shared, non-hotel) account. This is the top implementation
+priority for BLOCK 5.1.
+
+**Also established with real runtime evidence**: `PENDING_OWNER`/`WAIT_PROOF` and the entire
+"pay at check-in" guest flow are confirmed 100% dead (zero write sites, zero DB rows, dead UI
+button) - `payOnArrival:true` only exists via the Owner's own manual offline-entry tool, already
+created as CONFIRMED, not a guest self-service path. Payment-proof files (and guest ID docs /
+owner KYC uploads, same storage function) are stored with zero access control - confirmed via a
+real unauthenticated curl returning a full proof image with no cookie. Confirm/reject/idempotency/
+terminal-state-guard (BLOCK 2) all still hold correctly under real runtime tests. The
+`expire-bookings` cron job is well-built (two independent timers: 15-min payment window, 5-min
+owner-review SLA) but no `vercel.json` crons entry or other in-repo scheduler reference was found -
+inventory correctness doesn't depend on it (BLOCK 4 already proved that), but EXPIRED/REJECTED
+status writes, expiry chat messages, and notifications do. The header notification-bell defect you
+flagged is confirmed and root-caused to the CSS level (computed `color: rgb(82,82,91)` overriding
+the component's own `text-white`, likely from a global `--taj-icon` token) but not fixed, per
+instruction; it does not reproduce on mobile since no notification bell exists in the mobile header
+at all.
+
+Full findings table (R-1 through R-6) with severity/evidence/root-cause/recommended-next-block in
+the delivered report. Local fixtures (2 hotels, 1 room, 1 booking, 3 users) cleaned up, verified 0
+leftovers.
+
+**Verdict: BLOCK 5.0 AUDIT = COMPLETE. IMPLEMENTATION = NOT STARTED.**
+
+**NEXT**: STOPPED per explicit instruction. Not starting BLOCK 5.1 (implementation spec) without
+the user reviewing this audit first.
+
 ## BLOCK 4.3 — Verification-only Final Runtime Closure (BLOCK 4 = CLOSED TECHNICALLY)
 
 Verification-only gate on top of BLOCK 4.2, per the user's explicit spec (no booking-domain code
