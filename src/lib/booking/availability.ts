@@ -110,10 +110,22 @@ export async function getRoomBookingsInRange(roomId: number, from: Date, to: Dat
       publicCode: true,
       phone: true,
       totalPrice: true,
+      expiresAt: true,
+      paymentTimerPaused: true,
       user: { select: { name: true, phone: true } }
     },
     orderBy: { checkIn: "asc" }
   });
+}
+
+/** See activeHoldCondition's doc comment - the same time-based (not cron-dependent) rule, as a
+ *  plain predicate for callers that already have the booking's fields in hand (e.g. inventory.ts,
+ *  which fetches via getRoomBookingsInRange and needs to combine this with per-room grouping). */
+export function isActiveHoldBooking(b: { status: string; expiresAt: Date | null; paymentTimerPaused: boolean }): boolean {
+  if (!(PENDING_ONLINE_STATUSES as readonly string[]).includes(b.status)) return false;
+  if (b.paymentTimerPaused) return true;
+  if (!b.expiresAt) return true;
+  return b.expiresAt.getTime() > Date.now();
 }
 
 export class DatesUnavailableError extends Error {
@@ -179,18 +191,42 @@ export async function withRoomOverlapGuard<T>(fn: () => Promise<T>, maxAttempts 
   throw lastError instanceof Error ? lastError : new DatesUnavailableError();
 }
 
+/**
+ * An "active hold" - a PENDING_ONLINE_STATUSES booking (WAITING_PAYMENT/WAIT_PROOF/ON_REVIEW/
+ * PENDING_OWNER) that has not yet timed out. Time-based, not status-based: a booking whose
+ * expiresAt has already passed is treated as free here immediately, WITHOUT waiting for the
+ * /api/jobs/expire-bookings cron to flip its status to EXPIRED - that job's own delay (or outage)
+ * must never let a stale hold keep blocking real availability. paymentTimerPaused bookings never
+ * expire on their own (an owner/admin explicitly paused the countdown), so they stay held.
+ */
+function activeHoldCondition(now: Date) {
+  return {
+    status: { in: [...PENDING_ONLINE_STATUSES] },
+    OR: [{ paymentTimerPaused: true }, { expiresAt: null }, { expiresAt: { gt: now } }]
+  };
+}
+
 export async function assertDatesAvailable(params: {
   roomId: number;
   checkIn: Date;
   checkOut: Date;
   excludeBookingId?: number;
+  client?: DbClient;
+  /** Block 4.1: when true, an active (unexpired, unpaused) WAITING_PAYMENT/WAIT_PROOF/ON_REVIEW/
+   *  PENDING_OWNER booking counts as occupying too, not just CONFIRMED/CHECKED_IN/COMPLETED.
+   *  Defaults to false - CONFIRMATION's own pre-check must NOT enable this, or two holds that
+   *  legitimately coexist (exactly the race this Block closes at creation) would each see the
+   *  other as blocking and neither could ever be confirmed - a self-deadlock. Only booking
+   *  CREATION opts in, since that's the one path meant to stop new holds from stacking up. */
+  includeActiveHolds?: boolean;
 }): Promise<void> {
-  const { roomId, checkIn, checkOut, excludeBookingId } = params;
+  const { roomId, checkIn, checkOut, excludeBookingId, client = prisma, includeActiveHolds = false } = params;
   if (checkOut.getTime() <= checkIn.getTime()) {
     throw new DatesUnavailableError("Invalid dates");
   }
 
-  const overlap = await prisma.booking.findFirst({
+  const now = new Date();
+  const overlap = await client.booking.findFirst({
     where: {
       roomId,
       id: excludeBookingId ? { not: excludeBookingId } : undefined,
@@ -204,7 +240,15 @@ export async function assertDatesAvailable(params: {
         {
           source: BOOKING_SOURCE.OWNER_MANUAL,
           offlineStatus: { in: [...OCCUPYING_OFFLINE_STATUSES] }
-        }
+        },
+        ...(includeActiveHolds
+          ? [
+              {
+                source: BOOKING_SOURCE.PLATFORM,
+                ...activeHoldCondition(now)
+              }
+            ]
+          : [])
       ]
     },
     select: { id: true }
@@ -213,7 +257,7 @@ export async function assertDatesAvailable(params: {
 
   const nightsStart = normalizeDateOnly(checkIn);
   const nightsEnd = normalizeDateOnly(checkOut);
-  const blocked = await prisma.roomDateOverride.findFirst({
+  const blocked = await client.roomDateOverride.findFirst({
     where: {
       roomId,
       isBlocked: true,
@@ -222,4 +266,19 @@ export async function assertDatesAvailable(params: {
     select: { id: true }
   });
   if (blocked) throw new DatesUnavailableError();
+}
+
+/**
+ * Physical-room counterpart to withRoomTypeCapacityGuard (Block 2.1) - a transaction-scoped
+ * advisory lock keyed on roomId, so booking CREATION for a physical room gets the same
+ * check-and-write atomicity the EXCLUDE constraint only gives confirmed/occupying statuses.
+ * Uses the two-key advisory lock form (a distinct lock namespace from the single-key form
+ * withRoomTypeCapacityGuard uses for roomTypeId) so a numeric roomId can never collide with a
+ * roomTypeId that happens to share the same value.
+ */
+export async function withRoomHoldGuard<T>(roomId: number, fn: (tx: Prisma.TransactionClient) => Promise<T>): Promise<T> {
+  return prisma.$transaction(async (tx) => {
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(2001::int, ${roomId}::int)`;
+    return fn(tx);
+  });
 }

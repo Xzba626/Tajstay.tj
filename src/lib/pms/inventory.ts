@@ -5,10 +5,12 @@ import {
   bookingOccupiesDay,
   DatesUnavailableError,
   getRoomBookingsInRange,
+  isActiveHoldBooking,
   isOccupyingOfflineStatus,
   isOccupyingOnlineStatus,
   OCCUPYING_OFFLINE_STATUSES,
-  OCCUPYING_ONLINE_STATUSES
+  OCCUPYING_ONLINE_STATUSES,
+  PENDING_ONLINE_STATUSES
 } from "@/lib/booking/availability";
 import { BOOKING_SOURCE } from "@/lib/domain/booking";
 import { NON_SELLABLE_ROOM_STATUSES, PHYSICAL_ROOM_STATUS } from "@/lib/pms/types";
@@ -47,15 +49,23 @@ export async function getPhysicalRoomsForType(roomTypeId: number, client: DbClie
   });
 }
 
-/** Count how many physical rooms of a type are free for [checkIn, checkOut) */
+/** Count how many physical rooms of a type are free for [checkIn, checkOut)
+ *  `includeActiveHolds` (Block 4.1): when true, an active (unexpired, unpaused) WAITING_PAYMENT/
+ *  WAIT_PROOF/ON_REVIEW/PENDING_OWNER booking counts as occupying too. Defaults to false -
+ *  CONFIRMATION call sites must NOT enable this (two holds that legitimately coexist - exactly
+ *  the race this Block closes at creation - would each see the other as blocking and neither
+ *  could ever be confirmed, a self-deadlock). Only booking CREATION and guest-facing availability
+ *  DISPLAY (search/hotel page - showing a hold as sold out is the honest, consistent answer once
+ *  creation itself enforces holds) opt in. */
 export async function getRoomTypeAvailability(params: {
   roomTypeId: number;
   checkIn: Date;
   checkOut: Date;
   excludeBookingId?: number;
   client?: DbClient;
+  includeActiveHolds?: boolean;
 }): Promise<RoomTypeAvailability> {
-  const { roomTypeId, checkIn, checkOut, excludeBookingId, client = prisma } = params;
+  const { roomTypeId, checkIn, checkOut, excludeBookingId, client = prisma, includeActiveHolds = false } = params;
   const rooms = await getPhysicalRoomsForType(roomTypeId, client);
   const sellable = rooms.filter(isRoomSellable);
   const totalRooms = sellable.length;
@@ -66,13 +76,18 @@ export async function getRoomTypeAvailability(params: {
     const bookings = await getRoomBookingsInRange(room.id, checkIn, checkOut, client);
     const hit = bookings.find((b) => {
       if (excludeBookingId && b.id === excludeBookingId) return false;
-      if (b.source === BOOKING_SOURCE.PLATFORM) return isOccupyingOnlineStatus(b.status);
+      if (b.source === BOOKING_SOURCE.PLATFORM) {
+        return isOccupyingOnlineStatus(b.status) || (includeActiveHolds && isActiveHoldBooking(b));
+      }
       return isOccupyingOfflineStatus(b.offlineStatus);
     });
     if (hit) occupiedCount += 1;
   }
 
-  // Unassigned type-level bookings consume inventory without a physical room
+  // Unassigned type-level bookings consume inventory without a physical room. An active
+  // (unexpired, unpaused) PENDING_ONLINE_STATUSES hold counts here too when includeActiveHolds -
+  // see isActiveHoldBooking's doc comment: never dependent on the expire-bookings cron having run.
+  const now = new Date();
   const unassigned = await client.booking.findMany({
     where: {
       roomTypeId,
@@ -85,7 +100,16 @@ export async function getRoomTypeAvailability(params: {
         {
           source: BOOKING_SOURCE.OWNER_MANUAL,
           offlineStatus: { in: [...OCCUPYING_OFFLINE_STATUSES] }
-        }
+        },
+        ...(includeActiveHolds
+          ? [
+              {
+                source: BOOKING_SOURCE.PLATFORM,
+                status: { in: [...PENDING_ONLINE_STATUSES] },
+                OR: [{ paymentTimerPaused: true }, { expiresAt: null }, { expiresAt: { gt: now } }]
+              }
+            ]
+          : [])
       ],
       ...(excludeBookingId ? { id: { not: excludeBookingId } } : {})
     },
@@ -111,6 +135,7 @@ export async function assertRoomTypeAvailable(params: {
   checkOut: Date;
   excludeBookingId?: number;
   client?: DbClient;
+  includeActiveHolds?: boolean;
 }): Promise<void> {
   const snap = await getRoomTypeAvailability(params);
   if (snap.availableCount < 1) throw new RoomTypeUnavailableError();
@@ -185,7 +210,7 @@ export async function getHotelDateAvailability(
   let hasAnyAvailability = false;
 
   for (const rt of roomTypes) {
-    const snap = await getRoomTypeAvailability({ roomTypeId: rt.id, checkIn, checkOut });
+    const snap = await getRoomTypeAvailability({ roomTypeId: rt.id, checkIn, checkOut, includeActiveHolds: true });
     if (snap.availableCount < 1) unavailableRoomTypeIds.add(rt.id);
     else hasAnyAvailability = true;
   }
@@ -197,7 +222,7 @@ export async function getHotelDateAvailability(
       continue;
     }
     try {
-      await assertDatesAvailable({ roomId: room.id, checkIn, checkOut });
+      await assertDatesAvailable({ roomId: room.id, checkIn, checkOut, includeActiveHolds: true });
       hasAnyAvailability = true;
     } catch (e) {
       if (e instanceof DatesUnavailableError) unavailableRoomIds.add(room.id);
@@ -239,6 +264,7 @@ export async function getHotelsDateAvailabilityBulk(
   const sellableRoomIds = sellableRooms.map((r) => r.id);
   const roomTypeIds = roomTypes.map((rt) => rt.id);
 
+  const now = new Date();
   const [overlappingBookings, blockedOverrides] = await Promise.all([
     prisma.booking.findMany({
       where: {
@@ -249,7 +275,12 @@ export async function getHotelsDateAvailabilityBulk(
             roomId: { in: sellableRoomIds },
             OR: [
               { source: BOOKING_SOURCE.PLATFORM, status: { in: [...OCCUPYING_ONLINE_STATUSES] } },
-              { source: BOOKING_SOURCE.OWNER_MANUAL, offlineStatus: { in: [...OCCUPYING_OFFLINE_STATUSES] } }
+              { source: BOOKING_SOURCE.OWNER_MANUAL, offlineStatus: { in: [...OCCUPYING_OFFLINE_STATUSES] } },
+              {
+                source: BOOKING_SOURCE.PLATFORM,
+                status: { in: [...PENDING_ONLINE_STATUSES] },
+                OR: [{ paymentTimerPaused: true }, { expiresAt: null }, { expiresAt: { gt: now } }]
+              }
             ]
           },
           {
@@ -258,7 +289,12 @@ export async function getHotelsDateAvailabilityBulk(
             roomId: null,
             OR: [
               { source: BOOKING_SOURCE.PLATFORM, status: { in: [...OCCUPYING_ONLINE_STATUSES] } },
-              { source: BOOKING_SOURCE.OWNER_MANUAL, offlineStatus: { in: [...OCCUPYING_OFFLINE_STATUSES] } }
+              { source: BOOKING_SOURCE.OWNER_MANUAL, offlineStatus: { in: [...OCCUPYING_OFFLINE_STATUSES] } },
+              {
+                source: BOOKING_SOURCE.PLATFORM,
+                status: { in: [...PENDING_ONLINE_STATUSES] },
+                OR: [{ paymentTimerPaused: true }, { expiresAt: null }, { expiresAt: { gt: now } }]
+              }
             ]
           }
         ]

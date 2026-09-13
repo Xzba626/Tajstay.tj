@@ -12,6 +12,8 @@ import { normalizePhone } from "@/lib/validation/phone";
 import { publicUrl } from "@/lib/http/publicOrigin";
 import { isPlaceholderAccountPhone } from "@/lib/auth/accountPhone";
 import { initializeBookingChatRoom } from "@/lib/chat/initializeBookingChat";
+import { assertDatesAvailable, DatesUnavailableError, withRoomHoldGuard } from "@/lib/booking/availability";
+import { assertRoomTypeAvailable, RoomTypeUnavailableError, withRoomTypeCapacityGuard } from "@/lib/pms/inventory";
 
 function bookingFormRedirect(
   req: NextRequest,
@@ -208,31 +210,61 @@ export async function POST(req: NextRequest) {
     const publicCode = await generateBookingCode("TJ");
     const paymentStatus = "PENDING";
 
-    const booking = await prisma.booking.create({
-      data: {
-        publicCode,
-        userId,
-        roomTypeId: resolvedRoomTypeId,
-        roomId: resolvedRoomId,
-        assignedRoomId: resolvedRoomId,
-        checkIn,
-        checkOut,
-        totalPrice: pricing.totalPrice,
-        commission: pricing.commission,
-        subtotal: pricing.ownerPayoutAfterEscrow + pricing.commission,
-        serviceFee: pricing.serviceFee,
-        taxAmount: pricing.taxAmount,
-        currency: "TJS",
-        paymentStatus,
-        paymentMethod,
-        hotelPaymentMethodId: resolvedHotelPaymentMethodId,
-        paymentMethodSnapshot: paymentMethodSnapshot ? JSON.parse(JSON.stringify(paymentMethodSnapshot)) : undefined,
-        payOnArrival: false,
-        phone,
-        status: BOOKING_STATUS.WAITING_PAYMENT,
-        expiresAt
+    const bookingData = {
+      publicCode,
+      userId,
+      roomTypeId: resolvedRoomTypeId,
+      roomId: resolvedRoomId,
+      assignedRoomId: resolvedRoomId,
+      checkIn,
+      checkOut,
+      totalPrice: pricing.totalPrice,
+      commission: pricing.commission,
+      subtotal: pricing.ownerPayoutAfterEscrow + pricing.commission,
+      serviceFee: pricing.serviceFee,
+      taxAmount: pricing.taxAmount,
+      currency: "TJS",
+      paymentStatus,
+      paymentMethod,
+      hotelPaymentMethodId: resolvedHotelPaymentMethodId,
+      paymentMethodSnapshot: paymentMethodSnapshot ? JSON.parse(JSON.stringify(paymentMethodSnapshot)) : undefined,
+      payOnArrival: false,
+      phone,
+      status: BOOKING_STATUS.WAITING_PAYMENT,
+      expiresAt
+    } as const;
+
+    // Authoritative availability check folded atomically with the write (Block 4.1) - booking
+    // CREATION previously performed no availability check at all (proven live to let two
+    // different guests both "successfully" create a WAITING_PAYMENT for the same room+dates,
+    // see the Block 4 report). assertDatesAvailable/assertRoomTypeAvailable now also treat an
+    // active (unexpired, unpaused) WAITING_PAYMENT/WAIT_PROOF/ON_REVIEW/PENDING_OWNER hold as
+    // occupying - see activeHoldCondition/isActiveHoldBooking - so this is the exact same
+    // invariant already proven for confirmation, just invoked one step earlier, inside the same
+    // kind of advisory-lock-guarded transaction as Block 2.1 (withRoomHoldGuard for a physical
+    // room, withRoomTypeCapacityGuard for RoomType-only), not a second parallel formula.
+    let booking;
+    try {
+      if (resolvedRoomId) {
+        booking = await withRoomHoldGuard(resolvedRoomId, async (tx) => {
+          await assertDatesAvailable({ roomId: resolvedRoomId!, checkIn, checkOut, client: tx, includeActiveHolds: true });
+          return tx.booking.create({ data: bookingData });
+        });
+      } else if (resolvedRoomTypeId) {
+        booking = await withRoomTypeCapacityGuard(resolvedRoomTypeId, async (tx) => {
+          await assertRoomTypeAvailable({ roomTypeId: resolvedRoomTypeId!, checkIn, checkOut, client: tx, includeActiveHolds: true });
+          return tx.booking.create({ data: bookingData });
+        });
+      } else {
+        booking = await prisma.booking.create({ data: bookingData });
       }
-    });
+    } catch (e) {
+      if (e instanceof DatesUnavailableError || e instanceof RoomTypeUnavailableError) {
+        if (wantsJson) return NextResponse.json({ error: "unavailable" }, { status: 409 });
+        return bookingFormRedirect(req, { roomId, checkIn: checkInRaw, checkOut: checkOutRaw, code: "unavailable" });
+      }
+      throw e;
+    }
 
     await prisma.payment.create({
       data: {
