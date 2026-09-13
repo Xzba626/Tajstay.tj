@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { Button, Card, Input } from "@/shared/ui";
 import { DcNextPaymentCard } from "@/components/payment/DcNextPaymentCard";
 import { LocaleDateInput } from "@/components/ui/LocaleDateInput";
@@ -38,6 +39,7 @@ type Props = {
     roomTypeId?: number;
     checkIn?: string;
     checkOut?: string;
+    guests?: string;
     phone?: string;
     isAuthed: boolean;
     signedInAsName?: string;
@@ -54,6 +56,8 @@ type Props = {
   };
   /** Для deep link DC Next (возврат в мастер брони). */
   dcReturnUrl: string;
+  /** Для recovery CTA при availability conflict - тот же Hotel, с сохранённым контекстом поиска. */
+  hotelId?: number;
 };
 
 type Step = 1 | 2 | 3;
@@ -100,7 +104,7 @@ function ShieldCheckIcon({ className }: { className?: string }) {
   );
 }
 
-export function BookingWizard({ locale, labels, defaults, pricePerNight, finance, dcReturnUrl }: Props) {
+export function BookingWizard({ locale, labels, defaults, pricePerNight, finance, dcReturnUrl, hotelId }: Props) {
   const formRef = useRef<HTMLFormElement>(null);
   const submitInFlight = useRef(false);
   const [step, setStep] = useState<Step>(1);
@@ -112,6 +116,7 @@ export function BookingWizard({ locale, labels, defaults, pricePerNight, finance
   const [phone, setPhone] = useState(defaults.phone ?? "");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitErrorCode, setSubmitErrorCode] = useState<string | null>(null);
 
   const runBookingSubmit = useCallback(async () => {
     if (submitInFlight.current) return;
@@ -121,6 +126,7 @@ export function BookingWizard({ locale, labels, defaults, pricePerNight, finance
     submitInFlight.current = true;
     setSubmitting(true);
     setSubmitError(null);
+    setSubmitErrorCode(null);
     const fd = new FormData(formEl);
     const controller = new AbortController();
     const timeoutMs = 55_000;
@@ -138,6 +144,7 @@ export function BookingWizard({ locale, labels, defaults, pricePerNight, finance
         | { error?: string };
       if (!res.ok || !("ok" in json)) {
         const errRaw = String((json as { error?: string })?.error ?? "").trim();
+        setSubmitErrorCode(errRaw);
         throw new Error(mapBookingApiError(errRaw));
       }
 
@@ -189,6 +196,7 @@ export function BookingWizard({ locale, labels, defaults, pricePerNight, finance
     >
       {defaults.roomId ? <input type="hidden" name="roomId" value={defaults.roomId} /> : null}
       {defaults.roomTypeId ? <input type="hidden" name="roomTypeId" value={defaults.roomTypeId} /> : null}
+      {defaults.guests ? <input type="hidden" name="guestCount" value={defaults.guests} /> : null}
       <input type="hidden" name="paymentMethod" value={paymentMethod} />
       {persistFields ? (
         <>
@@ -421,7 +429,23 @@ export function BookingWizard({ locale, labels, defaults, pricePerNight, finance
             </div>
 
             {!defaults.isAuthed ? <p className="text-xs text-slate-400">{labels.guestNoAccountHint}</p> : null}
-            {submitError ? <p className="text-xs text-red-200">{submitError}</p> : null}
+            {submitError ? (
+              <div className="space-y-2">
+                <p className="text-xs text-red-200">{submitError}</p>
+                {submitErrorCode === "unavailable" && hotelId ? (
+                  <Link
+                    href={`/hotel/${hotelId}?${new URLSearchParams({
+                      ...(checkIn ? { checkIn } : {}),
+                      ...(checkOut ? { checkOut } : {}),
+                      ...(defaults.guests ? { guests: defaults.guests } : {})
+                    }).toString()}`}
+                    className="inline-flex text-xs font-semibold text-brand-200 underline"
+                  >
+                    Вернуться к номерам
+                  </Link>
+                ) : null}
+              </div>
+            ) : null}
           </Card>
         </div>
       </div>

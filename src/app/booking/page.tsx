@@ -23,7 +23,14 @@ const BOOK_ERR_KEYS: Record<string, string> = {
 export default async function BookingPage({
   searchParams
 }: {
-  searchParams: { roomId?: string; roomTypeId?: string; checkIn?: string; checkOut?: string; bookErr?: string };
+  searchParams: {
+    roomId?: string;
+    roomTypeId?: string;
+    checkIn?: string;
+    checkOut?: string;
+    guests?: string;
+    bookErr?: string;
+  };
 }) {
   const locale = getLocale();
   const user = await requireUser(["GUEST", "OWNER", "ADMIN"]);
@@ -75,14 +82,13 @@ export default async function BookingPage({
   if (roomType) bookingQs.set("roomTypeId", String(roomType.id));
   if (searchParams.checkIn) bookingQs.set("checkIn", searchParams.checkIn);
   if (searchParams.checkOut) bookingQs.set("checkOut", searchParams.checkOut);
+  if (searchParams.guests) bookingQs.set("guests", searchParams.guests);
   const dcReturnUrl = `${origin}/booking?${bookingQs.toString()}`;
 
   return (
     <div className="mx-auto max-w-3xl space-y-5 px-4 pb-12 pt-4 sm:pt-5">
-      <h1 className="font-serif text-3xl font-normal tracking-tight text-white sm:text-[2rem]">
-        <span className="bg-gradient-to-r from-white via-[#ecfdf5]/95 to-[#d1fae5]/80 bg-clip-text text-transparent">
-          {m(locale, "search.bookNow")}
-        </span>
+      <h1 className="font-serif text-3xl font-normal tracking-tight text-[var(--taj-color-text)] sm:text-[2rem]">
+        {m(locale, "search.bookNow")}
       </h1>
 
       {errPath && (
@@ -150,6 +156,7 @@ export default async function BookingPage({
           roomTypeId: roomType?.id,
           checkIn: searchParams.checkIn,
           checkOut: searchParams.checkOut,
+          guests: searchParams.guests,
           phone: phoneForGuestBookingForm(user?.phone),
           isAuthed: Boolean(user),
           signedInAsName: user?.name?.trim() ?? "",
@@ -164,6 +171,7 @@ export default async function BookingPage({
           totalToCharge
         }}
         dcReturnUrl={dcReturnUrl}
+        hotelId={room?.hotel.id ?? roomType?.hotel.id}
       />
     </div>
   );

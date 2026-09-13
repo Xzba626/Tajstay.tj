@@ -209,6 +209,7 @@ export default async function HotelDetailPage({
     roomTypes: hotel.roomTypes,
     checkIn: searchParams?.checkIn,
     checkOut: searchParams?.checkOut,
+    guests: searchParams?.guests,
     fallbackTitle: m(locale, "hotelPage.standardRoom"),
     unavailableRoomTypeIds: dateAvailability?.unavailableRoomTypeIds,
     unavailableRoomIds: dateAvailability?.unavailableRoomIds

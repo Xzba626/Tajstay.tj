@@ -10,7 +10,7 @@ import {
   isOccupyingOnlineStatus,
   OCCUPYING_OFFLINE_STATUSES,
   OCCUPYING_ONLINE_STATUSES,
-  PENDING_ONLINE_STATUSES
+  ACTIVE_HOLD_STATUSES
 } from "@/lib/booking/availability";
 import { BOOKING_SOURCE } from "@/lib/domain/booking";
 import { NON_SELLABLE_ROOM_STATUSES, PHYSICAL_ROOM_STATUS } from "@/lib/pms/types";
@@ -50,8 +50,9 @@ export async function getPhysicalRoomsForType(roomTypeId: number, client: DbClie
 }
 
 /** Count how many physical rooms of a type are free for [checkIn, checkOut)
- *  `includeActiveHolds` (Block 4.1): when true, an active (unexpired, unpaused) WAITING_PAYMENT/
- *  WAIT_PROOF/ON_REVIEW/PENDING_OWNER booking counts as occupying too. Defaults to false -
+ *  `includeActiveHolds` (Block 4.1/4.2): when true, an active (unexpired, unpaused)
+ *  WAITING_PAYMENT/ON_REVIEW booking counts as occupying too (see ACTIVE_HOLD_STATUSES for
+ *  exactly why those two and not WAIT_PROOF/PENDING_OWNER). Defaults to false -
  *  CONFIRMATION call sites must NOT enable this (two holds that legitimately coexist - exactly
  *  the race this Block closes at creation - would each see the other as blocking and neither
  *  could ever be confirmed, a self-deadlock). Only booking CREATION and guest-facing availability
@@ -85,7 +86,7 @@ export async function getRoomTypeAvailability(params: {
   }
 
   // Unassigned type-level bookings consume inventory without a physical room. An active
-  // (unexpired, unpaused) PENDING_ONLINE_STATUSES hold counts here too when includeActiveHolds -
+  // (unexpired, unpaused) ACTIVE_HOLD_STATUSES hold counts here too when includeActiveHolds -
   // see isActiveHoldBooking's doc comment: never dependent on the expire-bookings cron having run.
   const now = new Date();
   const unassigned = await client.booking.findMany({
@@ -105,7 +106,7 @@ export async function getRoomTypeAvailability(params: {
           ? [
               {
                 source: BOOKING_SOURCE.PLATFORM,
-                status: { in: [...PENDING_ONLINE_STATUSES] },
+                status: { in: [...ACTIVE_HOLD_STATUSES] },
                 OR: [{ paymentTimerPaused: true }, { expiresAt: null }, { expiresAt: { gt: now } }]
               }
             ]
@@ -278,7 +279,7 @@ export async function getHotelsDateAvailabilityBulk(
               { source: BOOKING_SOURCE.OWNER_MANUAL, offlineStatus: { in: [...OCCUPYING_OFFLINE_STATUSES] } },
               {
                 source: BOOKING_SOURCE.PLATFORM,
-                status: { in: [...PENDING_ONLINE_STATUSES] },
+                status: { in: [...ACTIVE_HOLD_STATUSES] },
                 OR: [{ paymentTimerPaused: true }, { expiresAt: null }, { expiresAt: { gt: now } }]
               }
             ]
@@ -292,7 +293,7 @@ export async function getHotelsDateAvailabilityBulk(
               { source: BOOKING_SOURCE.OWNER_MANUAL, offlineStatus: { in: [...OCCUPYING_OFFLINE_STATUSES] } },
               {
                 source: BOOKING_SOURCE.PLATFORM,
-                status: { in: [...PENDING_ONLINE_STATUSES] },
+                status: { in: [...ACTIVE_HOLD_STATUSES] },
                 OR: [{ paymentTimerPaused: true }, { expiresAt: null }, { expiresAt: { gt: now } }]
               }
             ]

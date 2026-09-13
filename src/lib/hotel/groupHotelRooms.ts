@@ -65,16 +65,17 @@ function fingerprint(room: HotelRoomInput) {
   return [room.title.trim().toLowerCase(), Number(room.price), room.capacity, amenities].join("|");
 }
 
-function bookingHref(opts: { roomId?: number; roomTypeId?: number; checkIn?: string; checkOut?: string }) {
+function bookingHref(opts: { roomId?: number; roomTypeId?: number; checkIn?: string; checkOut?: string; guests?: string }) {
   const params = new URLSearchParams();
   if (opts.roomId) params.set("roomId", String(opts.roomId));
   if (opts.roomTypeId) params.set("roomTypeId", String(opts.roomTypeId));
   if (opts.checkIn) params.set("checkIn", opts.checkIn);
   if (opts.checkOut) params.set("checkOut", opts.checkOut);
+  if (opts.guests) params.set("guests", opts.guests);
   return `/booking?${params.toString()}`;
 }
 
-function toVariant(room: HotelRoomInput, checkIn?: string, checkOut?: string): RoomVariantView {
+function toVariant(room: HotelRoomInput, checkIn?: string, checkOut?: string, guests?: string): RoomVariantView {
   return {
     id: room.id,
     title: room.title,
@@ -82,7 +83,7 @@ function toVariant(room: HotelRoomInput, checkIn?: string, checkOut?: string): R
     capacity: room.capacity,
     amenities: parseAmenitiesJson(room.amenities),
     photos: room.photos.map((photo) => photo.url),
-    bookHref: bookingHref({ roomId: room.id, checkIn, checkOut })
+    bookHref: bookingHref({ roomId: room.id, checkIn, checkOut, guests })
   };
 }
 
@@ -94,7 +95,8 @@ function groupFromRooms(
   bookAsTypeId: number | undefined,
   checkIn?: string,
   checkOut?: string,
-  unavailableRoomIds?: Set<number>
+  unavailableRoomIds?: Set<number>,
+  guests?: string
 ): RoomCategoryView | null {
   if (!rooms.length && !bookAsTypeId) return null;
   const fps = rooms.map(fingerprint);
@@ -124,10 +126,10 @@ function groupFromRooms(
     bookHref:
       identical && first
         ? bookAsTypeId
-          ? bookingHref({ roomTypeId: bookAsTypeId, checkIn, checkOut })
-          : bookingHref({ roomId: first.id, checkIn, checkOut })
+          ? bookingHref({ roomTypeId: bookAsTypeId, checkIn, checkOut, guests })
+          : bookingHref({ roomId: first.id, checkIn, checkOut, guests })
         : null,
-    variants: identical ? [] : rooms.map((room) => toVariant(room, checkIn, checkOut)),
+    variants: identical ? [] : rooms.map((room) => toVariant(room, checkIn, checkOut, guests)),
     soldOut
   };
 }
@@ -137,6 +139,7 @@ export function groupHotelRooms(input: {
   roomTypes: HotelRoomTypeInput[];
   checkIn?: string;
   checkOut?: string;
+  guests?: string;
   fallbackTitle: string;
   /** Real date-scoped availability, computed via getHotelDateAvailability - a RoomType present
    *  here has zero real availableCount for [checkIn, checkOut) (see src/lib/pms/inventory.ts).
@@ -159,7 +162,9 @@ export function groupHotelRooms(input: {
       roomType.photos.map((photo) => photo.url),
       roomType.id,
       input.checkIn,
-      input.checkOut
+      input.checkOut,
+      undefined,
+      input.guests
     );
     if (group && (group.count > 0 || Number(roomType.basePrice) > 0)) {
       if (!group.count) {
@@ -171,7 +176,8 @@ export function groupHotelRooms(input: {
         group.bookHref = bookingHref({
           roomTypeId: roomType.id,
           checkIn: input.checkIn,
-          checkOut: input.checkOut
+          checkOut: input.checkOut,
+          guests: input.guests
         });
         group.identical = true;
       }
@@ -195,7 +201,7 @@ export function groupHotelRooms(input: {
   }
 
   for (const [title, members] of byTitle) {
-    const group = groupFromRooms(title, null, members, [], undefined, input.checkIn, input.checkOut, input.unavailableRoomIds);
+    const group = groupFromRooms(title, null, members, [], undefined, input.checkIn, input.checkOut, input.unavailableRoomIds, input.guests);
     if (group) groups.push(group);
   }
 

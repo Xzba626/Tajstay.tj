@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/requireAuth";
 import { computeRoomTotalPrice, computeRoomTypeTotalPrice } from "@/lib/services/bookingPricing";
@@ -234,24 +235,49 @@ export async function POST(req: NextRequest) {
       expiresAt
     } as const;
 
+// Re-checks for the same user's own live booking INSIDE the lock, so a genuinely simultaneous
+    // same-user duplicate (the outer pre-check above can still miss this under real concurrency -
+    // it's a plain SELECT-then-branch, not itself atomic) resolves to the SAME booking as an
+    // idempotent success, never a confusing 409 for a request that, from the guest's point of
+    // view, already succeeded once. Only ever returns/matches this exact user's own booking -
+    // never another user's.
+    async function findOwnLiveBooking(client: typeof prisma | Prisma.TransactionClient) {
+      return client.booking.findFirst({
+        where: { userId, ...duplicateWhere, checkIn, checkOut, status: { notIn: ["REJECTED", "CANCELLED", "EXPIRED", "COMPLETED"] } },
+        orderBy: { createdAt: "desc" }
+      });
+    }
+
     // Authoritative availability check folded atomically with the write (Block 4.1) - booking
     // CREATION previously performed no availability check at all (proven live to let two
     // different guests both "successfully" create a WAITING_PAYMENT for the same room+dates,
     // see the Block 4 report). assertDatesAvailable/assertRoomTypeAvailable now also treat an
-    // active (unexpired, unpaused) WAITING_PAYMENT/WAIT_PROOF/ON_REVIEW/PENDING_OWNER hold as
-    // occupying - see activeHoldCondition/isActiveHoldBooking - so this is the exact same
-    // invariant already proven for confirmation, just invoked one step earlier, inside the same
-    // kind of advisory-lock-guarded transaction as Block 2.1 (withRoomHoldGuard for a physical
-    // room, withRoomTypeCapacityGuard for RoomType-only), not a second parallel formula.
+    // active (unexpired, unpaused) WAITING_PAYMENT/ON_REVIEW hold as occupying (Block 4.2 -
+    // ACTIVE_HOLD_STATUSES, deliberately narrower than Block 4.1's first, unapproved-scope
+    // attempt) - so this is the exact same invariant already proven for confirmation, just
+    // invoked one step earlier, inside the same kind of advisory-lock-guarded transaction as
+    // Block 2.1 (withRoomHoldGuard for a physical room, withRoomTypeCapacityGuard for
+    // RoomType-only), not a second parallel formula.
     let booking;
+    let isNewBooking = true;
     try {
       if (resolvedRoomId) {
         booking = await withRoomHoldGuard(resolvedRoomId, async (tx) => {
+          const own = await findOwnLiveBooking(tx);
+          if (own) {
+            isNewBooking = false;
+            return own;
+          }
           await assertDatesAvailable({ roomId: resolvedRoomId!, checkIn, checkOut, client: tx, includeActiveHolds: true });
           return tx.booking.create({ data: bookingData });
         });
       } else if (resolvedRoomTypeId) {
         booking = await withRoomTypeCapacityGuard(resolvedRoomTypeId, async (tx) => {
+          const own = await findOwnLiveBooking(tx);
+          if (own) {
+            isNewBooking = false;
+            return own;
+          }
           await assertRoomTypeAvailable({ roomTypeId: resolvedRoomTypeId!, checkIn, checkOut, client: tx, includeActiveHolds: true });
           return tx.booking.create({ data: bookingData });
         });
@@ -264,6 +290,27 @@ export async function POST(req: NextRequest) {
         return bookingFormRedirect(req, { roomId, checkIn: checkInRaw, checkOut: checkOutRaw, code: "unavailable" });
       }
       throw e;
+    }
+
+    // The lock-internal re-check (findOwnLiveBooking) found this user's own booking already
+    // committed by a near-simultaneous request - true idempotent replay, not a new booking.
+    // Skip Payment/TransactionLog/notification/chat-init entirely; those were already created
+    // for it the first time.
+    if (!isNewBooking) {
+      if (wantsJson) {
+        return NextResponse.json(
+          {
+            ok: true,
+            bookingId: booking.id,
+            publicCode: booking.publicCode,
+            status: booking.status,
+            expiresAt: booking.expiresAt?.toISOString() ?? null,
+            chatUrl: `/chat/booking/${booking.id}`
+          },
+          { status: 200 }
+        );
+      }
+      return NextResponse.redirect(publicUrl(req, `/chat/booking/${booking.id}`));
     }
 
     await prisma.payment.create({

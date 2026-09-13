@@ -23,6 +23,37 @@ export const PENDING_ONLINE_STATUSES = [
   BOOKING_STATUS.PENDING_OWNER
 ] as const;
 
+/**
+ * Block 4.2: the approved active-hold policy, deliberately narrower than PENDING_ONLINE_STATUSES
+ * above (which serves a different, pre-existing purpose - calendar display). Two statuses only,
+ * each individually justified with evidence, not assumed:
+ *
+ * - WAITING_PAYMENT: the approved minimum scope. Every WAITING_PAYMENT row created by
+ *   src/app/api/bookings/route.ts always gets a real expiresAt (`Date.now() + 15min`) - confirmed
+ *   empirically, zero WAITING_PAYMENT rows with a null expiresAt exist in the local DB. A "NULL
+ *   expiresAt WAITING_PAYMENT" is not a state the current write path can produce.
+ *
+ * - ON_REVIEW: added only after evidence, per the explicit "PAYMENT TRANSITION REQUIRES
+ *   CONTINUOUS HOLD" allowance. src/app/api/payments/proof/route.ts's real transition
+ *   (WAITING_PAYMENT/WAIT_PROOF -> ON_REVIEW) DELIBERATELY sets paymentTimerPaused: true and
+ *   expiresAt: null in the same update that sets the new status - i.e. the code itself declares
+ *   "the payment-window timer no longer applies, this booking is still held, under a different
+ *   timer" (proofReviewDeadlineAt, a 5-minute owner-review window, not currently consulted by
+ *   availability - releasing this booking the moment a guest's receipt is submitted, while the
+ *   owner is actively reviewing it, would let a second guest take the room out from under a
+ *   guest who already sent real money. ON_REVIEW is a continuation of the same hold, not a new
+ *   independent status decision.
+ *
+ * WAIT_PROOF and PENDING_OWNER were explicitly NOT included: neither is ever assigned by any
+ * current write path (confirmed empirically - zero rows of either status exist, and no `data:
+ * { status: ... }` write anywhere in src/ sets either one). WAIT_PROOF is a legacy alias
+ * normalized to WAITING_PAYMENT by src/lib/domain/booking.ts; PENDING_OWNER belongs to a
+ * different, currently-dormant pay-at-check-in lifecycle referenced only by read-side KPI/
+ * notification queries, never written. Including either would be extending policy the current
+ * app cannot actually exercise - not proven, not added.
+ */
+export const ACTIVE_HOLD_STATUSES = [BOOKING_STATUS.WAITING_PAYMENT, BOOKING_STATUS.ON_REVIEW] as const;
+
 export const OCCUPYING_OFFLINE_STATUSES = [OFFLINE_STATUS.CONFIRMED, OFFLINE_STATUS.CHECKED_IN] as const;
 
 export const PENDING_OFFLINE_STATUSES = [OFFLINE_STATUS.PENDING] as const;
@@ -122,7 +153,7 @@ export async function getRoomBookingsInRange(roomId: number, from: Date, to: Dat
  *  plain predicate for callers that already have the booking's fields in hand (e.g. inventory.ts,
  *  which fetches via getRoomBookingsInRange and needs to combine this with per-room grouping). */
 export function isActiveHoldBooking(b: { status: string; expiresAt: Date | null; paymentTimerPaused: boolean }): boolean {
-  if (!(PENDING_ONLINE_STATUSES as readonly string[]).includes(b.status)) return false;
+  if (!(ACTIVE_HOLD_STATUSES as readonly string[]).includes(b.status)) return false;
   if (b.paymentTimerPaused) return true;
   if (!b.expiresAt) return true;
   return b.expiresAt.getTime() > Date.now();
@@ -192,16 +223,17 @@ export async function withRoomOverlapGuard<T>(fn: () => Promise<T>, maxAttempts 
 }
 
 /**
- * An "active hold" - a PENDING_ONLINE_STATUSES booking (WAITING_PAYMENT/WAIT_PROOF/ON_REVIEW/
- * PENDING_OWNER) that has not yet timed out. Time-based, not status-based: a booking whose
- * expiresAt has already passed is treated as free here immediately, WITHOUT waiting for the
- * /api/jobs/expire-bookings cron to flip its status to EXPIRED - that job's own delay (or outage)
- * must never let a stale hold keep blocking real availability. paymentTimerPaused bookings never
- * expire on their own (an owner/admin explicitly paused the countdown), so they stay held.
+ * An "active hold" - an ACTIVE_HOLD_STATUSES booking (WAITING_PAYMENT/ON_REVIEW only - see that
+ * constant's doc comment for exactly why, and why WAIT_PROOF/PENDING_OWNER are excluded) that has
+ * not yet timed out. Time-based, not status-based: a booking whose expiresAt has already passed
+ * is treated as free here immediately, WITHOUT waiting for the /api/jobs/expire-bookings cron to
+ * flip its status to EXPIRED - that job's own delay (or outage) must never let a stale hold keep
+ * blocking real availability. paymentTimerPaused bookings never expire on their own (set only by
+ * the real proof-submission transition, see ACTIVE_HOLD_STATUSES), so they stay held.
  */
 function activeHoldCondition(now: Date) {
   return {
-    status: { in: [...PENDING_ONLINE_STATUSES] },
+    status: { in: [...ACTIVE_HOLD_STATUSES] },
     OR: [{ paymentTimerPaused: true }, { expiresAt: null }, { expiresAt: { gt: now } }]
   };
 }
