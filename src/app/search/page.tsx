@@ -60,7 +60,9 @@ export default async function SearchPage({ searchParams }: Props) {
     breakfast: params?.breakfast === "on" || params?.breakfast === "true",
     parking: params?.parking === "on" || params?.parking === "true",
     ratingMin: params?.ratingMin ? Number(params?.ratingMin) : undefined,
-    sortBy: params?.sortBy ?? "POPULAR"
+    sortBy: params?.sortBy ?? "POPULAR",
+    checkIn: params?.checkIn,
+    checkOut: params?.checkOut
   });
   return (
     <div className="mx-auto flex w-[94%] max-w-7xl flex-col justify-center space-y-4 px-0 py-4 sm:w-full sm:space-y-8 sm:px-6 sm:py-8 lg:px-8">

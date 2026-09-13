@@ -63,12 +63,26 @@ function BookButton({ href, locale }: { href: string; locale: Locale }) {
   );
 }
 
+function SoldOutBadge({ locale }: { locale: Locale }) {
+  return (
+    <span
+      role="status"
+      className="inline-flex cursor-not-allowed items-center rounded-lg border border-white/15 bg-black/20 px-4 py-2 text-sm font-medium text-brand-200"
+      aria-disabled="true"
+    >
+      {m(locale, "hotelPage.soldOut")}
+    </span>
+  );
+}
+
 function VariantCard({
   locale,
-  variant
+  variant,
+  soldOut
 }: {
   locale: Locale;
   variant: RoomVariantView;
+  soldOut: boolean;
 }) {
   return (
     <div className="rounded-xl border border-white/10 bg-black/20 p-3">
@@ -79,7 +93,7 @@ function VariantCard({
       <AmenityList locale={locale} amenities={variant.amenities} />
       <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
         <div className="font-semibold text-white">{variant.price} TJS</div>
-        <BookButton href={variant.bookHref} locale={locale} />
+        {soldOut ? <SoldOutBadge locale={locale} /> : <BookButton href={variant.bookHref} locale={locale} />}
       </div>
     </div>
   );
@@ -117,7 +131,11 @@ function CategoryCard({
         {group.identical ? (
           <div className="flex flex-wrap items-center justify-between gap-3">
             <PriceLine locale={locale} min={group.minPrice} max={group.maxPrice} />
-            {group.bookHref ? <BookButton href={group.bookHref} locale={locale} /> : null}
+            {group.soldOut ? (
+              <SoldOutBadge locale={locale} />
+            ) : group.bookHref ? (
+              <BookButton href={group.bookHref} locale={locale} />
+            ) : null}
           </div>
         ) : (
           <div className="space-y-3">
@@ -132,7 +150,7 @@ function CategoryCard({
             {open ? (
               <div className="space-y-2">
                 {group.variants.map((variant) => (
-                  <VariantCard key={variant.id} locale={locale} variant={variant} />
+                  <VariantCard key={variant.id} locale={locale} variant={variant} soldOut={group.soldOut} />
                 ))}
               </div>
             ) : null}

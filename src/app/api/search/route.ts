@@ -30,7 +30,9 @@ export async function GET(req: NextRequest) {
     parking: url.searchParams.get("parking") === "true",
     ratingMin,
     propertyType: (url.searchParams.get("propertyType") as any) ?? "ANY",
-    sortBy
+    sortBy,
+    checkIn,
+    checkOut
   });
 
   return NextResponse.json({

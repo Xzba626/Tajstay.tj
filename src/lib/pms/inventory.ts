@@ -1,7 +1,9 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import {
+  assertDatesAvailable,
   bookingOccupiesDay,
+  DatesUnavailableError,
   getRoomBookingsInRange,
   isOccupyingOfflineStatus,
   isOccupyingOnlineStatus,
@@ -155,6 +157,54 @@ export async function findAvailablePhysicalRoom(params: {
     if (!conflict) return room.id;
   }
   return null;
+}
+
+/**
+ * Real, date-scoped "does this hotel have anything a guest could actually book for
+ * [checkIn, checkOut)" check - used by search (to not list a fully-booked hotel as available)
+ * and the hotel detail page (to mark specific categories/rooms sold out instead of either
+ * silently disappearing or claiming availability the DB doesn't back). Uses the same canonical
+ * invariants the real booking write path enforces (assertRoomTypeAvailable / assertDatesAvailable)
+ * - never a second, parallel availability implementation.
+ */
+export async function getHotelDateAvailability(
+  hotelId: number,
+  checkIn: Date,
+  checkOut: Date
+): Promise<{ unavailableRoomTypeIds: Set<number>; unavailableRoomIds: Set<number>; hasAnyAvailability: boolean }> {
+  const [roomTypes, standaloneRooms] = await Promise.all([
+    prisma.roomType.findMany({ where: { hotelId }, select: { id: true } }),
+    prisma.room.findMany({
+      where: { hotelId, roomTypeId: null },
+      select: { id: true, status: true, availability: true }
+    })
+  ]);
+
+  const unavailableRoomTypeIds = new Set<number>();
+  let hasAnyAvailability = false;
+
+  for (const rt of roomTypes) {
+    const snap = await getRoomTypeAvailability({ roomTypeId: rt.id, checkIn, checkOut });
+    if (snap.availableCount < 1) unavailableRoomTypeIds.add(rt.id);
+    else hasAnyAvailability = true;
+  }
+
+  const unavailableRoomIds = new Set<number>();
+  for (const room of standaloneRooms) {
+    if (!isRoomSellable(room)) {
+      unavailableRoomIds.add(room.id);
+      continue;
+    }
+    try {
+      await assertDatesAvailable({ roomId: room.id, checkIn, checkOut });
+      hasAnyAvailability = true;
+    } catch (e) {
+      if (e instanceof DatesUnavailableError) unavailableRoomIds.add(room.id);
+      else throw e;
+    }
+  }
+
+  return { unavailableRoomTypeIds, unavailableRoomIds, hasAnyAvailability };
 }
 
 export async function getRoomTypeDaySummary(roomTypeId: number, day: Date) {

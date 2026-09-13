@@ -16,6 +16,14 @@ import { HotelViewTracker } from "@/components/guest/HotelViewTracker";
 import { getBookingGuestLabel } from "@/lib/domain/booking";
 import { HotelRoomCategories } from "@/components/hotel/HotelRoomCategories";
 import { groupHotelRooms, hotelPriceRange } from "@/lib/hotel/groupHotelRooms";
+import { getHotelDateAvailability } from "@/lib/pms/inventory";
+import { HotelDateChange } from "@/components/hotel/HotelDateChange";
+
+function parseDateOnly(value?: string): Date | null {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const [y, mo, d] = value.split("-").map(Number);
+  return new Date(Date.UTC(y, mo - 1, d, 0, 0, 0));
+}
 
 function buildAiReviewSummary(comments: string[]) {
   const topicKeywords: Record<string, string[]> = {
@@ -180,13 +188,24 @@ export default async function HotelDetailPage({
     hotel.description.trim().length > 2 &&
     hotel.description.trim() !== "\\я";
 
+  const parsedCheckIn = parseDateOnly(searchParams?.checkIn);
+  const parsedCheckOut = parseDateOnly(searchParams?.checkOut);
+  const datesAreValid = Boolean(parsedCheckIn && parsedCheckOut && parsedCheckOut.getTime() > parsedCheckIn.getTime());
+  const dateAvailability =
+    datesAreValid && parsedCheckIn && parsedCheckOut
+      ? await getHotelDateAvailability(hotel.id, parsedCheckIn, parsedCheckOut)
+      : null;
+
   const roomGroups = groupHotelRooms({
     rooms: hotel.rooms,
     roomTypes: hotel.roomTypes,
     checkIn: searchParams?.checkIn,
     checkOut: searchParams?.checkOut,
-    fallbackTitle: m(locale, "hotelPage.standardRoom")
+    fallbackTitle: m(locale, "hotelPage.standardRoom"),
+    unavailableRoomTypeIds: dateAvailability?.unavailableRoomTypeIds,
+    unavailableRoomIds: dateAvailability?.unavailableRoomIds
   });
+  const hotelFullySoldOut = Boolean(dateAvailability && !dateAvailability.hasAnyAvailability);
   const priceRange = hotelPriceRange(roomGroups);
   const galleryUrls = [
     hotel.coverImageUrl,
@@ -275,8 +294,33 @@ export default async function HotelDetailPage({
       </section>
 
       <section className="space-y-3" data-reveal>
-        <h2 className="text-xl font-semibold text-white">{m(locale, "owner.rooms")}</h2>
-        {roomGroups.length ? (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-xl font-semibold text-white">{m(locale, "owner.rooms")}</h2>
+          {datesAreValid && !hotelFullySoldOut ? (
+            <HotelDateChange
+              locale={locale}
+              hotelId={hotel.id}
+              checkIn={searchParams?.checkIn}
+              checkOut={searchParams?.checkOut}
+            />
+          ) : null}
+        </div>
+        {hotelFullySoldOut ? (
+          <div className="glass-panel space-y-3 rounded-xl p-5">
+            <p className="text-sm text-white">{m(locale, "hotelPage.hotelFullySoldOut")}</p>
+            <div className="flex flex-wrap items-center gap-3">
+              <HotelDateChange
+                locale={locale}
+                hotelId={hotel.id}
+                checkIn={searchParams?.checkIn}
+                checkOut={searchParams?.checkOut}
+              />
+              <Link href="/search" className="text-sm font-medium text-brand-100 underline">
+                {m(locale, "hotelPage.backToSearch")}
+              </Link>
+            </div>
+          </div>
+        ) : roomGroups.length ? (
           <HotelRoomCategories locale={locale} groups={roomGroups} />
         ) : (
           <p className="text-sm text-brand-200">{m(locale, "admin.emptyResults")}</p>

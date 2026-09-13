@@ -3,6 +3,13 @@ import { prisma } from "@/lib/prisma";
 import { safeDbQuery } from "@/lib/db/safeDb";
 import { scoreHotelByIntent } from "@/lib/services/searchIntent";
 import { serializeHotelForClient } from "@/lib/money/serializeDecimal";
+import { getHotelDateAvailability } from "@/lib/pms/inventory";
+
+function parseDateOnly(value?: string): Date | null {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const [y, m, d] = value.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d, 0, 0, 0));
+}
 
 const CITY_ALIASES: Array<{ canonical: string; aliases: string[] }> = [
   { canonical: "Dushanbe", aliases: ["dushanbe", "душанбе"] },
@@ -45,6 +52,8 @@ type SearchInput = {
   parking?: boolean;
   ratingMin?: number;
   sortBy?: "POPULAR" | "PRICE_ASC" | "RATING_DESC";
+  checkIn?: string;
+  checkOut?: string;
 };
 
 export async function searchApprovedHotels(input: SearchInput) {
@@ -81,13 +90,27 @@ async function searchApprovedHotelsQuery(input: SearchInput) {
       ? [{ rating: "desc" }, { createdAt: "desc" }]
       : [{ favorites: { _count: "desc" } }, { rating: "desc" }, { createdAt: "desc" }];
 
-  const hotels = await prisma.hotel.findMany({
+  let hotels = await prisma.hotel.findMany({
     where,
     include: {
       rooms: true
     },
     orderBy
   });
+
+  // Real, date-scoped availability filter: a hotel with zero bookable inventory for the
+  // requested [checkIn, checkOut) must not appear as a result, even if it matches every other
+  // filter. Uses the same canonical inventory invariant the real booking write path enforces
+  // (getHotelDateAvailability -> assertRoomTypeAvailable/assertDatesAvailable) - not a second,
+  // parallel availability implementation. Skipped entirely when no dates are given (yet).
+  const checkIn = parseDateOnly(input.checkIn);
+  const checkOut = parseDateOnly(input.checkOut);
+  if (checkIn && checkOut && checkOut.getTime() > checkIn.getTime()) {
+    const availabilityFlags = await Promise.all(
+      hotels.map((hotel) => getHotelDateAvailability(hotel.id, checkIn, checkOut))
+    );
+    hotels = hotels.filter((_, index) => availabilityFlags[index].hasAnyAvailability);
+  }
 
   if (input.q?.trim()) {
     const query = input.q.trim();

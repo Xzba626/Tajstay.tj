@@ -48,6 +48,9 @@ export type RoomCategoryView = {
   amenities: string[];
   bookHref: string | null;
   variants: RoomVariantView[];
+  /** true only when real date-scoped availability was checked and came back at zero - never
+   *  inferred, never shown when dates haven't been picked yet (see soldOut docs on groupHotelRooms). */
+  soldOut: boolean;
 };
 
 function isBookable(room: HotelRoomInput) {
@@ -90,7 +93,8 @@ function groupFromRooms(
   extraPhotos: string[],
   bookAsTypeId: number | undefined,
   checkIn?: string,
-  checkOut?: string
+  checkOut?: string,
+  unavailableRoomIds?: Set<number>
 ): RoomCategoryView | null {
   if (!rooms.length && !bookAsTypeId) return null;
   const fps = rooms.map(fingerprint);
@@ -99,7 +103,12 @@ function groupFromRooms(
   const sample = rooms[0];
   const photos =
     extraPhotos.length > 0 ? extraPhotos : rooms.flatMap((room) => room.photos.map((photo) => photo.url));
-  const first = rooms[0];
+  // When we know real date-scoped availability per physical room, prefer a free member as the
+  // booking target and mark the whole group sold out only if every member is occupied - a
+  // "category" of otherwise-identical rooms is only truly sold out when none of them are free.
+  const freeMembers = unavailableRoomIds ? rooms.filter((room) => !unavailableRoomIds.has(room.id)) : rooms;
+  const soldOut = !bookAsTypeId && rooms.length > 0 && Boolean(unavailableRoomIds) && freeMembers.length === 0;
+  const first = freeMembers[0] ?? rooms[0];
 
   return {
     key: bookAsTypeId ? `type-${bookAsTypeId}` : `title-${name}`,
@@ -118,7 +127,8 @@ function groupFromRooms(
           ? bookingHref({ roomTypeId: bookAsTypeId, checkIn, checkOut })
           : bookingHref({ roomId: first.id, checkIn, checkOut })
         : null,
-    variants: identical ? [] : rooms.map((room) => toVariant(room, checkIn, checkOut))
+    variants: identical ? [] : rooms.map((room) => toVariant(room, checkIn, checkOut)),
+    soldOut
   };
 }
 
@@ -128,6 +138,13 @@ export function groupHotelRooms(input: {
   checkIn?: string;
   checkOut?: string;
   fallbackTitle: string;
+  /** Real date-scoped availability, computed via getHotelDateAvailability - a RoomType present
+   *  here has zero real availableCount for [checkIn, checkOut) (see src/lib/pms/inventory.ts).
+   *  Omit when no dates have been picked yet - a category is never shown sold out before the
+   *  guest has chosen dates to check it against. */
+  unavailableRoomTypeIds?: Set<number>;
+  /** Same, for standalone physical rooms with no RoomType (roomTypeId === null). */
+  unavailableRoomIds?: Set<number>;
 }): RoomCategoryView[] {
   const groups: RoomCategoryView[] = [];
   const used = new Set<number>();
@@ -158,6 +175,12 @@ export function groupHotelRooms(input: {
         });
         group.identical = true;
       }
+      // RoomType-level real availability (from getRoomTypeAvailability, the same invariant the
+      // booking write path enforces) overrides any per-room guess - it already accounts for
+      // physical-room occupancy AND unassigned type-level bookings together.
+      if (input.unavailableRoomTypeIds) {
+        group.soldOut = input.unavailableRoomTypeIds.has(roomType.id);
+      }
       groups.push(group);
     }
   }
@@ -172,7 +195,7 @@ export function groupHotelRooms(input: {
   }
 
   for (const [title, members] of byTitle) {
-    const group = groupFromRooms(title, null, members, [], undefined, input.checkIn, input.checkOut);
+    const group = groupFromRooms(title, null, members, [], undefined, input.checkIn, input.checkOut, input.unavailableRoomIds);
     if (group) groups.push(group);
   }
 

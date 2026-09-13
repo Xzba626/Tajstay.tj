@@ -686,7 +686,11 @@ const ru: Tree = {
     newListing: "✨ Новый объект",
     categoryCount: "{count} номера этой категории",
     viewVariants: "Посмотреть варианты",
-    reviews: "Отзывы"
+    reviews: "Отзывы",
+    soldOut: "Нет свободных номеров на выбранные даты",
+    hotelFullySoldOut: "На выбранные даты в этом отеле нет свободных номеров",
+    changeDates: "Изменить даты",
+    backToSearch: "К результатам поиска"
   },
   auth: {
     title: "Вход и регистрация",
@@ -2643,7 +2647,11 @@ const tg: Tree = {
     newListing: "✨ Объекти нав",
     categoryCount: "{count} ҳуҷраи ин категория",
     viewVariants: "Дидани вариантҳо",
-    reviews: "Назарҳо"
+    reviews: "Назарҳо",
+    soldOut: "Барои санаҳои интихобшуда ҳуҷраи холӣ нест",
+    hotelFullySoldOut: "Дар ин меҳмонхона барои санаҳои интихобшуда ҷои холӣ нест",
+    changeDates: "Тағир додани санаҳо",
+    backToSearch: "Ба натиҷаҳои ҷустуҷӯ"
   },
   auth: {
     title: "Ворид шудан ва бақайдгирӣ",
@@ -4567,7 +4575,11 @@ const en: Tree = {
     newListing: "✨ New listing",
     categoryCount: "{count} rooms in this category",
     viewVariants: "View options",
-    reviews: "Reviews"
+    reviews: "Reviews",
+    soldOut: "No rooms available for the selected dates",
+    hotelFullySoldOut: "This hotel has no availability for the selected dates",
+    changeDates: "Change dates",
+    backToSearch: "Back to search results"
   },
   auth: {
     title: "Sign in & registration",
