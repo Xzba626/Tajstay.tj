@@ -1,6 +1,12 @@
 import { addDays } from "date-fns";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { BOOKING_SOURCE, BOOKING_STATUS, OFFLINE_STATUS } from "@/lib/domain/booking";
+
+/** Accepts either the global singleton or an interactive-transaction client, so callers that need
+ *  their reads and write inside the same transaction (see withRoomTypeCapacityGuard) can pass
+ *  `tx` through instead of every query silently using its own separate connection. */
+type DbClient = typeof prisma | Prisma.TransactionClient;
 
 /** Confirmed / active online bookings — block calendar & conflict checks */
 export const OCCUPYING_ONLINE_STATUSES = [
@@ -75,8 +81,8 @@ export async function getBlockedDatesInRange(roomId: number, from: Date, to: Dat
   return overrides.map((o) => normalizeDateOnly(o.date));
 }
 
-export async function getRoomBookingsInRange(roomId: number, from: Date, to: Date) {
-  return prisma.booking.findMany({
+export async function getRoomBookingsInRange(roomId: number, from: Date, to: Date, client: DbClient = prisma) {
+  return client.booking.findMany({
     where: {
       roomId,
       checkIn: { lt: to },

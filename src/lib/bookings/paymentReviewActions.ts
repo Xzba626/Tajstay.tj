@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { BOOKING_STATUS } from "@/lib/domain/booking";
 import { addBookingSystemMessage } from "@/lib/chat/bookingChat";
 import { assertDatesAvailable, DatesUnavailableError, withRoomOverlapGuard } from "@/lib/booking/availability";
-import { assertRoomTypeAvailable, RoomTypeUnavailableError } from "@/lib/pms/inventory";
+import { assertRoomTypeAvailable, RoomTypeUnavailableError, withRoomTypeCapacityGuard } from "@/lib/pms/inventory";
 import { bookingHotel } from "@/lib/pms/bookingContext";
 
 type ActorRole = "OWNER" | "ADMIN";
@@ -74,6 +74,21 @@ export async function confirmBookingPayment({ bookingId, actorId, actorRole, rea
   if (actorRole === "OWNER" && payment.status !== "PENDING") throw new Error("BAD_PAYMENT");
 
   const physicalRoomId = booking.assignedRoomId ?? booking.roomId;
+  const previousStatus = booking.status;
+  const confirmData = {
+    status: BOOKING_STATUS.CONFIRMED,
+    paymentStatus: "PAID",
+    proofReviewedAt: new Date(),
+    proofReviewedById: actorId,
+    paymentReviewNote: reason?.trim() || undefined
+  } as const;
+
+  // Both branches below fold the availability re-check and the write into ONE atomic operation -
+  // a plain SELECT-then-write gap here is exactly the race Block 2/2.1 closed. Physical room:
+  // withRoomOverlapGuard (DB EXCLUDE constraint on the room+date range is the real backstop).
+  // RoomType-only (no physical room resolved yet): withRoomTypeCapacityGuard (Postgres advisory
+  // lock scoped to this roomTypeId, re-checking capacity inside the same locked transaction) -
+  // the EXCLUDE constraint can't cover this case, it has no single column to range-exclude on.
   try {
     if (physicalRoomId) {
       await assertDatesAvailable({
@@ -82,44 +97,26 @@ export async function confirmBookingPayment({ bookingId, actorId, actorRole, rea
         checkOut: booking.checkOut,
         excludeBookingId: bookingId
       });
+      await withRoomOverlapGuard(() => prisma.booking.update({ where: { id: bookingId }, data: confirmData }));
     } else if (booking.roomTypeId) {
-      await assertRoomTypeAvailable({
-        roomTypeId: booking.roomTypeId,
-        checkIn: booking.checkIn,
-        checkOut: booking.checkOut,
-        excludeBookingId: bookingId
+      const roomTypeId = booking.roomTypeId;
+      await withRoomTypeCapacityGuard(roomTypeId, async (tx) => {
+        await assertRoomTypeAvailable({
+          roomTypeId,
+          checkIn: booking.checkIn,
+          checkOut: booking.checkOut,
+          excludeBookingId: bookingId,
+          client: tx
+        });
+        await tx.booking.update({ where: { id: bookingId }, data: confirmData });
       });
+    } else {
+      await prisma.booking.update({ where: { id: bookingId }, data: confirmData });
     }
   } catch (e) {
     if (e instanceof DatesUnavailableError || e instanceof RoomTypeUnavailableError) {
       throw new Error("DATES_UNAVAILABLE");
     }
-    throw e;
-  }
-
-  const previousStatus = booking.status;
-
-  // The assertDatesAvailable check above is a plain SELECT and is not atomic with this write on
-  // its own - withRoomOverlapGuard is what actually prevents two concurrent confirmations from
-  // both succeeding for an overlapping room/date range (DB-level EXCLUDE constraint as the real
-  // backstop, see availability.ts). Caught and re-thrown as the same "DATES_UNAVAILABLE" sentinel
-  // as the earlier SELECT-based check, so every API route already handling that code controls
-  // this failure mode too - it must never surface as a raw 500.
-  try {
-    await withRoomOverlapGuard(() =>
-      prisma.booking.update({
-        where: { id: bookingId },
-        data: {
-          status: BOOKING_STATUS.CONFIRMED,
-          paymentStatus: "PAID",
-          proofReviewedAt: new Date(),
-          proofReviewedById: actorId,
-          paymentReviewNote: reason?.trim() || undefined
-        }
-      })
-    );
-  } catch (e) {
-    if (e instanceof DatesUnavailableError) throw new Error("DATES_UNAVAILABLE");
     throw e;
   }
   await prisma.payment.update({ where: { id: payment.id }, data: { status: "CAPTURED" } });

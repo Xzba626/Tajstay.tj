@@ -113,7 +113,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.redirect(u);
   } catch (e) {
     const code = e instanceof Error ? e.message : "failed";
-    if (wantsJson) return NextResponse.json({ error: code }, { status: 400 });
+    // A dates/room-type-capacity conflict is a legitimate business outcome, not a server fault -
+    // 409, not 400/500 - so a JSON API consumer can distinguish "try different dates" from
+    // "something is actually broken" (same contract established in src/app/api/bookings/route.ts).
+    const status = code === "dates_unavailable" ? 409 : 400;
+    if (wantsJson) return NextResponse.json({ error: code }, { status });
     const u = publicUrl(req, "/dashboard/owner");
     u.searchParams.set("section", "offline-bookings");
     u.searchParams.set("error", code === "dates_unavailable" ? "dates" : "failed");

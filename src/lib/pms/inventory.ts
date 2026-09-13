@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import {
   bookingOccupiesDay,
@@ -8,6 +9,8 @@ import {
 } from "@/lib/booking/availability";
 import { BOOKING_SOURCE } from "@/lib/domain/booking";
 import { NON_SELLABLE_ROOM_STATUSES, PHYSICAL_ROOM_STATUS } from "@/lib/pms/types";
+
+type DbClient = typeof prisma | Prisma.TransactionClient;
 
 export type RoomTypeAvailability = {
   roomTypeId: number;
@@ -24,8 +27,8 @@ function isRoomSellable(room: { status: string; availability: boolean; housekeep
   return true;
 }
 
-export async function getPhysicalRoomsForType(roomTypeId: number) {
-  return prisma.room.findMany({
+export async function getPhysicalRoomsForType(roomTypeId: number, client: DbClient = prisma) {
+  return client.room.findMany({
     where: { roomTypeId },
     select: {
       id: true,
@@ -47,16 +50,17 @@ export async function getRoomTypeAvailability(params: {
   checkIn: Date;
   checkOut: Date;
   excludeBookingId?: number;
+  client?: DbClient;
 }): Promise<RoomTypeAvailability> {
-  const { roomTypeId, checkIn, checkOut, excludeBookingId } = params;
-  const rooms = await getPhysicalRoomsForType(roomTypeId);
+  const { roomTypeId, checkIn, checkOut, excludeBookingId, client = prisma } = params;
+  const rooms = await getPhysicalRoomsForType(roomTypeId, client);
   const sellable = rooms.filter(isRoomSellable);
   const totalRooms = sellable.length;
   const unavailableMaintenance = rooms.length - totalRooms;
 
   let occupiedCount = 0;
   for (const room of sellable) {
-    const bookings = await getRoomBookingsInRange(room.id, checkIn, checkOut);
+    const bookings = await getRoomBookingsInRange(room.id, checkIn, checkOut, client);
     const hit = bookings.find((b) => {
       if (excludeBookingId && b.id === excludeBookingId) return false;
       if (b.source === BOOKING_SOURCE.PLATFORM) return isOccupyingOnlineStatus(b.status);
@@ -66,7 +70,7 @@ export async function getRoomTypeAvailability(params: {
   }
 
   // Unassigned type-level bookings consume inventory without a physical room
-  const unassigned = await prisma.booking.findMany({
+  const unassigned = await client.booking.findMany({
     where: {
       roomTypeId,
       assignedRoomId: null,
@@ -103,9 +107,34 @@ export async function assertRoomTypeAvailable(params: {
   checkIn: Date;
   checkOut: Date;
   excludeBookingId?: number;
+  client?: DbClient;
 }): Promise<void> {
   const snap = await getRoomTypeAvailability(params);
   if (snap.availableCount < 1) throw new RoomTypeUnavailableError();
+}
+
+/**
+ * Closes the RoomType-capacity race BLOCK 2's physical-room EXCLUDE constraint cannot cover: an
+ * unassigned (no physical room resolved yet) booking has no single column to range-exclude on, so
+ * capacity there is fundamentally a *counting* problem, not a *range-overlap* problem - two
+ * concurrent requests can both read "1 of 1 available" before either writes.
+ *
+ * Fix: a Postgres transaction-scoped advisory lock keyed on `roomTypeId`
+ * (`pg_advisory_xact_lock`), held for the lifetime of one short transaction that re-checks
+ * capacity and performs the write together. Concurrent requests for the SAME RoomType queue up
+ * and are handled one at a time (each sees the true, up-to-date remaining capacity); requests for
+ * a DIFFERENT RoomType (even in the same Hotel) are never blocked - the lock key is the RoomType's
+ * own id, nothing broader. The lock is released automatically when the transaction commits or
+ * rolls back - no separate unlock call, no risk of a leaked lock outliving the request.
+ */
+export async function withRoomTypeCapacityGuard<T>(
+  roomTypeId: number,
+  fn: (tx: Prisma.TransactionClient) => Promise<T>
+): Promise<T> {
+  return prisma.$transaction(async (tx) => {
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(${roomTypeId})`;
+    return fn(tx);
+  });
 }
 
 /** Pick first free sellable room for auto-assignment */

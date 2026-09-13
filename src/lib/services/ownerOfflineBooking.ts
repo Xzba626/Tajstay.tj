@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { assertDatesAvailable, DatesUnavailableError, withRoomOverlapGuard } from "@/lib/booking/availability";
-import { assertRoomTypeAvailable, RoomTypeUnavailableError } from "@/lib/pms/inventory";
+import { assertRoomTypeAvailable, RoomTypeUnavailableError, withRoomTypeCapacityGuard } from "@/lib/pms/inventory";
 import { BOOKING_SOURCE, BOOKING_STATUS, OFFLINE_STATUS, type OfflineStatus } from "@/lib/domain/booking";
 import { createNotification } from "@/lib/notifications/create";
 import { generateBookingCode } from "@/lib/services/bookingCode";
@@ -49,27 +49,6 @@ export async function createOwnerOfflineBooking(input: CreateOfflineBookingInput
   if (physicalRoomId) {
     const room = await assertRoomOwnedByOwner(physicalRoomId, input.ownerId);
     if (!room || room.roomTypeId !== roomType.id) throw new Error("room_type_mismatch");
-    try {
-      await assertDatesAvailable({
-        roomId: physicalRoomId,
-        checkIn: input.checkIn,
-        checkOut: input.checkOut
-      });
-    } catch (e) {
-      if (e instanceof DatesUnavailableError) throw new Error("dates_unavailable");
-      throw e;
-    }
-  } else {
-    try {
-      await assertRoomTypeAvailable({
-        roomTypeId: input.roomTypeId,
-        checkIn: input.checkIn,
-        checkOut: input.checkOut
-      });
-    } catch (e) {
-      if (e instanceof RoomTypeUnavailableError) throw new Error("dates_unavailable");
-      throw e;
-    }
   }
 
   const prepayment = input.prepayment != null ? Math.max(0, Number(input.prepayment)) : 0;
@@ -81,48 +60,61 @@ export async function createOwnerOfflineBooking(input: CreateOfflineBookingInput
   const publicCode = await generateBookingCode();
   const guestCount = Math.max(1, input.guestCount ?? 1);
 
-  // The assertDatesAvailable/assertRoomTypeAvailable checks above are plain SELECTs, not atomic
-  // with this create - a new offline booking defaults straight into CONFIRMED (occupying), so this
-  // is a genuine race point (proven live, see Block 2 report). withRoomOverlapGuard is the actual
-  // backstop; on conflict, surface the same "dates_unavailable" the pre-check already uses.
+  const createData = {
+    source: BOOKING_SOURCE.OWNER_MANUAL,
+    createdByOwnerId: input.ownerId,
+    userId: null,
+    roomTypeId: input.roomTypeId,
+    roomId: physicalRoomId,
+    assignedRoomId: physicalRoomId,
+    checkIn: input.checkIn,
+    checkOut: input.checkOut,
+    guestName: input.guestName.trim(),
+    guestPhone,
+    guestEmail: input.guestEmail?.trim() || null,
+    guestCount,
+    phone: guestPhone,
+    offlineNote: input.offlineNote?.trim() || null,
+    offlineStatus,
+    prepayment,
+    remainingAmount,
+    offlinePaymentType: input.offlinePaymentType?.trim() || null,
+    totalPrice,
+    commission: 0,
+    subtotal: totalPrice,
+    serviceFee: 0,
+    taxAmount: 0,
+    publicCode,
+    status: BOOKING_STATUS.CONFIRMED,
+    paymentStatus: prepayment >= totalPrice && totalPrice > 0 ? "PAID" : "PENDING",
+    payOnArrival: true,
+    paymentMethod: "ARRIVAL"
+  } as const;
+
+  // Check-then-create folded into one atomic operation - a new offline booking defaults straight
+  // into CONFIRMED (occupying), so the old separate SELECT-then-INSERT was a genuine race point
+  // (proven live, see Block 2 report). Physical room: withRoomOverlapGuard (DB EXCLUDE
+  // constraint). RoomType-only (no physical room yet): withRoomTypeCapacityGuard (per-roomType
+  // advisory lock + re-check inside the same transaction) - the EXCLUDE constraint has no column
+  // to range-exclude on for an unassigned booking, see Block 2.1 report.
   let booking;
   try {
-    booking = await withRoomOverlapGuard(() =>
-      prisma.booking.create({
-        data: {
-          source: BOOKING_SOURCE.OWNER_MANUAL,
-          createdByOwnerId: input.ownerId,
-          userId: null,
+    if (physicalRoomId) {
+      await assertDatesAvailable({ roomId: physicalRoomId, checkIn: input.checkIn, checkOut: input.checkOut });
+      booking = await withRoomOverlapGuard(() => prisma.booking.create({ data: createData }));
+    } else {
+      booking = await withRoomTypeCapacityGuard(input.roomTypeId, async (tx) => {
+        await assertRoomTypeAvailable({
           roomTypeId: input.roomTypeId,
-          roomId: physicalRoomId,
-          assignedRoomId: physicalRoomId,
           checkIn: input.checkIn,
           checkOut: input.checkOut,
-          guestName: input.guestName.trim(),
-          guestPhone,
-          guestEmail: input.guestEmail?.trim() || null,
-          guestCount,
-          phone: guestPhone,
-          offlineNote: input.offlineNote?.trim() || null,
-          offlineStatus,
-          prepayment,
-          remainingAmount,
-          offlinePaymentType: input.offlinePaymentType?.trim() || null,
-          totalPrice,
-          commission: 0,
-          subtotal: totalPrice,
-          serviceFee: 0,
-          taxAmount: 0,
-          publicCode,
-          status: BOOKING_STATUS.CONFIRMED,
-          paymentStatus: prepayment >= totalPrice && totalPrice > 0 ? "PAID" : "PENDING",
-          payOnArrival: true,
-          paymentMethod: "ARRIVAL"
-        }
-      })
-    );
+          client: tx
+        });
+        return tx.booking.create({ data: createData });
+      });
+    }
   } catch (e) {
-    if (e instanceof DatesUnavailableError) throw new Error("dates_unavailable");
+    if (e instanceof DatesUnavailableError || e instanceof RoomTypeUnavailableError) throw new Error("dates_unavailable");
     throw e;
   }
 
@@ -164,27 +156,15 @@ export async function updateOwnerOfflineBooking(input: UpdateOfflineBookingInput
   if (checkOut.getTime() <= checkIn.getTime()) throw new Error("invalid_dates");
 
   const physicalId = existing.assignedRoomId ?? existing.roomId;
-  if (input.checkIn || input.checkOut) {
+  // Pre-check only (dates unchanged from what was already an occupying booking, or the branch
+  // handles the actual re-check+write atomically below when dates DO change) - kept as an early,
+  // cheap rejection for the common "no date change" case; the atomic guard below is what actually
+  // prevents the race when dates are changing.
+  if ((input.checkIn || input.checkOut) && physicalId) {
     try {
-      if (physicalId) {
-        await assertDatesAvailable({
-          roomId: physicalId,
-          checkIn,
-          checkOut,
-          excludeBookingId: existing.id
-        });
-      } else if (existing.roomTypeId) {
-        await assertRoomTypeAvailable({
-          roomTypeId: existing.roomTypeId,
-          checkIn,
-          checkOut,
-          excludeBookingId: existing.id
-        });
-      }
+      await assertDatesAvailable({ roomId: physicalId, checkIn, checkOut, excludeBookingId: existing.id });
     } catch (e) {
-      if (e instanceof DatesUnavailableError || e instanceof RoomTypeUnavailableError) {
-        throw new Error("dates_unavailable");
-      }
+      if (e instanceof DatesUnavailableError) throw new Error("dates_unavailable");
       throw e;
     }
   }
@@ -213,30 +193,41 @@ export async function updateOwnerOfflineBooking(input: UpdateOfflineBookingInput
     });
   }
 
-  // Same SELECT-then-write gap as create above, relevant here whenever this update moves
-  // offlineStatus into an occupying value (CONFIRMED/CHECKED_IN) or changes dates on an already-
-  // occupying booking - withRoomOverlapGuard is the real backstop.
+  const updateData = {
+    checkIn,
+    checkOut,
+    offlineStatus,
+    totalPrice,
+    subtotal: totalPrice,
+    prepayment,
+    remainingAmount,
+    offlinePaymentType:
+      input.offlinePaymentType !== undefined ? input.offlinePaymentType?.trim() || null : existing.offlinePaymentType,
+    offlineNote: input.offlineNote !== undefined ? input.offlineNote?.trim() || null : existing.offlineNote,
+    paymentStatus: prepayment >= totalPrice && totalPrice > 0 ? "PAID" : "PENDING"
+  } as const;
+
+  // Same SELECT-then-write gap as create above, relevant whenever this update moves offlineStatus
+  // into an occupying value or changes dates on an already-occupying booking. Physical room:
+  // withRoomOverlapGuard. RoomType-only (no physical room resolved): withRoomTypeCapacityGuard,
+  // re-checking capacity inside the same locked transaction as the write.
   try {
-    return await withRoomOverlapGuard(() =>
-      prisma.booking.update({
-        where: { id: existing.id },
-        data: {
-          checkIn,
-          checkOut,
-          offlineStatus,
-          totalPrice,
-          subtotal: totalPrice,
-          prepayment,
-          remainingAmount,
-          offlinePaymentType:
-            input.offlinePaymentType !== undefined ? input.offlinePaymentType?.trim() || null : existing.offlinePaymentType,
-          offlineNote: input.offlineNote !== undefined ? input.offlineNote?.trim() || null : existing.offlineNote,
-          paymentStatus: prepayment >= totalPrice && totalPrice > 0 ? "PAID" : "PENDING"
-        }
-      })
-    );
+    if (physicalId) {
+      return await withRoomOverlapGuard(() => prisma.booking.update({ where: { id: existing.id }, data: updateData }));
+    }
+    if (existing.roomTypeId) {
+      const roomTypeId = existing.roomTypeId;
+      return await withRoomTypeCapacityGuard(roomTypeId, async (tx) => {
+        // Always re-verify inside the lock, not only when dates changed - offlineStatus alone can
+        // transition into an occupying value with no date change, and that transition is itself
+        // the occupying moment. The lock+recheck is cheap; correctness over micro-optimization.
+        await assertRoomTypeAvailable({ roomTypeId, checkIn, checkOut, excludeBookingId: existing.id, client: tx });
+        return tx.booking.update({ where: { id: existing.id }, data: updateData });
+      });
+    }
+    return await prisma.booking.update({ where: { id: existing.id }, data: updateData });
   } catch (e) {
-    if (e instanceof DatesUnavailableError) throw new Error("dates_unavailable");
+    if (e instanceof DatesUnavailableError || e instanceof RoomTypeUnavailableError) throw new Error("dates_unavailable");
     throw e;
   }
 }
