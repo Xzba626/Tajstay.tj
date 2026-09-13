@@ -1615,3 +1615,75 @@ list of what remains.
 
 **NEXT**: per explicit user instruction, STOPPED after this pass for review — not continuing further
 into BLOCK 3's remaining scope or BLOCK 4 (Booking Form/Payment/Chat) without further direction.
+
+### BLOCK 3.1 — Remaining Search/Hotel UX/runtime quality pass (code content in commit `e9adc69`
+authored externally with a placeholder message, not rewritten here per standing no-amend rule;
+STATE.md commit below is mine)
+
+Closed most of the remaining BLOCK 3 items. Two corrections the user's own review caught, both
+folded into this pass:
+
+1. **Official hotel star classification does not exist in the data model.** `Hotel.propertyType`
+   (HOTEL/HOSTEL/GUEST_HOUSE/APARTMENT/ECO_HOUSE) is a category, not a 3★/4★/5★ rating - confirmed
+   by a full schema grep (no `stars`/`starRating`/classification field anywhere) and a codebase
+   grep (no usage anywhere). Nothing renders fake stars from `propertyType` - `hotel.rating`
+   (guest rating) remains the only star display, unchanged. **OFFICIAL HOTEL STAR CLASSIFICATION:
+   NOT IMPLEMENTED IN DATA MODEL** - flagged honestly, not invented.
+2. **The BLOCK 3 "no N+1" claim was wrong** - measured, not assumed this time. The naive
+   `getHotelDateAvailability` loop in search cost **140 DB queries for 20 candidate hotels, 65 for
+   5** (scaling with candidate count, confirmed real fan-out via `PRISMA_LOG_QUERIES=1`). Fixed
+   with a new `getHotelsDateAvailabilityBulk(hotelIds, checkIn, checkOut)` in
+   `src/lib/pms/inventory.ts` - batches RoomType/Room/Booking/RoomDateOverride reads into ~6 `IN
+   (...)` queries regardless of candidate count (measured: 6 queries for both 20 and 5 candidates
+   after the fix), while reusing the exact same rule set (`isRoomSellable`,
+   `OCCUPYING_ONLINE_STATUSES`/`OCCUPYING_OFFLINE_STATUSES`, `[checkIn,checkOut)`, RoomDateOverride,
+   unassigned type-level bookings) - not a second, looser availability definition. Correctness
+   re-verified against the same sold-out/free fixture used for BLOCK 3's original HTTP proof after
+   the swap - identical results.
+
+Added: `BackNav` (new `src/components/hotel/BackNav.tsx`) - a real, visible, touch-friendly back
+control (not a decorative arrow) on both the hotel detail page and the new
+`/hotel/[id]/reviews` page, replacing the fact that **no back control existed at all** before this
+pass (confirmed via `read_page` - zero back affordance on the hotel page previously). Reviews:
+extracted a shared `ReviewCard` component with a public-safe reviewer-name fallback (never phone/
+email, unlike the canonical `getBookingGuestLabel` used for owner/admin-facing contexts), limited
+the hotel-page preview to 4 reviews, added a real `/hotel/[id]/reviews` all-reviews page (none
+existed before) and a shared `getHotelReviewsForDisplay` query used by both.
+
+**A real, reproducible bug was hit and root-caused during this pass, not hand-waved as cache**:
+adding `BackNav` as a Client Component (`"use client"` + hooks) at this position in the tree
+reliably crashed client hydration in `next dev` (`TypeError: Cannot read properties of undefined
+(reading 'call')`, a webpack/RSC client-reference resolution failure with only internal
+React/webpack frames in the stack, no app code) - reproduced across multiple full `.next` wipes,
+cold server restarts, and brand-new browser tabs, so genuinely not stale-cache flakiness. Server-
+side rendering was never affected (curl always returned complete, correct HTML; `npm run build`
+compiled the client-component version with zero errors) - the failure was isolated to this dev
+session's client hydration only. Root cause narrowed to "a new Client Component boundary at this
+specific position in `/hotel/[id]`'s tree" via systematic bisection (content, naming, position).
+Resolved by implementing `BackNav` as a plain Server Component (`next/link`, zero client JS) -
+which is arguably better UX anyway (a deterministic destination, no ambiguous `history.back()`
+target) and sidesteps the underlying Next 14.1 dev-mode issue entirely. Verified stable across
+several subsequent clean restarts with zero recurrence.
+
+**Verified live** (dev server, Browser pane): Back control renders correctly on desktop and mobile
+(375×812, no overflow, touch-sized ≥44px); preserves `city`/`checkIn`/`checkOut` into its fallback
+`/search` link when present; Hotel → All Reviews → Back round-trip works with zero console errors;
+sold-out state (from BLOCK 3) still renders correctly with BackNav present; search desktop page
+loads with zero console errors. `npx tsc --noEmit`, targeted `eslint`, and `npm run build` all
+clean. Re-ran Block 2 physical-room (5/5), Block 2's 14-case regression, and Block 2.1's RoomType
+concurrency matrix (10/10) after the `inventory.ts` bulk-query addition - no regression, all still
+PASS. All test/fixture data (multiple owner/hotel/roomType/room/booking sets created during the
+N+1 measurement and the sold-out/back-nav verification) created and cleaned up against local
+Postgres only.
+
+**Not done in this pass** (honestly incomplete, not claimed): full mobile-first layout audit beyond
+what was spot-checked (hero density/whitespace - a real gap was observed between the rating line
+and the date-change form on mobile, not fixed); a full WCAG-style accessibility pass (only basic
+`aria-label`/touch-target-size checks done); a formal desktop-regression walk of pages beyond
+search/hotel; QA scenarios B (full mobile normal-flow, only the sold-out/back sub-flows were
+walked) and most of scenario A's non-booking-CTA steps. Cookie-consent banner observed not
+dismissing on click during mobile testing - a real, pre-existing finding, not something this pass
+was scoped to fix.
+
+**NEXT**: STOPPED for review per the established pattern - not proceeding into BLOCK 4 (Booking
+Form/Payment/Chat) without explicit direction.
