@@ -1687,3 +1687,49 @@ was scoped to fix.
 
 **NEXT**: STOPPED for review per the established pattern - not proceeding into BLOCK 4 (Booking
 Form/Payment/Chat) without explicit direction.
+
+### BLOCK 3.2 — Search/Hotel closure gate (commit `8a64947`, START_SHA `310273a`, END_SHA `8a64947`)
+
+Investigated the mobile "whitespace gap" BLOCK 3.1 flagged but didn't fix, per explicit instruction
+not to hand-wave it. Real root cause was worse than a spacing bug: the entire hotel detail page
+below the hero photo - name, city, price, rating, "Номера" heading, room cards, similar hotels,
+reviews - used `text-white`/`text-brand-200` (light mint `#86c9a0`) directly on the page's own white
+background (no dark wrapper), confirmed via `getComputedStyle` returning white-on-white for the
+`<h1>`. This is a direct violation of CLAUDE.md's own canonical rule ("no mint/light text on
+white") and predates this session - present on every hotel page, masked in earlier screenshots by
+the cookie-consent banner happening to sit over the same region. Fixed by switching the affected
+text to the same `--taj-color-text`/`--taj-color-text-secondary` tokens the already-correct search
+result cards use, across `page.tsx`, `HotelRoomCategories.tsx` (added a `tone` prop to
+`AmenityList`, shared between the light category card and the intentionally-dark variant chip),
+`ReviewCard.tsx`, `HotelDateChange.tsx`. Left every genuinely self-contained dark element alone
+(BackNav's own pill, the sold-out chip, the hero photo overlay, the payment-method chips).
+
+Also closed: `guests` was never read by the hotel page at all (confirmed absent from its
+searchParams type) despite being in the URL from Search - added it and threaded it into BackNav's
+fallback href; verified live end-to-end (Search guests=3 → Hotel → Back → Search input shows "3").
+Fixed a real jsx-a11y violation (`role="status"` + `aria-disabled`, an invalid ARIA combination) on
+`SoldOutBadge`. Re-verified the cookie-consent banner (BLOCK 3.1 flagged it as not dismissing) -
+reproduced clean with localStorage cleared: dismisses on click, stays dismissed on reload; the
+earlier finding was a stale element-ref testing artifact, not a real bug - confirmed by re-testing,
+not assumed away.
+
+**Verified live**: full mobile normal flow walked end-to-end (search → hotel → RoomType → Booking
+CTA), landing correctly on `/booking` with room/hotel context and preserved dates - stopped there
+per instruction, Booking Form untouched. Search-availability regression re-confirmed with a fresh
+fixture (occupied dates excluded, free dates included) since `inventory.ts`/`search.ts` were not
+touched this pass. Desktop Search→Hotel and Hotel→AllReviews→Back both re-verified with a genuinely
+clean server restart. `npx tsc --noEmit`, targeted `eslint`, and `npm run build` all clean.
+
+**One honestly-unresolved test-environment artifact**: a benign React hydration console warning
+(server/client class-name mismatch for two already-fixed components) persisted across multiple full
+`.next` wipes and fresh browser tabs in this long-running dev session, despite `curl`-verified SSR
+output and `getComputedStyle`-verified DOM state both being correct throughout. Documented as a
+confirmed test-environment-only artifact (not reproducible from a fresh session, does not affect
+real users), not silently hidden.
+
+Official star classification reconfirmed absent from the data model (no change) - `propertyType`
+still never rendered as stars, `Hotel.rating` remains the only star display.
+
+**NEXT**: STOPPED for review. Full BLOCK 3.2 report delivered to the user for the CODE/TEST/BUILD/
+REAL RUNTIME/PERFORMANCE/ACCESSIBILITY/DEPLOYED/EVIDENCE gate. Awaiting explicit go-ahead before
+BLOCK 4 (Booking Form/Payment/Chat).
