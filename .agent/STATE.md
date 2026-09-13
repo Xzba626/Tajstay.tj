@@ -1794,3 +1794,52 @@ fixtures cleaned up against local Postgres only.
 **NEXT**: STOPPED for review, per instruction. Not starting Payment redesign, Chat, or BLOCK 5.
 Full report delivered to the user with the reservation-lifecycle finding as the headline item,
 explicitly flagged PRODUCT DECISION REQUIRED rather than resolved unilaterally.
+
+## BLOCK 4.1 — Atomic WAITING_PAYMENT Inventory Hold + True Submit Idempotency (commit `a9f69df`,
+START_SHA `59ec5c4`, END_SHA `a9f69df`)
+
+The user made the product decision BLOCK 4 explicitly deferred: an active WAITING_PAYMENT booking
+should temporarily hold inventory, and an expired one must free it authoritatively even if the
+`/api/jobs/expire-bookings` cron is delayed or down.
+
+Implementation, built entirely on the existing canonical mechanisms (no new formula, no schema
+change): `assertDatesAvailable`/`assertRoomTypeAvailable` gained an opt-in `includeActiveHolds`
+param - when true, a WAITING_PAYMENT/WAIT_PROOF/ON_REVIEW/PENDING_OWNER booking counts as occupying
+if it's `paymentTimerPaused` or its `expiresAt` is null/still in the future, checked against
+`Date.now()` at query time (never a cron-maintained status flag - authoritative regardless of cron
+health, exactly as required). New `withRoomHoldGuard(roomId, fn)` - the physical-room counterpart
+to Block 2.1's `withRoomTypeCapacityGuard`, a transaction-scoped advisory lock on `roomId` using
+the two-key lock space (`pg_advisory_xact_lock(2001, roomId)`) so it can never collide with the
+RoomType guard's single-key lock. `POST /api/bookings` now folds the availability check into the
+same atomic guard the write happens in, with `includeActiveHolds: true` - closing exactly the gap
+Block 4 proved live. `getHotelDateAvailability`/`getHotelsDateAvailabilityBulk` (hotel page/search
+display) also opt in, so a guest is never shown "available" for something creation would actually
+reject.
+
+**A real bug was caught and fixed during this work, not shipped**: extending the check
+unconditionally (not opt-in) broke CONFIRMATION - two holds that legitimately coexist (exactly the
+race this Block closes) would each see the other as blocking at confirm time and neither could
+ever be confirmed, a self-deadlock. Caught by re-running Block 2's own regression suite (Test A
+dropped to 0/2 successes, three "does NOT block" cases flipped to FAIL) - root-caused, fixed by
+making the extension opt-in (default `false`), confirmation call sites (`confirmBookingPayment`,
+`ownerOfflineBooking.ts`) left on that default, unchanged from before this Block.
+
+**Verified real, not assumed**: the exact two-different-guests race from the Block 4 report,
+re-run after the fix - now exactly one guest gets `200 WAITING_PAYMENT`, the other a clean
+`409 {"error":"unavailable"}`, for both a physical-room and a RoomType-only booking. Also
+re-verified the earlier same-user idempotency fix's own honesty caveat (it was a SELECT-then-write
+check, not atomic) is now closed as a side effect: forced the idempotency pre-check's own race
+window and confirmed the advisory-lock guard backstops it - one request succeeds, the other gets a
+clean 409 (not a silent duplicate), DB confirms exactly one row. Re-ran Block 2's physical-room
+concurrency (5/5), 14-case regression (14/14, including the "does NOT block" cases - now correctly
+passing again since that's the unchanged default for confirmation-style callers), and Block 2.1's
+RoomType matrix (10/10) - all green. `npx tsc --noEmit`, targeted `eslint`, `npm run build` clean.
+All test fixtures cleaned up against local Postgres only - no schema/migration touch.
+
+**Not done this pass** (out of the narrow scope this specific follow-up authorized): `guests` field
+on `/booking`, conflict-preserves-typed-data UX, recovery-to-same-hotel CTA, and the
+`/booking` page's low-contrast title - all named explicitly in the user's message as remaining
+items but not the primary ask; deferred to a future pass rather than attempted shallowly under
+time pressure.
+
+**NEXT**: STOPPED for review. Not starting Payment redesign, Chat, or BLOCK 5.
