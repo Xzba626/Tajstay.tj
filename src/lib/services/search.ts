@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { safeDbQuery } from "@/lib/db/safeDb";
 import { scoreHotelByIntent } from "@/lib/services/searchIntent";
 import { serializeHotelForClient } from "@/lib/money/serializeDecimal";
-import { getHotelDateAvailability } from "@/lib/pms/inventory";
+import { getHotelsDateAvailabilityBulk } from "@/lib/pms/inventory";
 
 function parseDateOnly(value?: string): Date | null {
   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
@@ -106,10 +106,12 @@ async function searchApprovedHotelsQuery(input: SearchInput) {
   const checkIn = parseDateOnly(input.checkIn);
   const checkOut = parseDateOnly(input.checkOut);
   if (checkIn && checkOut && checkOut.getTime() > checkIn.getTime()) {
-    const availabilityFlags = await Promise.all(
-      hotels.map((hotel) => getHotelDateAvailability(hotel.id, checkIn, checkOut))
+    const availabilityByHotelId = await getHotelsDateAvailabilityBulk(
+      hotels.map((h) => h.id),
+      checkIn,
+      checkOut
     );
-    hotels = hotels.filter((_, index) => availabilityFlags[index].hasAnyAvailability);
+    hotels = hotels.filter((hotel) => availabilityByHotelId.get(hotel.id));
   }
 
   if (input.q?.trim()) {

@@ -3,7 +3,6 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/requireAuth";
-import ReviewReplyForm from "@/components/ReviewReplyForm";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
 import { getHotelPaymentMethods } from "@/lib/hotels/paymentMethods";
@@ -13,11 +12,22 @@ import { AppImage } from "@/components/ui/AppImage";
 import { PhotoPlaceholder } from "@/components/ui/PhotoPlaceholder";
 import { isBrandAssetUrl } from "@/lib/brand";
 import { HotelViewTracker } from "@/components/guest/HotelViewTracker";
-import { getBookingGuestLabel } from "@/lib/domain/booking";
 import { HotelRoomCategories } from "@/components/hotel/HotelRoomCategories";
 import { groupHotelRooms, hotelPriceRange } from "@/lib/hotel/groupHotelRooms";
 import { getHotelDateAvailability } from "@/lib/pms/inventory";
 import { HotelDateChange } from "@/components/hotel/HotelDateChange";
+import { ReviewCard } from "@/components/hotel/ReviewCard";
+import { getHotelReviewsForDisplay } from "@/lib/hotel/getHotelReviews";
+import { BackNav } from "@/components/hotel/BackNav";
+
+const REVIEWS_PREVIEW_COUNT = 4;
+
+function buildSearchFallbackHref(city: string, searchParams?: { checkIn?: string; checkOut?: string }): string {
+  const params = new URLSearchParams({ city });
+  if (searchParams?.checkIn) params.set("checkIn", searchParams.checkIn);
+  if (searchParams?.checkOut) params.set("checkOut", searchParams.checkOut);
+  return `/search?${params.toString()}`;
+}
 
 function parseDateOnly(value?: string): Date | null {
   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
@@ -162,13 +172,7 @@ export default async function HotelDetailPage({
         )
       : false;
 
-  const reviews = await prisma.review.findMany({
-    where: {
-      OR: [{ booking: { room: { hotelId: hotel.id } } }, { booking: { roomType: { hotelId: hotel.id } } }]
-    },
-    include: { booking: { include: { user: true } } },
-    orderBy: { createdAt: "desc" }
-  });
+  const reviews = await getHotelReviewsForDisplay(hotel.id);
 
   const canReply =
     user?.role === "ADMIN" || (user?.role === "OWNER" && hotel.ownerId === user.id);
@@ -221,6 +225,7 @@ export default async function HotelDetailPage({
   return (
     <div className="mx-auto max-w-7xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
       <HotelViewTracker hotelId={hotel.id} name={hotel.name} city={hotel.city} />
+      <BackNav locale={locale} fallbackHref={buildSearchFallbackHref(hotel.city, searchParams)} />
 
       <section className="space-y-4" data-reveal>
         <div className="relative overflow-hidden rounded-2xl bg-brand-800" style={{ viewTransitionName: `hotel-hero-${hotel.id}` } as any}>
@@ -366,7 +371,14 @@ export default async function HotelDetailPage({
       )}
 
       <section className="space-y-3" data-reveal>
-        <h2 className="text-xl font-semibold text-white">{m(locale, "hotelPage.reviews")}</h2>
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-xl font-semibold text-white">{m(locale, "hotelPage.reviews")}</h2>
+          {reviews.length > REVIEWS_PREVIEW_COUNT ? (
+            <Link href={`/hotel/${hotel.id}/reviews`} className="text-sm font-medium text-brand-100 underline">
+              {m(locale, "hotelPage.allReviews")}
+            </Link>
+          ) : null}
+        </div>
         {reviews.length ? (
           <>
             <Card className="space-y-2 p-5">
@@ -374,54 +386,13 @@ export default async function HotelDetailPage({
               <p className="text-sm text-brand-200">{aiReviewSummary.negative}</p>
             </Card>
             <div className="space-y-3">
-              {reviews.map((r) => (
-                <div key={r.id} className="glass-panel rounded-2xl p-5">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <div className="font-semibold text-white">
-                        {m(locale, "profile.rating")}: {r.rating}/5
-                      </div>
-                      <div className="text-sm text-brand-200">{getBookingGuestLabel(r.booking)}</div>
-                      <div className="mt-3 whitespace-pre-wrap text-sm text-brand-200">{r.comment}</div>
-                      {r.imageUrl && (
-                        <div className="mt-3">
-                          <AppImage
-                            src={r.imageUrl}
-                            alt="review"
-                            width={320}
-                            height={192}
-                            className="max-h-48 w-auto rounded-xl border border-brand-700 object-cover"
-                          />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {r.reply && (
-                    <div className="mt-4 rounded-xl border border-brand-700 bg-brand-800 p-4 text-sm">
-                      <div className="font-semibold text-white">{m(locale, "guestDash.ownerReply")}</div>
-                      <div className="mt-1 whitespace-pre-wrap text-brand-200">{r.reply}</div>
-                    </div>
-                  )}
-
-                  {canReply && !r.reply && (
-                    <ReviewReplyForm
-                      reviewId={r.id}
-                      labels={{
-                        title: m(locale, "guestDash.ownerReply"),
-                        placeholder: "Write a reply...",
-                        saving: "Saving...",
-                        submit: m(locale, "admin.save"),
-                        error: m(locale, "auth.errorGeneric")
-                      }}
-                    />
-                  )}
-                </div>
+              {reviews.slice(0, REVIEWS_PREVIEW_COUNT).map((r) => (
+                <ReviewCard key={r.id} locale={locale} review={r} canReply={canReply} />
               ))}
             </div>
           </>
         ) : (
-          <p className="text-brand-200">{m(locale, "profile.reviewsEmpty")}</p>
+          <p className="text-brand-200">{m(locale, "hotelPage.noReviewsYet")}</p>
         )}
       </section>
     </div>

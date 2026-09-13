@@ -690,7 +690,10 @@ const ru: Tree = {
     soldOut: "Нет свободных номеров на выбранные даты",
     hotelFullySoldOut: "На выбранные даты в этом отеле нет свободных номеров",
     changeDates: "Изменить даты",
-    backToSearch: "К результатам поиска"
+    backToSearch: "К результатам поиска",
+    back: "Назад",
+    allReviews: "Все отзывы",
+    noReviewsYet: "Пока нет отзывов"
   },
   auth: {
     title: "Вход и регистрация",
@@ -2651,7 +2654,10 @@ const tg: Tree = {
     soldOut: "Барои санаҳои интихобшуда ҳуҷраи холӣ нест",
     hotelFullySoldOut: "Дар ин меҳмонхона барои санаҳои интихобшуда ҷои холӣ нест",
     changeDates: "Тағир додани санаҳо",
-    backToSearch: "Ба натиҷаҳои ҷустуҷӯ"
+    backToSearch: "Ба натиҷаҳои ҷустуҷӯ",
+    back: "Бозгашт",
+    allReviews: "Ҳамаи назарҳо",
+    noReviewsYet: "Ҳанӯз назаре нест"
   },
   auth: {
     title: "Ворид шудан ва бақайдгирӣ",
@@ -4579,7 +4585,10 @@ const en: Tree = {
     soldOut: "No rooms available for the selected dates",
     hotelFullySoldOut: "This hotel has no availability for the selected dates",
     changeDates: "Change dates",
-    backToSearch: "Back to search results"
+    backToSearch: "Back to search results",
+    back: "Back",
+    allReviews: "All reviews",
+    noReviewsYet: "No reviews yet"
   },
   auth: {
     title: "Sign in & registration",

@@ -7,7 +7,8 @@ import {
   getRoomBookingsInRange,
   isOccupyingOfflineStatus,
   isOccupyingOnlineStatus,
-  OCCUPYING_OFFLINE_STATUSES
+  OCCUPYING_OFFLINE_STATUSES,
+  OCCUPYING_ONLINE_STATUSES
 } from "@/lib/booking/availability";
 import { BOOKING_SOURCE } from "@/lib/domain/booking";
 import { NON_SELLABLE_ROOM_STATUSES, PHYSICAL_ROOM_STATUS } from "@/lib/pms/types";
@@ -205,6 +206,108 @@ export async function getHotelDateAvailability(
   }
 
   return { unavailableRoomTypeIds, unavailableRoomIds, hasAnyAvailability };
+}
+
+/**
+ * Bulk counterpart to getHotelDateAvailability, for the one caller that needs it for N
+ * candidates at once (search) instead of one hotel (the hotel detail page, where N=1 and the
+ * per-hotel version above is fine). Measured live: the naive "call getHotelDateAvailability per
+ * candidate" loop was a genuine N+1/fan-out - 140 queries for 20 candidates, 65 for 5, scaling
+ * with candidate count (not a false alarm). This batches the same reads into a handful of
+ * `IN (...)` queries instead of one round trip per room/RoomType, but computes availability with
+ * the exact same rules as the per-hotel functions above (isRoomSellable, OCCUPYING_ONLINE_STATUSES,
+ * OCCUPYING_OFFLINE_STATUSES, the same [checkIn, checkOut) overlap, RoomDateOverride blocks,
+ * unassigned type-level bookings) - never a second, looser availability definition for search.
+ */
+export async function getHotelsDateAvailabilityBulk(
+  hotelIds: number[],
+  checkIn: Date,
+  checkOut: Date
+): Promise<Map<number, boolean>> {
+  const result = new Map<number, boolean>(hotelIds.map((id) => [id, false]));
+  if (!hotelIds.length) return result;
+
+  const [roomTypes, rooms] = await Promise.all([
+    prisma.roomType.findMany({ where: { hotelId: { in: hotelIds } }, select: { id: true, hotelId: true } }),
+    prisma.room.findMany({
+      where: { hotelId: { in: hotelIds } },
+      select: { id: true, hotelId: true, roomTypeId: true, status: true, availability: true, housekeepingStatus: true }
+    })
+  ]);
+
+  const sellableRooms = rooms.filter(isRoomSellable);
+  const sellableRoomIds = sellableRooms.map((r) => r.id);
+  const roomTypeIds = roomTypes.map((rt) => rt.id);
+
+  const [overlappingBookings, blockedOverrides] = await Promise.all([
+    prisma.booking.findMany({
+      where: {
+        checkIn: { lt: checkOut },
+        checkOut: { gt: checkIn },
+        OR: [
+          {
+            roomId: { in: sellableRoomIds },
+            OR: [
+              { source: BOOKING_SOURCE.PLATFORM, status: { in: [...OCCUPYING_ONLINE_STATUSES] } },
+              { source: BOOKING_SOURCE.OWNER_MANUAL, offlineStatus: { in: [...OCCUPYING_OFFLINE_STATUSES] } }
+            ]
+          },
+          {
+            roomTypeId: { in: roomTypeIds },
+            assignedRoomId: null,
+            roomId: null,
+            OR: [
+              { source: BOOKING_SOURCE.PLATFORM, status: { in: [...OCCUPYING_ONLINE_STATUSES] } },
+              { source: BOOKING_SOURCE.OWNER_MANUAL, offlineStatus: { in: [...OCCUPYING_OFFLINE_STATUSES] } }
+            ]
+          }
+        ]
+      },
+      select: { roomId: true, roomTypeId: true }
+    }),
+    sellableRoomIds.length
+      ? prisma.roomDateOverride.findMany({
+          where: { roomId: { in: sellableRoomIds }, isBlocked: true, date: { gte: checkIn, lt: checkOut } },
+          select: { roomId: true }
+        })
+      : Promise.resolve([] as { roomId: number }[])
+  ]);
+
+  const occupiedRoomIds = new Set<number>([
+    ...overlappingBookings.filter((b) => b.roomId != null).map((b) => b.roomId as number),
+    ...blockedOverrides.map((o) => o.roomId)
+  ]);
+  const occupiedUnassignedByType = new Map<number, number>();
+  for (const b of overlappingBookings) {
+    if (b.roomId == null && b.roomTypeId != null) {
+      occupiedUnassignedByType.set(b.roomTypeId, (occupiedUnassignedByType.get(b.roomTypeId) ?? 0) + 1);
+    }
+  }
+
+  // Standalone physical rooms (no RoomType) - free if sellable and not occupied.
+  for (const room of sellableRooms) {
+    if (room.roomTypeId == null && !occupiedRoomIds.has(room.id)) {
+      result.set(room.hotelId, true);
+    }
+  }
+
+  // RoomType-backed inventory - same formula as getRoomTypeAvailability, batched.
+  const sellableByType = new Map<number, number>();
+  const occupiedByType = new Map<number, number>();
+  for (const room of sellableRooms) {
+    if (room.roomTypeId == null) continue;
+    sellableByType.set(room.roomTypeId, (sellableByType.get(room.roomTypeId) ?? 0) + 1);
+    if (occupiedRoomIds.has(room.id)) {
+      occupiedByType.set(room.roomTypeId, (occupiedByType.get(room.roomTypeId) ?? 0) + 1);
+    }
+  }
+  for (const rt of roomTypes) {
+    const total = sellableByType.get(rt.id) ?? 0;
+    const occupied = (occupiedByType.get(rt.id) ?? 0) + (occupiedUnassignedByType.get(rt.id) ?? 0);
+    if (total - occupied > 0) result.set(rt.hotelId, true);
+  }
+
+  return result;
 }
 
 export async function getRoomTypeDaySummary(roomTypeId: number, day: Date) {
