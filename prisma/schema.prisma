@@ -416,6 +416,15 @@ model Booking {
   @@index([status])
   @@index([source])
   @@index([expiresAt])
+  /// booking_room_no_overlap: a Postgres EXCLUDE (gist) constraint on
+  /// COALESCE(assignedRoomId, roomId) + tsrange(checkIn, checkOut, '[)'), scoped to occupying
+  /// statuses only (PLATFORM: CONFIRMED/CHECKED_IN/COMPLETED; OWNER_MANUAL: CONFIRMED/CHECKED_IN).
+  /// Prisma has no native EXCLUDE-constraint syntax, so it isn't declared here - see migration
+  /// 20260913080000_booking_room_exclusion_constraint. This is the actual DB-level guarantee that
+  /// no two occupying bookings can overlap on the same physical room, independent of any
+  /// application code path. Does NOT cover room-type-only bookings with no physical room resolved
+  /// yet (assignedRoomId AND roomId both null) - that case has no single column to range-exclude
+  /// on and is protected at the application layer instead (see assertRoomTypeAvailable).
 }
 
 /// Активные сообщения чата по брони (после архивации удаляются, копия в ChatArchive).

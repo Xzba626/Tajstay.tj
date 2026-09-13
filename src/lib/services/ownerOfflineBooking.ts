@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { assertDatesAvailable, DatesUnavailableError } from "@/lib/booking/availability";
+import { assertDatesAvailable, DatesUnavailableError, withRoomOverlapGuard } from "@/lib/booking/availability";
 import { assertRoomTypeAvailable, RoomTypeUnavailableError } from "@/lib/pms/inventory";
 import { BOOKING_SOURCE, BOOKING_STATUS, OFFLINE_STATUS, type OfflineStatus } from "@/lib/domain/booking";
 import { createNotification } from "@/lib/notifications/create";
@@ -81,38 +81,50 @@ export async function createOwnerOfflineBooking(input: CreateOfflineBookingInput
   const publicCode = await generateBookingCode();
   const guestCount = Math.max(1, input.guestCount ?? 1);
 
-  const booking = await prisma.booking.create({
-    data: {
-      source: BOOKING_SOURCE.OWNER_MANUAL,
-      createdByOwnerId: input.ownerId,
-      userId: null,
-      roomTypeId: input.roomTypeId,
-      roomId: physicalRoomId,
-      assignedRoomId: physicalRoomId,
-      checkIn: input.checkIn,
-      checkOut: input.checkOut,
-      guestName: input.guestName.trim(),
-      guestPhone,
-      guestEmail: input.guestEmail?.trim() || null,
-      guestCount,
-      phone: guestPhone,
-      offlineNote: input.offlineNote?.trim() || null,
-      offlineStatus,
-      prepayment,
-      remainingAmount,
-      offlinePaymentType: input.offlinePaymentType?.trim() || null,
-      totalPrice,
-      commission: 0,
-      subtotal: totalPrice,
-      serviceFee: 0,
-      taxAmount: 0,
-      publicCode,
-      status: BOOKING_STATUS.CONFIRMED,
-      paymentStatus: prepayment >= totalPrice && totalPrice > 0 ? "PAID" : "PENDING",
-      payOnArrival: true,
-      paymentMethod: "ARRIVAL"
-    }
-  });
+  // The assertDatesAvailable/assertRoomTypeAvailable checks above are plain SELECTs, not atomic
+  // with this create - a new offline booking defaults straight into CONFIRMED (occupying), so this
+  // is a genuine race point (proven live, see Block 2 report). withRoomOverlapGuard is the actual
+  // backstop; on conflict, surface the same "dates_unavailable" the pre-check already uses.
+  let booking;
+  try {
+    booking = await withRoomOverlapGuard(() =>
+      prisma.booking.create({
+        data: {
+          source: BOOKING_SOURCE.OWNER_MANUAL,
+          createdByOwnerId: input.ownerId,
+          userId: null,
+          roomTypeId: input.roomTypeId,
+          roomId: physicalRoomId,
+          assignedRoomId: physicalRoomId,
+          checkIn: input.checkIn,
+          checkOut: input.checkOut,
+          guestName: input.guestName.trim(),
+          guestPhone,
+          guestEmail: input.guestEmail?.trim() || null,
+          guestCount,
+          phone: guestPhone,
+          offlineNote: input.offlineNote?.trim() || null,
+          offlineStatus,
+          prepayment,
+          remainingAmount,
+          offlinePaymentType: input.offlinePaymentType?.trim() || null,
+          totalPrice,
+          commission: 0,
+          subtotal: totalPrice,
+          serviceFee: 0,
+          taxAmount: 0,
+          publicCode,
+          status: BOOKING_STATUS.CONFIRMED,
+          paymentStatus: prepayment >= totalPrice && totalPrice > 0 ? "PAID" : "PENDING",
+          payOnArrival: true,
+          paymentMethod: "ARRIVAL"
+        }
+      })
+    );
+  } catch (e) {
+    if (e instanceof DatesUnavailableError) throw new Error("dates_unavailable");
+    throw e;
+  }
 
   await createNotification({
     userId: input.ownerId,
@@ -201,20 +213,30 @@ export async function updateOwnerOfflineBooking(input: UpdateOfflineBookingInput
     });
   }
 
-  return prisma.booking.update({
-    where: { id: existing.id },
-    data: {
-      checkIn,
-      checkOut,
-      offlineStatus,
-      totalPrice,
-      subtotal: totalPrice,
-      prepayment,
-      remainingAmount,
-      offlinePaymentType:
-        input.offlinePaymentType !== undefined ? input.offlinePaymentType?.trim() || null : existing.offlinePaymentType,
-      offlineNote: input.offlineNote !== undefined ? input.offlineNote?.trim() || null : existing.offlineNote,
-      paymentStatus: prepayment >= totalPrice && totalPrice > 0 ? "PAID" : "PENDING"
-    }
-  });
+  // Same SELECT-then-write gap as create above, relevant here whenever this update moves
+  // offlineStatus into an occupying value (CONFIRMED/CHECKED_IN) or changes dates on an already-
+  // occupying booking - withRoomOverlapGuard is the real backstop.
+  try {
+    return await withRoomOverlapGuard(() =>
+      prisma.booking.update({
+        where: { id: existing.id },
+        data: {
+          checkIn,
+          checkOut,
+          offlineStatus,
+          totalPrice,
+          subtotal: totalPrice,
+          prepayment,
+          remainingAmount,
+          offlinePaymentType:
+            input.offlinePaymentType !== undefined ? input.offlinePaymentType?.trim() || null : existing.offlinePaymentType,
+          offlineNote: input.offlineNote !== undefined ? input.offlineNote?.trim() || null : existing.offlineNote,
+          paymentStatus: prepayment >= totalPrice && totalPrice > 0 ? "PAID" : "PENDING"
+        }
+      })
+    );
+  } catch (e) {
+    if (e instanceof DatesUnavailableError) throw new Error("dates_unavailable");
+    throw e;
+  }
 }

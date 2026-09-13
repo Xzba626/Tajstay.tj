@@ -117,6 +117,62 @@ export class DatesUnavailableError extends Error {
   }
 }
 
+/**
+ * The DB-level backstop against double-booking a physical room: a Postgres EXCLUDE constraint
+ * (`booking_room_no_overlap`, see migration 20260913080000) on
+ * `COALESCE("assignedRoomId","roomId") + tsrange(checkIn,checkOut,'[)')`, scoped to occupying
+ * statuses only. `assertDatesAvailable` above is still the first line of defense (avoids the
+ * common case ever reaching the DB), but it is a plain SELECT-then-write and is NOT atomic on its
+ * own - two concurrent requests can both pass it. The constraint is what actually prevents the
+ * conflicting row from ever being committed, regardless of the SELECT's outcome.
+ *
+ * Under real concurrent load this constraint surfaces as one of two distinct Postgres errors, and
+ * both must be treated as the same domain-level conflict:
+ * - `23P01` (exclusion_violation) - the clean case: the losing statement is rejected outright.
+ * - `40P01` (deadlock_detected) - under concurrent UPDATEs (e.g. two owners confirming different
+ *   bookings for the same room at the same instant), Postgres can detect a lock-ordering deadlock
+ *   on the GiST index before either statement reaches the exclusion check itself; one of the two
+ *   transactions is killed by Postgres's deadlock resolver. This is NOT a transient/retriable
+ *   "try again and it'll probably work" situation in the way a serialization failure is - the
+ *   killed transaction's own write is simply gone, so retrying it re-runs the real availability
+ *   check from scratch and gets a truthful answer (proven via a real concurrent test, see the
+ *   Block 2 report - this is not a theoretical concern, it was observed live).
+ * Confirmed empirically: neither error ever allows two conflicting rows to both commit - proven by
+ * a real concurrent-write test (see Block 2 report), not assumed from reading the constraint SQL.
+ */
+function isRoomOverlapConstraintViolation(error: unknown): boolean {
+  const msg = String((error as { message?: unknown })?.message ?? error ?? "");
+  return /23P01|40P01|exclusion|deadlock/i.test(msg);
+}
+
+/**
+ * Runs `fn` (a function that performs the actual availability-check-then-write for a specific
+ * physical room) with the DB constraint as the real backstop. A `40P01` deadlock is retried a
+ * bounded number of times (the killed transaction's write never happened, so re-running from
+ * scratch is safe and correct); a `23P01` exclusion violation is a genuine conflict and is
+ * translated to `DatesUnavailableError` immediately, no retry - retrying a real conflict would
+ * just waste a round-trip confirming the same "no" again.
+ */
+export async function withRoomOverlapGuard<T>(fn: () => Promise<T>, maxAttempts = 3): Promise<T> {
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      if (!isRoomOverlapConstraintViolation(error)) throw error;
+      lastError = error;
+      const msg = String((error as { message?: unknown })?.message ?? "");
+      const isDeadlock = /40P01|deadlock/i.test(msg);
+      if (isDeadlock && attempt < maxAttempts) {
+        await new Promise((r) => setTimeout(r, 25 * attempt));
+        continue;
+      }
+      throw new DatesUnavailableError();
+    }
+  }
+  throw lastError instanceof Error ? lastError : new DatesUnavailableError();
+}
+
 export async function assertDatesAvailable(params: {
   roomId: number;
   checkIn: Date;

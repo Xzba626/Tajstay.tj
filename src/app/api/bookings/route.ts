@@ -292,7 +292,11 @@ export async function POST(req: NextRequest) {
     return response;
   } catch (err: unknown) {
     const code = bookingErrorCode(err);
-    if (wantsJson) return NextResponse.json({ error: code }, { status: 500 });
+    // A dates/room conflict is a legitimate business outcome, not a server fault - 409, not 500,
+    // so a JSON API consumer can distinguish "try different dates" from "something is actually
+    // broken" without parsing error text.
+    const status = code === "unavailable" ? 409 : 500;
+    if (wantsJson) return NextResponse.json({ error: code }, { status });
     return bookingFormRedirect(req, { roomId, checkIn: checkInRaw, checkOut: checkOutRaw, code });
   }
 }

@@ -5,7 +5,7 @@ import { forbiddenJson } from "@/lib/auth/apiResponses";
 import { publicUrl } from "@/lib/http/publicOrigin";
 import { getBookingForOwner } from "@/lib/auth/ownerBooking";
 import { BOOKING_STATUS } from "@/lib/domain/booking";
-import { assertDatesAvailable, DatesUnavailableError } from "@/lib/booking/availability";
+import { assertDatesAvailable, DatesUnavailableError, withRoomOverlapGuard } from "@/lib/booking/availability";
 import { autoAssignBookingIfPossible } from "@/lib/pms/assignment";
 import { assertRoomTypeAvailable, RoomTypeUnavailableError } from "@/lib/pms/inventory";
 import { getBookingPhysicalRoomId } from "@/lib/pms/types";
@@ -59,13 +59,24 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     throw e;
   }
 
-  await prisma.booking.update({
-    where: { id },
-    data: {
-      status: BOOKING_STATUS.CONFIRMED,
-      paymentStatus: booking.paymentStatus === "FAILED" ? "PENDING" : booking.paymentStatus
+  try {
+    await withRoomOverlapGuard(() =>
+      prisma.booking.update({
+        where: { id },
+        data: {
+          status: BOOKING_STATUS.CONFIRMED,
+          paymentStatus: booking.paymentStatus === "FAILED" ? "PENDING" : booking.paymentStatus
+        }
+      })
+    );
+  } catch (e) {
+    if (e instanceof DatesUnavailableError) {
+      const msg = "Этот номер уже занят на выбранные даты.";
+      if (wantsJson(req)) return NextResponse.json({ ok: false, error: msg }, { status: 409 });
+      return NextResponse.redirect(publicUrl(req, `/dashboard/owner?section=bookings&error=dates_conflict`));
     }
-  });
+    throw e;
+  }
 
   await autoAssignBookingIfPossible(id);
 

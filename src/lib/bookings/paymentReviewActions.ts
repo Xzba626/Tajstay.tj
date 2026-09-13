@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { BOOKING_STATUS } from "@/lib/domain/booking";
 import { addBookingSystemMessage } from "@/lib/chat/bookingChat";
-import { assertDatesAvailable, DatesUnavailableError } from "@/lib/booking/availability";
+import { assertDatesAvailable, DatesUnavailableError, withRoomOverlapGuard } from "@/lib/booking/availability";
 import { assertRoomTypeAvailable, RoomTypeUnavailableError } from "@/lib/pms/inventory";
 import { bookingHotel } from "@/lib/pms/bookingContext";
 
@@ -49,9 +49,23 @@ export async function confirmBookingPayment({ bookingId, actorId, actorRole, rea
 
   // Owner path: normal single review. Admin override: may act even after the booking already left
   // ON_REVIEW (owner already confirmed/rejected) - a dispute is, by definition, revisiting a
-  // decision that was already made.
+  // decision that was already made. BUT this "may act on a non-ON_REVIEW booking" allowance was
+  // previously unbounded - it let a reason string alone move a booking out of a genuine TERMINAL
+  // state (CANCELLED/EXPIRED/COMPLETED/REJECTED) straight to CONFIRMED, which is a distinct,
+  // deliberate business decision (e.g. "un-cancel and honor a booking"), not a side effect of the
+  // ordinary payment-dispute-override flow. That still needs its own explicitly-designed action if
+  // ever required - it is out of scope here and is now blocked outright, for every actor role.
   if (actorRole === "OWNER" && booking.status !== BOOKING_STATUS.ON_REVIEW) {
     throw new Error("NOT_ON_REVIEW");
+  }
+  const TERMINAL_STATUSES_BLOCKING_CONFIRM: string[] = [
+    BOOKING_STATUS.CANCELLED,
+    BOOKING_STATUS.EXPIRED,
+    BOOKING_STATUS.COMPLETED,
+    BOOKING_STATUS.REJECTED
+  ];
+  if (TERMINAL_STATUSES_BLOCKING_CONFIRM.includes(booking.status)) {
+    throw new Error("TERMINAL_STATUS_CANNOT_CONFIRM");
   }
   if (!booking.paymentProofUrl || !booking.proofSubmittedAt) throw new Error("NO_PROOF");
 
@@ -85,16 +99,29 @@ export async function confirmBookingPayment({ bookingId, actorId, actorRole, rea
 
   const previousStatus = booking.status;
 
-  await prisma.booking.update({
-    where: { id: bookingId },
-    data: {
-      status: BOOKING_STATUS.CONFIRMED,
-      paymentStatus: "PAID",
-      proofReviewedAt: new Date(),
-      proofReviewedById: actorId,
-      paymentReviewNote: reason?.trim() || undefined
-    }
-  });
+  // The assertDatesAvailable check above is a plain SELECT and is not atomic with this write on
+  // its own - withRoomOverlapGuard is what actually prevents two concurrent confirmations from
+  // both succeeding for an overlapping room/date range (DB-level EXCLUDE constraint as the real
+  // backstop, see availability.ts). Caught and re-thrown as the same "DATES_UNAVAILABLE" sentinel
+  // as the earlier SELECT-based check, so every API route already handling that code controls
+  // this failure mode too - it must never surface as a raw 500.
+  try {
+    await withRoomOverlapGuard(() =>
+      prisma.booking.update({
+        where: { id: bookingId },
+        data: {
+          status: BOOKING_STATUS.CONFIRMED,
+          paymentStatus: "PAID",
+          proofReviewedAt: new Date(),
+          proofReviewedById: actorId,
+          paymentReviewNote: reason?.trim() || undefined
+        }
+      })
+    );
+  } catch (e) {
+    if (e instanceof DatesUnavailableError) throw new Error("DATES_UNAVAILABLE");
+    throw e;
+  }
   await prisma.payment.update({ where: { id: payment.id }, data: { status: "CAPTURED" } });
 
   await prisma.transactionLog.create({

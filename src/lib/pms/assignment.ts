@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { assertDatesAvailable, DatesUnavailableError } from "@/lib/booking/availability";
+import { assertDatesAvailable, DatesUnavailableError, withRoomOverlapGuard } from "@/lib/booking/availability";
 import { findAvailablePhysicalRoom } from "@/lib/pms/inventory";
 import { getBookingPhysicalRoomId } from "@/lib/pms/types";
 
@@ -36,21 +36,25 @@ export async function assignBookingToRoom(params: {
       checkOut: booking.checkOut,
       excludeBookingId: booking.id
     });
+    // The check above is a plain SELECT, not atomic with the write below - withRoomOverlapGuard
+    // (DB EXCLUDE constraint) is the actual backstop against a concurrent assignment/confirmation
+    // claiming the same physical room for overlapping dates.
+    await withRoomOverlapGuard(() =>
+      prisma.booking.update({
+        where: { id: booking.id },
+        data: {
+          assignedRoomId: room.id,
+          roomId: room.id,
+          roomTypeId: room.roomTypeId ?? booking.roomTypeId
+        }
+      })
+    );
   } catch (e) {
     if (e instanceof DatesUnavailableError) {
       return { ok: false, error: "dates_unavailable" };
     }
     throw e;
   }
-
-  await prisma.booking.update({
-    where: { id: booking.id },
-    data: {
-      assignedRoomId: room.id,
-      roomId: room.id,
-      roomTypeId: room.roomTypeId ?? booking.roomTypeId
-    }
-  });
 
   return { ok: true };
 }
@@ -71,9 +75,19 @@ export async function autoAssignBookingIfPossible(bookingId: number): Promise<nu
   });
   if (!roomId) return null;
 
-  await prisma.booking.update({
-    where: { id: bookingId },
-    data: { assignedRoomId: roomId, roomId }
-  });
+  try {
+    // Same SELECT-then-write gap as assignBookingToRoom above - withRoomOverlapGuard is the real
+    // protection. On conflict, fail safe: leave the booking room-type-only (unassigned) rather
+    // than incorrectly claiming a room another concurrent request just took.
+    await withRoomOverlapGuard(() =>
+      prisma.booking.update({
+        where: { id: bookingId },
+        data: { assignedRoomId: roomId, roomId }
+      })
+    );
+  } catch (e) {
+    if (e instanceof DatesUnavailableError) return null;
+    throw e;
+  }
   return roomId;
 }
