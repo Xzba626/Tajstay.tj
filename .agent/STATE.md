@@ -1477,3 +1477,66 @@ Three items closed, per explicit user directive not to counter-patch global CSS 
 build-out (property switcher, Hotel-scoped context across Rooms/Bookings/Finance/etc., backend
 authorization audit, Objects-page redesign, map-pin picker) per the already-approved master order —
 no new sequencing question needed.
+
+---
+
+## MODE = BLOCK-BASED HARDENING (supersedes prior "continue Multi-Hotel" NEXT above — superseded by explicit user redirection)
+
+User paused the feature-work master order to run a formal two-block audit-then-harden pass before
+resuming any UX/feature work. This section is authoritative over anything above it that references
+"continue Multi-Hotel" as NEXT.
+
+### BLOCK 1 — Full technical audit (commit range ending `3b2f868`, no code changes)
+
+Evidence-based audit across booking core, chat/reviews/ratings, manager/admin panel, security,
+tests/performance/design-tokens — 5 parallel Explore-agent passes + direct verification. Delivered as
+a full report (file, not summarized). Headline finding: a CRITICAL, confirmed-real double-booking
+race condition (availability SELECT + unprotected write, no transaction/lock/DB constraint). Also
+found: admin payment-override had no FROM-status validation (could move any booking to CONFIRMED
+including CANCELLED/REJECTED/COMPLETED); Manager/Staff role is dead scaffolding (HotelStaff model +
+permission resolver exist, zero live routes use them); Expense model doesn't exist; zero automated
+test coverage for any critical business scenario except admin-security; Admin's "Commission" tile
+mixes legacy nonzero-commission bookings with the new 0%-commission model without labeling the
+difference. One subagent-reported finding (real secrets in `.env.example`) was independently
+re-verified and retracted as a false positive — tracked file has only empty placeholders.
+
+### BLOCK 2 — Booking Integrity Hardening (commits `7272167`, START_SHA `3b2f868`, END_SHA `7272167`)
+
+Closed the double-booking race at the DB level, not app-code timing: migration
+`20260913080000_booking_room_exclusion_constraint` adds a Postgres EXCLUDE (gist) constraint on
+`COALESCE(assignedRoomId, roomId) + tsrange(checkIn, checkOut, '[)')`, scoped to the pre-existing
+occupying-status definitions (PLATFORM: CONFIRMED/CHECKED_IN/COMPLETED; OWNER_MANUAL: CONFIRMED/
+CHECKED_IN) — not a new business rule, matches `availability.ts` exactly. Scanned local DB for
+existing conflicts before applying (zero found, migration unblocked). New
+`withRoomOverlapGuard()` (`src/lib/booking/availability.ts`) wraps every real write path that can
+transition a booking into an occupying state — `paymentReviewActions.confirmBookingPayment`, the
+owner pay-on-arrival confirm route, `assignment.ts`'s both functions, `ownerOfflineBooking.ts`'s
+create+update — translating a `23P01` exclusion violation or a `40P01` deadlock (a real failure mode
+discovered live under repeated concurrent testing, not assumed) into the existing controlled
+`DatesUnavailableError`/`"DATES_UNAVAILABLE"` sentinel, with bounded retry on deadlock only. Also
+fixed the admin-override terminal-state gap Block 1 found (CANCELLED/EXPIRED/COMPLETED/REJECTED can
+no longer be moved to CONFIRMED via the ordinary payment-override path, for any actor role). Hardened
+the main booking-creation route's JSON error contract (409, not 500, for a dates conflict).
+
+**Verified with a real concurrent-write test, not a diff-only claim**: pre-fix, 9/9 runs across
+PLATFORM-vs-PLATFORM/PLATFORM-vs-OWNER_MANUAL/OWNER_MANUAL-vs-OWNER_MANUAL produced 2 successful
+conflicting bookings each (race genuinely reproduced live, constraint temporarily dropped to prove
+this). Post-fix, 50/50 test-case results across 10 runs — always exactly 1 success + 1 controlled
+conflict, zero false-serialization (different rooms / adjacent dates both still succeed
+concurrently). A separate 14-case regression suite confirmed the date-overlap matrix, that
+CANCELLED/REJECTED/EXPIRED correctly free inventory, that non-occupying statuses correctly don't
+block (unchanged pre-existing rule), and that swapping `source` cannot bypass the constraint. Full
+evidence-tier breakdown: CODE=PASS, TEST=PASS (real concurrent DB writes), DEPLOYED=NOT PROVEN,
+REAL RUNTIME=NOT PROVEN (service/DB-level test, not a full browser/HTTP round-trip).
+
+**Explicitly NOT fully closed** (stated honestly in the report, not hidden): the DB constraint only
+protects bookings with a resolved physical room (`COALESCE(assignedRoomId, roomId) IS NOT NULL`) — a
+pure room-TYPE booking with no physical room assigned yet has no single column to range-exclude on,
+and remains protected only by the pre-existing application-level `assertRoomTypeAvailable` capacity
+check (no DB-level backstop for that specific case). This is why BLOCK 2 is self-assessed as
+**PARTIAL**, not COMPLETE, per its own acceptance-criteria rule that one uncovered item keeps it from
+being declared done.
+
+**NEXT**: per explicit user instruction, STOPPED after Block 2 — not proceeding into Search/Hotel/
+Booking UX, Manager, Expenses, or the next master block without further direction. Awaiting review of
+the Block 2 report before any further work.
