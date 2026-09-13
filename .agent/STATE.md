@@ -1843,3 +1843,48 @@ items but not the primary ask; deferred to a future pass rather than attempted s
 time pressure.
 
 **NEXT**: STOPPED for review. Not starting Payment redesign, Chat, or BLOCK 5.
+
+## BLOCK 4.2 — Hold Semantics + Missing Concurrency Matrix + Booking UX Closure (commit `713b06e`,
+START_SHA `ec9b7bd`, END_SHA `713b06e`)
+
+Corrected a real scope overrun the user caught: Block 4.1's active-hold set silently included
+WAIT_PROOF and PENDING_OWNER without approval. Traced every status's real write path before
+touching anything - both are dead code (zero rows of either status exist in the DB; no write
+anywhere in src/ ever assigns either). New `ACTIVE_HOLD_STATUSES = [WAITING_PAYMENT, ON_REVIEW]`
+replaces the over-broad `PENDING_ONLINE_STATUSES` reuse; ON_REVIEW kept only on direct evidence -
+`src/app/api/payments/proof/route.ts`'s real transition sets `paymentTimerPaused: true` and
+`expiresAt: null` in the same update, i.e. the code itself declares "still held, different timer."
+
+Ran the full mandatory matrix Block 4.1 skipped, all real DB-backed HTTP: **19/19 PASS** - physical
+room race, RoomType cap=1/2/3 (2/3/2 concurrent requests), pre-existing active holds, different
+RoomTypes/Rooms don't block each other, overlap vs adjacent dates, active hold blocks, stale hold
+(expiresAt past, cron deliberately NOT run) does NOT block, CANCELLED/REJECTED/EXPIRED release,
+and Search/Hotel-page/booking-API all agree for both the active and expired case on one fixture.
+
+Fixed same-user idempotency to be genuinely idempotent, not just conflict-safe: the existing-
+booking check now also runs INSIDE the advisory-lock guard, so a request that beats the outer
+pre-check's own race window resolves to the SAME bookingId as a 200, not a 409. Verified with a
+real 10-way simultaneous POST from one user: all 10 responses returned the identical bookingId,
+DB confirms exactly 1 Booking/1 Payment/1 TransactionLog row.
+
+Threaded `guests` end-to-end (Search→Hotel→Room CTA→/booking→BookingWizard's hidden `guestCount`
+field→the API's already-existing read). Added a recovery CTA on an "unavailable" conflict, linking
+back to the same Hotel with dates+guests preserved - verified present in the SSR HTML, the
+compiled bundle, and a direct curl of the served JS chunk, but could not get this specific control
+to render in this session's browser tool due to a persistent client-side script cache in that
+tool's own profile (proven not a server/build issue by all three independent checks) - flagged
+honestly rather than claimed fully verified live. Separately confirmed LIVE (clicking through the
+real form) that conflict already preserved all typed guest data without any code change - the
+client JSON submit path never redirected on error to begin with. Fixed the `/booking` title's
+low-contrast gradient text to the canonical dark token.
+
+Re-ran Block 2 (5/5, 14/14) and Block 2.1 (10/10) after this pass's availability.ts/inventory.ts
+changes - all green. `npx tsc --noEmit`, targeted `eslint`, `npm run build` all clean. Fixtures
+cleaned up, local Postgres only.
+
+**Not done this pass** (named, not hidden): full mobile/desktop human-QA walk of the whole booking
+flow (only the conflict path and pricing were walked live), auth expired-session runtime
+reproduction (inspection only), confirmation-continuity live walk (WAITING_PAYMENT→ON_REVIEW→
+CONFIRMED with a live competing actor).
+
+**NEXT**: STOPPED for review. Not starting Payment redesign, Chat, or BLOCK 5.
