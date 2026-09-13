@@ -1336,8 +1336,12 @@ removal, the stale-toast fix, white-card FAQ/Contacts — was already shipped in
 commits (`795a867`, `093bb73`, `9f28cbf`, `76239b0`), confirmed absent from current code (no
 "Каталог способов оплаты"/"Безопасность админа" string anywhere) and confirmed correct via live
 computed-style checks on this build (white-bg/dark-text Contacts+FAQ cards, no Support-header overlap).
-**The screenshots are stale DEPLOYED PROD evidence — DEPLOYED PROD remains OPEN and needs an actual
-deploy**, not further local work, to show any of this. Did not re-do already-shipped work.
+**LOCAL CURRENT HEAD = VERIFIED** (all of the above confirmed absent/fixed via live computed-style
+checks on this build). **The screenshot-proven DEPLOYED state differs from local HEAD on these
+items — exact deployed revision/SHA has NOT been verified**, so "production is simply behind" is
+not asserted as an established fact, only that local HEAD and the screenshots disagree. DEPLOYED
+PROD stays OPEN until a real runtime check against the actual deployed revision. Did not re-do
+already-shipped local work.
 
 **What was genuinely real and still present, fixed this pass**:
 - Contacts page imported `getSiteContent()` but then used a hardcoded `SUPPORT_EMAIL` constant
@@ -1357,12 +1361,27 @@ deploy**, not further local work, to show any of this. Did not re-do already-shi
   bar's active state used the same "white rgba overlay on `#0F7A4D`" anti-pattern already fixed for
   the header controls — not caught there. Fixed; verified live (`rgba(0,0,0,0)` at rest).
 
-**Still not investigated this pass** (not claimed fixed): duplicate circular header logo/avatar
-question (no screenshot was attached to this exact message to confirm against; a live check found
-only one logo + one language icon in the logged-out header — worth re-checking against a logged-in
-Admin session specifically if the user still sees it), Support page row-density/consistency beyond
-the clipping check, Owner Payment Methods mobile density (already built in Phase A, not re-spot-
-checked this pass).
+**Duplicate header logo — investigated to a real conclusion, not left open.** Traced every
+component that renders the TajStay brand-mark image or a circular avatar in the header:
+`Header.tsx` renders `BrandMark` exactly once (the left-side logo); the mobile right-side circular
+element is `HeaderMobileActions` → `ProfileAvatar`, which already guards `imageUrl` with
+`isBrandAssetUrl()` before ever using it as a photo — a user with no real photo/Telegram avatar
+falls back to a plain initial-letter circle, never the logo image. So there is no second logo
+render in the header; what may have read as "two logos" is actually one logo (left) + one
+initial-letter avatar circle (right, same brand green, different content) — a legitimate,
+already-correctly-guarded UI, not the "logo used as avatar fallback" bug the concern was about.
+
+**Mobile bottom-nav active-state indicator added** (separate from the color fix above): removing
+the background tint fixed the second-green-surface problem but left active/inactive distinguished
+only by icon stroke-weight + a 78%-vs-100% white opacity difference — real but subtle. Added a
+small solid-white dot under the active tab's icon (the `.app-tab-bar__dot` class already existed in
+CSS, unused — wired it into `MobileBottomNav.tsx`), giving a clear, unambiguous "which tab am I on"
+signal without reintroducing any background-color distinction.
+
+**Still not investigated this pass**: Support page row-density/consistency beyond the clipping
+check, Owner Payment Methods mobile density (already built in Phase A, not re-spot-checked this
+pass), FAQ accordion keyboard/accessibility beyond "it's a native `<button>`" (not separately
+tested with a screen reader or keyboard-only navigation).
 
 ### Moderation current-state architecture + Admin photo + price-snapshot period (commit `be6683f`)
 

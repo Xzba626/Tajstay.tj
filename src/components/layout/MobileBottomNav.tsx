@@ -53,6 +53,7 @@ export function MobileBottomNav({ labels, pendingBookingsCount = 0 }: Props) {
             >
               <span className={cn("app-tab-bar__icon-wrap", active && "is-active")}>
                 <Icon className="app-tab-bar__icon" size={22} strokeWidth={active ? 2.35 : 1.65} aria-hidden />
+                {active ? <span className="app-tab-bar__dot" aria-hidden /> : null}
                 {badge > 0 ? (
                   <span className="app-tab-bar__badge" aria-label={String(badge)}>
                     {badge > 9 ? "9+" : badge}

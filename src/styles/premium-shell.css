@@ -221,8 +221,20 @@
   background: transparent;
 }
 
+/* The active tab's real distinguishing mark: a small solid-white dot under the icon. Color/
+   opacity alone (full-white vs 78%-opacity white) is a real but subtle difference - this makes
+   "which tab am I on" legible at a glance without introducing a second green surface, which a
+   background tint or pill would. */
 .app-tab-bar__dot {
-  display: none;
+  display: block;
+  position: absolute;
+  bottom: -0.3rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0.25rem;
+  height: 0.25rem;
+  border-radius: 999px;
+  background: #ffffff;
 }
 
 .app-tab-bar__badge {
