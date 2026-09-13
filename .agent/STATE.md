@@ -1844,6 +1844,60 @@ time pressure.
 
 **NEXT**: STOPPED for review. Not starting Payment redesign, Chat, or BLOCK 5.
 
+## BLOCK 4.3 — Verification-only Final Runtime Closure (BLOCK 4 = CLOSED TECHNICALLY)
+
+Verification-only gate on top of BLOCK 4.2, per the user's explicit spec (no booking-domain code
+changes unless a test revealed a genuine reproduced defect). Full report:
+`BLOCK_4.3_REPORT.md` (delivered via SendUserFile).
+
+**Recovery CTA (the one open gap from 4.2) — root-caused a real defect, one minimal fix**:
+the CTA never rendered in the browser even after a full `.next` wipe + server restart + new tab,
+despite three independent proofs the server was serving correct code (network response body,
+raw curl of the compiled chunk, curl of SSR payload). Live React Fiber inspection on the mounted
+component showed the browser was actually executing a stale, pre-hotelId/pre-CTA version of
+`BookingWizard` with zero `submitErrorCode` state. Traced to `next.config.mjs`: `headers()` was
+sending `Cache-Control: public, max-age=31536000, immutable` on `/_next/static/:path*`
+unconditionally, including `next dev` — where chunk filenames are NOT content-hashed, so once a
+browser caches a chunk under that URL it never re-fetches it, ever, regardless of rebuilds.
+Fix: that header now only applies when `NODE_ENV === "production"` (where filenames genuinely
+are content-hashed); dev now sends `no-store, must-revalidate`. Only file touched.
+Retested on a clean load (different origin, `127.0.0.1` vs `localhost`, to dodge the
+already-poisoned cache entry without clearing browser storage): CTA renders, is clickable,
+navigates to `/hotel/{id}?checkIn=...&checkOut=...&guests=...` with hotel/dates/guests preserved.
+
+**Also proven this block (all real runtime, not code inspection)**:
+- Expired/invalid session cookie -> silently degrades to guest checkout, creates a fresh account
+  from submitted contact info, never reuses the expired identity, never creates a booking as
+  another user. Confirmed via real `POST /api/bookings` with both an actually-expired DB session
+  row and a garbage token.
+- Confirmation continuity: one single booking driven WAITING_PAYMENT -> ON_REVIEW (real proof
+  submission) -> CONFIRMED (real admin confirm-payment route), with a genuine second actor
+  (`curl`, no cookie jar) probing availability after each transition - conflict (409) held at
+  every stage, zero release window, proven as one continuous narrative.
+- Mobile 375x812 success + conflict flows, and desktop success + conflict, all driven through the
+  real UI end to end - no overflow, no raw IDs/errors, correct step nav, exactly the expected DB
+  row per success submission.
+- Title contrast (BLOCK 4.2 fix) confirmed still correct (`rgb(20,35,27)` on light background).
+
+**Found, flagged, NOT fixed (out of scope for this block)**: a real React hydration mismatch in
+`src/components/chat/BookingTimeline.tsx` - a chat timestamp formats differently server vs client
+("13 Сен, 19:20" vs "13 сент., 19:20"), forcing that Suspense boundary to client-render. Spun off
+as a separate background task (`task_0a04df8e`) rather than fixed here.
+
+**Engineering gate** (SOURCE_CHANGED: YES, but outside booking-domain code, so the 4.1/4.2
+regression suites were not re-run - they test code this block didn't touch): `npx tsc --noEmit`
+clean, `npx eslint next.config.mjs` clean, `npm run build` clean.
+
+Local-only: all test fixtures (1 hotel, 1 room, 6 bookings, 17 guest users) created during this
+block were deleted from local Postgres after testing, leftover count verified 0. Production
+`tajstay.site` not touched - no deploy, no migration, no prod DB access.
+
+**Verdict: BLOCK 4.3 = COMPLETE. BLOCK 4 = CLOSED TECHNICALLY. DEPLOYED = NOT PROVEN (local-dev-only
+evidence). OWNER VISUAL VALIDATION = REQUIRED (standing caveat, unchanged).**
+
+**NEXT**: STOPPED per explicit instruction. Not starting Payment redesign, Chat, or the next
+master block.
+
 ## BLOCK 4.2 — Hold Semantics + Missing Concurrency Matrix + Booking UX Closure (commit `713b06e`,
 START_SHA `ec9b7bd`, END_SHA `713b06e`)
 
