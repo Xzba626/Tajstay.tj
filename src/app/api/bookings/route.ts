@@ -31,7 +31,20 @@ function bookingFormRedirect(
 function bookingErrorCode(err: unknown): string {
   const msg = err instanceof Error ? err.message.toLowerCase() : "";
   if (msg.includes("unavailable") || msg.includes("blocked") || msg.includes("not available")) return "unavailable";
+  if (msg.includes("different_payment_option")) return "existing_booking_different_payment_option";
   return "failed";
+}
+
+/** BLOCK 5.4B §10: room/dates/user is still the one booking-intent identity - PAY_NOW and
+ * PAY_AT_CHECK_IN are never two independent bookings. But silently treating a resubmit with a
+ * DIFFERENT payment option as a plain idempotent replay would apply the wrong option to what the
+ * guest just asked for without telling them. Thrown from inside the same advisory-lock guard as
+ * the existing DatesUnavailableError/RoomTypeUnavailableError, caught the same way. */
+class DifferentPaymentOptionError extends Error {
+  constructor(message = "existing_booking_different_payment_option") {
+    super(message);
+    this.name = "DifferentPaymentOptionError";
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -55,6 +68,10 @@ export async function POST(req: NextRequest) {
   const hotelPaymentMethodIdRaw = Number(form.get("hotelPaymentMethodId"));
   const hotelPaymentMethodId =
     Number.isFinite(hotelPaymentMethodIdRaw) && hotelPaymentMethodIdRaw > 0 ? hotelPaymentMethodIdRaw : null;
+  // BLOCK 5.4B: absent/unrecognized paymentOption defaults to PAY_NOW - a legacy or unmodified
+  // client that never sends this field must keep getting today's behavior, never silently become
+  // a pay-at-check-in booking.
+  const isPayAtCheckIn = String(form.get("paymentOption") || "PAY_NOW").toUpperCase() === "PAY_AT_CHECK_IN";
   const guestCountRaw = Number(form.get("guestCount") ?? form.get("guests") ?? 1);
   const guestCount =
     Number.isFinite(guestCountRaw) && guestCountRaw >= 1 ? Math.min(99, Math.floor(guestCountRaw)) : 1;
@@ -112,10 +129,6 @@ export async function POST(req: NextRequest) {
       return bookingFormRedirect(req, { roomId, checkIn: checkInRaw, checkOut: checkOutRaw, code: "failed" });
     }
 
-    const pricing = roomTypeId
-      ? await computeRoomTypeTotalPrice({ roomTypeId, checkIn, checkOut, guestCount })
-      : await computeRoomTotalPrice({ roomId, checkIn, checkOut, guestCount });
-
     let resolvedRoomTypeId = roomTypeId || null;
     let resolvedRoomId: number | null = roomId || null;
     if (!resolvedRoomTypeId && resolvedRoomId) {
@@ -134,6 +147,7 @@ export async function POST(req: NextRequest) {
     const hotelId = ownerTarget && "hotel" in ownerTarget ? ownerTarget.hotel.id : null;
     const ownerId = ownerTarget && "hotel" in ownerTarget ? ownerTarget.hotel.ownerId : null;
     const hotelStatus = ownerTarget && "hotel" in ownerTarget ? ownerTarget.hotel.status : null;
+    const hotelAcceptsPayAtCheckIn = ownerTarget && "hotel" in ownerTarget ? ownerTarget.hotel.acceptsPayAtCheckIn : false;
 
     // A PENDING/REJECTED hotel has no real inventory yet - never let a handcrafted request create
     // a real booking against one just because its roomId/roomTypeId leaked somewhere (a stale
@@ -142,6 +156,14 @@ export async function POST(req: NextRequest) {
     if (!hotelId || hotelStatus !== "APPROVED") {
       if (wantsJson) return NextResponse.json({ error: "hotel_unavailable" }, { status: 404 });
       return bookingFormRedirect(req, { roomId, checkIn: checkInRaw, checkOut: checkOutRaw, code: "failed" });
+    }
+
+    // BLOCK 5.4B §7: the client's own choice is never authority - the hotel's own DB flag
+    // (resolved above from the actual Room/RoomType->Hotel chain, not anything the client sent)
+    // is the only thing that can allow a PAY_AT_CHECK_IN booking to be created.
+    if (isPayAtCheckIn && !hotelAcceptsPayAtCheckIn) {
+      if (wantsJson) return NextResponse.json({ error: "pay_at_checkin_not_allowed" }, { status: 403 });
+      return bookingFormRedirect(req, { roomId, checkIn: checkInRaw, checkOut: checkOutRaw, code: "pay_at_checkin_not_allowed" });
     }
 
     // Idempotency guard against a literal double-submit (double-tap, a retried request, two
@@ -170,6 +192,23 @@ export async function POST(req: NextRequest) {
       orderBy: { createdAt: "desc" }
     });
     if (existingLiveBooking) {
+      // BLOCK 5.4B §10: same identity (user+room/roomType+dates) but a DIFFERENT payment option
+      // than the one already on file is a controlled conflict, never a silent replay that would
+      // apply the wrong option to what the guest just asked for, and never a second booking.
+      if (Boolean(existingLiveBooking.payOnArrival) !== isPayAtCheckIn) {
+        if (wantsJson) {
+          return NextResponse.json(
+            { error: "existing_booking_different_payment_option", bookingId: existingLiveBooking.id, chatUrl: `/chat/booking/${existingLiveBooking.id}` },
+            { status: 409 }
+          );
+        }
+        return bookingFormRedirect(req, {
+          roomId,
+          checkIn: checkInRaw,
+          checkOut: checkOutRaw,
+          code: "existing_booking_different_payment_option"
+        });
+      }
       if (wantsJson) {
         return NextResponse.json(
           {
@@ -186,40 +225,76 @@ export async function POST(req: NextRequest) {
       return NextResponse.redirect(publicUrl(req, `/chat/booking/${existingLiveBooking.id}`));
     }
 
-    // Authoritative payment-method validation (BLOCK 5.2). The guest-facing Wizard only ever sends
-    // an id - never recipient/account/instructions text - and this is the ONLY place those values
-    // are read from the database, never trusted from the request. A PAY-NOW booking with no id, an
-    // id belonging to a different hotel, an inactive method, or a nonexistent id are all rejected
-    // identically (no booking/payment/hold/chat/notification side effects) rather than silently
-    // falling back to a placeholder payment method - see BLOCK 5.0's P0 finding on the hardcoded
-    // "DC Next" card this replaces. `hotelId` here is the authoritative hotel resolved above from
-    // the actual Room/RoomType chain, never anything the client could influence directly.
-    if (!hotelPaymentMethodId) {
-      if (wantsJson) return NextResponse.json({ error: "payment_method_required" }, { status: 400 });
-      return bookingFormRedirect(req, { roomId, checkIn: checkInRaw, checkOut: checkOutRaw, code: "payment_method_required" });
-    }
-    const hotelPaymentMethod = await prisma.hotelPaymentMethod.findFirst({
-      where: { id: hotelPaymentMethodId, hotelId, isActive: true }
-    });
-    if (!hotelPaymentMethod) {
-      if (wantsJson) return NextResponse.json({ error: "payment_method_invalid" }, { status: 400 });
-      return bookingFormRedirect(req, { roomId, checkIn: checkInRaw, checkOut: checkOutRaw, code: "payment_method_invalid" });
-    }
-    // Snapshot the chosen hotel-owned payment method at selection time (from the row just read
-    // above, never from the request) - if the owner edits their card number tomorrow, this
-    // booking must keep showing what the guest actually paid to.
-    const resolvedHotelPaymentMethodId = hotelPaymentMethod.id;
-    const paymentMethodSnapshot = {
-      displayLabel: hotelPaymentMethod.displayLabel,
-      recipientName: hotelPaymentMethod.recipientName,
-      paymentIdentifier: hotelPaymentMethod.paymentIdentifier,
-      instructions: hotelPaymentMethod.instructions
-    };
-    paymentMethod = hotelPaymentMethod.displayLabel;
+    // BLOCK 5.4B: moved here from before the idempotency check above (found live, via a failing
+    // concurrency test) - computeRoomTotalPrice/computeRoomTypeTotalPrice run their OWN
+    // independent, non-transactional assertDatesAvailable call (for pricing/override lookups),
+    // which - unlike the idempotency check above - has no notion of "this is the same user's own
+    // existing booking, so it's fine." For Pay Now this was never visible because WAITING_PAYMENT/
+    // ON_REVIEW only occupy via the opt-in active-hold check this call never enables; a
+    // PAY_AT_CHECK_IN booking is CONFIRMED immediately, which occupies unconditionally, so a
+    // genuine same-user resubmit would trip this pricing-only check and get a false "unavailable"
+    // instead of ever reaching the idempotent-replay return above. Running pricing only after that
+    // check has already short-circuited fixes it without touching assertDatesAvailable itself.
+    const pricing = roomTypeId
+      ? await computeRoomTypeTotalPrice({ roomTypeId, checkIn, checkOut, guestCount })
+      : await computeRoomTotalPrice({ roomId, checkIn, checkOut, guestCount });
 
-    // Guest has 15 minutes to submit payment proof after booking creation.
-    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+    let resolvedHotelPaymentMethodId: number | null = null;
+    let paymentMethodSnapshot: {
+      displayLabel: string;
+      recipientName: string;
+      paymentIdentifier: string;
+      instructions: string | null;
+    } | null = null;
+
+    if (!isPayAtCheckIn) {
+      // Authoritative payment-method validation (BLOCK 5.2). The guest-facing Wizard only ever
+      // sends an id - never recipient/account/instructions text - and this is the ONLY place
+      // those values are read from the database, never trusted from the request. A PAY-NOW
+      // booking with no id, an id belonging to a different hotel, an inactive method, or a
+      // nonexistent id are all rejected identically (no booking/payment/hold/chat/notification
+      // side effects) rather than silently falling back to a placeholder payment method - see
+      // BLOCK 5.0's P0 finding on the hardcoded "DC Next" card this replaced. `hotelId` here is
+      // the authoritative hotel resolved above from the actual Room/RoomType chain, never
+      // anything the client could influence directly.
+      if (!hotelPaymentMethodId) {
+        if (wantsJson) return NextResponse.json({ error: "payment_method_required" }, { status: 400 });
+        return bookingFormRedirect(req, { roomId, checkIn: checkInRaw, checkOut: checkOutRaw, code: "payment_method_required" });
+      }
+      const hotelPaymentMethod = await prisma.hotelPaymentMethod.findFirst({
+        where: { id: hotelPaymentMethodId, hotelId, isActive: true }
+      });
+      if (!hotelPaymentMethod) {
+        if (wantsJson) return NextResponse.json({ error: "payment_method_invalid" }, { status: 400 });
+        return bookingFormRedirect(req, { roomId, checkIn: checkInRaw, checkOut: checkOutRaw, code: "payment_method_invalid" });
+      }
+      // Snapshot the chosen hotel-owned payment method at selection time (from the row just read
+      // above, never from the request) - if the owner edits their card number tomorrow, this
+      // booking must keep showing what the guest actually paid to.
+      resolvedHotelPaymentMethodId = hotelPaymentMethod.id;
+      paymentMethodSnapshot = {
+        displayLabel: hotelPaymentMethod.displayLabel,
+        recipientName: hotelPaymentMethod.recipientName,
+        paymentIdentifier: hotelPaymentMethod.paymentIdentifier,
+        instructions: hotelPaymentMethod.instructions
+      };
+      paymentMethod = hotelPaymentMethod.displayLabel;
+    } else {
+      // BLOCK 5.4B §7: PAY_AT_CHECK_IN never requires, validates, or uses a payment method - if a
+      // stale/malicious client sent one anyway, it is simply ignored (never read past this point).
+      paymentMethod = "ARRIVAL";
+    }
+
+    // PAY_NOW: guest has 15 minutes to submit payment proof after booking creation.
+    // PAY_AT_CHECK_IN: no payment window at all - nothing is owed yet, so no expiresAt (§7/§15 of
+    // BLOCK 5.4A's trace: a non-null-but-never-expiring hold would be the wrong trap here; the
+    // clean answer is simply no deadline field at all, since this status is never in
+    // ACTIVE_HOLD_STATUSES to begin with - it's CONFIRMED, already occupying at every layer).
+    const expiresAt = isPayAtCheckIn ? null : new Date(Date.now() + 15 * 60 * 1000);
     const publicCode = await generateBookingCode("TJ");
+    // PAY_AT_CHECK_IN: CONFIRMED + paymentStatus PENDING + no Payment row is the exact combination
+    // already proven safe and load-bearing by the existing owner-manual/offline flow (BLOCK 5.4A
+    // §7) - not a new state, just the first time a guest-facing PLATFORM booking uses it.
     const paymentStatus = "PENDING";
 
     const bookingData = {
@@ -239,10 +314,10 @@ export async function POST(req: NextRequest) {
       paymentStatus,
       paymentMethod,
       hotelPaymentMethodId: resolvedHotelPaymentMethodId,
-      paymentMethodSnapshot: JSON.parse(JSON.stringify(paymentMethodSnapshot)),
-      payOnArrival: false,
+      paymentMethodSnapshot: paymentMethodSnapshot ? JSON.parse(JSON.stringify(paymentMethodSnapshot)) : null,
+      payOnArrival: isPayAtCheckIn,
       phone,
-      status: BOOKING_STATUS.WAITING_PAYMENT,
+      status: isPayAtCheckIn ? BOOKING_STATUS.CONFIRMED : BOOKING_STATUS.WAITING_PAYMENT,
       expiresAt
     } as const;
 
@@ -251,12 +326,19 @@ export async function POST(req: NextRequest) {
     // it's a plain SELECT-then-branch, not itself atomic) resolves to the SAME booking as an
     // idempotent success, never a confusing 409 for a request that, from the guest's point of
     // view, already succeeded once. Only ever returns/matches this exact user's own booking -
-    // never another user's.
+    // never another user's. Throws DifferentPaymentOptionError instead of silently replaying if
+    // the in-flight winner used a different payment option than this request asked for (BLOCK
+    // 5.4B §10, same rule as the outer pre-check above, re-applied inside the lock for the same
+    // reason the outer one can miss a genuine race).
     async function findOwnLiveBooking(client: typeof prisma | Prisma.TransactionClient) {
-      return client.booking.findFirst({
+      const own = await client.booking.findFirst({
         where: { userId, ...duplicateWhere, checkIn, checkOut, status: { notIn: ["REJECTED", "CANCELLED", "EXPIRED", "COMPLETED"] } },
         orderBy: { createdAt: "desc" }
       });
+      if (own && Boolean(own.payOnArrival) !== isPayAtCheckIn) {
+        throw new DifferentPaymentOptionError();
+      }
+      return own;
     }
 
     // Authoritative availability check folded atomically with the write (Block 4.1) - booking
@@ -300,6 +382,15 @@ export async function POST(req: NextRequest) {
         if (wantsJson) return NextResponse.json({ error: "unavailable" }, { status: 409 });
         return bookingFormRedirect(req, { roomId, checkIn: checkInRaw, checkOut: checkOutRaw, code: "unavailable" });
       }
+      if (e instanceof DifferentPaymentOptionError) {
+        if (wantsJson) return NextResponse.json({ error: "existing_booking_different_payment_option" }, { status: 409 });
+        return bookingFormRedirect(req, {
+          roomId,
+          checkIn: checkInRaw,
+          checkOut: checkOutRaw,
+          code: "existing_booking_different_payment_option"
+        });
+      }
       throw e;
     }
 
@@ -324,17 +415,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.redirect(publicUrl(req, `/chat/booking/${booking.id}`));
     }
 
-    await prisma.payment.create({
-      data: {
-        bookingId: booking.id,
-        userId,
-        provider: "MANUAL",
-        method: paymentMethod,
-        status: "PENDING",
-        currency: "TJS",
-        amount: booking.totalPrice
-      }
-    });
+    // BLOCK 5.4B: PAY_AT_CHECK_IN never creates a Payment row - mirrors the existing owner-manual/
+    // offline flow exactly (BLOCK 5.4A §7), since no money has moved through the platform at all.
+    if (!isPayAtCheckIn) {
+      await prisma.payment.create({
+        data: {
+          bookingId: booking.id,
+          userId,
+          provider: "MANUAL",
+          method: paymentMethod,
+          status: "PENDING",
+          currency: "TJS",
+          amount: booking.totalPrice
+        }
+      });
+    }
 
     await prisma.transactionLog.create({
       data: {
@@ -345,8 +440,9 @@ export async function POST(req: NextRequest) {
           checkIn: checkIn.toISOString(),
           checkOut: checkOut.toISOString(),
           paymentMethod,
+          paymentOption: isPayAtCheckIn ? "PAY_AT_CHECK_IN" : "PAY_NOW",
           publicCode,
-          expiresAt: expiresAt.toISOString(),
+          expiresAt: expiresAt ? expiresAt.toISOString() : null,
           totals: {
             subtotal: pricing.ownerPayoutAfterEscrow + pricing.commission,
             serviceFee: pricing.serviceFee,

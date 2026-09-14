@@ -43,6 +43,9 @@ type Props = {
     guestNoAccountHint: string;
     signedInAccountTitle: string;
     addPhoneBookingHint: string;
+    payNowOption: string;
+    payAtCheckInOption: string;
+    payAtCheckInExplain: string;
   };
   defaults: {
     roomId?: number;
@@ -70,6 +73,10 @@ type Props = {
    * Empty means the hotel hasn't configured one yet; booking submission must be blocked, never
    * fall back to a hardcoded method. */
   paymentMethods: WizardPaymentMethod[];
+  /** BLOCK 5.4B - server-resolved `Hotel.acceptsPayAtCheckIn`. The client flag is never authority
+   * (the backend re-derives and re-checks it from the authoritative Room/RoomType->Hotel chain on
+   * submit) - this only controls whether the option is even offered in this UI. */
+  acceptsPayAtCheckIn: boolean;
 };
 
 type Step = 1 | 2 | 3;
@@ -87,7 +94,9 @@ function mapBookingApiError(raw: string): string {
     failed: "Не удалось создать бронь. Попробуйте ещё раз.",
     timeout: "Сервер не ответил вовремя. Проверьте интернет и попробуйте снова.",
     payment_method_required: "Выберите способ оплаты, чтобы продолжить.",
-    payment_method_invalid: "Выбранный способ оплаты больше недоступен. Выберите другой."
+    payment_method_invalid: "Выбранный способ оплаты больше недоступен. Выберите другой.",
+    pay_at_checkin_not_allowed: "Этот отель не поддерживает оплату при заселении. Выберите оплату сейчас.",
+    existing_booking_different_payment_option: "У вас уже есть бронь на эти даты с другим способом оплаты."
   };
   if (table[key]) return table[key];
   if (key.includes("invalid")) return table.invalid;
@@ -118,10 +127,25 @@ function ShieldCheckIcon({ className }: { className?: string }) {
   );
 }
 
-export function BookingWizard({ locale, labels, defaults, pricePerNight, finance, hotelId, paymentMethods }: Props) {
+export function BookingWizard({
+  locale,
+  labels,
+  defaults,
+  pricePerNight,
+  finance,
+  hotelId,
+  paymentMethods,
+  acceptsPayAtCheckIn
+}: Props) {
   const formRef = useRef<HTMLFormElement>(null);
   const submitInFlight = useRef(false);
   const [step, setStep] = useState<Step>(1);
+  // Only offered when the hotel opted in AND has never used to make the wizard show a picker with
+  // nothing to pick - if there are also zero active payment methods, PAY_AT_CHECK_IN is still the
+  // only usable option (BLOCK 5.4B §12), so default to it in that specific case.
+  const [paymentOption, setPaymentOption] = useState<"PAY_NOW" | "PAY_AT_CHECK_IN">(
+    acceptsPayAtCheckIn && paymentMethods.length === 0 ? "PAY_AT_CHECK_IN" : "PAY_NOW"
+  );
   const [selectedMethodId, setSelectedMethodId] = useState<number | null>(
     paymentMethods.length === 1 ? paymentMethods[0].id : null
   );
@@ -169,6 +193,17 @@ export function BookingWizard({ locale, labels, defaults, pricePerNight, finance
           setSelectedMethodId(null);
           setStep(2);
         }
+        // BLOCK 5.4B: hotel policy changed between page load and submit, or another tab already
+        // has a live booking for these exact dates under the other payment option - either way
+        // send the guest back to reselect rather than leaving them stuck on step 3.
+        if (errRaw === "pay_at_checkin_not_allowed") {
+          setPaymentOption("PAY_NOW");
+          setSelectedMethodId(null);
+          setStep(2);
+        }
+        if (errRaw === "existing_booking_different_payment_option") {
+          setStep(2);
+        }
         throw new Error(mapBookingApiError(errRaw));
       }
 
@@ -198,8 +233,9 @@ export function BookingWizard({ locale, labels, defaults, pricePerNight, finance
   }, [labels, step]);
 
   const selectedMethod = paymentMethods.find((method) => method.id === selectedMethodId) ?? null;
-  const payMethodLabel = selectedMethod?.displayLabel ?? "";
-  const canSubmitPayment = paymentMethods.length > 0 && selectedMethodId !== null;
+  const isPayAtCheckIn = paymentOption === "PAY_AT_CHECK_IN";
+  const payMethodLabel = isPayAtCheckIn ? labels.payAtCheckInOption : selectedMethod?.displayLabel ?? "";
+  const canSubmitPayment = isPayAtCheckIn ? true : paymentMethods.length > 0 && selectedMethodId !== null;
   const nights = calcNights(checkIn, checkOut);
   const totalByDates = nights ? Number((pricePerNight * nights).toFixed(2)) : null;
   const mobileField =
@@ -223,7 +259,8 @@ export function BookingWizard({ locale, labels, defaults, pricePerNight, finance
       {defaults.roomId ? <input type="hidden" name="roomId" value={defaults.roomId} /> : null}
       {defaults.roomTypeId ? <input type="hidden" name="roomTypeId" value={defaults.roomTypeId} /> : null}
       {defaults.guests ? <input type="hidden" name="guestCount" value={defaults.guests} /> : null}
-      {selectedMethodId ? <input type="hidden" name="hotelPaymentMethodId" value={selectedMethodId} /> : null}
+      <input type="hidden" name="paymentOption" value={paymentOption} />
+      {!isPayAtCheckIn && selectedMethodId ? <input type="hidden" name="hotelPaymentMethodId" value={selectedMethodId} /> : null}
       {persistFields ? (
         <>
           <input type="hidden" name="checkIn" value={checkIn} />
@@ -378,6 +415,35 @@ export function BookingWizard({ locale, labels, defaults, pricePerNight, finance
                   </div>
                 </div>
 
+                {acceptsPayAtCheckIn ? (
+                  <div className="flex gap-2 rounded-2xl border border-white/10 bg-white/5 p-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setPaymentOption("PAY_NOW")}
+                      className={`flex-1 rounded-xl px-3 py-2 text-xs font-semibold transition ${
+                        !isPayAtCheckIn ? "bg-[#0f7a4d] text-white" : "text-slate-300"
+                      }`}
+                    >
+                      {labels.payNowOption}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPaymentOption("PAY_AT_CHECK_IN")}
+                      className={`flex-1 rounded-xl px-3 py-2 text-xs font-semibold transition ${
+                        isPayAtCheckIn ? "bg-[#0f7a4d] text-white" : "text-slate-300"
+                      }`}
+                    >
+                      {labels.payAtCheckInOption}
+                    </button>
+                  </div>
+                ) : null}
+
+                {isPayAtCheckIn ? (
+                  <div className="rounded-2xl border border-[#0f7a4d]/20 bg-[#0f7a4d]/[0.06] p-4">
+                    <div className="text-sm font-semibold text-[#d1fae5]">{labels.payAtCheckInOption}</div>
+                    <p className="mt-2 text-sm text-slate-300">{labels.payAtCheckInExplain}</p>
+                  </div>
+                ) : (
                 <div className="rounded-2xl border border-[#0f7a4d]/20 bg-[#0f7a4d]/[0.06] p-4">
                   <div className="text-sm font-semibold text-[#d1fae5]">{labels.paymentMethodLabel}</div>
 
@@ -447,6 +513,7 @@ export function BookingWizard({ locale, labels, defaults, pricePerNight, finance
                     </>
                   )}
                 </div>
+                )}
               </div>
             )}
 

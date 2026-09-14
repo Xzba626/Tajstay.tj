@@ -6,6 +6,7 @@ import { BookingChatPanel } from "@/components/chat/BookingChatPanel";
 import { BookingChatHeader } from "@/components/chat/BookingChatHeader";
 import { PaymentMethodsBlock, type PaymentMethodDisplay, type PaymentMethodSnapshot } from "@/components/chat/PaymentMethodsBlock";
 import { ProofUploadPanel } from "@/components/chat/ProofUploadPanel";
+import { ArrivalPaymentAction } from "@/components/chat/ArrivalPaymentAction";
 import { BookingTimeline } from "@/components/chat/BookingTimeline";
 import { ReviewBanner } from "@/components/chat/ReviewBanner";
 import { PaymentReviewCard } from "@/components/chat/PaymentReviewCard";
@@ -56,6 +57,8 @@ export type BookingRoomProps = {
   eligibleForReview?: boolean;
   focusReview?: boolean;
   existingReview?: { rating: number; comment: string; reply: string | null } | null;
+  /** BLOCK 5.4B - true for a guest-chosen "pay at check-in" booking (Booking.payOnArrival). */
+  payOnArrival?: boolean;
 };
 
 export function BookingRoom(props: BookingRoomProps) {
@@ -94,7 +97,8 @@ export function BookingRoom(props: BookingRoomProps) {
     proofComment = null,
     eligibleForReview = false,
     focusReview = false,
-    existingReview = null
+    existingReview = null,
+    payOnArrival = false
   } = props;
 
   const isOnReview = bookingStatus === BOOKING_STATUS.ON_REVIEW;
@@ -109,6 +113,12 @@ export function BookingRoom(props: BookingRoomProps) {
 
   const showReviewUi = isOnReview;
   const showReviewCard = showReviewUi && (isAdmin || isOwner);
+
+  // BLOCK 5.4B: a pay-at-check-in booking is CONFIRMED immediately with no proof/timer flow at
+  // all - `showPaymentFlow` above is already false for it (gated on WAITING_PAYMENT/WAIT_PROOF),
+  // this just adds its own distinct card instead of showing nothing.
+  const isArrivalPaymentPending =
+    payOnArrival && bookingStatus === BOOKING_STATUS.CONFIRMED && paymentStatus === "PENDING";
 
   useEffect(() => {
     if (!focusReview || !eligibleForReview) return;
@@ -135,6 +145,18 @@ export function BookingRoom(props: BookingRoomProps) {
           proofAmount={proofAmount}
           proofComment={proofComment}
         />
+      ) : null}
+      {isArrivalPaymentPending && isGuest ? (
+        <section className="rounded-2xl border border-[#0f7a4d]/20 bg-[#0f7a4d]/[0.06] p-4">
+          <h2 className="text-sm font-semibold text-[#d1fae5]">{m(locale, "checkout.payAtCheckInConfirmedTitle")}</h2>
+          <p className="mt-2 text-sm text-slate-300">{m(locale, "checkout.payAtCheckInConfirmedBody")}</p>
+          <p className="mt-2 text-sm font-semibold text-slate-100">
+            {Number(totalPrice)} {currency}
+          </p>
+        </section>
+      ) : null}
+      {isArrivalPaymentPending && (isOwner || isAdmin) ? (
+        <ArrivalPaymentAction locale={locale} bookingId={bookingId} />
       ) : null}
       {showPaymentFlow ? (
         <>
@@ -178,6 +200,7 @@ export function BookingRoom(props: BookingRoomProps) {
         currency={currency}
         bookingStatus={bookingStatus}
         paymentStatus={paymentStatus}
+        payOnArrival={payOnArrival}
         publicCode={publicCode}
         compact
       />
@@ -239,6 +262,7 @@ export function BookingRoom(props: BookingRoomProps) {
             locale={locale}
             bookingStatus={bookingStatus}
             paymentStatus={paymentStatus}
+            payOnArrival={payOnArrival}
             checkInIso={checkInIso}
             paymentCode={publicCode ?? undefined}
             presentation="page"

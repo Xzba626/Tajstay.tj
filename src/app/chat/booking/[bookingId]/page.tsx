@@ -107,6 +107,7 @@ export default async function BookingChatPage({
       currency={booking.currency}
       bookingStatus={booking.status}
       paymentStatus={booking.paymentStatus}
+      payOnArrival={booking.payOnArrival}
       publicCode={booking.publicCode}
       paymentMethods={paymentMethods}
       selectedHotelPaymentMethodId={booking.hotelPaymentMethodId}

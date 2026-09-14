@@ -648,6 +648,13 @@ const ru: Tree = {
     paymentMethodsSelected: "Выбрано",
     paymentMethodsCopy: "Скопировать",
     paymentMethodsCopied: "Скопировано",
+    paymentOptionPayNow: "Оплатить сейчас",
+    paymentOptionPayAtCheckIn: "Оплатить при заселении",
+    payAtCheckInExplain: "Бронь будет подтверждена сразу. Оплата — в отеле при заселении, переводить деньги заранее не нужно.",
+    payAtCheckInConfirmedTitle: "Бронирование подтверждено",
+    payAtCheckInConfirmedBody: "Оплата — при заселении в отеле.",
+    errPayAtCheckInNotAllowed: "Этот отель не поддерживает оплату при заселении.",
+    errExistingDifferentOption: "У вас уже есть бронь на эти даты с другим способом оплаты.",
     transferTitle: "Оплата переводом",
     transferHint: "Переведите сумму и прикрепите чек. В комментарии к переводу укажите код брони.",
     bookingCode: "Код брони",
@@ -1890,6 +1897,16 @@ const ru: Tree = {
       identifierPlaceholder: "Номер карты / счёта / кошелька",
       instructionsPlaceholder: "Инструкция для гостя (необязательно)"
     },
+    payAtCheckIn: {
+      toggleLabel: "Оплата при заселении",
+      toggleHint: "Если включено, гости смогут подтвердить бронь без предоплаты и оплатить непосредственно в отеле.",
+      enabled: "Включено",
+      disabled: "Выключено",
+      arrivalAction: "Подтвердить оплату и заселение",
+      arrivalConfirm: "Гость оплатил при заселении, и бронь переходит в статус «Заселён». Продолжить?",
+      arrivalFailed: "Не удалось подтвердить. Попробуйте ещё раз.",
+      arrivalDone: "Оплата подтверждена, гость заселён."
+    },
     reviewsSection: {
       title: "Отзывы гостей",
       hint: "Отвечайте на отзывы — это повышает доверие.",
@@ -1950,6 +1967,8 @@ const ru: Tree = {
   chat: {
     welcomePayment:
       "🛡️ Система: Ассалому алейкум! Пожалуйста, отправьте чек об оплате в течение {payMin} минут. Как только вы прикрепите файл в чате или на странице оплаты, откроется {reviewMin} минут на проверку владельцем и администратором. Если не успеваете — напишите нам здесь.",
+    welcomePayAtCheckIn:
+      "🛡️ Система: Ассалому алейкум! Бронирование подтверждено. Предварительная оплата не требуется — оплатите непосредственно в отеле при заселении.",
     quickPaid: "Я оплатил, отправляю чек",
     quickPayIssue: "У меня проблема с оплатой",
     quickNeedTime: "Нужно ещё пару минут",
@@ -2620,6 +2639,13 @@ const tg: Tree = {
     paymentMethodsSelected: "Интихобшуда",
     paymentMethodsCopy: "Нусхабардорӣ",
     paymentMethodsCopied: "Нусхабардорӣ шуд",
+    paymentOptionPayNow: "Ҳозир пардохт кунед",
+    paymentOptionPayAtCheckIn: "Ҳангоми воридшавӣ пардохт кунед",
+    payAtCheckInExplain: "Брон дарҳол тасдиқ мешавад. Пардохт — дар меҳмонхона ҳангоми воридшавӣ, пешакӣ гузарондани пул лозим нест.",
+    payAtCheckInConfirmedTitle: "Брон тасдиқ шуд",
+    payAtCheckInConfirmedBody: "Пардохт — ҳангоми воридшавӣ дар меҳмонхона.",
+    errPayAtCheckInNotAllowed: "Ин меҳмонхона пардохти ҳангоми воридшавиро дастгирӣ намекунад.",
+    errExistingDifferentOption: "Шумо аллакай барои ин санаҳо брон доред бо усули дигари пардохт.",
     transferTitle: "Пардохт бо перевод",
     transferHint: "Маблағро гузаронед ва чекро фиристед. Дар шарҳ рамзи бронро нависед.",
     bookingCode: "Рамзи брон",
@@ -3832,6 +3858,16 @@ const tg: Tree = {
       identifierPlaceholder: "Рақами корт / ҳисоб / кошелёк",
       instructionsPlaceholder: "Дастур барои меҳмон (ихтиёрӣ)"
     },
+    payAtCheckIn: {
+      toggleLabel: "Пардохт ҳангоми воридшавӣ",
+      toggleHint: "Агар фаъол бошад, меҳмонон метавонанд бидуни пешпардохт брон кунанд ва мустақиман дар меҳмонхона пардохт кунанд.",
+      enabled: "Фаъол",
+      disabled: "Хомӯш",
+      arrivalAction: "Пардохт ва воридшавиро тасдиқ кунед",
+      arrivalConfirm: "Меҳмон ҳангоми воридшавӣ пардохт кард ва брон ба ҳолати «Ворид шуд» мегузарад. Идома диҳам?",
+      arrivalFailed: "Тасдиқ нашуд. Бори дигар кӯшиш кунед.",
+      arrivalDone: "Пардохт тасдиқ шуд, меҳмон ворид шуд."
+    },
     reviewsSection: {
       title: "Назарҳои меҳмонон",
       hint: "Ба назарҳо ҷавоб диҳед — ин эътимодро зиёд мекунад.",
@@ -3892,6 +3928,8 @@ const tg: Tree = {
   chat: {
     welcomePayment:
       "🛡️ Система: Ассалому алайкум! Лутфан дар муддати {payMin} дақиқа квитансияи пардохтро фиристед. Вақте файлро дар чат ё дар саҳифаи пардохт зам мекунед, барои санҷиш аз ҷониби соҳиб ва админ {reviewMin} дақиқа дода мешавад. Агар вақт набошад — ин ҷо ба мо нависед.",
+    welcomePayAtCheckIn:
+      "🛡️ Система: Ассалому алайкум! Брон тасдиқ шуд. Пешпардохт лозим нест — мустақиман дар меҳмонхона ҳангоми воридшавӣ пардохт кунед.",
     quickPaid: "Ман пардохт кардам, квитансияро мефиристам",
     quickPayIssue: "Бо пардохт мушкилӣ дорам",
     quickNeedTime: "Чанд дақиқаи дигар лозим аст",
@@ -4559,6 +4597,13 @@ const en: Tree = {
     paymentMethodsSelected: "Selected",
     paymentMethodsCopy: "Copy",
     paymentMethodsCopied: "Copied",
+    paymentOptionPayNow: "Pay now",
+    paymentOptionPayAtCheckIn: "Pay at check-in",
+    payAtCheckInExplain: "Your booking is confirmed right away. Pay at the hotel at check-in — no need to transfer money in advance.",
+    payAtCheckInConfirmedTitle: "Booking confirmed",
+    payAtCheckInConfirmedBody: "Payment is due at the hotel at check-in.",
+    errPayAtCheckInNotAllowed: "This hotel doesn't support paying at check-in.",
+    errExistingDifferentOption: "You already have a booking for these dates with a different payment option.",
     transferTitle: "Bank transfer payment",
     transferHint: "Transfer the amount and attach a receipt. Put the booking code in the transfer comment.",
     bookingCode: "Booking code",
@@ -5770,6 +5815,16 @@ const en: Tree = {
       identifierPlaceholder: "Card / account / wallet number",
       instructionsPlaceholder: "Instructions for the guest (optional)"
     },
+    payAtCheckIn: {
+      toggleLabel: "Pay at check-in",
+      toggleHint: "When enabled, guests can confirm a booking without prepaying and pay directly at the hotel.",
+      enabled: "Enabled",
+      disabled: "Disabled",
+      arrivalAction: "Confirm payment and check-in",
+      arrivalConfirm: "The guest paid at check-in and the booking moves to Checked-in. Continue?",
+      arrivalFailed: "Could not confirm. Try again.",
+      arrivalDone: "Payment confirmed, guest checked in."
+    },
     reviewsSection: {
       title: "Guest reviews",
       hint: "Reply to reviews to build trust.",
@@ -5830,6 +5885,8 @@ const en: Tree = {
   chat: {
     welcomePayment:
       "🛡️ System: Hello! Please send your payment receipt within {payMin} minutes. Once you attach a file in chat or on the payment page, you get {reviewMin} minutes for the host and admin to review. If you need more time — message us here.",
+    welcomePayAtCheckIn:
+      "🛡️ System: Hello! Your booking is confirmed. No prepayment is needed — pay directly at the hotel at check-in.",
     quickPaid: "I've paid, sending the receipt",
     quickPayIssue: "I have a payment issue",
     quickNeedTime: "I need a few more minutes",

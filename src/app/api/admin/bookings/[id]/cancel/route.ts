@@ -26,7 +26,14 @@ export async function POST(_: NextRequest, { params }: { params: { id: string } 
   });
   if (!booking) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  if (BLOCKED.has(booking.status)) {
+  // BLOCK 5.4B: the same narrow, explicit exception as the guest cancel route - an unpaid
+  // pay-at-check-in reservation (CONFIRMED, payOnArrival, still PENDING) is cancellable even
+  // though CONFIRMED is normally blocked here. An ordinary paid Pay Now CONFIRMED booking can
+  // never match this (paymentStatus is always PAID by the time it reaches CONFIRMED there), so
+  // the general CONFIRMED protection is otherwise untouched.
+  const isCancellableUnpaidArrival =
+    booking.status === BOOKING_STATUS.CONFIRMED && booking.payOnArrival && booking.paymentStatus === "PENDING";
+  if (BLOCKED.has(booking.status) && !isCancellableUnpaidArrival) {
     return NextResponse.json({ error: "Бронь уже закрыта" }, { status: 400 });
   }
 

@@ -19,7 +19,9 @@ const BOOK_ERR_KEYS: Record<string, string> = {
   failed: "checkout.errGeneric",
   rate: "checkout.errRate",
   payment_method_required: "checkout.errPaymentMethodRequired",
-  payment_method_invalid: "checkout.errPaymentMethodInvalid"
+  payment_method_invalid: "checkout.errPaymentMethodInvalid",
+  pay_at_checkin_not_allowed: "checkout.errPayAtCheckInNotAllowed",
+  existing_booking_different_payment_option: "checkout.errExistingDifferentOption"
 };
 
 export default async function BookingPage({
@@ -79,6 +81,7 @@ export default async function BookingPage({
   const errPath = BOOK_ERR_KEYS[bookErr];
 
   const hotelId = room?.hotel.id ?? roomType?.hotel.id;
+  const acceptsPayAtCheckIn = room?.hotel.acceptsPayAtCheckIn ?? roomType?.hotel.acceptsPayAtCheckIn ?? false;
   const paymentMethods = hotelId ? await getHotelPaymentMethods(hotelId) : [];
 
   return (
@@ -145,7 +148,10 @@ export default async function BookingPage({
           paymentMethodLabel: m(locale, "checkout.paymentMethodLabel"),
           guestNoAccountHint: m(locale, "checkout.guestNoAccountHint"),
           signedInAccountTitle: m(locale, "checkout.signedInAccountTitle"),
-          addPhoneBookingHint: m(locale, "checkout.addPhoneBookingHint")
+          addPhoneBookingHint: m(locale, "checkout.addPhoneBookingHint"),
+          payNowOption: m(locale, "checkout.paymentOptionPayNow"),
+          payAtCheckInOption: m(locale, "checkout.paymentOptionPayAtCheckIn"),
+          payAtCheckInExplain: m(locale, "checkout.payAtCheckInExplain")
         }}
         defaults={{
           roomId: room?.id,
@@ -167,6 +173,7 @@ export default async function BookingPage({
           totalToCharge
         }}
         hotelId={hotelId}
+        acceptsPayAtCheckIn={acceptsPayAtCheckIn}
         paymentMethods={paymentMethods.map((method) => ({
           id: method.id,
           displayLabel: method.displayLabel,

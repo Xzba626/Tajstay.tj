@@ -63,6 +63,8 @@ export type BookingChatPanelProps = {
   currentUserRole: "GUEST" | "OWNER" | "ADMIN";
   bookingStatus: string;
   paymentStatus: string;
+  /** BLOCK 5.4B - true for a guest-chosen "pay at check-in" booking (Booking.payOnArrival). */
+  payOnArrival?: boolean;
   /** Язык интерфейса (cookie) — приветствие в чате и быстрые ответы */
   locale?: Locale;
   checkInIso?: string;
@@ -157,6 +159,7 @@ export function BookingChatPanel({
   currentUserRole,
   bookingStatus,
   paymentStatus,
+  payOnArrival = false,
   locale = "ru",
   checkInIso,
   paymentCode,
@@ -510,10 +513,13 @@ export function BookingChatPanel({
 
   const canGuestCancel = useMemo(() => {
     if (!isGuest) return false;
+    // BLOCK 5.4B: mirrors the backend's narrow exception (cancel-by-guest/route.ts) - an unpaid
+    // pay-at-check-in reservation can self-cancel even though CONFIRMED is normally blocked here.
+    if (effectiveStatus === "CONFIRMED" && payOnArrival && effectivePaymentStatus === "PENDING") return true;
     if (effectiveStatus === "CONFIRMED" || effectiveStatus === "CHECKED_IN" || effectiveStatus === "COMPLETED") return false;
     if (effectivePaymentStatus === "PAID") return false;
     return true;
-  }, [effectiveStatus, effectivePaymentStatus, isGuest]);
+  }, [effectiveStatus, effectivePaymentStatus, isGuest, payOnArrival]);
 
   const canAdminCancel = useMemo(() => {
     if (!isAdmin) return false;

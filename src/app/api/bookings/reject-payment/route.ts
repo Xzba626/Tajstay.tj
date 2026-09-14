@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
 
   const body = (await req.json().catch(() => ({}))) as { bookingId?: unknown; reason?: unknown };
   const bookingId = Number(body?.bookingId);
-  const reason = String(body?.reason ?? "").trim();
+  const reason = String(body?.reason ?? "").trim().slice(0, 500);
 
   if (!Number.isFinite(bookingId) || bookingId < 1) {
     return NextResponse.json({ error: "Invalid bookingId" }, { status: 400 });

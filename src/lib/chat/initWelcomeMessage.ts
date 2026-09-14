@@ -12,8 +12,16 @@ export function paymentWindowMinutesFromBooking(booking: { expiresAt: Date | nul
 }
 
 /** Текст системного приветствия при первом init чата (с префиксом 🛡️ для UI). */
-export function buildChatInitWelcome(localeRaw: string | undefined, booking: { expiresAt: Date | null; createdAt: Date }): string {
+export function buildChatInitWelcome(
+  localeRaw: string | undefined,
+  booking: { expiresAt: Date | null; createdAt: Date; payOnArrival?: boolean }
+): string {
   const locale: Locale = normalizeLocale(localeRaw);
+  // BLOCK 5.4B: a pay-at-check-in booking is already CONFIRMED with no payment/proof window at
+  // all - the Pay Now welcome text (payment/review minutes) would be actively misleading here.
+  if (booking.payOnArrival) {
+    return m(locale, "chat.welcomePayAtCheckIn");
+  }
   const payMin = paymentWindowMinutesFromBooking(booking);
   const reviewMin = 5;
   const template = m(locale, "chat.welcomePayment");

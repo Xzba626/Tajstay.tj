@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 import { getOwnerUser } from "@/lib/auth/requireOwner";
 import { forbiddenJson } from "@/lib/auth/apiResponses";
 import { createHotelPaymentMethod, getOwnerHotelPaymentMethods } from "@/lib/hotels/paymentMethods";
@@ -14,7 +15,13 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 
   try {
     const methods = await getOwnerHotelPaymentMethods(hotelId, owner.id);
-    return NextResponse.json({ methods });
+    // BLOCK 5.4B: the owner payment-methods panel also surfaces/toggles the pay-at-check-in
+    // policy for the same hotel, so return it alongside rather than adding a second round-trip.
+    const hotel = await prisma.hotel.findFirst({
+      where: { id: hotelId, ownerId: owner.id },
+      select: { acceptsPayAtCheckIn: true }
+    });
+    return NextResponse.json({ methods, acceptsPayAtCheckIn: hotel?.acceptsPayAtCheckIn ?? false });
   } catch (e) {
     if (e instanceof Error && e.message === "FORBIDDEN") return forbiddenJson();
     return NextResponse.json({ error: "Server error" }, { status: 500 });

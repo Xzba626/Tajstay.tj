@@ -115,6 +115,11 @@ model Hotel {
   currentRejectionReason String?
   latitude      Float
   longitude     Float
+  /// BLOCK 5.4B - explicit owner opt-in for guest "pay at check-in" bookings (instant CONFIRMED,
+  /// no online payment/proof). Defaults false so no existing hotel silently starts accepting
+  /// unpaid reservations after this field ships - see docs/TAJSTAY_ARCHITECTURE_V2.md and
+  /// BLOCK_5.4A_ARCHITECTURE_REPORT.md for why this couldn't just reuse PENDING_OWNER.
+  acceptsPayAtCheckIn Boolean @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

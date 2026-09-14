@@ -16,7 +16,12 @@ async function pickAdminId(): Promise<number | null> {
   return admin?.id ?? null;
 }
 
-function cancelAllowed(input: { status: string; paymentStatus: string }): boolean {
+function cancelAllowed(input: { status: string; paymentStatus: string; payOnArrival: boolean }): boolean {
+  // BLOCK 5.4B: a pay-at-check-in booking reaching CONFIRMED with paymentStatus still PENDING (no
+  // money has moved at all) is the ONE explicit exception to "CONFIRMED can't self-cancel" below -
+  // narrow and explicit, not a general loosening. An ordinary Pay Now CONFIRMED booking always has
+  // paymentStatus PAID by the time it's CONFIRMED, so this can never accidentally match it.
+  if (input.status === "CONFIRMED" && input.payOnArrival && input.paymentStatus === "PENDING") return true;
   // After payment confirmation, cancellation must go through admin dispute flow.
   if (input.status === "CONFIRMED" || input.status === "CHECKED_IN" || input.status === "COMPLETED") return false;
   if (input.paymentStatus === "PAID") return false;
@@ -36,7 +41,7 @@ export async function POST(_: NextRequest, { params }: { params: { id: string } 
   });
   if (!booking || booking.userId !== guest.id) return NextResponse.json({ ok: false, error: "Not found" }, { status: 404 });
 
-  if (!cancelAllowed({ status: booking.status, paymentStatus: booking.paymentStatus })) {
+  if (!cancelAllowed({ status: booking.status, paymentStatus: booking.paymentStatus, payOnArrival: booking.payOnArrival })) {
     return NextResponse.json({ ok: false, error: "Нельзя отменить после подтверждения оплаты" }, { status: 409 });
   }
 

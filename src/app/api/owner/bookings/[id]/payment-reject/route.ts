@@ -14,7 +14,11 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   }
 
   const body = (await req.json().catch(() => ({}))) as { reason?: unknown };
-  const reason = String(body?.reason ?? "").trim();
+  const reason = String(body?.reason ?? "").trim().slice(0, 500);
+
+  if (reason.length < 3) {
+    return NextResponse.json({ error: "Укажите причину отклонения (минимум 3 символа)" }, { status: 400 });
+  }
 
   try {
     await rejectBookingPayment({ bookingId, actorId: owner.id, actorRole: "OWNER", reason });
@@ -23,6 +27,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const code = e instanceof Error ? e.message : "";
     if (code === "NOT_FOUND") return NextResponse.json({ error: "Not found" }, { status: 404 });
     if (code === "FORBIDDEN") return forbiddenJson();
+    if (code === "REASON_REQUIRED") {
+      return NextResponse.json({ error: "Укажите причину отклонения (минимум 3 символа)" }, { status: 400 });
+    }
     if (code === "NOT_ON_REVIEW") {
       return NextResponse.json({ error: "Чек не ожидает проверки" }, { status: 400 });
     }

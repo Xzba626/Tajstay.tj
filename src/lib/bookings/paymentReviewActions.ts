@@ -156,15 +156,19 @@ export async function confirmBookingPayment({ bookingId, actorId, actorRole, rea
 }
 
 export async function rejectBookingPayment({ bookingId, actorId, actorRole, reason }: ReviewActorParams): Promise<void> {
-  if (actorRole === "ADMIN" && !reason?.trim()) throw new Error("REASON_REQUIRED");
+  // A rejection reason is the guest's only signal for what to fix before resubmitting proof - an
+  // empty one (previously silently replaced with the hardcoded "Причина не указана") left the
+  // guest with no actionable information. Required for BOTH roles now, not just ADMIN's override
+  // path - the route layer (payment-reject/route.ts) also validates this before calling in, but
+  // the check belongs here too since this is the actual state-mutating boundary.
+  const trimmedReason = reason?.trim() ?? "";
+  if (trimmedReason.length < 3) throw new Error("REASON_REQUIRED");
 
   const { booking, hotel } = await loadAuthorizedBooking(bookingId, actorId, actorRole);
 
   if (actorRole === "OWNER" && booking.status !== BOOKING_STATUS.ON_REVIEW) {
     throw new Error("NOT_ON_REVIEW");
   }
-
-  const trimmedReason = reason?.trim() || "Причина не указана";
   const payment = await prisma.payment.findUnique({ where: { bookingId } });
   const previousStatus = booking.status;
 

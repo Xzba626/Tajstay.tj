@@ -21,6 +21,10 @@ export type BookingChatHeaderProps = {
   publicCode?: string | null;
   sticky?: boolean;
   compact?: boolean;
+  /** BLOCK 5.4B - a pay-at-check-in booking's PENDING paymentStatus means "pay at the hotel", not
+   * "proof under review" - the generic `status.PENDING` label ("На проверке"/"Under review") is
+   * actively misleading here since no proof/review process exists for this booking at all. */
+  payOnArrival?: boolean;
 };
 
 function statusPillClass(status: string): string {
@@ -50,7 +54,8 @@ export function BookingChatHeader({
   bookingStatus,
   paymentStatus,
   publicCode,
-  compact = true
+  compact = true,
+  payOnArrival = false
 }: BookingChatHeaderProps) {
   const checkIn = new Date(checkInIso);
   const checkOut = new Date(checkOutIso);
@@ -60,7 +65,11 @@ export function BookingChatHeader({
   const statusLabel =
     m(locale, `status.${bookingStatus}`) !== `status.${bookingStatus}` ? m(locale, `status.${bookingStatus}`) : bookingStatus;
   const paymentLabel =
-    m(locale, `status.${paymentStatus}`) !== `status.${paymentStatus}` ? m(locale, `status.${paymentStatus}`) : paymentStatus;
+    payOnArrival && paymentStatus === "PENDING"
+      ? m(locale, "checkout.paymentOptionPayAtCheckIn")
+      : m(locale, `status.${paymentStatus}`) !== `status.${paymentStatus}`
+        ? m(locale, `status.${paymentStatus}`)
+        : paymentStatus;
 
   return (
     <section className={`chat-header ${compact ? "chat-header--compact" : ""}`}>

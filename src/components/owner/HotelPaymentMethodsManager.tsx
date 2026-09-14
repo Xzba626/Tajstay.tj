@@ -33,11 +33,34 @@ function HotelPaymentMethodsEditor({ locale, hotel }: { locale: Locale; hotel: H
   const [draft, setDraft] = useState(emptyDraft);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [acceptsPayAtCheckIn, setAcceptsPayAtCheckIn] = useState<boolean | null>(null);
+  const [policyBusy, setPolicyBusy] = useState(false);
 
   async function load() {
     const res = await fetch(`/api/owner/hotels/${hotel.id}/payment-methods`, { credentials: "include" });
-    const json = (await res.json().catch(() => ({}))) as { methods?: PaymentMethod[] };
+    const json = (await res.json().catch(() => ({}))) as { methods?: PaymentMethod[]; acceptsPayAtCheckIn?: boolean };
     setMethods(json.methods ?? []);
+    setAcceptsPayAtCheckIn(Boolean(json.acceptsPayAtCheckIn));
+  }
+
+  async function togglePayAtCheckIn() {
+    if (policyBusy || acceptsPayAtCheckIn === null) return;
+    const next = !acceptsPayAtCheckIn;
+    setPolicyBusy(true);
+    setAcceptsPayAtCheckIn(next); // optimistic - reverted below if the server rejects it
+    try {
+      const res = await fetch(`/api/owner/hotels/${hotel.id}/pay-at-checkin-policy`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ acceptsPayAtCheckIn: next })
+      });
+      if (!res.ok) throw new Error("failed");
+    } catch {
+      setAcceptsPayAtCheckIn(!next);
+    } finally {
+      setPolicyBusy(false);
+    }
   }
 
   useEffect(() => {
@@ -104,6 +127,25 @@ function HotelPaymentMethodsEditor({ locale, hotel }: { locale: Locale; hotel: H
   return (
     <div className="owner-panel space-y-3">
       <h3 className="owner-panel__title">{hotel.name}</h3>
+
+      <div className="owner-record-card flex flex-wrap items-start justify-between gap-3 text-sm">
+        <div className="min-w-0">
+          <div className="owner-record-card__title">{m(locale, "owner.payAtCheckIn.toggleLabel")}</div>
+          <div className="owner-record-card__meta">{m(locale, "owner.payAtCheckIn.toggleHint")}</div>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={acceptsPayAtCheckIn ?? false}
+          disabled={acceptsPayAtCheckIn === null || policyBusy}
+          onClick={() => void togglePayAtCheckIn()}
+          className={`shrink-0 rounded-lg border px-3 py-1.5 text-xs font-semibold disabled:opacity-50 ${
+            acceptsPayAtCheckIn ? "border-[#0f7a4d] bg-[#0f7a4d] text-white" : "border-white/15 text-slate-200"
+          }`}
+        >
+          {acceptsPayAtCheckIn ? m(locale, "owner.payAtCheckIn.enabled") : m(locale, "owner.payAtCheckIn.disabled")}
+        </button>
+      </div>
 
       {methods === null ? (
         <p className="owner-section-lead">{m(locale, "owner.paymentMethods.loading")}</p>

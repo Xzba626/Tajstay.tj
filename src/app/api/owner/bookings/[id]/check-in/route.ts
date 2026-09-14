@@ -24,6 +24,16 @@ export async function POST(_: NextRequest, { params }: { params: { id: string } 
     return NextResponse.json({ error: "Заселение доступно только для подтверждённой брони" }, { status: 400 });
   }
 
+  // BLOCK 5.4B: this route only ever set `status`, never `paymentStatus` - safe for Pay Now
+  // (paymentStatus is already PAID by the time a booking reaches CONFIRMED there). A pay-at-
+  // check-in booking reaches CONFIRMED with paymentStatus still PENDING, so letting it through
+  // here would silently produce CHECKED_IN + still-unpaid with no record money ever changed
+  // hands. That booking must go through the dedicated arrival-payment action instead, which sets
+  // both fields together in one atomic transition.
+  if (booking.payOnArrival) {
+    return NextResponse.json({ error: "Для брони с оплатой при заселении используйте подтверждение оплаты" }, { status: 400 });
+  }
+
   const now = new Date();
   if (!isSameLocalDay(now, booking.checkIn)) {
     return NextResponse.json({ error: "Подтверждение заселения доступно только в день заезда" }, { status: 400 });
