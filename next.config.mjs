@@ -1,6 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // @vercel/blob@2.x pulls in a newer undici build that uses private-field syntax webpack's
+  // default parser (Next 14.1's target) can't parse when it tries to bundle it for the client/
+  // server-component graph. It's server-only code (used from Route Handlers only) - keep it as a
+  // real Node `require` at runtime instead of trying to bundle it.
+  experimental: {
+    serverComponentsExternalPackages: ["@vercel/blob", "undici"]
+  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "tajstay.site", pathname: "/**" },

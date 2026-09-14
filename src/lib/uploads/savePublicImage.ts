@@ -6,5 +6,5 @@ export type UploadSubdir = "hotel-covers" | "room-photos";
 
 /** Saves hotel/room images for public URLs. */
 export async function savePublicImageFile(file: File, subdir: UploadSubdir): Promise<string> {
-  return saveUploadFile(file, subdir, MAX_BYTES);
+  return saveUploadFile(file, subdir, MAX_BYTES, "public");
 }

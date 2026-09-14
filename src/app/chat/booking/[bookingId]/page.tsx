@@ -10,6 +10,7 @@ import { getProofMetaFromLogs } from "@/lib/chat/proofMeta";
 import { m } from "@/lib/i18n/messages";
 import { getUserTrustBadges } from "@/lib/auth/trustBadges";
 import { bookingHotel, bookingRoomTitle } from "@/lib/pms/bookingContext";
+import { authorizeBookingAccess } from "@/lib/pms/bookingAuthorization";
 import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
 import { canLeaveReview } from "@/lib/trips/historyRecord";
 import { tripsHubPath } from "@/lib/trips/urls";
@@ -43,11 +44,9 @@ export default async function BookingChatPage({
   if (!booking) notFound();
 
   const hotel = bookingHotel(booking);
-  const isGuest = booking.userId === user.id;
   const guestLabel = getBookingGuestLabel(booking);
-  const isOwner = hotel.ownerId === user.id;
-  const isAdmin = user.role === "ADMIN";
-  if (!isGuest && !isOwner && !isAdmin) notFound();
+  const { isGuest, isOwner, isAdmin, allowed } = authorizeBookingAccess(booking, user);
+  if (!allowed) notFound();
 
   if (isOwner && (booking.status === "WAITING_PAYMENT" || booking.status === "WAIT_PROOF")) {
     return (
@@ -114,8 +113,8 @@ export default async function BookingChatPage({
       paymentMethodSnapshot={booking.paymentMethodSnapshot as { displayLabel: string; recipientName: string; paymentIdentifier: string; instructions: string | null } | null}
       timeline={timeline}
       proofSent={proofSent}
-      paymentProofUrl={booking.paymentProofUrl}
-      guestDocumentUrl={booking.guestDocumentUrl}
+      paymentProofUrl={booking.paymentProofUrl ? `/api/files/booking/${booking.id}/proof` : null}
+      guestDocumentUrl={booking.guestDocumentUrl ? `/api/files/booking/${booking.id}/document` : null}
       proofSubmittedAt={booking.proofSubmittedAt?.toISOString() ?? null}
       proofReviewDeadlineAt={booking.proofReviewDeadlineAt?.toISOString() ?? null}
       proofAmount={proofMeta.proofAmount}

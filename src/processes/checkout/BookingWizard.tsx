@@ -3,9 +3,19 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Button, Card, Input } from "@/shared/ui";
-import { DcNextPaymentCard } from "@/components/payment/DcNextPaymentCard";
 import { LocaleDateInput } from "@/components/ui/LocaleDateInput";
 import type { Locale } from "@/lib/i18n/locale";
+import { m } from "@/lib/i18n/messages";
+
+/** A hotel's own active payment method (see `getHotelPaymentMethods`) - the ONLY source of
+ * payment requisites shown here. Never a hardcoded fallback account. */
+export type WizardPaymentMethod = {
+  id: number;
+  displayLabel: string;
+  recipientName: string;
+  paymentIdentifier: string;
+  instructions: string | null;
+};
 
 type Props = {
   locale: Locale;
@@ -54,10 +64,12 @@ type Props = {
     taxAmount: number;
     totalToCharge: number;
   };
-  /** Для deep link DC Next (возврат в мастер брони). */
-  dcReturnUrl: string;
   /** Для recovery CTA при availability conflict - тот же Hotel, с сохранённым контекстом поиска. */
   hotelId?: number;
+  /** Active `HotelPaymentMethod` rows for this hotel - the only source of payment requisites.
+   * Empty means the hotel hasn't configured one yet; booking submission must be blocked, never
+   * fall back to a hardcoded method. */
+  paymentMethods: WizardPaymentMethod[];
 };
 
 type Step = 1 | 2 | 3;
@@ -73,7 +85,9 @@ function mapBookingApiError(raw: string): string {
     unavailable: "Номер недоступен на выбранные даты. Выберите другие дни.",
     rate: "Слишком много попыток. Подождите минуту и попробуйте снова.",
     failed: "Не удалось создать бронь. Попробуйте ещё раз.",
-    timeout: "Сервер не ответил вовремя. Проверьте интернет и попробуйте снова."
+    timeout: "Сервер не ответил вовремя. Проверьте интернет и попробуйте снова.",
+    payment_method_required: "Выберите способ оплаты, чтобы продолжить.",
+    payment_method_invalid: "Выбранный способ оплаты больше недоступен. Выберите другой."
   };
   if (table[key]) return table[key];
   if (key.includes("invalid")) return table.invalid;
@@ -104,11 +118,14 @@ function ShieldCheckIcon({ className }: { className?: string }) {
   );
 }
 
-export function BookingWizard({ locale, labels, defaults, pricePerNight, finance, dcReturnUrl, hotelId }: Props) {
+export function BookingWizard({ locale, labels, defaults, pricePerNight, finance, hotelId, paymentMethods }: Props) {
   const formRef = useRef<HTMLFormElement>(null);
   const submitInFlight = useRef(false);
   const [step, setStep] = useState<Step>(1);
-  const [paymentMethod] = useState<"DC">("DC");
+  const [selectedMethodId, setSelectedMethodId] = useState<number | null>(
+    paymentMethods.length === 1 ? paymentMethods[0].id : null
+  );
+  const [copiedId, setCopiedId] = useState<number | null>(null);
   const [checkIn, setCheckIn] = useState(defaults.checkIn ?? "");
   const [checkOut, setCheckOut] = useState(defaults.checkOut ?? "");
   const [guestName, setGuestName] = useState("");
@@ -145,6 +162,13 @@ export function BookingWizard({ locale, labels, defaults, pricePerNight, finance
       if (!res.ok || !("ok" in json)) {
         const errRaw = String((json as { error?: string })?.error ?? "").trim();
         setSubmitErrorCode(errRaw);
+        // A stale/deactivated method (owner edited it while this wizard was open, see BLOCK 5.2
+        // §9) must send the guest back to reselect, not just show an error on step 3 with no way
+        // to act on it - the rest of the form (dates/phone/etc.) stays exactly as entered.
+        if (errRaw === "payment_method_invalid" || errRaw === "payment_method_required") {
+          setSelectedMethodId(null);
+          setStep(2);
+        }
         throw new Error(mapBookingApiError(errRaw));
       }
 
@@ -173,7 +197,9 @@ export function BookingWizard({ locale, labels, defaults, pricePerNight, finance
     return labels.titleStep3;
   }, [labels, step]);
 
-  const payMethodLabel = labels.payDc;
+  const selectedMethod = paymentMethods.find((method) => method.id === selectedMethodId) ?? null;
+  const payMethodLabel = selectedMethod?.displayLabel ?? "";
+  const canSubmitPayment = paymentMethods.length > 0 && selectedMethodId !== null;
   const nights = calcNights(checkIn, checkOut);
   const totalByDates = nights ? Number((pricePerNight * nights).toFixed(2)) : null;
   const mobileField =
@@ -197,7 +223,7 @@ export function BookingWizard({ locale, labels, defaults, pricePerNight, finance
       {defaults.roomId ? <input type="hidden" name="roomId" value={defaults.roomId} /> : null}
       {defaults.roomTypeId ? <input type="hidden" name="roomTypeId" value={defaults.roomTypeId} /> : null}
       {defaults.guests ? <input type="hidden" name="guestCount" value={defaults.guests} /> : null}
-      <input type="hidden" name="paymentMethod" value={paymentMethod} />
+      {selectedMethodId ? <input type="hidden" name="hotelPaymentMethodId" value={selectedMethodId} /> : null}
       {persistFields ? (
         <>
           <input type="hidden" name="checkIn" value={checkIn} />
@@ -336,12 +362,7 @@ export function BookingWizard({ locale, labels, defaults, pricePerNight, finance
             )}
 
             {step === 2 && (
-              <div className="wizard-step wizard-in">
-                <div className="rounded-2xl border border-[#0f7a4d]/20 bg-[#0f7a4d]/10 p-4 text-sm text-slate-100">
-                  <div className="font-semibold">Способ оплаты</div>
-                  <div className="mt-1 text-slate-200">Душанбе City (DC Next)</div>
-                </div>
-
+              <div className="wizard-step wizard-in space-y-4">
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm">
                   <div className="flex justify-between text-slate-300">
                     <span>Ночей</span>
@@ -357,14 +378,74 @@ export function BookingWizard({ locale, labels, defaults, pricePerNight, finance
                   </div>
                 </div>
 
-                <div className="mt-4">
-                  <DcNextPaymentCard
-                    variant="embedded"
-                    returnUrl={dcReturnUrl}
-                    amountTjs={totalByDates ?? finance.totalToCharge}
-                    account="901317727"
-                    footerHint="После подтверждения брони откроется страница оплаты — там прикрепите чек перевода."
-                  />
+                <div className="rounded-2xl border border-[#0f7a4d]/20 bg-[#0f7a4d]/[0.06] p-4">
+                  <div className="text-sm font-semibold text-[#d1fae5]">{labels.paymentMethodLabel}</div>
+
+                  {paymentMethods.length === 0 ? (
+                    <p className="mt-2 text-sm text-slate-300">{m(locale, "checkout.paymentMethodsEmpty")}</p>
+                  ) : (
+                    <>
+                      <p className="mt-1 text-xs text-slate-400">{m(locale, "checkout.paymentMethodsHint")}</p>
+                      <ul className="mt-3 space-y-3">
+                        {paymentMethods.map((method) => {
+                          const isSelected = selectedMethodId === method.id;
+                          return (
+                            <li
+                              key={method.id}
+                              className={`rounded-xl border p-3 ${isSelected ? "border-[#0f7a4d] bg-[#0f7a4d]/10" : "border-white/10 bg-black/20"}`}
+                            >
+                              <div className="flex items-center justify-between gap-2">
+                                <div className="min-w-0 text-sm font-semibold text-slate-100">{method.displayLabel}</div>
+                                {isSelected ? (
+                                  <span className="shrink-0 rounded-lg bg-[#0f7a4d] px-2.5 py-1 text-xs font-semibold text-white">
+                                    {m(locale, "checkout.paymentMethodsSelected")}
+                                  </span>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => setSelectedMethodId(method.id)}
+                                    className="shrink-0 rounded-lg border border-[#0f7a4d]/40 px-2.5 py-1 text-xs font-semibold text-[#d1fae5]"
+                                  >
+                                    {m(locale, "checkout.paymentMethodsSelect")}
+                                  </button>
+                                )}
+                              </div>
+                              {isSelected ? (
+                                <>
+                                  <div className="mt-1 text-xs text-slate-400">{method.recipientName}</div>
+                                  <div className="mt-2 flex items-center justify-between gap-3">
+                                    <span className="min-w-0 flex-1 break-all font-mono text-sm text-slate-100">
+                                      {method.paymentIdentifier}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={async () => {
+                                        try {
+                                          await navigator.clipboard.writeText(method.paymentIdentifier);
+                                          setCopiedId(method.id);
+                                          window.setTimeout(() => setCopiedId(null), 2000);
+                                        } catch {
+                                          setCopiedId(null);
+                                        }
+                                      }}
+                                      className="shrink-0 rounded-lg bg-[#0f7a4d] px-3 py-1.5 text-xs font-semibold text-white"
+                                    >
+                                      {copiedId === method.id
+                                        ? m(locale, "checkout.paymentMethodsCopied")
+                                        : m(locale, "checkout.paymentMethodsCopy")}
+                                    </button>
+                                  </div>
+                                  {method.instructions ? (
+                                    <div className="mt-2 text-xs text-slate-400">{method.instructions}</div>
+                                  ) : null}
+                                </>
+                              ) : null}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </>
+                  )}
                 </div>
               </div>
             )}
@@ -410,7 +491,7 @@ export function BookingWizard({ locale, labels, defaults, pricePerNight, finance
               {step < 3 ? (
                 <Button
                   type="button"
-                  disabled={step === 1 && !nights}
+                  disabled={(step === 1 && !nights) || (step === 2 && !canSubmitPayment)}
                   onClick={() => setStep((s) => (s < 3 ? ((s + 1) as Step) : s))}
                 >
                   {labels.next}
@@ -419,7 +500,7 @@ export function BookingWizard({ locale, labels, defaults, pricePerNight, finance
                 <Button
                   type="button"
                   loading={submitting}
-                  disabled={submitting}
+                  disabled={submitting || !canSubmitPayment}
                   onClick={() => void runBookingSubmit()}
                   className="border-[#0f7a4d]/40 bg-gradient-to-b from-[#0f7a4d] to-[#0f7a4d] text-white shadow-[0_8px_28px_rgba(0,0,0,0.35),0_0_24px_rgba(15, 122, 77,0.35)] hover:shadow-[0_8px_28px_rgba(0,0,0,0.35),0_0_32px_rgba(15, 122, 77,0.45)]"
                 >

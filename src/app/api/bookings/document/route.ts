@@ -11,7 +11,7 @@ const MAX_FILE_BYTES = 6 * 1024 * 1024; // 6MB
 
 async function saveGuestDocFile(file: File): Promise<string | null> {
   try {
-    return await saveUploadFile(file, "guest-docs", MAX_FILE_BYTES);
+    return await saveUploadFile(file, "guest-docs", MAX_FILE_BYTES, "private");
   } catch (err) {
     if (err instanceof ImageUploadError) return null;
     throw err;

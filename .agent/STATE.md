@@ -1844,6 +1844,86 @@ time pressure.
 
 **NEXT**: STOPPED for review. Not starting Payment redesign, Chat, or BLOCK 5.
 
+## BLOCK 5.1A — Private Storage Closure
+
+Full report: `BLOCK_5.1A_REPORT.md` (delivered via SendUserFile). Closed the two gaps BLOCK 5.1
+left open, no scope expansion.
+
+1. **Explicit fail-closed provider selection**: `getPrivateStorageAdapter()` no longer returns
+   `LocalDiskPrivateAdapter` on Vercel-without-credentials and relies on the read-only filesystem
+   to reject the write - it now throws `private_storage_not_configured` before constructing any
+   adapter. Local disk is only chosen in an environment explicitly allowed to use it (today: not
+   Vercel). `servePrivateFile`/`deletePrivateUploadPathname` degrade to their existing 404/
+   best-effort contracts on this throw, never a 500.
+2. New targeted test `scripts/test-private-storage-provider-selection.ts` (10/10 pass): local/dev
+   -> local disk; private token configured -> Vercel adapter (any runtime); Vercel + no token ->
+   explicit error, never local disk; structural check confirms none of the 3 adapter files
+   reference public storage.
+3. Closed the one missing browser evidence from BLOCK 5.1: real chat image attachment, real guest
+   session, real `/chat/booking/[id]` page load - confirmed via live DOM read
+   (`complete: true, naturalWidth: 1`) that the `<img src="/api/files/booking/.../chat/...">`
+   actually finished loading, then clicked the real lightbox control and confirmed the same for
+   the lightbox's own `<img>`.
+4. `tsc`/eslint/`npm run build` re-run after the provider-selection fix - clean.
+
+**Verdict: BLOCK 5.1 CODE/LOCAL SECURITY = COMPLETE. PRODUCTION PRIVATE STORAGE DEPLOYMENT = NOT
+PROVEN (Vercel private Blob store not created - account-level step). PRODUCTION LEGACY MIGRATION =
+NOT RUN. FUTURE VPS ADAPTER = REQUIRED BEFORE FINAL PRODUCTION.**
+
+**User reviewed and accepted this closure (2026-09-14)** - confirmed both gaps closed by evidence,
+not assumption; explicitly reiterated the deferred items (production private storage, legacy
+migration, VPS adapter) are expected-open, not blockers to closing 5.1 itself. **BLOCK 5.1 = CLOSED.**
+
+**NEXT**: BLOCK 5.2 authorized next: Payment Flow Foundation, scoped narrow per the user's framing -
+`HotelPaymentMethod` (already working post-booking-creation) becomes the single authoritative source
+of payment requisites; BookingWizard's hardcoded "DC Next" requisites are replaced with real active
+`HotelPaymentMethod` rows for that hotel, selected by the guest, snapshotted into the booking/payment
+record for the proof flow. Explicitly NOT in scope for 5.2: "Pay at check-in" (separate BLOCK 5.4 -
+different state machine, not just a requisites-source swap). Do not start until the user sends the
+exact 5.2 spec (UI/UX, backend contract, snapshot semantics, security boundaries, edge cases,
+acceptance matrix) - narrow implementation-audit of existing `HotelPaymentMethod` usage first, no
+second parallel payment system.
+
+## BLOCK 5.1 — Private Upload Security (IN PROGRESS, not COMPLETE)
+
+Full report: `BLOCK_5.1_REPORT.md` (delivered via SendUserFile). Fixes BLOCK 5.0's R-2 finding
+(payment proof / guest documents / chat attachments stored with zero access control, proven live
+via unauthenticated curl). Production not touched, no legacy migration run.
+
+**Storage is now provider-independent**: `src/lib/uploads/private-storage/` defines a
+`PrivateStorageAdapter` interface (`put`/`get`/`del`); `getPrivateStorageAdapter()` (in that
+directory's `index.ts`) is the ONLY place that picks a provider (Vercel Private Blob today, local
+disk in dev). This exists because Vercel is temporary dev/staging infra - production moves to a
+VPS later, and swapping in a VPS-backed adapter must not touch Payment/Chat/KYC business logic.
+`@vercel/blob` upgraded 0.27.3 -> 2.8.0, kept as the current adapter's implementation, wrapped so
+nothing outside those 3 adapter files imports it directly. Needed `next.config.mjs` ->
+`experimental.serverComponentsExternalPackages: ["@vercel/blob", "undici"]` for `npm run build` to
+succeed (v2's undici uses JS syntax Next 14.1's webpack parser can't bundle).
+
+New: `authorizeBookingAccess()` (`src/lib/pms/bookingAuthorization.ts`, replacing a duplicated
+three-way guest/owner/admin check in 2+ places), 3 authenticated proxy routes
+(`/api/files/booking/[bookingId]/{proof,document,chat/[messageId]}`), every consumer (chat page,
+chat messages API, admin chat archive export, owner dashboard) switched from raw stored URLs to
+these proxy paths. DB now stores bare pathnames for these 3 categories, never URLs.
+
+**Scope correction found mid-implementation**: "Owner KYC documents" turned out to be a
+zod-validated external URL the applicant pastes in (`OwnerApplication.documentUrl`), never a file
+uploaded through `saveUploadFile()` - no first-party file to protect, no route built for it
+(building one would mean our server doing an unrestricted fetch of an applicant-supplied URL - the
+SSRF shape explicitly ruled out). `HostProfile.documentUrl` confirmed dead (zero references).
+
+Full real-runtime security matrix passed (no-cookie/unrelated-owner -> 404, correct
+guest/owner/admin -> 200, on all 3 routes), path traversal rejected, old public path unreachable
+for new uploads, and a simulated private-provider failure confirmed to land in private storage
+only - never a fallback to public. `npx tsc`/eslint/`npm run build` all clean, re-run after the
+provider-independence refactor (not reused from before it).
+
+**NOT done**: production migration script (written, tested locally, NOT run against prod - needs
+separate go-ahead + a prior read-only prod count); Vercel private Blob store not yet created
+(account-level action, outside this session). Not declaring COMPLETE - that call is the user's.
+
+**NEXT**: STOPPED. Not starting Payment UI (BLOCK 5.2+) until this is reviewed/accepted.
+
 ## BLOCK 5.0 — Payment Lifecycle Full Read-Only Audit (no implementation)
 
 Full report: `BLOCK_5.0_REPORT.md` (delivered via SendUserFile). Audit only - no code changed,

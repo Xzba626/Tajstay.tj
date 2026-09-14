@@ -30,3 +30,7 @@ data/owner-payment-methods.json
 
 # Local dev uploads (owner-application photos etc.) — never committed
 /public/uploads/
+
+# Local dev private uploads (payment proofs, guest documents, chat attachments) — outside
+# public/ by design so Next's static file server can never serve them; never committed
+/private-uploads/

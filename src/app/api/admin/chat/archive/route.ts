@@ -39,8 +39,8 @@ export async function GET(req: NextRequest) {
         paymentStatus: booking.paymentStatus,
         checkIn: booking.checkIn.toISOString(),
         checkOut: booking.checkOut.toISOString(),
-        paymentProofUrl: booking.paymentProofUrl,
-        guestDocumentUrl: booking.guestDocumentUrl,
+        paymentProofUrl: booking.paymentProofUrl ? `/api/files/booking/${booking.id}/proof` : null,
+        guestDocumentUrl: booking.guestDocumentUrl ? `/api/files/booking/${booking.id}/document` : null,
         totalPrice: Number(booking.totalPrice),
         guest: booking.user,
         hotel: { id: hotel.id, name: hotel.name },
@@ -61,7 +61,13 @@ export async function GET(req: NextRequest) {
         senderRole: m.senderRole,
         senderName: m.senderName,
         message: m.body,
-        imageUrl: m.imageUrl,
+        // Rows still backed by a live ChatMessage row can go through the private-file proxy;
+        // rows migrated into the legacy ChatArchive table predate this fix and keep whatever
+        // (pre-existing) URL they already had.
+        imageUrl:
+          m.imageUrl && m.source === "chat_message"
+            ? `/api/files/booking/${booking.id}/chat/${m.id}`
+            : m.imageUrl,
         originalCreatedAt: m.originalCreatedAt.toISOString(),
         archivedAt: m.archivedAt?.toISOString() ?? null,
         deletedAt: m.deletedAt?.toISOString() ?? null

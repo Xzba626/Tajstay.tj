@@ -25,7 +25,7 @@ function isSafeProofUrl(raw: string): boolean {
 
 async function saveProofFile(file: File): Promise<string | null> {
   try {
-    return await saveUploadFile(file, "payment-proofs", MAX_FILE_BYTES);
+    return await saveUploadFile(file, "payment-proofs", MAX_FILE_BYTES, "private");
   } catch (err) {
     if (err instanceof ImageUploadError) return null;
     throw err;

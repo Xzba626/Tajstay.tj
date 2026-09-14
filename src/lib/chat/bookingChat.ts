@@ -1,6 +1,13 @@
 import { prisma } from "@/lib/prisma";
 import { syntheticArchiveChatMessageId } from "@/lib/chat/archiveMessageIds";
 import { deletePublicUploadUrl } from "@/lib/uploads/deletePublicUpload";
+import { deletePrivateUploadPathname } from "@/lib/uploads/deletePrivateUpload";
+
+/** Chat attachments are now stored privately (bare pathname, see saveChatAttachment.ts) - old
+ * rows may still hold a public `/uploads/...` URL from before this change, so try both. */
+async function deleteChatAttachment(imageUrl: string | null | undefined): Promise<boolean> {
+  return (await deletePrivateUploadPathname(imageUrl)) || (await deletePublicUploadUrl(imageUrl));
+}
 
 export const BOOKING_CHAT_LOG_TYPE = "BOOKING_CHAT_MESSAGE";
 
@@ -245,7 +252,7 @@ export async function purgeActiveBookingChatOnly(bookingId: number): Promise<{ d
   });
   let deletedFiles = 0;
   for (const r of rows) {
-    if (r.imageUrl && (await deletePublicUploadUrl(r.imageUrl))) deletedFiles += 1;
+    if (r.imageUrl && (await deleteChatAttachment(r.imageUrl))) deletedFiles += 1;
   }
   await prisma.chatMessage.deleteMany({ where: { bookingId } });
   await prisma.transactionLog.deleteMany({ where: { bookingId, type: BOOKING_CHAT_LOG_TYPE } });
@@ -258,7 +265,7 @@ export async function adminPurgeBookingChatCompletely(bookingId: number): Promis
   const arch = await prisma.chatArchive.findMany({ where: { bookingId }, select: { imageUrl: true } });
   let deletedFiles = 0;
   for (const r of [...active, ...arch]) {
-    if (r.imageUrl && (await deletePublicUploadUrl(r.imageUrl))) deletedFiles += 1;
+    if (r.imageUrl && (await deleteChatAttachment(r.imageUrl))) deletedFiles += 1;
   }
   await prisma.chatMessage.deleteMany({ where: { bookingId } });
   await prisma.chatArchive.deleteMany({ where: { bookingId } });

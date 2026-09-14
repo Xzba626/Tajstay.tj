@@ -144,31 +144,6 @@ export async function POST(req: NextRequest) {
       return bookingFormRedirect(req, { roomId, checkIn: checkInRaw, checkOut: checkOutRaw, code: "failed" });
     }
 
-    // Snapshot the chosen hotel-owned payment method at selection time - if the owner edits their
-    // card number tomorrow, this booking must keep showing what the guest actually paid to.
-    let paymentMethodSnapshot: {
-      displayLabel: string;
-      recipientName: string;
-      paymentIdentifier: string;
-      instructions: string | null;
-    } | null = null;
-    let resolvedHotelPaymentMethodId: number | null = null;
-    if (hotelPaymentMethodId && hotelId) {
-      const method = await prisma.hotelPaymentMethod.findFirst({
-        where: { id: hotelPaymentMethodId, hotelId, isActive: true }
-      });
-      if (method) {
-        resolvedHotelPaymentMethodId = method.id;
-        paymentMethodSnapshot = {
-          displayLabel: method.displayLabel,
-          recipientName: method.recipientName,
-          paymentIdentifier: method.paymentIdentifier,
-          instructions: method.instructions
-        };
-        paymentMethod = method.displayLabel;
-      }
-    }
-
     // Idempotency guard against a literal double-submit (double-tap, a retried request, two
     // near-simultaneous POSTs from the same browser) - proven live to otherwise create two
     // separate WAITING_PAYMENT rows for the identical room+dates, since booking creation itself
@@ -176,6 +151,11 @@ export async function POST(req: NextRequest) {
     // 2/2.1 invariants - a deliberate, documented architecture gap, not something this guard
     // changes). This only recognizes the SAME user resubmitting the SAME exact request; it is
     // not a capacity hold and says nothing about two DIFFERENT guests racing for the same room.
+    // Deliberately checked BEFORE payment-method validation below (BLOCK 5.2 §9/§12-J): a genuine
+    // resubmit of an already-succeeded booking must always replay as that same booking, even if a
+    // second, unrelated race elsewhere just deactivated the method it used - re-validating payment
+    // on a pure replay would incorrectly reject a booking that already exists and already has its
+    // own frozen snapshot.
     const duplicateWhere = resolvedRoomId
       ? { roomId: resolvedRoomId }
       : { roomTypeId: resolvedRoomTypeId, roomId: null };
@@ -206,6 +186,37 @@ export async function POST(req: NextRequest) {
       return NextResponse.redirect(publicUrl(req, `/chat/booking/${existingLiveBooking.id}`));
     }
 
+    // Authoritative payment-method validation (BLOCK 5.2). The guest-facing Wizard only ever sends
+    // an id - never recipient/account/instructions text - and this is the ONLY place those values
+    // are read from the database, never trusted from the request. A PAY-NOW booking with no id, an
+    // id belonging to a different hotel, an inactive method, or a nonexistent id are all rejected
+    // identically (no booking/payment/hold/chat/notification side effects) rather than silently
+    // falling back to a placeholder payment method - see BLOCK 5.0's P0 finding on the hardcoded
+    // "DC Next" card this replaces. `hotelId` here is the authoritative hotel resolved above from
+    // the actual Room/RoomType chain, never anything the client could influence directly.
+    if (!hotelPaymentMethodId) {
+      if (wantsJson) return NextResponse.json({ error: "payment_method_required" }, { status: 400 });
+      return bookingFormRedirect(req, { roomId, checkIn: checkInRaw, checkOut: checkOutRaw, code: "payment_method_required" });
+    }
+    const hotelPaymentMethod = await prisma.hotelPaymentMethod.findFirst({
+      where: { id: hotelPaymentMethodId, hotelId, isActive: true }
+    });
+    if (!hotelPaymentMethod) {
+      if (wantsJson) return NextResponse.json({ error: "payment_method_invalid" }, { status: 400 });
+      return bookingFormRedirect(req, { roomId, checkIn: checkInRaw, checkOut: checkOutRaw, code: "payment_method_invalid" });
+    }
+    // Snapshot the chosen hotel-owned payment method at selection time (from the row just read
+    // above, never from the request) - if the owner edits their card number tomorrow, this
+    // booking must keep showing what the guest actually paid to.
+    const resolvedHotelPaymentMethodId = hotelPaymentMethod.id;
+    const paymentMethodSnapshot = {
+      displayLabel: hotelPaymentMethod.displayLabel,
+      recipientName: hotelPaymentMethod.recipientName,
+      paymentIdentifier: hotelPaymentMethod.paymentIdentifier,
+      instructions: hotelPaymentMethod.instructions
+    };
+    paymentMethod = hotelPaymentMethod.displayLabel;
+
     // Guest has 15 minutes to submit payment proof after booking creation.
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
     const publicCode = await generateBookingCode("TJ");
@@ -228,7 +239,7 @@ export async function POST(req: NextRequest) {
       paymentStatus,
       paymentMethod,
       hotelPaymentMethodId: resolvedHotelPaymentMethodId,
-      paymentMethodSnapshot: paymentMethodSnapshot ? JSON.parse(JSON.stringify(paymentMethodSnapshot)) : undefined,
+      paymentMethodSnapshot: JSON.parse(JSON.stringify(paymentMethodSnapshot)),
       payOnArrival: false,
       phone,
       status: BOOKING_STATUS.WAITING_PAYMENT,

@@ -7,7 +7,14 @@ import { BOOKING_STATUS } from "@/lib/domain/booking";
 import { saveChatAttachmentFile } from "@/lib/uploads/saveChatAttachment";
 import { canAccessBookingChat } from "@/lib/chat/bookingAccess";
 import { bookingHotel } from "@/lib/pms/bookingContext";
+import { authorizeBookingAccess } from "@/lib/pms/bookingAuthorization";
 import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
+
+/** Chat attachments are stored privately (see saveChatAttachment.ts) - never return the raw
+ * pathname to a client; only the authenticated proxy route may resolve it to bytes. */
+function chatImageProxyUrl(bookingId: number, messageId: number): string {
+  return `/api/files/booking/${bookingId}/chat/${messageId}`;
+}
 
 const TERMINAL_NO_NEW_MESSAGES = new Set<string>([
   BOOKING_STATUS.EXPIRED,
@@ -20,6 +27,13 @@ const TERMINAL_NO_NEW_MESSAGES = new Set<string>([
 function isBookingChatLocked(booking: { chatArchivedAt: Date | null; status: string }): boolean {
   if (booking.chatArchivedAt) return true;
   return TERMINAL_NO_NEW_MESSAGES.has(booking.status);
+}
+
+function toClientMessages<T extends { id: number; imageUrl: string | null }>(
+  bookingId: number,
+  messages: T[]
+): T[] {
+  return messages.map((m) => (m.imageUrl ? { ...m, imageUrl: chatImageProxyUrl(bookingId, m.id) } : m));
 }
 
 function bookingChatSnapshot(b: {
@@ -86,7 +100,13 @@ export async function GET(_: NextRequest, { params }: { params: { bookingId: str
 
   const canSend = !locked;
   return NextResponse.json(
-    { ok: true, messages, chatArchived: archivedFlag, canSend, booking: bookingChatSnapshot(booking) },
+    {
+      ok: true,
+      messages: toClientMessages(bookingId, messages),
+      chatArchived: archivedFlag,
+      canSend,
+      booking: bookingChatSnapshot(booking)
+    },
     { status: 200 }
   );
 }
@@ -233,7 +253,7 @@ export async function POST(req: NextRequest, { params }: { params: { bookingId: 
   return NextResponse.json(
     {
       ok: true,
-      messages,
+      messages: toClientMessages(bookingId, messages),
       chatArchived: Boolean(finalBooking.chatArchivedAt),
       canSend: !locked,
       booking: bookingChatSnapshot(finalBooking)

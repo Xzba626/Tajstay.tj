@@ -1231,8 +1231,13 @@ export default async function OwnerDashboardPage({
                       </div>
                     ) : null}
                     {b.paymentProofUrl ? (
-                      <a href={b.paymentProofUrl} className="mt-1 block truncate text-sm font-semibold owner-link underline-offset-4 hover:underline">
-                        {b.paymentProofUrl}
+                      <a
+                        href={`/api/files/booking/${b.id}/proof`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-1 block truncate text-sm font-semibold owner-link underline-offset-4 hover:underline"
+                      >
+                        открыть чек
                       </a>
                     ) : (
                       <div className="mt-1 text-sm text-amber-900/80">Ссылка не указана</div>
@@ -1241,7 +1246,7 @@ export default async function OwnerDashboardPage({
                       <div className="owner-subpanel__label">Документ гостя:</div>
                       {b.guestDocumentUrl ? (
                         <a
-                          href={b.guestDocumentUrl}
+                          href={`/api/files/booking/${b.id}/document`}
                           className="mt-1 block truncate text-sm font-semibold owner-link underline-offset-4 hover:underline"
                           target="_blank"
                           rel="noreferrer"
@@ -1265,7 +1270,7 @@ export default async function OwnerDashboardPage({
                           <div className="owner-subpanel__label">Документ гостя</div>
                           {b.guestDocumentUrl ? (
                             <a
-                              href={b.guestDocumentUrl}
+                              href={`/api/files/booking/${b.id}/document`}
                               className="mt-1 inline-block font-semibold owner-link underline underline-offset-4"
                               target="_blank"
                               rel="noreferrer"

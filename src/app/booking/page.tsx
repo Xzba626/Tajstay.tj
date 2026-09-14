@@ -6,8 +6,8 @@ import { m } from "@/lib/i18n/messages";
 import { CheckoutSteps } from "@/processes/checkout/CheckoutSteps";
 import { computeRoomTotalPrice, computeRoomTypeTotalPrice } from "@/lib/services/bookingPricing";
 import { BookingWizard } from "@/processes/checkout/BookingWizard";
-import { getPublicOriginFromHeaders } from "@/lib/http/publicOriginHeaders";
 import { isPlaceholderAccountPhone, phoneForGuestBookingForm } from "@/lib/auth/accountPhone";
+import { getHotelPaymentMethods } from "@/lib/hotels/paymentMethods";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +17,9 @@ const BOOK_ERR_KEYS: Record<string, string> = {
   phone_in_use: "checkout.errPhoneTaken",
   unavailable: "checkout.errUnavailable",
   failed: "checkout.errGeneric",
-  rate: "checkout.errRate"
+  rate: "checkout.errRate",
+  payment_method_required: "checkout.errPaymentMethodRequired",
+  payment_method_invalid: "checkout.errPaymentMethodInvalid"
 };
 
 export default async function BookingPage({
@@ -76,14 +78,8 @@ export default async function BookingPage({
   const bookErr = (searchParams.bookErr ?? "").trim();
   const errPath = BOOK_ERR_KEYS[bookErr];
 
-  const origin = getPublicOriginFromHeaders();
-  const bookingQs = new URLSearchParams();
-  if (room) bookingQs.set("roomId", String(room.id));
-  if (roomType) bookingQs.set("roomTypeId", String(roomType.id));
-  if (searchParams.checkIn) bookingQs.set("checkIn", searchParams.checkIn);
-  if (searchParams.checkOut) bookingQs.set("checkOut", searchParams.checkOut);
-  if (searchParams.guests) bookingQs.set("guests", searchParams.guests);
-  const dcReturnUrl = `${origin}/booking?${bookingQs.toString()}`;
+  const hotelId = room?.hotel.id ?? roomType?.hotel.id;
+  const paymentMethods = hotelId ? await getHotelPaymentMethods(hotelId) : [];
 
   return (
     <div className="mx-auto max-w-3xl space-y-5 px-4 pb-12 pt-4 sm:pt-5">
@@ -170,8 +166,14 @@ export default async function BookingPage({
           taxAmount: 0,
           totalToCharge
         }}
-        dcReturnUrl={dcReturnUrl}
-        hotelId={room?.hotel.id ?? roomType?.hotel.id}
+        hotelId={hotelId}
+        paymentMethods={paymentMethods.map((method) => ({
+          id: method.id,
+          displayLabel: method.displayLabel,
+          recipientName: method.recipientName,
+          paymentIdentifier: method.paymentIdentifier,
+          instructions: method.instructions
+        }))}
       />
     </div>
   );

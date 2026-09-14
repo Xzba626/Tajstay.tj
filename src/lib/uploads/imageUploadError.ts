@@ -4,7 +4,9 @@ export type ImageUploadErrorCode =
   | "empty"
   | "store_readonly"
   | "store_failed"
-  | "blob_not_configured";
+  | "blob_not_configured"
+  | "private_blob_not_configured"
+  | "private_storage_not_configured";
 
 export class ImageUploadError extends Error {
   code: ImageUploadErrorCode;

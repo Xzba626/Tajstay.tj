@@ -49,7 +49,9 @@ async function saveOptionalFile(form: FormData, key: string): Promise<string | u
   const f = form.get(key);
   if (!(f instanceof File) || f.size <= 0) return undefined;
   try {
-    return await saveUploadFile(f, UPLOAD_DIR, MAX_FILE);
+    // Property photos (facade/room/bathroom) shown during admin moderation - not identity
+    // documents, stay public like other property imagery (out of BLOCK 5.1's private-storage scope).
+    return await saveUploadFile(f, UPLOAD_DIR, MAX_FILE, "public");
   } catch (err) {
     if (err instanceof ImageUploadError) throw err;
     throw new ImageUploadError("store_failed", "Upload failed");
