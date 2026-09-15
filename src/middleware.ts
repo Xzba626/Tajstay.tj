@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { publicUrl } from "@/lib/http/publicOrigin";
+import { shellFor } from "@/lib/shell/classify";
+
+// Re-exported for backward compatibility (scripts/test-block61a-admin-shell.ts imports this from
+// here) — the real implementation now lives in src/lib/shell/classify.ts so ShellBoundaryGuard.tsx
+// (a client component) can share it without pulling in next/server.
+export { shellFor };
 
 const SESSION_COOKIE = "tajstay_session";
 const TELEGRAM_WEBHOOK_PATH = "/api/telegram/webhook";
@@ -24,19 +30,6 @@ function isTelegramWebhookPath(path: string): boolean {
  * Первый слой: без cookie сессии не пускаем на dashboard admin/owner.
  * Финальная проверка роли остаётся в RSC (requireAdmin / requireOwner).
  */
-/**
- * Shell classification for RootLayout — Admin/Owner render their own CRM shell,
- * everything else renders the Public/Consumer shell (Header/Footer/MobileBottomNav/
- * AppShell). Read via `headers().get("x-tajstay-shell")` in `src/app/layout.tsx`.
- * Not CSS-hide: this decides what RootLayout renders server-side, nothing is mounted
- * then hidden.
- */
-export function shellFor(path: string): "admin" | "owner" | "consumer" {
-  if (path.startsWith("/dashboard/admin")) return "admin";
-  if (path.startsWith("/dashboard/owner")) return "owner";
-  return "consumer";
-}
-
 export async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
 

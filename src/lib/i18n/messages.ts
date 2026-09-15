@@ -1638,7 +1638,12 @@ const ru: Tree = {
     securityPanelTitle: "Безопасность аккаунта",
     securityPanelClose: "Закрыть",
     confirmDialogCancel: "Отмена",
-    confirmDialogConfirm: "Подтвердить"
+    confirmDialogConfirm: "Подтвердить",
+    errorBoundaryBadge: "Ошибка",
+    errorBoundaryTitle: "Что-то пошло не так",
+    errorBoundaryMessage: "Временная ошибка сервера. Попробуйте обновить страницу или вернуться в админ-панель.",
+    errorBoundaryRetry: "Попробовать снова",
+    errorBoundaryBackToAdmin: "Вернуться в админ-панель"
   },
   adminNav: {
     dashboard: "Дашборд",
@@ -3450,7 +3455,7 @@ const tg: Tree = {
     navHint: "Гузариши зуд байни бахшҳо",
     navAdmin: "Админ",
     mobileNav: "Бахшҳои панел",
-    mobileMore: "Боз",
+    mobileMore: "Бештар",
     drawerGroupSecondary: "Бахшҳои иловагӣ",
     drawerGroupHotels: "Идоракунии меҳмонхонаҳо",
     drawerGroupPlatform: "Мундариҷа ва платформа",
@@ -3678,7 +3683,12 @@ const tg: Tree = {
     securityPanelTitle: "Амнияти ҳисоб",
     securityPanelClose: "Пӯшидан",
     confirmDialogCancel: "Бекор кардан",
-    confirmDialogConfirm: "Тасдиқ кардан"
+    confirmDialogConfirm: "Тасдиқ кардан",
+    errorBoundaryBadge: "Хатогӣ",
+    errorBoundaryTitle: "Хатогӣ рух дод",
+    errorBoundaryMessage: "Хатогии муваққатии сервер. Саҳифаро нав кунед ё ба админ-панель баргардед.",
+    errorBoundaryRetry: "Аз нав кӯшиш кунед",
+    errorBoundaryBackToAdmin: "Баргаштан ба админ-панель"
   },
   adminNav: {
     dashboard: "Дашборд",
@@ -3702,7 +3712,7 @@ const tg: Tree = {
     pageTitle: "Панели соҳиб",
     pageSubtitle: "",
     mobileNav: "Бахшҳо",
-    mobileMore: "Боз",
+    mobileMore: "Бештар",
     drawerGroupSecondary: "Бахшҳои иловагӣ",
     drawerGroupOperations: "Амалиёт",
     drawerGroupInsights: "Таҳлил",
@@ -5684,7 +5694,12 @@ const en: Tree = {
     securityPanelTitle: "Account security",
     securityPanelClose: "Close",
     confirmDialogCancel: "Cancel",
-    confirmDialogConfirm: "Confirm"
+    confirmDialogConfirm: "Confirm",
+    errorBoundaryBadge: "Error",
+    errorBoundaryTitle: "Something went wrong",
+    errorBoundaryMessage: "Temporary server error. Try reloading the page or return to the admin panel.",
+    errorBoundaryRetry: "Try again",
+    errorBoundaryBackToAdmin: "Back to admin panel"
   },
   adminNav: {
     dashboard: "Dashboard",

@@ -42,7 +42,7 @@ export function AdminHeader({
          * truncated brand/context reads worse than a deliberately short one. The "Admin" word
          * is now a separate span, hidden below 380px via CSS instead of being cut mid-word;
          * `brandFull` carries the complete name for the link's accessible name/title. */}
-        <Link href="/dashboard/admin" className="admin-header__brand" title={brandFull} aria-label={brandFull}>
+        <Link href="/" className="admin-header__brand" title={brandFull} aria-label={brandFull}>
           <BrandMark showName={false} size="sm" />
           <span className="admin-header__brand-text">
             {brandPrimary}

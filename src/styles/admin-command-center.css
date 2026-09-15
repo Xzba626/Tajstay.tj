@@ -3,6 +3,20 @@
  * Scoped to .admin-command-center; presentation only.
  */
 
+/* ADMIN 6.1B root cause (excessive top/vertical whitespace, P1): a global base-layer rule,
+   `section { @apply py-10 md:py-14; }` (src/app/globals.css, written for public marketing page
+   sections), applies to every <section> element site-wide with no scoping — including every
+   Admin section wrapper (#dashboard, #applications, #hotels, ... all rendered as <section> in
+   src/app/dashboard/admin/page.tsx and AdminDashboardOverview.tsx). That rule alone added 40px
+   (mobile) / 56px (desktop, md:py-14) of unwanted padding-top AND padding-bottom to every single
+   Admin section — confirmed via computed-style inspection, not guessed. Admin's own spacing is
+   already handled by `.admin-section`'s `gap`/`space-y-*` utilities; the marketing padding must
+   not apply here at all. */
+.admin-command-center section {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
 .admin-command-center {
   --admin-bg: var(--ts-surface-page, #ffffff);
   --admin-surface: var(--ts-surface-primary, #ffffff);
@@ -1401,6 +1415,9 @@
   /* 6.1A closure (ADM touch-target gap): 40px was below the required >=44px effective
      interactive target. The header itself stays 3.5rem (56px) — there was room to grow the
      buttons without touching the sticky header-height variable shared with the sidebar. */
+  /* 6.1B: same global bare-`button` box-shadow leak fixed on the profile trigger above. */
+  box-shadow: none;
+  border: none;
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -1436,6 +1453,12 @@
 }
 
 .admin-header__profile-trigger {
+  /* 6.1B: a global bare `button { box-shadow: 0 10px 24px ...; }` reset in globals.css (written
+     for dark premium marketing buttons) was leaking a heavy drop-shadow "halo" onto this control,
+     the exact "чрезмерно тяжёлый" visual weight reported from production. Scoped override, not a
+     new global rule. */
+  box-shadow: none;
+  border: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;

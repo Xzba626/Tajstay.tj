@@ -26,6 +26,7 @@ import { AuthProvider } from "@/providers/auth-provider";
 import { assertProdSecrets } from "@/lib/security/envGuard";
 import { resolveMetadataBase } from "@/lib/site-url";
 import { getPendingTripsCount } from "@/lib/trips/pendingCount";
+import { ShellBoundaryGuard } from "@/components/layout/ShellBoundaryGuard";
 
 export async function generateMetadata(): Promise<Metadata> {
   const content = await getSiteContent();
@@ -74,11 +75,12 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const unreadCount = user ? await getUnreadNotificationsCount(user.id) : 0;
   const pendingTripsCount =
     user?.role === "GUEST" ? await getPendingTripsCount(user.id) : 0;
-  const shell = (await headers()).get("x-tajstay-shell");
+  const shellHeader = (await headers()).get("x-tajstay-shell");
   // Admin/Owner CRM shells render their own chrome (see dashboard/admin, dashboard/owner
   // layouts) — the Public/Consumer shell below (Header/Footer/MobileBottomNav/AppShell/
   // Cookie/PWA prompts) must not leak into those two. Classified in middleware.ts, not CSS.
-  const isConsumerShell = shell !== "admin" && shell !== "owner";
+  const resolvedShell = shellHeader === "admin" || shellHeader === "owner" ? shellHeader : "consumer";
+  const isConsumerShell = resolvedShell === "consumer";
   return (
     <html lang={locale} className="scroll-smooth" data-theme="light" suppressHydrationWarning>
       <head>
@@ -91,6 +93,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       </head>
       <body className="min-h-screen bg-white text-[var(--text-primary-semantic,#14231b)] antialiased font-sans" suppressHydrationWarning>
         <AuthProvider>
+          <ShellBoundaryGuard serverShell={resolvedShell} />
           {isConsumerShell ? (
             <>
               <AppShell locale={locale} />
