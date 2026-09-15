@@ -1045,6 +1045,27 @@
   position: relative;
 }
 
+/* MASTER COMPLETION BLOCK, PHASE B: Phone/Email/Telegram rows became real links to their
+   respective subpages (were previously dead-end, non-interactive text). */
+.profile-info-row--link {
+  display: grid;
+  padding-right: 2.25rem;
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+
+.profile-info-row--link:hover {
+  background: var(--ts-surface-muted, #f8fafc);
+}
+
+.profile-info-row__chevron {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--ts-text-muted, #94a3b8);
+}
+
 .profile-info-row__edit-trigger {
   position: absolute;
   right: 0.9rem;
@@ -1352,6 +1373,24 @@
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--ts-text-title, #0f172a);
+}
+
+/* MASTER COMPLETION BLOCK, PHASE B: real notification-category toggles need a label + a short
+   explanation stacked vertically, not just a bare label — this wrapper/hint pair didn't exist
+   before (the previous topic list had no per-item explanation). */
+.profile-subpage-toggle__copy {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.profile-subpage-toggle__hint {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--ts-text-muted, #475569);
+  line-height: 1.35;
 }
 
 .profile-subpage-toggle__input {

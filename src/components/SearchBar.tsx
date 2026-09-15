@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Calendar, Users } from "lucide-react";
 import { t, type Locale } from "@/lib/i18n/dictionaries";
 import { m } from "@/lib/i18n/messages";
 
@@ -10,6 +11,13 @@ const cityIcon = (
     <circle cx="12" cy="10" r="3" />
   </svg>
 );
+
+// BLOCK HOME/PWA 7.0: City already had a location icon; Check-in/Check-out/Guests didn't, which
+// read as an incomplete system next to it. Same family (lucide, already used elsewhere in this
+// project, e.g. HomeSearchCompact.tsx), same stroke weight (2) as cityIcon above, same size.
+const checkInIcon = <Calendar width={16} height={16} strokeWidth={2} aria-hidden />;
+const checkOutIcon = <Calendar width={16} height={16} strokeWidth={2} aria-hidden />;
+const guestsIcon = <Users width={16} height={16} strokeWidth={2} aria-hidden />;
 
 export function SearchBar({ locale = "ru" }: Props) {
   const popularCities = [
@@ -50,21 +58,30 @@ export function SearchBar({ locale = "ru" }: Props) {
 
           <label className="home-search-item">
             <span className="home-search-label">{m(locale, "search.checkIn")}</span>
-            <div className="home-search-control">
+            <div className="home-search-control home-search-control--with-icon">
+              <span className="home-search-control__icon" aria-hidden>
+                {checkInIcon}
+              </span>
               <input name="checkIn" type="date" aria-label={m(locale, "search.checkIn")} className="home-search-input" />
             </div>
           </label>
 
           <label className="home-search-item">
             <span className="home-search-label">{m(locale, "search.checkOut")}</span>
-            <div className="home-search-control">
+            <div className="home-search-control home-search-control--with-icon">
+              <span className="home-search-control__icon" aria-hidden>
+                {checkOutIcon}
+              </span>
               <input name="checkOut" type="date" aria-label={m(locale, "search.checkOut")} className="home-search-input" />
             </div>
           </label>
 
           <label className="home-search-item">
             <span className="home-search-label">{m(locale, "search.guests")}</span>
-            <div className="home-search-control">
+            <div className="home-search-control home-search-control--with-icon">
+              <span className="home-search-control__icon" aria-hidden>
+                {guestsIcon}
+              </span>
               <input
                 name="guests"
                 type="number"

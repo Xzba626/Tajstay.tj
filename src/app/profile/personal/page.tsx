@@ -9,16 +9,30 @@ import { maskEmail, formatTelegram } from "@/lib/format/maskEmail";
 import { ProfileSubpageShell } from "@/components/profile/ProfileSubpageShell";
 import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
 import { PersonalNameEditor } from "@/components/profile/PersonalNameEditor";
+import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
-function InfoRow({ label, value, hint }: { label: string; value: string; hint?: string }) {
+/**
+ * MASTER COMPLETION BLOCK, PHASE B — real defect found: Phone/Email/Telegram were rendered as
+ * plain, non-interactive `InfoRow`s here with NO link to /profile/phone, /profile/email, or
+ * /profile/telegram — all three routes existed but were unreachable from normal navigation, a
+ * dead-end confirmed by reading this file (no <Link> anywhere near them). Now real links.
+ * Note: /profile/email and /profile/phone are themselves honest "Coming soon" stubs for the
+ * actual change flow (self-labeled in the UI, not a hidden defect) — the verification-code/OTP
+ * systems behind them are a separate, larger, security-sensitive build (5-minute TTL email code,
+ * phone cooldown policy) not rushed into this pass. Making them reachable is still a real fix:
+ * a user can now at least see the correct "coming soon" state instead of hitting a dead end.
+ */
+function InfoRow({ label, value, hint, href }: { label: string; value: string; hint?: string; href: string }) {
   return (
-    <div className="profile-info-row">
+    <Link href={href} className="profile-info-row profile-info-row--link">
       <span className="profile-info-row__label">{label}</span>
       <span className="profile-info-row__value">{value}</span>
       {hint ? <span className="profile-info-row__hint">{hint}</span> : null}
-    </div>
+      <ChevronRight size={16} className="profile-info-row__chevron" aria-hidden />
+    </Link>
   );
 }
 
@@ -65,16 +79,18 @@ export default async function ProfilePersonalPage() {
           }}
         />
         <InfoRow
+          href="/profile/phone"
           label={m(locale, "profile.phone")}
           value={phoneDisplay}
           hint={hasPhone && full.phoneVerified ? m(locale, "profile.statusVerified") : m(locale, "profile.statusPending")}
         />
         <InfoRow
+          href="/profile/email"
           label={m(locale, "profile.email")}
           value={emailDisplay}
           hint={full.email ? (emailVerified ? m(locale, "profile.statusVerified") : m(locale, "profile.statusNotVerified")) : undefined}
         />
-        <InfoRow label={m(locale, "profile.telegram")} value={telegramDisplay} />
+        <InfoRow href="/profile/telegram" label={m(locale, "profile.telegram")} value={telegramDisplay} />
       </div>
     </ProfileSubpageShell>
   );

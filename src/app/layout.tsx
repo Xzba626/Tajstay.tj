@@ -91,7 +91,13 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-title" content={BRAND.name} />
       </head>
-      <body className="min-h-screen bg-white text-[var(--text-primary-semantic,#14231b)] antialiased font-sans" suppressHydrationWarning>
+      {/* BLOCK HOME/PWA 7.0: `min-h-screen` (100vh, a fixed value) is taller on a real mobile
+       * browser than the space actually visible while the URL bar is showing, then the browser
+       * chrome collapses/expands as the user scrolls — producing exactly the "page can be
+       * meaninglessly dragged up/down" feel reported, even when a devtools/emulated viewport
+       * (which never shows browser chrome) measures zero scroll range. `min-h-dvh` tracks the
+       * real, currently-visible viewport instead. */}
+      <body className="min-h-dvh bg-white text-[var(--text-primary-semantic,#14231b)] antialiased font-sans" suppressHydrationWarning>
         <AuthProvider>
           <ShellBoundaryGuard serverShell={resolvedShell} />
           {isConsumerShell ? (

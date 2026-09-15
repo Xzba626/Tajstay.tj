@@ -105,6 +105,24 @@
   color: var(--text-muted);
 }
 
+/* BLOCK HOME/PWA 7.0: per-field icon system for the desktop Home search form. */
+.premium-input-with-icon {
+  position: relative;
+}
+
+.premium-input-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.premium-input--with-icon {
+  padding-left: 40px;
+}
+
 .premium-label {
   font-size: 11px;
   letter-spacing: 0.08em;

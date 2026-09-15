@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { sendWebPushToUser } from "@/lib/push/sendWebPush";
+import { isPushAllowed } from "@/lib/notifications/preferences";
 
 export type CreateNotificationInput = {
   userId: number;
@@ -23,11 +24,16 @@ export async function createNotification(input: CreateNotificationInput) {
       meta: input.meta ? JSON.stringify(input.meta) : undefined
     }
   });
-  void sendWebPushToUser(input.userId, {
-    title: input.title?.trim() || "Tajstay",
-    body: input.message?.trim() || input.type,
-    url: input.link || "/notifications",
-    tag: `n-${note.id}`
+  // The Notification row above is always created — push is the only thing a category
+  // preference can suppress (see src/lib/notifications/preferences.ts for why).
+  void isPushAllowed(input.userId, input.type).then((allowed) => {
+    if (!allowed) return;
+    return sendWebPushToUser(input.userId, {
+      title: input.title?.trim() || "Tajstay",
+      body: input.message?.trim() || input.type,
+      url: input.link || "/notifications",
+      tag: `n-${note.id}`
+    });
   }).catch(() => undefined);
   return note;
 }

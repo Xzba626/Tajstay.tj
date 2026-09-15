@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Bell, Building2, ChevronRight, CircleHelp, Globe, LayoutDashboard, Shield, User, type LucideIcon } from "lucide-react";
+import { Bell, Building2, ChevronRight, CircleHelp, FileText, Globe, LayoutDashboard, Shield, User, type LucideIcon } from "lucide-react";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
 import { ProfileLogoutConfirm } from "@/components/profile/ProfileLogoutConfirm";
@@ -111,11 +111,10 @@ export function ProfileMockupView({ locale, user, logoutLabel, unreadNotificatio
             summary={m(locale, "profile.settingsSubtitle")}
           />
           <HubNavBlock
-            href="/notifications"
+            href="/profile/subscriptions"
             icon={Bell}
             title={m(locale, "profile.notificationSettings")}
             summary={m(locale, "profile.notificationSettingsSubtitle")}
-            badge={unreadNotifications}
           />
         </div>
 
@@ -150,6 +149,12 @@ export function ProfileMockupView({ locale, user, logoutLabel, unreadNotificatio
             icon={CircleHelp}
             title={m(locale, "profile.sectionSupport")}
             summary={m(locale, "profile.actionsHelp")}
+          />
+          <HubNavBlock
+            href="/profile/legal"
+            icon={FileText}
+            title={m(locale, "profile.legal")}
+            summary={m(locale, "footer.policy")}
           />
         </div>
 

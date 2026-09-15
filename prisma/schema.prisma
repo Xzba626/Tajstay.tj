@@ -53,6 +53,7 @@ model User {
   disputesOpened      Dispute[]           @relation("DisputesOpened")
   disputesAgainst     Dispute[]           @relation("DisputesAgainst")
   pushSubscriptions   PushSubscription[]
+  notificationPreference NotificationPreference?
 }
 
 model Account {
@@ -634,6 +635,25 @@ model Notification {
   bookingId Int?
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
+}
+
+/// MASTER COMPLETION BLOCK, PHASE B: real, backend-enforced notification category preferences —
+/// replaces the previous `/profile/subscriptions` UI, which only wrote to localStorage and had
+/// zero server-side effect (topics/channels that looked functional but did nothing). Only the two
+/// categories with a real, already-existing notification-sending code path are exposed
+/// (security/login alerts, booking status) — a "Promotions" category is intentionally NOT added
+/// yet because no promotional-notification sending mechanism exists in this codebase yet; adding
+/// a toggle for a feature that doesn't exist would be exactly the "decorative control" this block
+/// forbids. Disabling a category only suppresses the *push* notification for it — the in-app
+/// Notification row (and therefore the inbox/audit trail) is always created regardless, so a user
+/// can never fully hide evidence of a security event from their own account history.
+model NotificationPreference {
+  id             Int      @id @default(autoincrement())
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         Int      @unique
+  security       Boolean  @default(true)
+  bookingUpdates Boolean  @default(true)
+  updatedAt      DateTime @updatedAt
 }
 
 /// Web Push subscription for installed PWA (requires VAPID keys on server).

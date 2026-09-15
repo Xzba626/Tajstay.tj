@@ -111,28 +111,42 @@ export function HomeSearchCompact({ locale }: Props) {
       </div>
 
       <form action="/search" method="get" className="home-search-compact hidden md:block">
+        {/* BLOCK HOME/PWA 7.0: this desktop form previously had no field icons at all. Same
+            lucide family/size/weight as the mobile compact-row buttons above and SearchBar.tsx. */}
         <div className="grid grid-cols-4 gap-3 p-4">
           <label>
             <span className="premium-label">{m(locale, "search.placeholder")}</span>
-            <select name="city" className="premium-input" defaultValue="">
-              {CITIES.map((c) => (
-                <option key={c.value || "all"} value={c.value}>
-                  {m(locale, c.labelKey)}
-                </option>
-              ))}
-            </select>
+            <div className="premium-input-with-icon">
+              <MapPin size={16} strokeWidth={2} className="premium-input-icon" aria-hidden />
+              <select name="city" className="premium-input premium-input--with-icon" defaultValue="">
+                {CITIES.map((c) => (
+                  <option key={c.value || "all"} value={c.value}>
+                    {m(locale, c.labelKey)}
+                  </option>
+                ))}
+              </select>
+            </div>
           </label>
           <label>
             <span className="premium-label">{m(locale, "search.checkIn")}</span>
-            <input name="checkIn" type="date" className="premium-input" />
+            <div className="premium-input-with-icon">
+              <Calendar size={16} strokeWidth={2} className="premium-input-icon" aria-hidden />
+              <input name="checkIn" type="date" className="premium-input premium-input--with-icon" />
+            </div>
           </label>
           <label>
             <span className="premium-label">{m(locale, "search.checkOut")}</span>
-            <input name="checkOut" type="date" className="premium-input" />
+            <div className="premium-input-with-icon">
+              <Calendar size={16} strokeWidth={2} className="premium-input-icon" aria-hidden />
+              <input name="checkOut" type="date" className="premium-input premium-input--with-icon" />
+            </div>
           </label>
           <label>
             <span className="premium-label">{m(locale, "search.guests")}</span>
-            <input name="guests" type="number" min={1} defaultValue={2} className="premium-input" />
+            <div className="premium-input-with-icon">
+              <Users size={16} strokeWidth={2} className="premium-input-icon" aria-hidden />
+              <input name="guests" type="number" min={1} defaultValue={2} className="premium-input premium-input--with-icon" />
+            </div>
           </label>
         </div>
         <div className="px-4 pb-4">
