@@ -939,6 +939,15 @@ h1, h2 {
 .hotel-img-wrap {
   position: relative;
   overflow: hidden;
+  /* BLOCK 5.5B P1-3: HotelCard's standard (non-compact) variant is shared by every page that
+     renders it (Home, Search results, etc.), but its only sizing rule used to live scoped to
+     `.home-page .hotel-img-wrap` (home.css) - anywhere without that ancestor class (Search) had
+     no height rule at all, so the wrapper collapsed to 0 and the whole photo/name/rating block
+     inside it became invisible even though it was present in the DOM. This unscoped default
+     makes the card self-contained regardless of ancestor; `.home-page .hotel-img-wrap`'s own
+     16/9 ratio in home.css is more specific and still wins on the actual Home page, so Home's
+     existing look is unchanged. */
+  aspect-ratio: 16 / 10;
 }
 
 .hotel-img-wrap img {

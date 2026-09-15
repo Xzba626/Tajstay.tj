@@ -22,7 +22,8 @@ import { AdminDataToolbar } from "@/components/admin/AdminDataToolbar";
 import { Pagination } from "@/components/ui/Pagination";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { scoreHotelRisk } from "@/lib/services/riskScoring";
-import { deriveEscrowState } from "@/lib/domain/booking";
+import { deriveEscrowState, getBookingGuestLabel } from "@/lib/domain/booking";
+import { bookingHotel } from "@/lib/pms/bookingContext";
 import { notificationText } from "@/lib/notifications/text";
 import { AdminDashboardOverview } from "@/components/admin/AdminDashboardOverview";
 import { AdminFinanceSection } from "@/components/admin/AdminFinanceSection";
@@ -330,7 +331,12 @@ export default async function AdminDashboardPage({
     totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
     bookings = await prisma.booking.findMany({
       where,
-      include: { room: { include: { hotel: true } }, user: true },
+      // BLOCK 5.5B P1-1: also include roomType/assignedRoom - an OWNER_MANUAL/offline booking
+      // legitimately has userId=null (no platform account), and a RoomType-only online booking
+      // legitimately has roomId=null (no physical room assigned yet) - `bookingHotel()`/
+      // `getBookingGuestLabel()` below need all three relations present to resolve either case
+      // without crashing.
+      include: { room: { include: { hotel: true } }, roomType: { include: { hotel: true } }, assignedRoom: { include: { hotel: true } }, user: true },
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * pageSize,
       take: pageSize
@@ -1002,12 +1008,24 @@ export default async function AdminDashboardPage({
               <div className="admin-record-card__title-row">
                 <span className="font-mono text-sm font-semibold">#{b.id}</span>
                 {b.publicCode ? <span className="rounded-md bg-[var(--admin-surface-muted)] px-2 py-0.5 font-mono text-xs">{b.publicCode}</span> : null}
-                <span className="admin-record-card__title">{b.user.name}</span>
+                <span className="admin-record-card__title">
+                  {(() => {
+                    const label = getBookingGuestLabel(b);
+                    return label === "—" ? "Гость без аккаунта" : label;
+                  })()}
+                </span>
                 <StatusBadge variant={bookingStatusVariant(b.status)}>{tStatus(b.status)}</StatusBadge>
                 <StatusBadge variant={paymentStatusVariant(b.paymentStatus)}>{tStatus(b.paymentStatus)}</StatusBadge>
               </div>
               <div className="admin-record-card__meta">
-                {b.room.hotel.name} · {b.checkIn.toISOString().slice(0, 10)} — {b.checkOut.toISOString().slice(0, 10)} · {b.phone}
+                {(() => {
+                  try {
+                    return bookingHotel(b).name;
+                  } catch {
+                    return "Отель не определён";
+                  }
+                })()}{" "}
+                · {b.checkIn.toISOString().slice(0, 10)} — {b.checkOut.toISOString().slice(0, 10)} · {b.phone}
                 <span className="ml-2 inline-flex items-center gap-1">
                   {m(locale, "admin.payTimer")}:{" "}
                   <AdminBookingPayCountdown

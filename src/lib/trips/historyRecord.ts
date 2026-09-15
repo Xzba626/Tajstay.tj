@@ -1,7 +1,7 @@
 import { BOOKING_STATUS } from "@/lib/domain/booking";
 import { getNightDates } from "@/lib/services/bookingPricing";
 import { bookingHotel, bookingRoomTitle, type BookingLike } from "@/lib/pms/bookingContext";
-import { isStayPast, normalizePaymentBadge } from "@/lib/trips/classify";
+import { normalizePaymentBadge } from "@/lib/trips/classify";
 import type { Locale } from "@/lib/i18n/locale";
 import { formatStayDateRange, formatStayDay } from "@/lib/i18n/format";
 import { formatCountLabel } from "@/lib/i18n/plural";
@@ -95,16 +95,16 @@ export function canContinuePayment(b: {
   return true;
 }
 
-export function canLeaveReview(
-  b: { status: string; paymentStatus: string; checkOut: Date; review?: { id: number } | null },
-  now: Date = new Date()
-): boolean {
-  return (
-    b.status === BOOKING_STATUS.CONFIRMED &&
-    b.paymentStatus === "PAID" &&
-    isStayPast(b.checkOut, now) &&
-    !b.review
-  );
+export function canLeaveReview(b: {
+  status: string;
+  paymentStatus: string;
+  review?: { id: number } | null;
+}): boolean {
+  // BLOCK 5.5B P1-2: authoritative eligibility is COMPLETED (mirrors reviews/create/route.ts) -
+  // the stay must have actually concluded end to end, not merely still be CONFIRMED (never
+  // checked in) or CHECKED_IN (may still be in progress). COMPLETED already implies the stay
+  // ended, so no separate checkOut-date check is needed here.
+  return b.status === BOOKING_STATUS.COMPLETED && b.paymentStatus === "PAID" && !b.review;
 }
 
 export function mapBookingToHistoryRecord(booking: PrismaBookingSlice): HistoryBookingRecord {

@@ -181,13 +181,17 @@ export function BookingRoom(props: BookingRoomProps) {
     </>
   );
 
-  return (
-    <div className="chat-page">
-      <nav className="chat-page__nav" aria-label={m(locale, "bookingRoom.back")}>
-        <Link href={backHref}>← {m(locale, "bookingRoom.back")}</Link>
-        <Link href="/dashboard/messages">{m(locale, "bookingRoom.allMessages")}</Link>
-      </nav>
-
+  // BLOCK 5.6A: the header/banners/dispute/review stack used to render unconditionally above the
+  // thread, forcing the whole page (not just the message list) to scroll on mobile before the
+  // conversation was even visible ("dashboard-in-dashboard" complaint). It's now a single
+  // collapsible "booking context" block, mirroring the exact <details> pattern the aside already
+  // used — closed by default on mobile so the thread is what's immediately visible, open by
+  // default whenever there's something the user was specifically sent here for (focusReview, a
+  // pending review banner, or a just-sent proof) so nothing gets silently hidden. Always expanded
+  // on desktop (lg:!block), matching the aside's own behavior.
+  const contextDefaultOpen = focusReview || showReviewUi || (proofSent && !isOnReview);
+  const contextContent = (
+    <>
       <BookingChatHeader
         locale={locale}
         hotelName={hotelName}
@@ -252,6 +256,23 @@ export function BookingRoom(props: BookingRoomProps) {
           />
         </div>
       ) : null}
+    </>
+  );
+
+  return (
+    <div className="chat-page">
+      <nav className="chat-page__nav" aria-label={m(locale, "bookingRoom.back")}>
+        <Link href={backHref}>← {m(locale, "bookingRoom.back")}</Link>
+        <Link href="/dashboard/messages">{m(locale, "bookingRoom.allMessages")}</Link>
+      </nav>
+
+      <details className="chat-page__context lg:hidden" open={contextDefaultOpen}>
+        <summary>
+          {hotelName} · {m(locale, "bookingRoom.header.dates")}
+        </summary>
+        <div className="chat-page__context-inner">{contextContent}</div>
+      </details>
+      <div className="hidden space-y-2 lg:block">{contextContent}</div>
 
       <div className="chat-page__layout">
         <main className="chat-page__thread">

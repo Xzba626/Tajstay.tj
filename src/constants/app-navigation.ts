@@ -1,8 +1,11 @@
 import type { LucideIcon } from "lucide-react";
 import { Compass, History, Home, Search, User } from "lucide-react";
 
-/** Routes where mobile bottom tab bar is hidden (auth + role dashboards). */
-export const SHELL_HIDDEN_PREFIXES = ["/auth", "/dashboard/admin", "/dashboard/owner"] as const;
+/** Routes where mobile bottom tab bar is hidden (auth + role dashboards).
+ *  BLOCK 5.6A: /chat/booking added — the fullscreen active booking chat must not compete for
+ *  viewport with the global tab bar, and the floating TST Assistant (gated by the same helper,
+ *  see TstAssistant.tsx) must not overlap the chat composer. Both reuse this one list. */
+export const SHELL_HIDDEN_PREFIXES = ["/auth", "/dashboard/admin", "/dashboard/owner", "/chat/booking"] as const;
 
 /** App-like hubs: hide marketing footer on mobile; use profile/settings for legal links. */
 export const WORKSPACE_PREFIXES = ["/profile", "/dashboard/admin", "/dashboard/owner"] as const;

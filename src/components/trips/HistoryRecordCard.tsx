@@ -75,7 +75,6 @@ function HistoryRecordCardInner({ locale, record }: { locale: Locale; record: Hi
     canLeaveReview({
       status: record.status,
       paymentStatus: record.paymentStatus,
-      checkOut: record.checkOut,
       review: record.hasReview ? { id: 1 } : null
     });
 

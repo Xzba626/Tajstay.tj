@@ -63,10 +63,16 @@ export async function POST(req: Request) {
   if (!booking) return NextResponse.json({ error: "Booking not found" }, { status: 404 });
   if (booking.userId !== user.id) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  // Review rule: only after staying (check-out passed) + successful paid booking.
-  if (booking.status !== "CONFIRMED") return NextResponse.json({ error: "Отзыв доступен только после подтверждения брони владельцем" }, { status: 400 });
+  // BLOCK 5.5B P1-2: authoritative eligibility is Booking.status === COMPLETED - the one lifecycle
+  // proof that the stay actually happened end to end. The previous rule ("status !== CONFIRMED" +
+  // checkOut passed) had this backwards: it only allowed a review while the booking was STILL
+  // CONFIRMED (i.e. never checked in) and permanently blocked it the moment CHECKED_IN/COMPLETED
+  // was reached - the opposite of the intended lifecycle. CHECKED_IN alone is not sufficient
+  // either (the stay may still be in progress).
+  if (booking.status !== "COMPLETED") {
+    return NextResponse.json({ error: "Отзыв доступен только после завершённого проживания" }, { status: 400 });
+  }
   if (booking.paymentStatus !== "PAID") return NextResponse.json({ error: "Review allowed only for paid stays" }, { status: 400 });
-  if (booking.checkOut.getTime() > Date.now()) return NextResponse.json({ error: "Review allowed only after check-out" }, { status: 400 });
 
   const existing = await prisma.review.findUnique({ where: { bookingId } });
   if (existing) return NextResponse.json({ error: "Review already exists" }, { status: 409 });

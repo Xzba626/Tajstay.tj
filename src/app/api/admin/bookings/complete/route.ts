@@ -6,6 +6,16 @@ import { BOOKING_STATUS } from "@/lib/domain/booking";
 import { bookingHotel } from "@/lib/pms/bookingContext";
 import { publicUrl } from "@/lib/http/publicOrigin";
 
+/** BLOCK 5.5B P1-4: "checkout has been reached" - the same boundary already used elsewhere in this
+ * codebase for the identical concept (the review-eligibility check this project already had used
+ * `checkOut.getTime() > Date.now()` to mean "checkout hasn't happened yet"; this is that same
+ * comparison, not a new invented hour). `checkOut` is stored as a plain calendar-date `DateTime`
+ * (midnight UTC of that date, per booking creation) - there is no separate checkout-hour concept
+ * anywhere in the current product model, so none is introduced here. */
+function checkoutReached(checkOut: Date, now: Date = new Date()): boolean {
+  return checkOut.getTime() <= now.getTime();
+}
+
 /** Ручное вмешательство админа: подтвердить бронь (например спор). */
 export async function POST(req: NextRequest) {
   const admin = await getAdminUser();
@@ -36,10 +46,26 @@ export async function POST(req: NextRequest) {
   // held it - so it must NEVER create a Payout or claim an escrow release. No synthetic
   // Payment/CAPTURED row is created to force it through the Pay Now branch below.
   if (booking.payOnArrival) {
-    if (booking.paymentStatus !== "PAID" || booking.status !== BOOKING_STATUS.CHECKED_IN) {
+    // BLOCK 5.5B P1-4: CHECKED_IN alone was already required here, but checkout being reached
+    // was not - added for the same reason as the Pay Now branch below (a stay in progress must
+    // not be closeable early).
+    if (
+      booking.paymentStatus !== "PAID" ||
+      booking.status !== BOOKING_STATUS.CHECKED_IN ||
+      !checkoutReached(booking.checkOut)
+    ) {
       return NextResponse.redirect(publicUrl(req, "/dashboard/admin?error=complete_requires_paid"));
     }
-    await prisma.booking.update({ where: { id }, data: { status: BOOKING_STATUS.COMPLETED } });
+    // Atomic, WHERE-guarded exactly like confirm-arrival-payment/route.ts - a genuinely
+    // simultaneous second completion request resolves to count:0 (someone else already won)
+    // rather than a duplicate TransactionLog.
+    const result = await prisma.booking.updateMany({
+      where: { id, status: BOOKING_STATUS.CHECKED_IN, paymentStatus: "PAID", payOnArrival: true },
+      data: { status: BOOKING_STATUS.COMPLETED }
+    });
+    if (result.count === 0) {
+      return NextResponse.redirect(publicUrl(req, "/dashboard/admin?error=complete_requires_paid"));
+    }
     await prisma.transactionLog.create({
       data: {
         bookingId: booking.id,
@@ -50,14 +76,30 @@ export async function POST(req: NextRequest) {
     return NextResponse.redirect(publicUrl(req, `/chat/booking/${id}`));
   }
 
-  if (booking.paymentStatus !== "PAID" || booking.payment?.status !== "CAPTURED") {
+  // BLOCK 5.5B P1-4 — the actual financial-integrity fix, proven missing by a real HTTP test
+  // (scripts/test-block55a1-completion-safety.ts) that could otherwise complete a booking - and
+  // trigger a real Payout - that was never checked in, or checked in but nowhere near its
+  // checkout date. All four conditions are now required together: paid, captured, CHECKED_IN
+  // (never a direct CONFIRMED -> COMPLETED jump), and checkout actually reached.
+  if (
+    booking.paymentStatus !== "PAID" ||
+    booking.payment?.status !== "CAPTURED" ||
+    booking.status !== BOOKING_STATUS.CHECKED_IN ||
+    !checkoutReached(booking.checkOut)
+  ) {
     return NextResponse.redirect(publicUrl(req, "/dashboard/admin?error=complete_requires_paid"));
   }
 
-  await prisma.booking.update({
-    where: { id },
+  // Atomic, WHERE-guarded on the exact preconditions just checked - a genuinely simultaneous
+  // second completion request for the same booking resolves to count:0 rather than a second
+  // Payout/TransactionLog.
+  const result = await prisma.booking.updateMany({
+    where: { id, status: BOOKING_STATUS.CHECKED_IN, paymentStatus: "PAID", payOnArrival: false },
     data: { status: BOOKING_STATUS.COMPLETED }
   });
+  if (result.count === 0) {
+    return NextResponse.redirect(publicUrl(req, "/dashboard/admin?error=complete_requires_paid"));
+  }
 
   const payoutAmount =
     booking.subtotal != null && booking.commission != null

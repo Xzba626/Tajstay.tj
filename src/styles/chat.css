@@ -12,6 +12,40 @@
   color: var(--taj-color-text);
 }
 
+/* BLOCK 5.6A: compact collapsible "booking context" (header + dispute + review banners) —
+   replaces the old always-expanded stack that pushed the thread below the fold on mobile. */
+.chat-page__context {
+  border-radius: var(--taj-radius-lg);
+  border: 1px solid var(--taj-color-border);
+  background: var(--taj-color-bg-card-solid);
+}
+
+.chat-page__context summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 0.65rem 0.875rem;
+  font-size: var(--taj-text-sm);
+  font-weight: 600;
+  color: var(--taj-color-text-secondary);
+}
+
+.chat-page__context summary::-webkit-details-marker {
+  display: none;
+}
+
+.chat-page__context[open] summary {
+  border-bottom: 1px solid var(--taj-color-border);
+}
+
+.chat-page__context-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 45dvh;
+  overflow-y: auto;
+  padding: 0.5rem 0.875rem 0.75rem;
+}
+
 .chat-page__nav {
   display: flex;
   flex-wrap: wrap;
@@ -346,13 +380,11 @@
   bottom: 0;
   z-index: 10;
   flex-shrink: 0;
-  border-top: 1px solid rgba(52, 211, 153, 0.18);
-  background: rgba(1, 47, 26, 0.86);
-  color: #f8fafc;
+  border-top: 1px solid var(--taj-color-border);
+  background: var(--taj-color-bg-card-solid);
+  color: var(--taj-color-text);
   padding: 0.5rem 0.65rem;
   padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
 }
 
 .chat-compose__quick {
@@ -368,18 +400,18 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   border-radius: 9999px;
-  border: 1px solid rgba(52, 211, 153, 0.18);
-  background: rgba(1, 47, 26, 0.72);
+  border: 1px solid var(--taj-color-border);
+  background: var(--taj-color-bg-card-solid);
   padding: 0.3rem 0.6rem;
   font-size: 0.625rem;
   font-weight: 600;
-  color: var(--taj-text-secondary);
+  color: var(--taj-color-text-secondary);
 }
 
 .chat-compose__quick button:hover {
-  border-color: rgba(52, 211, 153, 0.28);
-  background: rgba(34, 197, 94, 0.12);
-  color: var(--taj-text);
+  border-color: rgba(15, 122, 77, 0.3);
+  background: rgba(15, 122, 77, 0.08);
+  color: var(--taj-color-text);
 }
 
 .chat-compose__row {
@@ -387,8 +419,8 @@
   align-items: flex-end;
   gap: 0.35rem;
   border-radius: 9999px;
-  border: 1px solid rgba(183, 216, 196, 0.24);
-  background: rgba(1, 47, 26, 0.72);
+  border: 1px solid var(--taj-color-border);
+  background: var(--taj-color-bg-card-solid);
   padding: 0.25rem 0.35rem 0.25rem 0.25rem;
   box-shadow: var(--taj-shadow-sm);
 }

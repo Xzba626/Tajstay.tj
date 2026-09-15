@@ -101,23 +101,23 @@ function isOnOrAfterLocalDay(now: Date, checkIn: Date): boolean {
   return startOfLocalDay(now).getTime() >= startOfLocalDay(checkIn).getTime();
 }
 
+// Uses the existing light-mode .chat-pill design system (src/styles/chat.css) instead of the
+// old dark-glass rgba() palette — that system already ships CONFIRMED/wait/review/bad variants
+// with WCAG-aware light-mode contrast; this just maps status -> the right existing variant.
 function statusPillClass(status: string): string {
-  if (status === "CONFIRMED") {
-    return "bg-gradient-to-r from-[#0f7a4d]/25 via-[#0f7a4d]/15 to-[#0f7a4d]/15 text-[#d1fae5] ring-[#0f7a4d]/25";
+  if (status === "CONFIRMED" || status === "CHECKED_IN") {
+    return "chat-pill chat-pill--ok";
   }
   if (status === "WAITING_PAYMENT" || status === "WAIT_PROOF") {
-    return "bg-[rgba(255,184,48,0.14)] text-[#ffe9b8] ring-[rgba(255,184,48,0.25)]";
+    return "chat-pill chat-pill--wait";
   }
   if (status === "ON_REVIEW") {
-    return "bg-[rgba(99,102,241,0.14)] text-[#dbe3ff] ring-[rgba(99,102,241,0.26)]";
-  }
-  if (status === "CHECKED_IN") {
-    return "bg-[rgba(54,207,201,0.14)] text-[#d7fffb] ring-[rgba(54,207,201,0.28)]";
+    return "chat-pill chat-pill--review";
   }
   if (status === "REJECTED" || status === "CANCELLED" || status === "EXPIRED") {
-    return "bg-[rgba(255,77,106,0.14)] text-[#ffd6dc] ring-[rgba(255,77,106,0.25)]";
+    return "chat-pill chat-pill--bad";
   }
-  return "bg-white/5 text-slate-200 ring-white/10";
+  return "chat-pill";
 }
 
 function statusLabelLocalized(status: string, locale: Locale): string {
@@ -187,6 +187,8 @@ export function BookingChatPanel({
   const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
   const [confirmAdminCancelOpen, setConfirmAdminCancelOpen] = useState(false);
   const [lightbox, setLightbox] = useState<string | null>(null);
+  const [quickRepliesOpen, setQuickRepliesOpen] = useState(false);
+  const [authExpired, setAuthExpired] = useState(false);
   const [chatArchived, setChatArchived] = useState(false);
   const [canSend, setCanSend] = useState(true);
   const bottomRef = useRef<HTMLDivElement | null>(null);
@@ -208,7 +210,10 @@ export function BookingChatPanel({
     }
   }, []);
 
+  const pullSeqRef = useRef(0);
+
   const pull = useCallback(async () => {
+    const seq = ++pullSeqRef.current;
     const res = await fetch(`/api/chat/booking/${bookingId}/messages`, { cache: "no-store", credentials: "include" });
     const json = (await res.json().catch(() => ({}))) as {
       messages?: ChatMessage[];
@@ -218,8 +223,16 @@ export function BookingChatPanel({
       booking?: LiveBookingSnap;
     };
     if (!res.ok) {
+      if (res.status === 401) {
+        const err = Object.assign(new Error(messageFromChatResponse(res, json)), { authExpired: true });
+        throw err;
+      }
       throw new Error(messageFromChatResponse(res, json));
     }
+    // Drop this response if a newer pull() has since started — prevents an out-of-order
+    // late response from stomping a more recent one (no AbortController: requests aren't
+    // cancelled, so ordering must be checked here instead).
+    if (seq !== pullSeqRef.current) return;
     setError(null);
     applyMessagesPayload(json);
   }, [bookingId, applyMessagesPayload]);
@@ -258,16 +271,43 @@ export function BookingChatPanel({
 
   useEffect(() => {
     let mounted = true;
-    pull().catch((e) => {
-      if (mounted) setError(e instanceof Error ? e.message : "Не удалось загрузить чат");
-    });
+    let stopped = false;
+    setAuthExpired(false);
+
+    const stopPolling = (message: string) => {
+      stopped = true;
+      if (mounted) {
+        setError(message);
+        setAuthExpired(true);
+      }
+      window.clearInterval(t);
+      es?.close();
+      es = null;
+    };
+
+    const runPull = () => {
+      if (!mounted || stopped) return;
+      pull().catch((e) => {
+        if (!mounted) return;
+        const message = e instanceof Error ? e.message : "Не удалось загрузить чат";
+        // A 401 means the session is gone for good — retrying every few seconds forever
+        // just repeats the same failure silently. Stop the loop instead of spinning on it.
+        if (e && typeof e === "object" && "authExpired" in e) {
+          stopPolling(message);
+          return;
+        }
+        setError(message);
+      });
+    };
+
+    runPull();
 
     let es: EventSource | null = null;
     if (typeof EventSource !== "undefined") {
       es = new EventSource(`/api/chat/booking/${bookingId}/stream`);
       es.onmessage = () => {
-        if (!mounted) return;
-        pull().catch(() => undefined);
+        if (!mounted || stopped) return;
+        runPull();
       };
       es.onerror = () => {
         es?.close();
@@ -275,12 +315,7 @@ export function BookingChatPanel({
       };
     }
 
-    const t = window.setInterval(() => {
-      if (!mounted) return;
-      pull().catch((e) => {
-        if (mounted) setError(e instanceof Error ? e.message : "Не удалось загрузить чат");
-      });
-    }, es ? 8000 : 3500);
+    const t = window.setInterval(runPull, es ? 8000 : 3500);
 
     return () => {
       mounted = false;
@@ -566,7 +601,7 @@ export function BookingChatPanel({
     <>
       {toast ? (
         <div className="pointer-events-none fixed top-4 left-1/2 z-[110] w-[92%] max-w-md -translate-x-1/2">
-          <div className="rounded-2xl border border-white/10 bg-[rgba(15,23,42,0.92)] px-4 py-3 text-sm text-slate-100 shadow-xl backdrop-blur-md">
+          <div className="chat-side-card px-4 py-3 text-sm text-[var(--taj-color-text)] shadow-xl">
             {toast}
           </div>
         </div>
@@ -595,27 +630,23 @@ export function BookingChatPanel({
               <TrustBadges locale={locale} badges={counterpartTrustBadges} size="sm" className="mt-1.5" />
             ) : null}
           </div>
-          <span
-            className={`shrink-0 ${statusPillClass(statusForPill)}`}
-          >
+          <span className={`shrink-0 ${statusPillClass(statusForPill)}`}>
             {statusLabelLocalized(statusForPill, locale)}
           </span>
         </div>
       ) : (
-      <header className="sticky top-0 z-20 flex shrink-0 items-center gap-3 border-b border-white/[0.08] bg-slate-950/90 px-4 py-3 shadow-[0_8px_24px_rgba(0,0,0,0.35)] backdrop-blur-xl supports-[backdrop-filter]:bg-slate-950/75">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#0f7a4d]/30 to-[#0f7a4d]/20 text-lg font-bold text-[#d1fae5] ring-1 ring-white/10">
+      <header className="sticky top-0 z-20 flex shrink-0 items-center gap-3 border-b border-[var(--taj-color-border)] bg-[var(--taj-color-bg-card-solid)] px-4 py-3 shadow-[var(--taj-shadow-sm)]">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#0f7a4d]/12 text-lg font-bold text-[#0f7a4d] ring-1 ring-[#0f7a4d]/20">
           {avatarLetter(title)}
         </div>
         <div className="min-w-0 flex-1">
-          <div className="truncate text-[15px] font-semibold tracking-tight text-white">{title}</div>
-          <div className="truncate text-xs text-slate-400">{headerSubtitle}</div>
+          <div className="truncate text-[15px] font-semibold tracking-tight text-[var(--taj-color-text)]">{title}</div>
+          <div className="truncate text-xs text-[var(--taj-color-text-muted)]">{headerSubtitle}</div>
           {counterpartTrustBadges.length ? (
             <TrustBadges locale={locale} badges={counterpartTrustBadges} size="sm" className="mt-1.5" />
           ) : null}
           <div className="mt-1.5 flex flex-wrap items-center gap-2">
-            <span
-              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ring-1 ring-inset ${statusPillClass(statusForPill)}`}
-            >
+            <span className={statusPillClass(statusForPill)}>
               {uiStatus === "Обработка..." ? "…" : statusLabelLocalized(statusForPill, locale)}
             </span>
             {isAdmin ? (
@@ -631,7 +662,7 @@ export function BookingChatPanel({
               <button
                 type="button"
                 onClick={() => ownerHideChat()}
-                className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 underline-offset-2 hover:text-slate-200 hover:underline"
+                className="text-[10px] font-semibold uppercase tracking-wide text-[var(--taj-color-text-muted)] underline-offset-2 hover:text-[var(--taj-color-text)] hover:underline"
               >
                 Удалить чат
               </button>
@@ -641,14 +672,14 @@ export function BookingChatPanel({
           (effectiveStatus === "WAITING_PAYMENT" ||
             effectiveStatus === "WAIT_PROOF" ||
             effectiveStatus === "ON_REVIEW") ? (
-            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-400">
+            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[var(--taj-color-text-muted)]">
               {effectiveStatus === "ON_REVIEW" && liveBooking.proofReviewDeadlineAt ? (
-                <span className="tabular-nums text-slate-300">
+                <span className="tabular-nums text-[var(--taj-color-text-secondary)]">
                   {m(locale, "status.ON_REVIEW")}:{" "}
                   <PaymentCountdown expiresAtIso={liveBooking.proofReviewDeadlineAt} />
                 </span>
               ) : liveBooking.expiresAt ? (
-                <span className="tabular-nums text-slate-300">
+                <span className="tabular-nums text-[var(--taj-color-text-secondary)]">
                   {m(locale, "checkout.timerTitle")}:{" "}
                   <PaymentCountdown
                     expiresAtIso={liveBooking.expiresAt}
@@ -657,7 +688,7 @@ export function BookingChatPanel({
                   />
                 </span>
               ) : liveBooking.paymentTimerPaused ? (
-                <span className="text-amber-200/90">{m(locale, "chat.timerPaused")}</span>
+                <span className="text-[#b45309]">{m(locale, "chat.timerPaused")}</span>
               ) : null}
             </div>
           ) : null}
@@ -667,7 +698,7 @@ export function BookingChatPanel({
                 type="button"
                 disabled={actionBusy}
                 onClick={() => void adminExtendBooking()}
-                className="rounded-lg border border-amber-400/30 bg-amber-500/15 px-2.5 py-1 text-[10px] font-semibold text-amber-100"
+                className="rounded-lg border border-[#d97706]/30 bg-[#d97706]/10 px-2.5 py-1 text-[10px] font-semibold text-[#b45309]"
               >
                 {m(locale, "chat.extend5")}
               </button>
@@ -675,7 +706,7 @@ export function BookingChatPanel({
                 type="button"
                 disabled={actionBusy || liveBooking?.paymentTimerPaused}
                 onClick={() => void adminTimerAction("pause")}
-                className="rounded-lg border border-white/15 bg-white/5 px-2.5 py-1 text-[10px] font-semibold text-slate-200"
+                className="rounded-lg border border-[var(--taj-color-border)] bg-[var(--taj-color-bg-card-solid)] px-2.5 py-1 text-[10px] font-semibold text-[var(--taj-color-text-secondary)]"
               >
                 {m(locale, "chat.pauseTimer")}
               </button>
@@ -683,7 +714,7 @@ export function BookingChatPanel({
                 type="button"
                 disabled={actionBusy || !liveBooking?.paymentTimerPaused}
                 onClick={() => void adminTimerAction("resume")}
-                className="rounded-lg border border-[#0f7a4d]/30 bg-[#0f7a4d]/15 px-2.5 py-1 text-[10px] font-semibold text-[#d1fae5]"
+                className="rounded-lg border border-[#0f7a4d]/30 bg-[#0f7a4d]/10 px-2.5 py-1 text-[10px] font-semibold text-[#0f7a4d]"
               >
                 {m(locale, "chat.resumeTimer")}
               </button>
@@ -694,7 +725,7 @@ export function BookingChatPanel({
           <button
             type="button"
             onClick={onClose}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-lg text-slate-200 transition hover:bg-white/10"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-[var(--taj-color-border)] bg-[var(--taj-color-bg-card-solid)] text-lg text-[var(--taj-color-text-secondary)] transition hover:bg-[var(--taj-color-border)]"
             aria-label="Закрыть чат"
           >
             ×
@@ -708,17 +739,17 @@ export function BookingChatPanel({
         className="chat-messages min-h-0 flex-1 overflow-y-auto overscroll-contain sm:min-h-[280px]"
       >
         {chatArchived ? (
-          <div className="mx-auto max-w-md rounded-2xl border border-amber-400/20 bg-amber-500/10 px-4 py-3 text-center text-sm text-amber-100/90 backdrop-blur-md">
+          <div className="chat-side-card mx-auto max-w-md text-center text-sm text-[#b45309]">
             Переписка перенесена в архив (хранение по политике сервиса). Сообщения ниже доступны для просмотра. Отправка недоступна.
           </div>
         ) : null}
         {!canSend && !chatArchived && items.length > 0 ? (
-          <div className="mx-auto mb-2 max-w-md rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-center text-[11px] text-slate-400">
+          <div className="chat-side-card mx-auto mb-2 max-w-md text-center text-[11px] text-[var(--taj-color-text-muted)]">
             Режим только чтения (бронь завершена, отменена или срок истёк).
           </div>
         ) : null}
         {items.length === 0 ? (
-          <div className="py-8 text-center text-sm text-slate-500">
+          <div className="py-8 text-center text-sm text-[var(--taj-color-text-muted)]">
             {chatArchived ? "Нет сообщений в архиве." : "Пока сообщений нет. Напишите первым."}
           </div>
         ) : (
@@ -726,10 +757,8 @@ export function BookingChatPanel({
             {groupedItems.map((row) => {
               if (row.kind === "date") {
                 return (
-                  <div key={row.key} className="my-2 flex justify-center">
-                    <span className="rounded-full border border-white/10 bg-white/5 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
-                      {row.label}
-                    </span>
+                  <div key={row.key} className="chat-date-divider">
+                    <span>{row.label}</span>
                   </div>
                 );
               }
@@ -739,15 +768,15 @@ export function BookingChatPanel({
               const fromGuest = msg.senderRole === "GUEST";
               if (system) {
                 return (
-                  <div key={row.key} className="mx-auto my-1 max-w-[92%]">
-                    <div className="rounded-xl border border-violet-400/20 bg-violet-500/10 px-3 py-2 text-center">
-                      <p className="text-[11px] leading-snug text-violet-100/90">
+                  <div key={row.key} className="my-1 flex justify-center">
+                    <div className="chat-bubble--system">
+                      <p className="leading-snug">
                         <span aria-hidden className="mr-1">
                           🛡️
                         </span>
                         {msg.message.replace(/^🛡️\s*/, "")}
                       </p>
-                      <p className="mt-1 text-[9px] text-violet-300/50">{timeLabel(msg.createdAt)}</p>
+                      <p className="mt-1 text-[9px] opacity-60">{timeLabel(msg.createdAt)}</p>
                     </div>
                   </div>
                 );
@@ -755,7 +784,7 @@ export function BookingChatPanel({
               return (
                 <div
                   key={row.key}
-                  className={`chat-bubble-row ${fromGuest ? "chat-bubble-row--mine" : "chat-bubble-row--theirs"} ${row.showMeta ? "mt-2" : "mt-0.5"}`}
+                  className={`chat-bubble-row group relative ${fromGuest ? "chat-bubble-row--mine" : "chat-bubble-row--theirs"} ${row.showMeta ? "mt-2" : "mt-0.5"}`}
                 >
                   <div
                     className={`chat-bubble ${fromGuest ? "chat-bubble--mine" : "chat-bubble--theirs"}`}
@@ -765,30 +794,28 @@ export function BookingChatPanel({
                         type="button"
                         title="Скрыть"
                         onClick={() => adminDeleteMessage(msg.id)}
-                        className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-red-500/90 text-[11px] font-bold text-white opacity-0 transition group-hover:opacity-100"
+                        className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-red-600 text-[11px] font-bold text-white opacity-0 transition group-hover:opacity-100"
                       >
                         ×
                       </button>
                     ) : null}
                     {row.showMeta ? (
-                      <div
-                        className={`mb-1 flex items-center justify-between gap-2 text-[10px] ${fromGuest ? "text-[#d1fae5]/90" : "text-slate-400"}`}
-                      >
+                      <div className={`chat-bubble__meta ${fromGuest ? "text-white/85" : "text-[var(--taj-color-text-muted)]"}`}>
                         <span className="font-medium">{mine ? m(locale, "chat.you") : msg.senderName}</span>
                         <span>
                           {timeLabel(msg.createdAt)}
                           {mine && msg.readAt ? (
-                            <span className="ml-1 text-[#d1fae5]/70" title={m(locale, "chat.readReceipt")}>
+                            <span className="chat-bubble__read" title={m(locale, "chat.readReceipt")}>
                               ✓✓
                             </span>
                           ) : null}
                         </span>
                       </div>
                     ) : (
-                      <div className={`text-right text-[9px] ${fromGuest ? "text-[#d1fae5]/60" : "text-slate-500"}`}>
+                      <div className={`chat-bubble__time ${fromGuest ? "text-white/70" : "text-[var(--taj-color-text-muted)]"}`}>
                         {timeLabel(msg.createdAt)}
                         {mine && msg.readAt ? (
-                          <span className="ml-1 text-[#d1fae5]/70" title={m(locale, "chat.readReceipt")}>
+                          <span className="chat-bubble__read" title={m(locale, "chat.readReceipt")}>
                             ✓✓
                           </span>
                         ) : null}
@@ -798,7 +825,7 @@ export function BookingChatPanel({
                       <button
                         type="button"
                         onClick={() => setLightbox(msg.imageUrl || null)}
-                        className="mt-1 block overflow-hidden rounded-xl ring-1 ring-white/15"
+                        className="mt-1 block overflow-hidden rounded-xl ring-1 ring-[var(--taj-color-border)]"
                       >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={msg.imageUrl} alt="" className="max-h-40 w-full object-cover" />
@@ -819,6 +846,18 @@ export function BookingChatPanel({
       <div
         className="chat-compose"
       >
+        {authExpired ? (
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-[#d97706]/30 bg-[#d97706]/10 px-3 py-2.5 text-sm text-[#92400e]">
+            <span>{m(locale, "chat.sessionExpired")}</span>
+            <Link
+              href={`/auth/sign-in?next=${encodeURIComponent(`/chat/booking/${bookingId}`)}`}
+              className="shrink-0 rounded-xl bg-[#0f7a4d] px-3 py-1.5 text-xs font-semibold text-white"
+            >
+              {m(locale, "chat.sessionExpiredCta")}
+            </Link>
+          </div>
+        ) : null}
+
         {isAdmin && effectiveStatus === "ON_REVIEW" && !suppressReviewActions ? (
           <button
             type="button"
@@ -833,15 +872,15 @@ export function BookingChatPanel({
         {!embeddedInRoom ? (
         <div className="rounded-2xl border border-[var(--taj-color-border)] bg-[var(--taj-color-bg-card-solid)] p-2.5">
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-            <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Действия</div>
-            <div className="text-[10px] text-slate-500">{currentUserRole}</div>
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-[var(--taj-color-text-muted)]">Действия</div>
+            <div className="text-[10px] text-[var(--taj-color-text-muted)]">{currentUserRole}</div>
           </div>
           <div className="flex flex-wrap gap-2">
             {isGuest && (effectiveStatus === "WAITING_PAYMENT" || effectiveStatus === "WAIT_PROOF") ? (
               paymentCode && !suppressPaymentDeepLink ? (
                 <Link
                   href={`/payment/${encodeURIComponent(paymentCode)}?after=1`}
-                  className="rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs font-semibold text-[#d1fae5] transition hover:bg-white/10"
+                  className="rounded-xl border border-[#0f7a4d]/25 bg-[#0f7a4d]/10 px-3 py-2 text-xs font-semibold text-[#0f7a4d] transition hover:bg-[#0f7a4d]/15"
                 >
                   Загрузить чек
                 </Link>
@@ -906,7 +945,7 @@ export function BookingChatPanel({
               type="button"
               disabled={sending}
               onClick={() => void sendQuickReply(m(locale, "chat.quickUploadReceipt"))}
-              className="rounded-full border border-white/12 bg-white/5 px-3 py-2 text-[11px] font-semibold text-slate-200 disabled:opacity-50"
+              className="rounded-full border border-[var(--taj-color-border)] bg-[var(--taj-color-bg-card-solid)] px-3 py-2 text-[11px] font-semibold text-[var(--taj-color-text-secondary)] disabled:opacity-50"
             >
               {m(locale, "chat.quickUploadReceipt")}
             </button>
@@ -914,59 +953,74 @@ export function BookingChatPanel({
               type="button"
               disabled={sending}
               onClick={() => void sendQuickReply(m(locale, "chat.quickAlmostThere"))}
-              className="rounded-full border border-white/12 bg-white/5 px-3 py-2 text-[11px] font-semibold text-slate-200 disabled:opacity-50"
+              className="rounded-full border border-[var(--taj-color-border)] bg-[var(--taj-color-bg-card-solid)] px-3 py-2 text-[11px] font-semibold text-[var(--taj-color-text-secondary)] disabled:opacity-50"
             >
               {m(locale, "chat.quickAlmostThere")}
             </button>
           </div>
         ) : null}
 
-        {isOwner && canSend && !chatArchived ? (
-          <div className="flex flex-wrap gap-2">
-            {HOST_QUICK_KEYS.map((k) => {
-              const label = m(locale, `chat.quickReply.host.${k}`);
-              return (
-                <button
-                  key={k}
-                  type="button"
-                  disabled={sending}
-                  title={label}
-                  onClick={() => void sendQuickReply(label)}
-                  className="max-w-[220px] truncate rounded-full border border-[#0f7a4d]/25 bg-[#0f7a4d]/10 px-3 py-2 text-[11px] font-semibold text-[#d1fae5] disabled:opacity-50"
-                >
-                  {label}
-                </button>
-              );
-            })}
+        {(isOwner || isAdmin) && canSend && !chatArchived ? (
+          <div className="chat-compose__quick-toggle">
+            <button
+              type="button"
+              onClick={() => setQuickRepliesOpen((v) => !v)}
+              className="text-[11px] font-semibold text-[var(--taj-color-text-muted)] hover:text-[var(--taj-color-text)]"
+              aria-expanded={quickRepliesOpen}
+              aria-controls="chat-quick-replies-panel"
+            >
+              {quickRepliesOpen ? m(locale, "chat.quickRepliesHide") : m(locale, "chat.quickRepliesShow")}
+            </button>
+            {quickRepliesOpen ? (
+              <div id="chat-quick-replies-panel" className="mt-2 flex flex-wrap gap-2">
+                {isOwner
+                  ? HOST_QUICK_KEYS.map((k) => {
+                      const label = m(locale, `chat.quickReply.host.${k}`);
+                      return (
+                        <button
+                          key={k}
+                          type="button"
+                          disabled={sending}
+                          title={label}
+                          onClick={() => {
+                            void sendQuickReply(label);
+                            setQuickRepliesOpen(false);
+                          }}
+                          className="max-w-[220px] truncate rounded-full border border-[#0f7a4d]/25 bg-[#0f7a4d]/10 px-3 py-2 text-[11px] font-semibold text-[#0f7a4d] disabled:opacity-50"
+                        >
+                          {label}
+                        </button>
+                      );
+                    })
+                  : ADMIN_QUICK_KEYS.map((k) => {
+                      const label = m(locale, `chat.quickReply.admin.${k}`);
+                      return (
+                        <button
+                          key={k}
+                          type="button"
+                          disabled={sending}
+                          title={label}
+                          onClick={() => {
+                            void sendQuickReply(label);
+                            setQuickRepliesOpen(false);
+                          }}
+                          className="max-w-[220px] truncate rounded-full border border-indigo-400/30 bg-indigo-500/10 px-3 py-2 text-[11px] font-semibold text-indigo-700 disabled:opacity-50"
+                        >
+                          {label}
+                        </button>
+                      );
+                    })}
+              </div>
+            ) : null}
           </div>
         ) : null}
 
-        {isAdmin && canSend && !chatArchived ? (
-          <div className="flex flex-wrap gap-2">
-            {ADMIN_QUICK_KEYS.map((k) => {
-              const label = m(locale, `chat.quickReply.admin.${k}`);
-              return (
-                <button
-                  key={k}
-                  type="button"
-                  disabled={sending}
-                  title={label}
-                  onClick={() => void sendQuickReply(label)}
-                  className="max-w-[220px] truncate rounded-full border border-indigo-400/25 bg-indigo-500/10 px-3 py-2 text-[11px] font-semibold text-indigo-100 disabled:opacity-50"
-                >
-                  {label}
-                </button>
-              );
-            })}
-          </div>
-        ) : null}
-
-        <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
-        {file ? <div className="truncate text-[11px] text-[#d1fae5]/90">{file.name}</div> : null}
+        <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(e) => setFile(e.target.files?.[0] ?? null)} disabled={authExpired} />
+        {file ? <div className="truncate text-[11px] text-[var(--taj-color-text-secondary)]">{file.name}</div> : null}
         <div className="chat-compose__row">
           <button
             type="button"
-            disabled={chatArchived || !canSend}
+            disabled={authExpired || chatArchived || !canSend}
             onClick={() => fileRef.current?.click()}
             className="chat-compose__attach disabled:opacity-40"
             aria-label="Прикрепить изображение"
@@ -976,8 +1030,8 @@ export function BookingChatPanel({
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder={chatArchived ? "Архив…" : "Сообщение…"}
-            disabled={chatArchived || !canSend}
+            placeholder={authExpired ? m(locale, "chat.sessionExpired") : chatArchived ? "Архив…" : "Сообщение…"}
+            disabled={authExpired || chatArchived || !canSend}
             rows={1}
             className="chat-compose__input disabled:opacity-50"
             maxLength={1500}
@@ -993,13 +1047,13 @@ export function BookingChatPanel({
             onClick={() => {
               send().catch(() => undefined);
             }}
-            disabled={!canSubmit}
+            disabled={authExpired || !canSubmit}
             className="chat-compose__send disabled:opacity-45"
           >
             {sending ? "…" : "Отпр."}
           </button>
         </div>
-        {error ? <div className="text-xs text-red-300">{error}</div> : null}
+        {error && !authExpired ? <div className="text-xs text-[#b91c1c]">{error}</div> : null}
       </div>
 
       {confirmCancelOpen ? (
