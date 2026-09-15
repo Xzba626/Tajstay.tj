@@ -4,6 +4,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Button, Card, Input } from "@/shared/ui";
 import { LocaleDateInput } from "@/components/ui/LocaleDateInput";
+import { CheckoutSteps } from "@/processes/checkout/CheckoutSteps";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
 
@@ -46,7 +47,17 @@ type Props = {
     payNowOption: string;
     payAtCheckInOption: string;
     payAtCheckInExplain: string;
+    stepCard1: string;
+    stepCard2: string;
+    stepCard3: string;
+    nights: string;
+    pricePerNightLabel: string;
+    totalCharge: string;
+    backToRooms: string;
   };
+  /** Localized copy for every `/api/bookings` error code, keyed exactly like the code itself, plus
+   * a `generic` fallback - resolved server-side (page.tsx) so this component never hardcodes RU. */
+  errorMessages: Record<string, string>;
   defaults: {
     roomId?: number;
     roomTypeId?: number;
@@ -81,27 +92,14 @@ type Props = {
 
 type Step = 1 | 2 | 3;
 
-/** Сообщения API /api/bookings (json=1) — не показываем сырые коды вроде «invalid». */
-function mapBookingApiError(raw: string): string {
+/** Сообщения API /api/bookings (json=1) — не показываем сырые коды вроде «invalid». Every string
+ * comes from `errorMessages` (resolved server-side via m(locale, ...)) - this function only maps
+ * the error code to the right key, it never hardcodes copy in any language. */
+function mapBookingApiError(raw: string, errorMessages: Record<string, string>): string {
   const key = (raw || "").trim().toLowerCase();
-  const table: Record<string, string> = {
-    invalid:
-      "Проверьте телефон (например +992…), даты заезда и выезда. Локальный номер без кода страны тоже подойдёт.",
-    dates: "Дата выезда должна быть позже даты заезда.",
-    phone_in_use: "Этот телефон уже в системе — войдите в аккаунт или укажите другой номер.",
-    unavailable: "Номер недоступен на выбранные даты. Выберите другие дни.",
-    rate: "Слишком много попыток. Подождите минуту и попробуйте снова.",
-    failed: "Не удалось создать бронь. Попробуйте ещё раз.",
-    timeout: "Сервер не ответил вовремя. Проверьте интернет и попробуйте снова.",
-    payment_method_required: "Выберите способ оплаты, чтобы продолжить.",
-    payment_method_invalid: "Выбранный способ оплаты больше недоступен. Выберите другой.",
-    pay_at_checkin_not_allowed: "Этот отель не поддерживает оплату при заселении. Выберите оплату сейчас.",
-    existing_booking_different_payment_option: "У вас уже есть бронь на эти даты с другим способом оплаты."
-  };
-  if (table[key]) return table[key];
-  if (key.includes("invalid")) return table.invalid;
-  if (/^[a-z][a-z0-9_]*$/.test(key)) return "Не удалось оформить бронь. Проверьте данные и попробуйте снова.";
-  return (raw || "").trim() || "Не удалось оформить бронь";
+  if (errorMessages[key]) return errorMessages[key];
+  if (key.includes("invalid")) return errorMessages.invalid ?? errorMessages.generic;
+  return errorMessages.generic ?? (raw || "").trim();
 }
 
 function calcNights(checkIn: string, checkOut: string): number | null {
@@ -135,7 +133,8 @@ export function BookingWizard({
   finance,
   hotelId,
   paymentMethods,
-  acceptsPayAtCheckIn
+  acceptsPayAtCheckIn,
+  errorMessages
 }: Props) {
   const formRef = useRef<HTMLFormElement>(null);
   const submitInFlight = useRef(false);
@@ -204,7 +203,7 @@ export function BookingWizard({
         if (errRaw === "existing_booking_different_payment_option") {
           setStep(2);
         }
-        throw new Error(mapBookingApiError(errRaw));
+        throw new Error(mapBookingApiError(errRaw, errorMessages));
       }
 
       const chatUrl = (json as { chatUrl?: string }).chatUrl?.trim();
@@ -215,16 +214,16 @@ export function BookingWizard({
         (err instanceof Error && err.name === "AbortError") ||
         (typeof DOMException !== "undefined" && err instanceof DOMException && err.name === "AbortError");
       if (aborted) {
-        setSubmitError(mapBookingApiError("timeout"));
+        setSubmitError(mapBookingApiError("timeout", errorMessages));
       } else {
-        setSubmitError(err instanceof Error ? err.message : "Ошибка бронирования");
+        setSubmitError(err instanceof Error ? err.message : errorMessages.generic);
       }
     } finally {
       window.clearTimeout(timer);
       submitInFlight.current = false;
       setSubmitting(false);
     }
-  }, []);
+  }, [errorMessages]);
 
   const stepTitle = useMemo(() => {
     if (step === 1) return labels.titleStep1;
@@ -239,9 +238,9 @@ export function BookingWizard({
   const nights = calcNights(checkIn, checkOut);
   const totalByDates = nights ? Number((pricePerNight * nights).toFixed(2)) : null;
   const mobileField =
-    "h-14 w-full rounded-2xl border border-white/20 bg-white/12 px-4 text-sm text-slate-100 shadow-[0_10px_30px_rgba(2,6,23,0.30)] outline-none transition placeholder:text-slate-200/70 focus:border-[#0f7a4d] focus:ring-2 focus:ring-[#0f7a4d]/30";
-  const labelRow = "flex items-center gap-2 text-xs font-semibold text-slate-200/90";
-  const labelIcon = "text-sm text-[#d1fae5]/90";
+    "h-12 w-full rounded-xl border border-[var(--taj-color-border)] bg-[var(--taj-color-bg-card-solid)] px-4 text-sm text-[var(--taj-color-text)] outline-none transition placeholder:text-[var(--taj-color-text-muted)] focus:border-[#0f7a4d] focus:ring-2 focus:ring-[#0f7a4d]/25";
+  const labelRow = "flex items-center gap-2 text-xs font-semibold text-[var(--taj-color-text-secondary)]";
+  const labelIcon = "text-sm text-[#0f7a4d]";
 
   const persistFields = step >= 2;
 
@@ -275,35 +274,33 @@ export function BookingWizard({
         </>
       ) : null}
 
-      <div className="flex items-baseline justify-between gap-3 border-b border-white/[0.07] pb-2.5">
-        <div className="text-[13px] font-medium tracking-wide text-slate-200/95">{stepTitle}</div>
-        <div className="tabular-nums text-[11px] font-medium uppercase tracking-[0.14em] text-[#d1fae5]/70">
+      <CheckoutSteps steps={[labels.stepCard1, labels.stepCard2, labels.stepCard3]} activeStep={step - 1} />
+
+      <div className="flex items-baseline justify-between gap-3 border-b border-[var(--taj-color-border)] pb-2.5">
+        <div className="text-[13px] font-medium tracking-wide text-[var(--taj-color-text)]">{stepTitle}</div>
+        <div className="tabular-nums text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--taj-color-text-muted)]">
           {step}/3
         </div>
       </div>
 
       <div className="relative overflow-hidden rounded-3xl">
-        <div className="wizard-rail">
-          <div className="wizard-progress" style={{ width: step === 1 ? "33%" : step === 2 ? "66%" : "100%" }} />
-        </div>
-
         <div className="wizard-surface">
           <Card className="space-y-4">
             {step === 1 && (
               <div className="wizard-step wizard-in">
                 {defaults.isAuthed && (defaults.signedInAsName || defaults.signedInAsEmail) ? (
-                  <div className="mb-4 rounded-2xl border border-[#0f7a4d]/25 bg-[#0f7a4d]/[0.08] p-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#d1fae5]/85">
+                  <div className="mb-4 rounded-2xl border border-[#0f7a4d]/20 bg-[#0f7a4d]/[0.06] p-4 text-left">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#0f7a4d]">
                       {labels.signedInAccountTitle}
                     </div>
                     {defaults.signedInAsName ? (
-                      <div className="mt-2 text-base font-semibold leading-snug text-white">{defaults.signedInAsName}</div>
+                      <div className="mt-2 text-base font-semibold leading-snug text-[var(--taj-color-text)]">{defaults.signedInAsName}</div>
                     ) : null}
                     {defaults.signedInAsEmail ? (
-                      <div className="mt-1 text-sm text-slate-200/90">{defaults.signedInAsEmail}</div>
+                      <div className="mt-1 text-sm text-[var(--taj-color-text-secondary)]">{defaults.signedInAsEmail}</div>
                     ) : null}
                     {defaults.needsSavedPhone && labels.addPhoneBookingHint ? (
-                      <p className="mt-3 text-xs leading-relaxed text-slate-200/85">{labels.addPhoneBookingHint}</p>
+                      <p className="mt-3 text-xs leading-relaxed text-[var(--taj-color-text-secondary)]">{labels.addPhoneBookingHint}</p>
                     ) : null}
                   </div>
                 ) : null}
@@ -314,7 +311,7 @@ export function BookingWizard({
                         <span className={labelIcon} aria-hidden>
                           👤
                         </span>
-                        Имя гостя
+                        {labels.guestNamePh}
                       </span>
                       <Input
                         required
@@ -330,7 +327,7 @@ export function BookingWizard({
                         <span className={labelIcon} aria-hidden>
                           ✉️
                         </span>
-                        Email (необязательно)
+                        {labels.guestEmailPh}
                       </span>
                       <Input
                         name="guestEmail"
@@ -383,7 +380,7 @@ export function BookingWizard({
                     <span className={labelIcon} aria-hidden>
                       📞
                     </span>
-                    Телефон
+                    {labels.phonePh}
                   </span>
                   <Input
                     required
@@ -400,28 +397,29 @@ export function BookingWizard({
 
             {step === 2 && (
               <div className="wizard-step wizard-in space-y-4">
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm">
-                  <div className="flex justify-between text-slate-300">
-                    <span>Ночей</span>
+                <div className="rounded-2xl border border-[var(--taj-color-border)] bg-[var(--taj-color-bg-card-solid)] p-4 text-sm">
+                  <div className="flex justify-between text-[var(--taj-color-text-secondary)]">
+                    <span>{labels.nights}</span>
                     <span>{nights ?? "—"}</span>
                   </div>
-                  <div className="mt-2 flex justify-between text-slate-300">
-                    <span>Цена за ночь</span>
+                  <div className="mt-2 flex justify-between text-[var(--taj-color-text-secondary)]">
+                    <span>{labels.pricePerNightLabel}</span>
                     <span>{pricePerNight} TJS</span>
                   </div>
-                  <div className="mt-3 flex justify-between font-semibold text-slate-100">
-                    <span>К оплате</span>
+                  <div className="mt-3 flex justify-between border-t border-[var(--taj-color-border)] pt-3 text-base font-semibold text-[var(--taj-color-text)]">
+                    <span>{labels.totalCharge}</span>
                     <span>{totalByDates ?? finance.totalToCharge} TJS</span>
                   </div>
                 </div>
 
                 {acceptsPayAtCheckIn ? (
-                  <div className="flex gap-2 rounded-2xl border border-white/10 bg-white/5 p-1.5">
+                  <div className="flex gap-2 rounded-2xl border border-[var(--taj-color-border)] bg-[var(--taj-color-bg-card-solid)] p-1.5">
                     <button
                       type="button"
                       onClick={() => setPaymentOption("PAY_NOW")}
+                      aria-pressed={!isPayAtCheckIn}
                       className={`flex-1 rounded-xl px-3 py-2 text-xs font-semibold transition ${
-                        !isPayAtCheckIn ? "bg-[#0f7a4d] text-white" : "text-slate-300"
+                        !isPayAtCheckIn ? "bg-[#0f7a4d] text-white" : "text-[var(--taj-color-text-secondary)] hover:bg-[var(--taj-color-border)]"
                       }`}
                     >
                       {labels.payNowOption}
@@ -429,8 +427,9 @@ export function BookingWizard({
                     <button
                       type="button"
                       onClick={() => setPaymentOption("PAY_AT_CHECK_IN")}
+                      aria-pressed={isPayAtCheckIn}
                       className={`flex-1 rounded-xl px-3 py-2 text-xs font-semibold transition ${
-                        isPayAtCheckIn ? "bg-[#0f7a4d] text-white" : "text-slate-300"
+                        isPayAtCheckIn ? "bg-[#0f7a4d] text-white" : "text-[var(--taj-color-text-secondary)] hover:bg-[var(--taj-color-border)]"
                       }`}
                     >
                       {labels.payAtCheckInOption}
@@ -440,28 +439,28 @@ export function BookingWizard({
 
                 {isPayAtCheckIn ? (
                   <div className="rounded-2xl border border-[#0f7a4d]/20 bg-[#0f7a4d]/[0.06] p-4">
-                    <div className="text-sm font-semibold text-[#d1fae5]">{labels.payAtCheckInOption}</div>
-                    <p className="mt-2 text-sm text-slate-300">{labels.payAtCheckInExplain}</p>
+                    <div className="text-sm font-semibold text-[#0f7a4d]">{labels.payAtCheckInOption}</div>
+                    <p className="mt-2 text-sm text-[var(--taj-color-text-secondary)]">{labels.payAtCheckInExplain}</p>
                   </div>
                 ) : (
                 <div className="rounded-2xl border border-[#0f7a4d]/20 bg-[#0f7a4d]/[0.06] p-4">
-                  <div className="text-sm font-semibold text-[#d1fae5]">{labels.paymentMethodLabel}</div>
+                  <div className="text-sm font-semibold text-[#0f7a4d]">{labels.paymentMethodLabel}</div>
 
                   {paymentMethods.length === 0 ? (
-                    <p className="mt-2 text-sm text-slate-300">{m(locale, "checkout.paymentMethodsEmpty")}</p>
+                    <p className="mt-2 text-sm text-[var(--taj-color-text-secondary)]">{m(locale, "checkout.paymentMethodsEmpty")}</p>
                   ) : (
                     <>
-                      <p className="mt-1 text-xs text-slate-400">{m(locale, "checkout.paymentMethodsHint")}</p>
+                      <p className="mt-1 text-xs text-[var(--taj-color-text-muted)]">{m(locale, "checkout.paymentMethodsHint")}</p>
                       <ul className="mt-3 space-y-3">
                         {paymentMethods.map((method) => {
                           const isSelected = selectedMethodId === method.id;
                           return (
                             <li
                               key={method.id}
-                              className={`rounded-xl border p-3 ${isSelected ? "border-[#0f7a4d] bg-[#0f7a4d]/10" : "border-white/10 bg-black/20"}`}
+                              className={`rounded-xl border p-3 ${isSelected ? "border-[#0f7a4d] bg-[#0f7a4d]/10" : "border-[var(--taj-color-border)] bg-[var(--taj-color-bg-card-solid)]"}`}
                             >
                               <div className="flex items-center justify-between gap-2">
-                                <div className="min-w-0 text-sm font-semibold text-slate-100">{method.displayLabel}</div>
+                                <div className="min-w-0 text-sm font-semibold text-[var(--taj-color-text)]">{method.displayLabel}</div>
                                 {isSelected ? (
                                   <span className="shrink-0 rounded-lg bg-[#0f7a4d] px-2.5 py-1 text-xs font-semibold text-white">
                                     {m(locale, "checkout.paymentMethodsSelected")}
@@ -470,7 +469,7 @@ export function BookingWizard({
                                   <button
                                     type="button"
                                     onClick={() => setSelectedMethodId(method.id)}
-                                    className="shrink-0 rounded-lg border border-[#0f7a4d]/40 px-2.5 py-1 text-xs font-semibold text-[#d1fae5]"
+                                    className="shrink-0 rounded-lg border border-[#0f7a4d]/40 px-2.5 py-1 text-xs font-semibold text-[#0f7a4d]"
                                   >
                                     {m(locale, "checkout.paymentMethodsSelect")}
                                   </button>
@@ -478,9 +477,9 @@ export function BookingWizard({
                               </div>
                               {isSelected ? (
                                 <>
-                                  <div className="mt-1 text-xs text-slate-400">{method.recipientName}</div>
+                                  <div className="mt-1 text-xs text-[var(--taj-color-text-muted)]">{method.recipientName}</div>
                                   <div className="mt-2 flex items-center justify-between gap-3">
-                                    <span className="min-w-0 flex-1 break-all font-mono text-sm text-slate-100">
+                                    <span className="min-w-0 flex-1 break-all font-mono text-sm text-[var(--taj-color-text)]">
                                       {method.paymentIdentifier}
                                     </span>
                                     <button
@@ -502,7 +501,7 @@ export function BookingWizard({
                                     </button>
                                   </div>
                                   {method.instructions ? (
-                                    <div className="mt-2 text-xs text-slate-400">{method.instructions}</div>
+                                    <div className="mt-2 text-xs text-[var(--taj-color-text-muted)]">{method.instructions}</div>
                                   ) : null}
                                 </>
                               ) : null}
@@ -519,36 +518,47 @@ export function BookingWizard({
 
             {step === 3 && (
               <div className="wizard-step wizard-in space-y-4">
-                <div
-                  className="relative overflow-hidden rounded-2xl border border-[#0f7a4d]/25 px-4 py-4 text-sm text-slate-100 shadow-[0_0_0_1px_rgba(15, 122, 77,0.12),0_0_32px_-4px_rgba(15, 122, 77,0.35),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-md"
-                  style={{
-                    background:
-                      "linear-gradient(135deg, rgba(255,255,255,0.07) 0%, rgba(15, 122, 77,0.06) 45%, rgba(6,78,59,0.12) 100%)"
-                  }}
-                >
-                  <div className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-[#0f7a4d]/20 blur-2xl" />
-                  <div className="pointer-events-none absolute -bottom-6 -left-6 h-24 w-24 rounded-full bg-[#0f7a4d]/15 blur-2xl" />
-                  <div className="relative flex gap-3">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#0f7a4d]/30 bg-[#0f7a4d]/15 text-[#d1fae5]">
-                      <ShieldCheckIcon className="h-6 w-6" />
-                    </div>
-                    <div className="min-w-0 pt-0.5">
-                      <div className="font-semibold tracking-tight text-[#ecfdf5]/95">{labels.escrowTitle}</div>
-                      <p className="mt-1.5 text-[13px] leading-relaxed text-slate-200/90">{labels.escrowBody}</p>
+                {/* BLOCK V1: this card used to render unconditionally, claiming "escrow
+                    protection... paid only after check-in" even for Pay-at-check-in bookings,
+                    where TajStay never holds any money at all - a false backend-semantics claim.
+                    Escrow copy now shows only for Pay Now; Pay-at-check-in reuses the same
+                    accurate explainer text already used on step 2. */}
+                {isPayAtCheckIn ? (
+                  <div className="rounded-2xl border border-[#0f7a4d]/20 bg-[#0f7a4d]/[0.06] p-4">
+                    <div className="flex gap-3">
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#0f7a4d]/25 bg-[#0f7a4d]/10 text-[#0f7a4d]">
+                        <ShieldCheckIcon className="h-6 w-6" />
+                      </div>
+                      <div className="min-w-0 pt-0.5">
+                        <div className="font-semibold tracking-tight text-[var(--taj-color-text)]">{labels.payAtCheckInOption}</div>
+                        <p className="mt-1.5 text-[13px] leading-relaxed text-[var(--taj-color-text-secondary)]">{labels.payAtCheckInExplain}</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-sm text-slate-200 backdrop-blur-sm">
-                  {labels.paymentMethodLabel}: <span className="font-semibold text-white">{payMethodLabel}</span>
+                ) : (
+                  <div className="rounded-2xl border border-[#0f7a4d]/20 bg-[#0f7a4d]/[0.06] p-4">
+                    <div className="flex gap-3">
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#0f7a4d]/25 bg-[#0f7a4d]/10 text-[#0f7a4d]">
+                        <ShieldCheckIcon className="h-6 w-6" />
+                      </div>
+                      <div className="min-w-0 pt-0.5">
+                        <div className="font-semibold tracking-tight text-[var(--taj-color-text)]">{labels.escrowTitle}</div>
+                        <p className="mt-1.5 text-[13px] leading-relaxed text-[var(--taj-color-text-secondary)]">{labels.escrowBody}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <div className="rounded-2xl border border-[var(--taj-color-border)] bg-[var(--taj-color-bg-card-solid)] p-4 text-sm text-[var(--taj-color-text-secondary)]">
+                  {labels.paymentMethodLabel}: <span className="font-semibold text-[var(--taj-color-text)]">{payMethodLabel}</span>
                 </div>
               </div>
             )}
 
-            <div className="relative z-10 flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.06] pb-10 pt-5">
+            <div className="relative z-10 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--taj-color-border)] pb-10 pt-5">
               <Button
                 type="button"
                 variant="secondary"
-                className="border-white/20 bg-transparent text-slate-200 shadow-none hover:border-white/30 hover:bg-white/[0.04]"
+                className="border-[var(--taj-color-border)] bg-transparent text-[var(--taj-color-text-secondary)] shadow-none hover:border-[var(--taj-color-border-strong)] hover:bg-[var(--taj-color-bg-card-solid)]"
                 disabled={step === 1}
                 onClick={() => setStep((s) => (s > 1 ? ((s - 1) as Step) : s))}
               >
@@ -569,17 +579,17 @@ export function BookingWizard({
                   loading={submitting}
                   disabled={submitting || !canSubmitPayment}
                   onClick={() => void runBookingSubmit()}
-                  className="border-[#0f7a4d]/40 bg-gradient-to-b from-[#0f7a4d] to-[#0f7a4d] text-white shadow-[0_8px_28px_rgba(0,0,0,0.35),0_0_24px_rgba(15, 122, 77,0.35)] hover:shadow-[0_8px_28px_rgba(0,0,0,0.35),0_0_32px_rgba(15, 122, 77,0.45)]"
+                  className="border-[#0f7a4d]/40 bg-[#0f7a4d] text-white hover:brightness-105"
                 >
                   {labels.confirm}
                 </Button>
               )}
             </div>
 
-            {!defaults.isAuthed ? <p className="text-xs text-slate-400">{labels.guestNoAccountHint}</p> : null}
+            {!defaults.isAuthed ? <p className="text-xs text-[var(--taj-color-text-muted)]">{labels.guestNoAccountHint}</p> : null}
             {submitError ? (
               <div className="space-y-2">
-                <p className="text-xs text-red-200">{submitError}</p>
+                <p className="text-xs text-[#b91c1c]">{submitError}</p>
                 {submitErrorCode === "unavailable" && hotelId ? (
                   <Link
                     href={`/hotel/${hotelId}?${new URLSearchParams({
@@ -587,9 +597,9 @@ export function BookingWizard({
                       ...(checkOut ? { checkOut } : {}),
                       ...(defaults.guests ? { guests: defaults.guests } : {})
                     }).toString()}`}
-                    className="inline-flex text-xs font-semibold text-brand-200 underline"
+                    className="inline-flex text-xs font-semibold text-[#0f7a4d] underline"
                   >
-                    Вернуться к номерам
+                    {labels.backToRooms}
                   </Link>
                 ) : null}
               </div>

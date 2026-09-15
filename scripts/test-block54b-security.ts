@@ -156,6 +156,17 @@ async function main() {
   console.log("=== 10. Completion: no-payout branch for a payOnArrival booking ===");
   {
     if (!admin) throw new Error("no admin user found for completion test");
+    // BLOCK V1 fix: this script predates BLOCK 5.5B's P1-4 fix, which added a checkoutReached()
+    // requirement to the pay-at-check-in completion branch too (a stay in progress must not be
+    // closeable early). The booking's checkOut was still the original far-future fixture date
+    // (2029-06-03), so completion was correctly being blocked by the newer, stricter gate - a
+    // confirmed non-regression, not a real failure (see BLOCK_DB_RECOVERY_REPORT.md §11). Move
+    // checkOut into the past here, exactly like checkIn was already simulated for item 8, so this
+    // test again has an unambiguous PASS/FAIL meaning under the current contract.
+    await prisma.booking.update({
+      where: { id: bookingId },
+      data: { checkIn: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), checkOut: new Date(Date.now() - 60 * 60 * 1000) }
+    });
     const cookieAdmin = await sessionFor(admin.id);
     const fd = new FormData();
     fd.set("id", String(bookingId));

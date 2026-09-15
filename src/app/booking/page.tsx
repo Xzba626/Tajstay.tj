@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth/requireAuth";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
-import { CheckoutSteps } from "@/processes/checkout/CheckoutSteps";
 import { computeRoomTotalPrice, computeRoomTypeTotalPrice } from "@/lib/services/bookingPricing";
 import { BookingWizard } from "@/processes/checkout/BookingWizard";
 import { isPlaceholderAccountPhone, phoneForGuestBookingForm } from "@/lib/auth/accountPhone";
@@ -100,28 +99,18 @@ export default async function BookingPage({
         </div>
       )}
 
-      <div
-        className="relative overflow-hidden rounded-2xl border border-[rgba(255,255,255,0.1)] p-4 shadow-[0_20px_50px_rgba(0,0,0,0.35)] sm:p-5"
-        style={{
-          background: "linear-gradient(145deg, rgba(15,23,42,0.92) 0%, rgba(6,12,24,0.96) 48%, rgba(6,78,59,0.14) 100%)"
-        }}
-      >
-        <div className="relative flex gap-3 sm:gap-4">
+      <div className="rounded-2xl border border-[var(--taj-color-border)] bg-[var(--taj-color-bg-card-solid)] p-4 shadow-[var(--taj-shadow-sm)] sm:p-5">
+        <div className="flex gap-3 sm:gap-4">
           <div className="min-w-0 flex-1 space-y-1">
-            <div className="text-lg font-semibold text-white sm:text-xl">{hotelName}</div>
-            <div className="text-sm font-medium text-slate-300/95">{title}</div>
-            <div className="pt-1 text-sm text-[#d1fae5]/85">
+            <div className="text-lg font-semibold text-[var(--taj-color-text)] sm:text-xl">{hotelName}</div>
+            <div className="text-sm font-medium text-[var(--taj-color-text-secondary)]">{title}</div>
+            <div className="pt-1 text-sm text-[var(--taj-color-text-muted)]">
               {m(locale, "owner.priceNight")}:{" "}
-              <span className="tabular-nums font-semibold text-white">{pricePerNight} TJS</span>
+              <span className="tabular-nums font-semibold text-[var(--taj-color-text)]">{pricePerNight} TJS</span>
             </div>
           </div>
         </div>
       </div>
-
-      <CheckoutSteps
-        steps={[m(locale, "checkout.stepCard1"), m(locale, "checkout.stepCard2"), m(locale, "checkout.stepCard3")]}
-        activeStep={0}
-      />
 
       <BookingWizard
         locale={locale}
@@ -129,6 +118,13 @@ export default async function BookingPage({
           titleStep1: m(locale, "checkout.step1"),
           titleStep2: m(locale, "checkout.step2"),
           titleStep3: m(locale, "checkout.step3"),
+          stepCard1: m(locale, "checkout.stepCard1"),
+          stepCard2: m(locale, "checkout.stepCard2"),
+          stepCard3: m(locale, "checkout.stepCard3"),
+          nights: m(locale, "checkout.nights"),
+          pricePerNightLabel: m(locale, "owner.priceNight"),
+          totalCharge: m(locale, "checkout.totalCharge"),
+          backToRooms: m(locale, "checkout.backToRooms"),
           next: m(locale, "checkout.next"),
           back: m(locale, "checkout.back"),
           confirm: m(locale, "admin.confirmBooking"),
@@ -152,6 +148,20 @@ export default async function BookingPage({
           payNowOption: m(locale, "checkout.paymentOptionPayNow"),
           payAtCheckInOption: m(locale, "checkout.paymentOptionPayAtCheckIn"),
           payAtCheckInExplain: m(locale, "checkout.payAtCheckInExplain")
+        }}
+        errorMessages={{
+          invalid: m(locale, "checkout.errInvalid"),
+          dates: m(locale, "checkout.errDates"),
+          phone_in_use: m(locale, "checkout.errPhoneTaken"),
+          unavailable: m(locale, "checkout.errUnavailable"),
+          rate: m(locale, "checkout.errRate"),
+          failed: m(locale, "checkout.errGeneric"),
+          timeout: m(locale, "checkout.errGeneric"),
+          payment_method_required: m(locale, "checkout.errPaymentMethodRequired"),
+          payment_method_invalid: m(locale, "checkout.errPaymentMethodInvalid"),
+          pay_at_checkin_not_allowed: m(locale, "checkout.errPayAtCheckInNotAllowed"),
+          existing_booking_different_payment_option: m(locale, "checkout.errExistingDifferentOption"),
+          generic: m(locale, "checkout.errGeneric")
         }}
         defaults={{
           roomId: room?.id,
