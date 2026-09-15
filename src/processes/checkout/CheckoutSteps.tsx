@@ -8,7 +8,7 @@ export function CheckoutSteps({ steps, activeStep = 0 }: Props) {
     <div className="checkout-stepper" aria-label="Checkout progress">
       {steps.map((label, index) => (
         <div key={label} className="contents">
-          <div className="checkout-stepper__step">
+          <div className="checkout-stepper__step" aria-current={index === activeStep ? "step" : undefined}>
             <span
               className={`checkout-stepper__dot ${index < activeStep ? "is-done" : ""} ${index === activeStep ? "is-active" : ""}`}
               aria-hidden

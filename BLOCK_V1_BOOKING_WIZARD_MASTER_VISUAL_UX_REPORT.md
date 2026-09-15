@@ -318,7 +318,154 @@ this block only created and fully cleaned up disposable fixtures.
   hydration mismatch** — unrelated to the Wizard, untouched, unchanged, carried forward.
 - Screenshots were not saved as deliverable image files this pass — available on request.
 
-## 27. Final verdict
+## 28. V1 CLOSURE — acceptance gaps closed with real evidence
+
+Continuation of this same block, not a new one. Baseline for this pass: `HEAD` was
+`9cba7c5db0b7ac3c7e7ae2323cb4cc2cda8d4f10`; a mid-session checkpoint commit `7454a063ac1a29f91c6bf613110347eaf147af7e`
+(author: the user, same as prior checkpoints in this session — not created by this pass) captured
+the original V1 report + implementation as a commit while this closure pass was starting. This
+pass's additional changes exist as **uncommitted** changes on top of `7454a06`, per instruction —
+not committed until your own visual review.
+
+### 28.1 TG date localization — real bug, root-caused and fixed
+
+Confirmed live, not assumed: `new Intl.DateTimeFormat("tg-TJ", {day, month, year})` produces
+correct Tajik ("1 Декабр 2026") in Node's own ICU, but the actual browser runtime that renders
+`LocaleDateInput`'s hint text (a `"use client"` component — this executes in the browser, not
+Node) was falling back to Russian genitive ("1 декабря 2026 г."), confirming this is a real
+browser-ICU inconsistency, exactly as you described, not something to wave off as "pre-existing."
+
+**Fix**: added a small deterministic month-name table (RU/TG/EN) scoped to `LocaleDateInput.tsx`
+only — this component has exactly one caller (`BookingWizard.tsx`), so zero blast radius on the
+four unrelated server-rendered surfaces that call the shared `formatStayDay()` in
+`src/lib/i18n/format.ts` (Trips history, owner subscription cards), which were left untouched
+since Node's ICU already renders them correctly. Also fixed the hint text's own color
+(`text-slate-400` → `--taj-color-text-muted`), a small leftover dark-glass value found while in
+this file.
+
+**Verified live, all three locales, same component**:
+- RU: "1 декабря 2026" (correct genitive)
+- TG: "1 декабр 2026" (correct Tajik, no Russian leakage, no "г." suffix)
+- EN: unaffected, already correct
+
+### 28.2 Responsive matrix — real runtime checks, all seven widths
+
+Every width opened for real against the live restored database, not just described:
+
+| Width | Result |
+|---|---|
+| 320×568 | **PASS** — no horizontal overflow, stepper labels wrap gracefully, payment method card and buttons fit |
+| 360×800 | **PASS** — payment-option toggle wraps cleanly, no clipping |
+| 375×812 | **PASS** (already covered in the original pass, re-confirmed) |
+| 390×844 | **PASS** — no-payment-method state confirmed clean at this width too |
+| 430×932 | **PASS** — hotel name now fits on one line, everything else unchanged |
+| 1280×800 | **PASS** — Step 1/2/3 (Pay Now) all walked through, centered composition, no giant empty margins |
+| 1440×900 | **PASS** — Step 1/2/3 (Pay Now), Pay-at-check-in step 3, and the real 409 conflict/error state all walked through |
+
+No dead-end states, no overlap with shell chrome (bottom nav/assistant confirmed absent at every
+mobile width, consistent with the `/booking` shell-suppression fix from the original pass).
+
+### 28.3 Desktop closure — full step-by-step, not representative-only
+
+Real walkthrough at both required desktop widths (see matrix above): Step 1 → Step 2 → Step 3 for
+Pay Now, plus Step 2/3 for Pay-at-check-in, plus the real conflict/error state. All confirmed:
+correct light tokens throughout, no dark surfaces, CTA always in the same predictable place,
+`max-w-3xl` centered composition intentional (not a stretched mobile layout), summary/payment
+hierarchy unchanged from the mobile fixes since the same component renders both.
+
+### 28.4 Validation state — real gap found and closed
+
+Found a genuine, previously-unaddressed gap while implementing this: the form has `noValidate`
+(native browser required-field UI deliberately suppressed, since it can't be styled consistently
+across browsers), but nothing replaced it — an unauthenticated guest could reach step 3 with an
+empty name/phone and only learn about it from the server's rejection after final submit.
+
+**Fix**: `step1Valid` check added (`nights` valid, `phone` non-empty, `guestName` non-empty when
+unauthenticated) gating the step-1→2 transition; a readable inline error
+("Проверьте номер, даты и телефон.", already an existing localized string, reused not invented)
+appears when the guest tries to advance with missing fields, tied to the phone/name inputs via
+`aria-describedby`/`aria-invalid`. Verified live: clicking Next with empty fields shows the error
+without navigating; filling in both fields clears it automatically (via a `useEffect` watching
+`step1Valid`); no layout collapse, no raw backend text shown.
+
+### 28.5 Loading / double-submit — real proof, not inferred
+
+Real double-click on the "Подтвердить бронь" button on step 3 (Pay Now, `hotelPaymentMethodId`
+already selected). Result: **exactly one `Booking` row created** (verified by direct DB query,
+`prisma.booking.count()` for the target room = 1, not 2) — the existing `submitInFlight` ref guard
+holds under a genuine rapid double-click, not just in theory. This is real evidence, not a restated
+assumption from the original pass.
+
+### 28.6 Accessibility — scoped, real fixes added
+
+- `CheckoutSteps`: added `aria-current="step"` to the active step's container.
+- Payment-option toggle buttons: `aria-pressed` (added in the original pass, re-confirmed present).
+- Guest-name and phone inputs: `aria-invalid` + `aria-describedby="step1-error"` when the new
+  validation error is showing, so assistive technology can associate the error with the specific
+  fields, not just display it visually.
+- Not additionally audited this pass beyond what's listed: full keyboard-only walkthrough of every
+  interactive element's tab order, screen-reader announcement testing with an actual AT tool, or a
+  formal contrast-ratio audit (colors were reused from tokens already used elsewhere in the app,
+  not independently re-measured for WCAG AA numeric compliance).
+
+### 28.7 RU/TG/EN closure
+
+RU and EN were already verified live in the original pass (§18) and re-confirmed unaffected by
+this pass's changes (regression suite green, no i18n keys removed). TG was re-verified live this
+pass specifically for the date-hint fix (§28.1) — the one concrete defect this block's acceptance
+required to be treated as in-scope, now closed with evidence, not deferred.
+
+### 28.8 Regression after closure fixes
+
+Production code changed this pass: `LocaleDateInput.tsx` (date formatting), `BookingWizard.tsx`
+(validation logic, `aria-*` additions), `CheckoutSteps.tsx` (`aria-current`). Full regression suite
+re-run after these changes, against the live database:
+
+```
+test-block52a-concurrency.ts    = ALL PASS
+test-block53-lifecycle.ts       = ALL PASS
+test-block53a-security.ts       = ALL PASS
+test-block53a-expiry-job.ts     = ALL PASS
+test-block54b-concurrency.ts    = ALL PASS
+test-block54b-security.ts       = ALL PASS (10/10, fix from the original pass still holds)
+test-block56d-static.ts (unrelated, pure-function) = 28/28 PASS
+```
+`npx tsc --noEmit` = PASS, targeted `eslint` = PASS, isolated `npm run build` = PASS (exit 0).
+
+### 28.9 Final closure matrix
+
+```
+BOOKING WIZARD CODE     = PASS
+MOBILE 320              = PASS
+MOBILE 360              = PASS
+MOBILE 375              = PASS
+MOBILE 390              = PASS
+MOBILE 430              = PASS
+DESKTOP 1280            = PASS
+DESKTOP 1440            = PASS
+PAY NOW UX              = PASS
+PAY AT CHECK-IN UX      = PASS
+NO PAYMENT METHOD       = PASS
+VALIDATION              = PASS
+409 CONFLICT            = PASS
+LOADING/DOUBLE SUBMIT   = PASS
+RU                      = PASS
+TG                      = PASS   (RU-leakage in date hint found and fixed this pass, verified live)
+EN                      = PASS
+ACCESSIBILITY           = PARTIAL (scoped fixes added: aria-current, aria-pressed, aria-invalid/
+                          aria-describedby; full keyboard/AT/contrast audit not performed)
+REGRESSION              = PASS   (7/7 scripts)
+VISUAL QA               = PASS
+OVERALL                 = PASS for every acceptance item in the original V1 spec except a full
+                          formal accessibility audit (WCAG-numeric contrast checks, AT-tool
+                          testing, exhaustive keyboard walkthrough), which remains PARTIAL and is
+                          named as such, not rounded up.
+```
+
+Not committing this pass's changes — awaiting your own visual review, per instruction. Not
+starting Auth/Profile/Owner/Admin/Search/Map. Stopping here.
+
+## 27. Final verdict (original pass — superseded by §28's closure matrix above for OVERALL status)
 
 ```
 BOOKING WIZARD CODE       = PASS   (tsc/eslint/build clean, business logic untouched, confirmed by diff)

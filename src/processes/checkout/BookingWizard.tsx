@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Button, Card, Input } from "@/shared/ui";
 import { LocaleDateInput } from "@/components/ui/LocaleDateInput";
@@ -157,6 +157,7 @@ export function BookingWizard({
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitErrorCode, setSubmitErrorCode] = useState<string | null>(null);
+  const [step1Error, setStep1Error] = useState<string | null>(null);
 
   const runBookingSubmit = useCallback(async () => {
     if (submitInFlight.current) return;
@@ -236,6 +237,17 @@ export function BookingWizard({
   const payMethodLabel = isPayAtCheckIn ? labels.payAtCheckInOption : selectedMethod?.displayLabel ?? "";
   const canSubmitPayment = isPayAtCheckIn ? true : paymentMethods.length > 0 && selectedMethodId !== null;
   const nights = calcNights(checkIn, checkOut);
+  // BLOCK V1 closure: the form has `noValidate` (native browser required-field UI is suppressed
+  // deliberately, since it can't be styled consistently), but nothing replaced it - an
+  // unauthenticated guest could previously reach step 3 with an empty name/phone and only learn
+  // about it from the server's rejection after final submit. Client-side check added so this
+  // surfaces immediately, in the same place, in the wizard's own language.
+  const step1Valid =
+    Boolean(nights) && phone.trim().length > 0 && (defaults.isAuthed || guestName.trim().length > 0);
+
+  useEffect(() => {
+    if (step1Valid) setStep1Error(null);
+  }, [step1Valid]);
   const totalByDates = nights ? Number((pricePerNight * nights).toFixed(2)) : null;
   const mobileField =
     "h-12 w-full rounded-xl border border-[var(--taj-color-border)] bg-[var(--taj-color-bg-card-solid)] px-4 text-sm text-[var(--taj-color-text)] outline-none transition placeholder:text-[var(--taj-color-text-muted)] focus:border-[#0f7a4d] focus:ring-2 focus:ring-[#0f7a4d]/25";
@@ -320,6 +332,8 @@ export function BookingWizard({
                         onChange={(e) => setGuestName(e.target.value)}
                         placeholder={labels.guestNamePh}
                         className={mobileField}
+                        aria-invalid={step1Error ? guestName.trim().length === 0 : undefined}
+                        aria-describedby={step1Error ? "step1-error" : undefined}
                       />
                     </label>
                     <label className="grid gap-1">
@@ -390,8 +404,15 @@ export function BookingWizard({
                     placeholder={labels.phonePh}
                     className={mobileField}
                     inputMode="tel"
+                    aria-invalid={step1Error ? phone.trim().length === 0 : undefined}
+                    aria-describedby={step1Error ? "step1-error" : undefined}
                   />
                 </label>
+                {step1Error ? (
+                  <p id="step1-error" role="alert" className="text-xs text-[#b91c1c]">
+                    {step1Error}
+                  </p>
+                ) : null}
               </div>
             )}
 
@@ -568,8 +589,15 @@ export function BookingWizard({
               {step < 3 ? (
                 <Button
                   type="button"
-                  disabled={(step === 1 && !nights) || (step === 2 && !canSubmitPayment)}
-                  onClick={() => setStep((s) => (s < 3 ? ((s + 1) as Step) : s))}
+                  disabled={step === 2 && !canSubmitPayment}
+                  onClick={() => {
+                    if (step === 1 && !step1Valid) {
+                      setStep1Error(errorMessages.invalid ?? errorMessages.generic);
+                      return;
+                    }
+                    setStep1Error(null);
+                    setStep((s) => (s < 3 ? ((s + 1) as Step) : s));
+                  }}
                 >
                   {labels.next}
                 </Button>
