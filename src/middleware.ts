@@ -31,7 +31,7 @@ function isTelegramWebhookPath(path: string): boolean {
  * Not CSS-hide: this decides what RootLayout renders server-side, nothing is mounted
  * then hidden.
  */
-function shellFor(path: string): "admin" | "owner" | "consumer" {
+export function shellFor(path: string): "admin" | "owner" | "consumer" {
   if (path.startsWith("/dashboard/admin")) return "admin";
   if (path.startsWith("/dashboard/owner")) return "owner";
   return "consumer";

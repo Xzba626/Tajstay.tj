@@ -1,13 +1,20 @@
 import type { ReactNode } from "react";
 import { AdminMobileNav, AdminSidebar, type AdminSidebarLabels } from "@/components/dashboard/AdminSidebar";
 import { DashboardShell } from "@/components/ds";
+import { AdminHeader } from "@/components/admin/AdminHeader";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
+import { prisma } from "@/lib/prisma";
 
 export default async function AdminDashboardLayout({ children }: { children: ReactNode }) {
-  await requireAdmin();
+  const admin = await requireAdmin();
   const locale = getLocale();
+  // Same 7-day unread window already used for the Dashboard's own notifications KPI
+  // (src/app/dashboard/admin/page.tsx) — the header bell reuses that definition, not a new one.
+  const unreadCount = await prisma.notification.count({
+    where: { userId: admin.id, isRead: false, createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } }
+  });
   const labels: AdminSidebarLabels = {
     sectionTitle: m(locale, "admin.navAdmin"),
     navLabel: m(locale, "admin.mobileNav"),
@@ -51,12 +58,35 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
   };
 
   return (
-    <DashboardShell
-      className="admin-command-center-shell ts-workspace-light"
-      sidebar={<AdminSidebar labels={labels} />}
-      mobileNav={<AdminMobileNav labels={labels} />}
-    >
-      {children}
-    </DashboardShell>
+    <>
+      <AdminHeader
+        locale={locale}
+        brandPrimary={m(locale, "admin.headerBrandShort")}
+        brandSecondary={m(locale, "admin.headerBrandContext")}
+        brandFull={m(locale, "admin.headerBrand")}
+        adminName={admin.name || admin.phone}
+        adminRoleLabel={m(locale, "roles.ADMIN")}
+        unreadCount={unreadCount}
+        notificationsHref="/dashboard/admin?section=notifications"
+        notificationsAria={m(locale, "admin.headerNotificationsAria")}
+        profileLabels={{
+          profileAria: m(locale, "admin.headerProfileAria"),
+          accountSecurity: m(locale, "admin.headerAccountSecurity"),
+          logout: m(locale, "admin.headerLogout"),
+          loggingOut: m(locale, "admin.headerLoggingOut"),
+          logoutConfirmTitle: m(locale, "admin.headerLogoutConfirmTitle"),
+          logoutConfirmBody: m(locale, "admin.headerLogoutConfirmBody"),
+          logoutConfirmAction: m(locale, "admin.headerLogoutConfirmAction"),
+          logoutCancel: m(locale, "admin.headerLogoutCancel")
+        }}
+      />
+      <DashboardShell
+        className="admin-command-center-shell ts-workspace-light"
+        sidebar={<AdminSidebar labels={labels} />}
+        mobileNav={<AdminMobileNav labels={labels} />}
+      >
+        {children}
+      </DashboardShell>
+    </>
   );
 }

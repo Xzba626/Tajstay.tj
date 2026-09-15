@@ -1312,3 +1312,313 @@
   }
 }
 
+/* ================================================================
+   BLOCK ADMIN 6.1 — TajStay Admin authenticated header + shell foundation
+   ================================================================ */
+
+.admin-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  height: 3.5rem;
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border-bottom: 1px solid var(--ts-border-subtle, #e2e8f0);
+}
+
+.admin-header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0 0.85rem;
+}
+
+@media (min-width: 1024px) {
+  .admin-header__inner {
+    padding: 0 1.25rem;
+  }
+}
+
+.admin-header__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  border-radius: 0.625rem;
+  outline: none;
+}
+
+.admin-header__brand:focus-visible {
+  outline: 2px solid var(--admin-accent, #0f7a4d);
+  outline-offset: 2px;
+}
+
+.admin-header__brand-text {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--admin-text, #14231b);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 6.1A closure: below 380px, drop the "Admin" context word instead of letting the whole brand
+   ellipsize mid-word ("TajStay A…") — "TajStay" alone stays fully readable. */
+.admin-header__brand-context {
+  display: none;
+}
+
+@media (min-width: 380px) {
+  .admin-header__brand-context {
+    display: inline;
+  }
+}
+
+.admin-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.admin-header__locale {
+  /* LocaleSwitcher renders its own Tailwind `flex` utility class alongside this one; that
+     utility's stylesheet loads after this file, so plain `display: none` here loses the
+     cascade at narrow widths without this. */
+  display: none !important;
+}
+
+@media (min-width: 480px) {
+  .admin-header__locale {
+    display: flex !important;
+  }
+}
+
+.admin-header__icon-btn {
+  /* 6.1A closure (ADM touch-target gap): 40px was below the required >=44px effective
+     interactive target. The header itself stays 3.5rem (56px) — there was room to grow the
+     buttons without touching the sticky header-height variable shared with the sidebar. */
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.625rem;
+  color: var(--admin-text-secondary, #334155);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.admin-header__icon-btn:hover {
+  background: var(--admin-surface-muted, #f4f6f5);
+  color: var(--admin-text, #0f172a);
+}
+
+.admin-header__badge {
+  position: absolute;
+  top: 0.3rem;
+  right: 0.3rem;
+  min-width: 1.05rem;
+  height: 1.05rem;
+  padding: 0 0.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #d97706;
+  color: #fff;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.admin-header__profile-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 999px;
+}
+
+.admin-header__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  background: var(--admin-accent, #0f7a4d);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.admin-header__avatar--lg {
+  width: 2.5rem;
+  height: 2.5rem;
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+.admin-header__profile-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.4rem);
+  z-index: 120;
+  width: 15.5rem;
+  border: 1px solid var(--admin-border, #e2e8f0);
+  border-radius: 0.75rem;
+  background: #ffffff;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+  padding: 0.5rem;
+  opacity: 0;
+  transform: translateY(-4px) scale(0.98);
+  pointer-events: none;
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+
+.admin-header__profile-menu.is-open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.admin-header__profile-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 0.5rem 0.65rem;
+  border-bottom: 1px solid var(--admin-border, #e2e8f0);
+  margin-bottom: 0.35rem;
+}
+
+.admin-header__profile-name {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--admin-text, #0f172a);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-header__profile-role {
+  margin: 0;
+  font-size: 0.6875rem;
+  color: var(--admin-text-muted, #475569);
+}
+
+.admin-header__profile-item {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  padding: 0.55rem 0.5rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--admin-text, #0f172a);
+  background: transparent;
+  text-align: left;
+}
+
+.admin-header__profile-item:hover {
+  background: var(--admin-surface-muted, #f4f6f5);
+}
+
+.admin-header__profile-item--danger {
+  color: #b91c1c;
+}
+
+/* Reusable back control (ADM-7) */
+.admin-back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 2.25rem;
+  padding: 0.4rem 0.75rem 0.4rem 0.55rem;
+  border-radius: 0.625rem;
+  border: 1px solid var(--admin-border, #e2e8f0);
+  background: var(--admin-surface, #ffffff);
+  color: var(--admin-text, #0f172a);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.admin-back-button:hover {
+  background: var(--admin-surface-muted, #f4f6f5);
+  border-color: var(--admin-accent-border, rgba(21, 128, 61, 0.22));
+}
+
+.admin-back-button:focus-visible {
+  outline: 2px solid var(--admin-accent, #0f7a4d);
+  outline-offset: 2px;
+}
+
+.admin-back-button__icon {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+/* Shared confirmation dialog foundation (ADM-13) */
+.admin-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.admin-confirm-dialog {
+  width: 100%;
+  max-width: 26rem;
+  border-radius: 0.9rem;
+  background: #ffffff;
+  padding: 1.1rem 1.15rem;
+  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.22);
+}
+
+.admin-confirm-dialog__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--admin-text, #0f172a);
+}
+
+.admin-confirm-dialog__desc {
+  margin: 0.5rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--admin-text-muted, #475569);
+}
+
+.admin-confirm-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1.1rem;
+}
+
+/* Account-security panel (ADM-16) reuses the confirm-dialog overlay chrome */
+.admin-security-panel {
+  max-width: 34rem;
+  max-height: 85vh;
+  overflow-y: auto;
+  text-align: left;
+}
+
+.admin-security-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+

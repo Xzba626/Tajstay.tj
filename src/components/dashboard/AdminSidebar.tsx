@@ -69,7 +69,11 @@ type SidebarItem = {
   Icon: typeof LayoutDashboard;
 };
 
-const DRAWER_GROUP_SECTIONS = [
+// Exported (6.1A closure) so scripts/test-block61a-admin-shell.ts can assert the mobile
+// drawer/primary-tab/sidebar section inventory stays in sync with VALID_SECTIONS in
+// page.tsx — this exact class of bug (a section silently unreachable on mobile) already
+// happened once, see the "bookings" comment below.
+export const DRAWER_GROUP_SECTIONS = [
   { key: "platform" as const, sections: ["content"] },
   { key: "finance" as const, sections: ["finance"] },
   // "bookings" moved out of the primary mobile tabs (replaced by "hotels", now primary) but was
@@ -79,7 +83,7 @@ const DRAWER_GROUP_SECTIONS = [
   { key: "access" as const, sections: ["owner-access"] }
 ];
 
-const SIDEBAR_GROUPS = [
+export const SIDEBAR_GROUPS = [
   { key: "overview" as const, sections: ["dashboard"] },
   { key: "people" as const, sections: ["applications", "users", "owner-access"] },
   { key: "hotelOps" as const, sections: ["hotels", "bookings"] },
@@ -88,7 +92,7 @@ const SIDEBAR_GROUPS = [
   { key: "operations" as const, sections: ["complaints", "notifications"] }
 ];
 
-function buildItems(labels: AdminSidebarLabels): SidebarItem[] {
+export function buildItems(labels: AdminSidebarLabels): SidebarItem[] {
   return [
     { section: "dashboard", label: labels.items.dashboard, Icon: LayoutDashboard },
     { section: "content", label: labels.items.content, Icon: FileText },
@@ -106,9 +110,9 @@ function buildItems(labels: AdminSidebarLabels): SidebarItem[] {
 // "bookings" removed from primary mobile tabs per product decision: Admin needs booking
 // oversight for support/disputes/payments, but it isn't one of the 5 most common daily mobile
 // destinations — it now lives in "Ещё" (still in SIDEBAR_GROUPS/buildItems above, unchanged).
-const MOBILE_PRIMARY = ["dashboard", "applications", "hotels", "users"] as const;
+export const MOBILE_PRIMARY = ["dashboard", "applications", "hotels", "users"] as const;
 
-function sectionHref(pathname: string, section: string) {
+export function sectionHref(pathname: string, section: string) {
   return `${pathname}?section=${section}`;
 }
 

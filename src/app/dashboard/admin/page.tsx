@@ -34,6 +34,7 @@ import { AdminRecordCard } from "@/components/admin/AdminRecordCard";
 import { AdminNativeForm } from "@/components/admin/AdminNativeForm";
 import { AdminSubmitButton } from "@/components/admin/AdminSubmitButton";
 import { isAdminSecurityResetConfigured } from "@/lib/admin-security";
+import { AdminSecurityPanel } from "@/components/admin/AdminSecurityPanel";
 import { getPlatformSetting } from "@/lib/services/subscription";
 import { formatStayDay } from "@/lib/i18n/format";
 import { AppImage } from "@/components/ui/AppImage";
@@ -71,8 +72,8 @@ export default async function AdminDashboardPage({
   searchParams
 }: {
   searchParams?:
-    | Promise<{ section?: string; page?: string; q?: string; status?: string; role?: string; paymentStatus?: string; resetToken?: string; resetUser?: string; error?: string; ok?: string; form?: string }>
-    | { section?: string; page?: string; q?: string; status?: string; role?: string; paymentStatus?: string; resetToken?: string; resetUser?: string; error?: string; ok?: string; form?: string };
+    | Promise<{ section?: string; page?: string; q?: string; status?: string; role?: string; paymentStatus?: string; resetToken?: string; resetUser?: string; error?: string; ok?: string; form?: string; account?: string }>
+    | { section?: string; page?: string; q?: string; status?: string; role?: string; paymentStatus?: string; resetToken?: string; resetUser?: string; error?: string; ok?: string; form?: string; account?: string };
 }) {
   const admin = await requireAdmin();
   const locale = getLocale();
@@ -414,12 +415,37 @@ export default async function AdminDashboardPage({
     });
   }
 
+  const securityPanelOpen = (params?.account ?? "") === "security";
+  const securityPanelCloseHref = (() => {
+    const next = new URLSearchParams();
+    if (params?.section) next.set("section", params.section);
+    if (params?.page) next.set("page", params.page);
+    return `/dashboard/admin${next.toString() ? `?${next.toString()}` : ""}`;
+  })();
+
   return (
     <div className="admin-command-center space-y-4 pb-4 lg:space-y-10 lg:pb-10">
-      <header className="admin-page-header">
-        <h1 className="admin-page-header__title">{m(locale, "admin.pageTitle")}</h1>
-        <p className="admin-page-header__subtitle">{m(locale, "admin.pageSubtitle")}</p>
-      </header>
+      {/* BLOCK ADMIN 6.1: the old header duplicated "Админ-панель" (sidebar already says "Админ")
+       * plus a marketing subtitle ("Операционный центр: KPI, модерация и быстрые действия.") on
+       * every section. Non-dashboard sections already render their own AdminSectionHead title —
+       * this block now only gives Dashboard (which has no AdminSectionHead of its own) a title. */}
+      {activeSection === "dashboard" && (
+        <header className="admin-page-header">
+          <h1 className="admin-page-header__title">{m(locale, "adminNav.dashboard")}</h1>
+        </header>
+      )}
+
+      <AdminSecurityPanel
+        open={securityPanelOpen}
+        closeHref={securityPanelCloseHref}
+        locale={locale}
+        admin={admin}
+        securityError={securityError}
+        securityMessage={securityMessage}
+        securityOk={securityOk}
+        securityOkMessage={securityOkMessage}
+        adminSecurityResetAvailable={adminSecurityResetAvailable}
+      />
 
       {activeSection === "dashboard" && (
         <AdminDashboardOverview
@@ -549,63 +575,6 @@ export default async function AdminDashboardPage({
             </label>
             <AdminSubmitButton loadingLabel={m(locale, "admin.processing")}>{m(locale, "admin.legalPagesSave")}</AdminSubmitButton>
           </AdminNativeForm>
-        </div>
-
-        <div className="admin-panel">
-          <div className="text-sm font-semibold">{m(locale, "admin.securitySectionTitle")}</div>
-          <p className="mt-1 text-sm text-[var(--admin-text-muted)]">{m(locale, "admin.securitySectionHint")}</p>
-          <p className="mt-2 text-xs text-[var(--admin-text-muted)]">{m(locale, "admin.securityCurrentPasswordHint")}</p>
-          {securityError && <div className="admin-alert admin-alert--error mt-3">{securityMessage}</div>}
-          {securityOk && securityOkMessage && <div className="admin-alert admin-alert--success mt-3">{securityOkMessage}</div>}
-          <AdminNativeForm action="/api/admin/security/update" method="post" className="admin-form-grid admin-form-grid--2 mt-4">
-            <label className="admin-field">
-              {m(locale, "admin.securityNewPhone")}
-              <input name="phone" defaultValue={admin.phone} />
-            </label>
-            <label className="admin-field">
-              {m(locale, "admin.securityNewEmail")}
-              <input name="email" type="email" defaultValue={admin.email ?? ""} />
-            </label>
-            <label className="admin-field md:col-span-2">
-              {m(locale, "admin.securityCurrentPassword")}
-              <input name="currentPassword" type="password" required autoComplete="current-password" />
-            </label>
-            <label className="admin-field md:col-span-2">
-              {m(locale, "admin.securityNewPassword")}
-              <input name="newPassword" type="password" minLength={6} autoComplete="new-password" />
-            </label>
-            <AdminSubmitButton className="md:col-span-2" loadingLabel={m(locale, "admin.processing")}>
-              {m(locale, "admin.securitySave")}
-            </AdminSubmitButton>
-          </AdminNativeForm>
-
-          {adminSecurityResetAvailable && (
-            <div className="mt-8 border-t border-[var(--admin-border)] pt-6">
-              <div className="text-sm font-semibold">{m(locale, "admin.securityEmergencyTitle")}</div>
-              <p className="mt-1 text-xs text-[var(--admin-text-muted)]">{m(locale, "admin.securityEmergencyHint")}</p>
-              <AdminNativeForm action="/api/admin/security/reset" method="post" className="admin-form-grid admin-form-grid--2 mt-4">
-                <label className="admin-field md:col-span-2">
-                  {m(locale, "admin.securityEmergencyResetSecret")}
-                  <input name="resetSecret" type="password" required />
-                </label>
-                <label className="admin-field">
-                  {m(locale, "admin.securityNewPhone")}
-                  <input name="phone" defaultValue={admin.phone} />
-                </label>
-                <label className="admin-field">
-                  {m(locale, "admin.securityNewEmail")}
-                  <input name="email" type="email" defaultValue={admin.email ?? ""} />
-                </label>
-                <label className="admin-field md:col-span-2">
-                  {m(locale, "admin.securityNewPassword")}
-                  <input name="newPassword" type="password" required minLength={6} />
-                </label>
-                <AdminSubmitButton variant="warning" className="md:col-span-2" loadingLabel={m(locale, "admin.processing")}>
-                  {m(locale, "admin.securityEmergencyCta")}
-                </AdminSubmitButton>
-              </AdminNativeForm>
-            </div>
-          )}
         </div>
       </section>}
 

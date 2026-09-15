@@ -28,7 +28,9 @@ export async function POST(req: NextRequest) {
   const ip = clientIp(req);
   const ua = req.headers.get("user-agent") ?? undefined;
 
-  const redirectUrl = publicUrl(req, "/dashboard/admin?section=content");
+  // BLOCK ADMIN 6.1 (ADM-16): self-security placement moved out of the Content section into the
+  // header profile menu — only the redirect destination changed, not auth/validation/behavior.
+  const redirectUrl = publicUrl(req, "/dashboard/admin?account=security");
   if (!currentPassword) {
     redirectUrl.searchParams.set("error", "security-required");
     return NextResponse.redirect(redirectUrl);
