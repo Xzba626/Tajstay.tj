@@ -4,7 +4,7 @@ import { getOwnerUser } from "@/lib/auth/requireOwner";
 import { forbiddenJson } from "@/lib/auth/apiResponses";
 import { getBookingForOwner } from "@/lib/auth/ownerBooking";
 import { BOOKING_STATUS } from "@/lib/domain/booking";
-import { addBookingSystemMessage } from "@/lib/chat/bookingChat";
+import { addBookingSystemEvent } from "@/lib/chat/systemEvents";
 
 function isSameLocalDay(a: Date, b: Date): boolean {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
@@ -41,9 +41,10 @@ export async function POST(_: NextRequest, { params }: { params: { id: string } 
 
   await prisma.booking.update({ where: { id }, data: { status: BOOKING_STATUS.CHECKED_IN } });
 
-  await addBookingSystemMessage({
+  await addBookingSystemEvent({
     bookingId: id,
-    message: "🛡️ Система: Владелец подтвердил заселение. Средства заморожены до завершения."
+    eventType: "checkin.confirmed",
+    payload: {}
   });
 
   if (booking.userId != null) {

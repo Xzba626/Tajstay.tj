@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/requireAuth";
 import { BOOKING_STATUS } from "@/lib/domain/booking";
-import { addBookingSystemMessage } from "@/lib/chat/bookingChat";
+import { addBookingSystemEvent } from "@/lib/chat/systemEvents";
 
 const BLOCKED = new Set([
   BOOKING_STATUS.COMPLETED,
@@ -49,9 +49,10 @@ export async function POST(_: NextRequest, { params }: { params: { id: string } 
     await prisma.payment.update({ where: { id: booking.payment.id }, data: { status: "FAILED" } });
   }
 
-  await addBookingSystemMessage({
+  await addBookingSystemEvent({
     bookingId: id,
-    message: "🛡️ Система: Бронирование отменено администратором."
+    eventType: "booking.cancelled_by_admin",
+    payload: {}
   }).catch(() => undefined);
 
   if (booking.userId != null) {

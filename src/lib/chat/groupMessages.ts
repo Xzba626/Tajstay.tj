@@ -8,6 +8,9 @@ export type ChatRow = {
   status?: string;
   readAt?: string | null;
   createdAt: string;
+  /** BLOCK 5.6D — passthrough only; see src/lib/chat/systemEvents.ts for how these render. */
+  eventType?: string | null;
+  eventPayload?: string | null;
 };
 
 export type ChatListItem =

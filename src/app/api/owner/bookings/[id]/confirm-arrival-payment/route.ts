@@ -4,7 +4,7 @@ import { getOwnerUser } from "@/lib/auth/requireOwner";
 import { forbiddenJson } from "@/lib/auth/apiResponses";
 import { getBookingForOwner } from "@/lib/auth/ownerBooking";
 import { BOOKING_STATUS } from "@/lib/domain/booking";
-import { addBookingSystemMessage } from "@/lib/chat/bookingChat";
+import { addBookingSystemEvent } from "@/lib/chat/systemEvents";
 
 function isSameLocalDayOrLater(now: Date, checkIn: Date): boolean {
   const nowDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -77,9 +77,10 @@ export async function POST(_req: NextRequest, { params }: { params: { id: string
     }
   });
 
-  await addBookingSystemMessage({
+  await addBookingSystemEvent({
     bookingId: id,
-    message: "🛡️ Система: Оплата при заселении подтверждена. Гость заселён."
+    eventType: "arrival_payment.confirmed",
+    payload: {}
   });
 
   if (booking.userId != null) {

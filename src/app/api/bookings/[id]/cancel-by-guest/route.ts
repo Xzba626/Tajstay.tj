@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/requireAuth";
-import { addBookingSystemMessage } from "@/lib/chat/bookingChat";
+import { addBookingSystemEvent } from "@/lib/chat/systemEvents";
 import { bookingHotel } from "@/lib/pms/bookingContext";
 import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
 
@@ -65,9 +65,10 @@ export async function POST(_: NextRequest, { params }: { params: { id: string } 
     });
   });
 
-  await addBookingSystemMessage({
+  await addBookingSystemEvent({
     bookingId: id,
-    message: "🛡️ Система: Бронирование отменено пользователем. Сессия закрыта."
+    eventType: "booking.cancelled_by_guest",
+    payload: {}
   }).catch(() => undefined);
 
   return NextResponse.json({ ok: true }, { status: 200 });

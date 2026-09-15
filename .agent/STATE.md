@@ -2502,6 +2502,375 @@ items: system-message semantic-event model, TripBookingCard/TripChatRow dead-cod
 runtime confirmation), admin Disputes list, mobile chat layout rebuild. **Pay-at-check-in 20%
 prepayment = PRODUCT DECISION, NOT IMPLEMENTED** - explicitly not touched, per instruction.
 
+## BLOCK 5.6A — Master Chat Closure Continuation (PARTIAL — code done, runtime blocked)
+
+**Same block as 5.6, continued** - not a new BLOCK 5.7. Reviewer correctly pushed back that the
+mobile layout/composition items 5.6 had listed as "NOT ADDRESSED" (floating assistant over chat,
+bottom nav eating viewport, page-level scroll, dashboard-in-dashboard nesting, confirm dialogs)
+were in-scope for the original block, not future visual-block debt - the DB outage blocks runtime
+verification, not safe frontend/layout implementation. DB re-checked again here - still down, same
+credential conflict, not touched again.
+
+**Fixed, all CODE COMPLETE / RUNTIME BLOCKED** (tsc/eslint clean, one isolated `npm run build`
+exit 0):
+- **Bottom nav + floating assistant on active chat**: found both already shared one existing gate,
+  `isShellHiddenRoute()` (`src/constants/app-navigation.ts`), used for `/auth/*` and the two
+  dashboard shells - it just never included the chat route. Added `/chat/booking` to
+  `SHELL_HIDDEN_PREFIXES`. One line, reuses the exact existing mechanism, hides both
+  simultaneously, doesn't touch either component. Unit-verified directly (no DB needed): 9/9 route
+  cases pass, including a `/chatbot` non-match guard.
+- **Mobile page-level scroll / dashboard-in-dashboard**: root cause was `BookingRoom.tsx` stacking
+  header/review-banner/proof-banner/DisputeActions/review-form unconditionally above the thread,
+  forcing the whole page to scroll before reaching the conversation - `.chat-page__thread` itself
+  already had a correct internal-scroll contract. Wrapped that whole pre-thread block in a
+  collapsible `<details>`, reusing the exact pattern the aside already used - closed by default on
+  mobile (open only when `focusReview`/`ON_REVIEW`/just-sent-proof), always expanded on desktop
+  (twin-render, same technique as the aside). New `.chat-page__context*` classes in `chat.css` on
+  existing tokens.
+- **Confirm dialogs**: new `src/components/chat/ChatConfirmDialog.tsx` (scoped to chat actions
+  only) replaces the two hand-rolled dark `fixed inset-0` blocks (guest cancel, admin cancel) -
+  adds `role="alertdialog"`/`aria-modal`/labelledby/describedby, Escape-to-cancel, auto-focus on
+  confirm, reuses the existing `.modal-surface` light-mode system rather than inventing styling.
+  New i18n keys `chat.guestCancelTitle/Desc/Confirm` (RU/TG/EN).
+- **Guest "Пожаловаться" compact entry**: `DisputeActions.tsx` was already the single-toggle
+  component the spec wanted (not "four pills", confirmed in the original audit) but rendered an
+  always-visible dark card even when idle and used the old dark-glass palette. Now renders nothing
+  but a small text action when idle, recolored to light tokens, relabeled "Открыть спор" ->
+  **"Пожаловаться"** (RU) / "Шикоят кардан" (TG) / "Report an issue" (EN), added a Cancel button to
+  the open-form state. No schema change - still posts to the existing `Dispute.reason` field; a
+  `category` field would need a migration, explicitly not forced without DB access.
+
+**Deliberately still NOT done this pass** (named explicitly, not silently dropped):
+- **Admin Disputes list** - genuinely new admin surface (new section, query, RU-only copy, nav
+  badge), judged too large a net-new addition to build unverified against a down DB in this pass.
+  Recommended next step, per 5.6's own Dispute-canonical decision.
+- **Role-render matrix** (guest/owner/manager/admin visibility table) - spot-checked in code
+  (mutually-exclusive `currentUserRole` gates confirmed by reading, not tabulated exhaustively);
+  the reviewer's specific "admin account also created a booking" scenario needs a real multi-role
+  fixture to reproduce, not available while DB is down.
+- **Archive/read-only architecture** - pre-existing `chatArchived`/`canSend` gating left as-is, not
+  re-audited or extended.
+- System-event semantic model (`eventType`/`payload`) - still not started, still plain-Russian body.
+
+**Full evidence, per-defect table, and extended verdict matrix**: `BLOCK_5.6_MASTER_CHAT_REPORT.md`
+section 12 ("BLOCK 5.6A - Closure Continuation").
+
+**Verdict**: CHAT ARCHITECTURE / RELIABILITY CODE / LIGHT MODE / MOBILE LAYOUT CODE / DISPUTE FLOW
+/ LOCALIZATION = PASS STATIC. RELIABILITY RUNTIME / MOBILE RUNTIME = BLOCKED. ROLE SEPARATION /
+ACCESSIBILITY = PARTIAL. ADMIN DISPUTES / SYSTEM EVENTS / ARCHIVE-READ-ONLY re-audit = NOT DONE.
+`BLOCK 5.6 (overall, 5.6+5.6A) = PARTIAL`.
+
+**NEXT**: once DB is restored - full BLOCK 5.6 runtime matrix (unchanged from 5.6's own NEXT).
+Until then: build the Admin Disputes list, the role-render matrix, and the system-event model as
+the next code-addressable steps. Not starting BLOCK 5.7/a new product block. Full pending-debt list
+carried forward unchanged from BLOCK 5.5A/5.5A.1/5.5B/5.6 (populated Owner audit, full Admin audit,
+A-E classification, Header reconfirmation, RU/TG/EN runtime, accessibility, performance, security
+observation, Wizard RU leakage, Pay-at-check-in escrow-copy mismatch, native SearchBar date-input
+issue, green token drift, dark mode not implemented, no owner cancel route, no NO_SHOW flow,
+divergent check-in date-window rules, orphaned `home-pr2.css`, system-message semantic-event model,
+TripBookingCard/TripChatRow dead-code cleanup, admin Disputes list, chat role-render matrix), plus
+a new item surfaced this pass: **Map/Search backlog** - public "Модерация отелей" role-leakage on
+the Map/Search surface, incorrect guest-context data on the map, map layout/empty-state issues, and
+an open future product decision on the map provider (current vs. Google Maps/Yandex/2GIS) - not
+investigated or touched this pass, flagged only per the user's explicit note. **Pay-at-check-in 20%
+prepayment = PRODUCT DECISION, NOT IMPLEMENTED** - unchanged.
+
+## BLOCK 5.6B — Admin Disputes List (PARTIAL — code done, runtime blocked)
+
+**Same block, continued** - closes the last of 5.6A's four named gaps that was actually buildable
+without DB (Admin Disputes list). DB re-checked again - still down, unchanged, not touched.
+
+Extended the existing "Жалобы" admin tab (not a new sidebar entry) to **"Жалобы и споры"** (RU) /
+"Шикоятҳо ва баҳсҳо" (TG) / "Complaints & disputes" (EN) - added a second grid below the existing
+Complaint cards, sourced from the canonical `Dispute` model, reusing the exact same
+`AdminSectionHead`/`AdminRecordCard`/`AdminDataToolbar`/`Pagination`/`EmptyState` primitives the
+Complaints grid already uses. Each card: guest label + hotel name (same `getBookingGuestLabel()`/
+`bookingHotel()` try/catch pattern as BLOCK 5.5B's P1-1 fix), status badge (reused
+`complaintStatusVariant`, already generic), opened-by/against, reason, existing resolution if any,
+and a direct "Открыть переписку" link to `/chat/booking/{id}` - kept the admin list and the live
+chat as two separate surfaces, per instruction not to turn every chat into a permanent moderation
+dashboard. New `POST /api/admin/disputes/resolve` mirrors the pre-existing
+`/api/admin/complaints/resolve` exactly (same auth pattern, same redirect shape) - sets
+`status: RESOLVED` + optional `resolution` text + `resolvedAt`. No schema change. Chose to extend
+the existing section rather than add a new `AdminSection`/sidebar entry - no changes needed to
+`AdminSidebar.tsx` or the mobile drawer groups.
+
+**Not built**: a global sidebar badge for open-dispute count (would touch `AdminSidebar.tsx`'s
+props/layout, judged out of minimal-IA scope); a separate dispute detail page (everything fit on
+the existing card).
+
+**Gates**: `tsc`/eslint clean; one isolated `npm run build`, exit 0. **Zero runtime verification**
+- the query, resolve route, and chat deep-link have not been exercised against a real `Dispute` row.
+
+Full detail: `BLOCK_5.6_MASTER_CHAT_REPORT.md` section 13.
+
+**Verdict**: ADMIN DISPUTES = PASS STATIC / RUNTIME BLOCKED. Remaining named gaps from 5.6A still
+open: role-render matrix, archive/read-only re-audit, system-event semantic model.
+`BLOCK 5.6 (overall, 5.6+5.6A+5.6B) = PARTIAL`.
+
+**NEXT**: once DB is restored - full BLOCK 5.6 runtime matrix, including the new Admin Disputes
+list and its resolve action. Until then, next code-addressable items are the role-render matrix and
+the system-event semantic model. Not starting BLOCK 5.7/a new product block. All pending-debt items
+carried forward unchanged (see BLOCK 5.6A's list above, including the Map/Search backlog).
+**Pay-at-check-in 20% prepayment = PRODUCT DECISION, NOT IMPLEMENTED** - unchanged.
+
+## BLOCK 5.6C — Role Separation + Archive Lifecycle Audit + System-Event Architecture (PARTIAL — code done, runtime blocked)
+
+**Same block, continued.** Also corrected a documentation inconsistency the reviewer caught:
+`BLOCK_5.6_MASTER_CHAT_REPORT.md`'s old "Next steps" section still said "Build and verify the Admin
+Disputes list" after 5.6B had already built it - re-worded to "runtime-verify" rather than silently
+edited (the correction itself is visible in the report, section 11). DB re-checked again - still
+down, unchanged, not touched.
+
+**Role-render matrix - real defect found and fixed, matching the reported screenshot exactly**:
+`src/app/chat/booking/[bookingId]/page.tsx` correctly computes independent `isGuest`/`isOwner`/
+`isAdmin` booleans via `authorizeBookingAccess()`, but then used **raw `user.role`** (not those
+booleans) for the chat `title` and, critically, for `currentUserRole` - the one prop both
+`BookingRoom.tsx` and `BookingChatPanel.tsx` derive every moderation control from. Result: an admin
+account that is also the guest on its own booking got the full moderation UI ("АДМИН · чат брони"
+title, admin quick replies, delete/purge buttons, admin cancel, the big confirm-payment button)
+instead of a normal guest conversation - exactly the screenshot defect. **Fixed**: added a single
+`presentationRole = isGuest ? "GUEST" : isOwner ? "OWNER" : "ADMIN"` (participant context always
+wins) used everywhere `user.role`/`isAdmin` was previously used for presentation. No new
+query-param or client-controlled flag - a pure reordering of priority over booleans the backend
+already computed authoritatively, so no new escalation surface; an admin visiting *someone else's*
+booking still correctly gets the moderation view. Backend moderation routes (`requireUser(["ADMIN"])`)
+are untouched and remain authoritative on the real account role, independent of this UI fix - by
+design. Full render matrix (GUEST/OWNER/ADMIN/ADMIN-AS-OWN-GUEST x every capability) in the report,
+section 14.1. Confirmed: no separate Manager/Staff role exists anywhere in chat authorization
+(single-owner `Hotel.ownerId` model) - not fabricated for the matrix.
+
+**Archive/read-only lifecycle - audited, found mostly already correct, two real gaps flagged**:
+traced `isBookingChatLocked()` (`messages/route.ts`) and the existing two-tier archive system
+(`bookingChat.ts`) in full. Good news: the write-lock is genuinely backend-enforced (`POST` returns
+403 before creating a row, not just a disabled textarea) and a non-destructive 15-day cold-storage
+archive job already exists (`isArchived` flags, no deletion). Two real gaps found and **not**
+silently fixed, per instruction - flagged as open product decisions: (1) `isBookingChatLocked` has
+no awareness of an `OPEN` `Dispute` - a booking reaching a terminal status mid-dispute locks the
+chat immediately with no carve-out; (2) once `chatArchivedAt` is set, `GET` returns an **empty**
+message list to any non-admin caller - a guest/owner loses read access to their own old
+conversation, which may not match "stays available for history" as stated. Three options (A/B/C)
+laid out in the report, section 14.2 - none implemented, per the explicit "if ambiguous, STOP and
+report options" instruction.
+
+**System-event inventory - complete, model proposed, not implemented**: found and cited all 11
+`SYSTEM`-role `ChatMessage` writers across the codebase (booking welcome, proof received/submitted/
+rejected, payment confirmed, arrival-payment confirmed, check-in confirmed, booking expired/
+cancelled by guest/admin, proof-review expired). Proposed an additive, backward-compatible model:
+nullable `eventType`/`payload` columns on `ChatMessage` (payload as JSON-in-String, mirroring the
+existing `TransactionLog.payload` convention already in this schema) - legacy rows keep rendering
+their existing `body` unchanged, new rows would carry both. **Not coded** - the exact localization-key
+convention, whether to backfill historical rows (lossy/fuzzy, itself a product-risk decision), and
+not being able to confirm a migration applies cleanly without a live DB were judged real open
+questions, not something to decide or attempt unilaterally. Full writer table in the report,
+section 14.3.
+
+**Admin Disputes security static audit** (`/api/admin/disputes/resolve`, built in 5.6B): checked
+against the full explicit checklist (auth, non-admin denial, ID validation, nonexistent-id handling,
+idempotency, resolution length, no arbitrary booking mutation, no cross-entity ID confusion, no
+client-supplied resolvedAt/status, no open-redirect) - **found and fixed one real defect**: a plain
+`prisma.dispute.update()` threw an uncontrolled 500 on a nonexistent dispute id; changed to
+`updateMany` (the same atomic pattern already proven in BLOCK 5.5B's completion route), which now
+resolves deterministically regardless. Every other check already passed by construction.
+
+**Gates**: `tsc`/eslint clean on every touched file; one isolated `npm run build`, exit 0. **Zero
+runtime verification** - the admin-as-guest scenario, the archive lock/read behavior, and the fixed
+dispute-resolve route have not been exercised against a live database.
+
+Full evidence and the consolidated matrix (per the required PASS/PASS STATIC/PARTIAL/BLOCKED/FAIL/
+NOT STARTED vocabulary): `BLOCK_5.6_MASTER_CHAT_REPORT.md` section 14.
+
+**Verdict**: ROLE SEPARATION CODE / ARCHIVE POLICY ARCHITECTURE / ARCHIVE BACKEND ENFORCEMENT /
+SYSTEM EVENT INVENTORY / ADMIN DISPUTES SECURITY STATIC = PASS. SYSTEM EVENT MODEL / LEGACY
+COMPATIBILITY = PARTIAL (designed, not coded). SYSTEM EVENT LOCALIZATION = NOT STARTED. Everything
+RUNTIME = BLOCKED. Two explicit open product decisions on archive lifecycle, not decided.
+`BLOCK 5.6 (overall, 5.6+5.6A+5.6B+5.6C) = PARTIAL`.
+
+**NEXT**: once DB is restored - the full consolidated runtime matrix from the report's section 14.5
+(role-as-guest fixture test, archive lock/read behavior, 10+ minute reliability session, mobile
+375x812 + desktop, RU/TG/EN, disputes end-to-end). Until then, the only remaining code-addressable
+items are: (a) a product decision on the two archive-lifecycle gaps (§14.2 options A/B/C) - this
+needs the user's call, not a unilateral implementation; (b) if that decision is made, implementing
+it; (c) the system-event schema migration itself, once its remaining open questions (§14.3) are
+resolved. Not starting BLOCK 5.7/a new product block. All prior pending-debt items carried forward
+unchanged (see BLOCK 5.6A's list, including the Map/Search backlog). **Pay-at-check-in 20%
+prepayment = PRODUCT DECISION, NOT IMPLEMENTED** - unchanged.
+
+## BLOCK 5.6D — Archive Policy Implementation + Semantic System Events (PARTIAL — code closed, runtime blocked)
+
+**Same block, continued - the two open product decisions from 5.6C are now decided by the user
+and implemented exactly as specified, not re-litigated.** DB re-checked again - still down, same
+credential conflict, not touched.
+
+**Decisions implemented**:
+- **Cold-archive read access (Option B)**: guests/owners no longer lose read access to their own
+  archived chat history. Root cause was two-layered - the route special-cased an empty response
+  for non-admins, AND the normal message query filters `isArchived:false` while the archive job
+  flips every row to `isArchived:true` - both fixed via a new `getArchivedBookingChatMessages()`
+  (`bookingChat.ts`) wired into `GET .../messages` for the archived case. `canSend` stays false;
+  this is read-only history, not a reactivated conversation.
+- **Dispute carve-out (scoped Option C)**: `isBookingChatLocked()` extracted to a pure, exported,
+  unit-tested module (`src/lib/chat/chatLock.ts`) and made dispute-aware: terminal status + an
+  OPEN dispute stays temporarily writable for participants/admin; RESOLVED reapplies the lock
+  immediately; `chatArchivedAt` set always locks unconditionally regardless of dispute state (the
+  unconditional backstop). Two supporting fixes close the bypass risk explicitly flagged by the
+  user: (1) `POST /api/disputes` now rejects opening a NEW dispute once `chatArchivedAt` is set -
+  a dispute can't be used to reawaken a cold-archived chat; (2) the scheduled archive job
+  (`findBookingsEligibleForChatArchive`) now excludes any booking with a still-OPEN dispute, so it
+  never cold-archives (and thereby locks) a chat a legitimate dispute is actively using - it
+  becomes eligible again once the dispute resolves.
+
+**System-event architecture implemented** (schema PREPARED, not applied - DB down):
+- Additive migration authored (`prisma/migrations/20260915120000_chat_message_semantic_events/`) -
+  two nullable `ChatMessage` columns, `eventType`/`eventPayload`. `prisma validate` and `prisma
+  generate` both succeed (schema-only, no DB needed); the migration itself has NOT been applied to
+  any database and is unverified against a live schema.
+- One centralized writer, `addBookingSystemEvent()` (`src/lib/chat/systemEvents.ts`), replacing
+  the old free-text `addBookingSystemMessage` at all 11 call sites (re-grepped before starting -
+  still exactly 11, no 12th writer appeared since BLOCK 5.6C's inventory). Typed payload per event
+  type (TS-enforced, not just convention), centralized bounded JSON serialization, centralized
+  legacy-compatible RU `body` generation.
+- One centralized renderer, `renderSystemEvent(locale, row)`, wired into every live-render
+  consumer (`BookingChatPanel.tsx`, `bookingTimeline.ts`/`BookingTimeline.tsx`) - NOT wired into
+  the admin chat-archive export view, which was confirmed (by reading it) to be a static
+  audit/export surface that should keep showing fixed historical text, not a live-relocalized one.
+  Legacy rows (`eventType:null`), unrecognized event types, and malformed payloads all fall back
+  to the stored `body` safely - never crash, never render empty.
+- RU/TG/EN: all 13 `chat.systemEvent.*` keys added to all three locale blocks; RU text matches the
+  previously-hardcoded legacy strings verbatim.
+- `checkin.confirmed`'s escrow language ("Средства заморожены до завершения") was verified, not
+  assumed, to be Pay-Now-only: the owner check-in route explicitly rejects `payOnArrival` bookings
+  before ever reaching that system message - cited directly, not guessed at.
+- Historical backfill explicitly NOT done, per instruction - every legacy SYSTEM row keeps
+  `eventType:null` forever, no fuzzy parsing of old Russian text attempted.
+- Old `addBookingSystemMessage` kept (not deleted), marked `@deprecated`, zero remaining in-repo
+  callers confirmed by grep.
+
+**New pure-function static test suite** (`scripts/test-block56d-static.ts`, zero DB dependency,
+`npx tsx` runnable): 28/28 passed - 8 archive/lock cases, 12 system-event cases (RU/TG/EN exact
+strings, legacy/unknown/malformed fallback, reason interpolation, both welcome variants, same-row-
+different-locale, and the pay-at-check-in no-escrow-language proof), 4 role-presentation regression
+cases (including the BLOCK 5.6C admin-as-own-guest fix), 3 shell-hiding regression cases carried
+over from BLOCK 5.6A. Admin-dispute-security items 27-29 from the original matrix remain covered
+only by the BLOCK 5.6C code-reading audit, not an executable test - no Jest/Vitest exists anywhere
+in this repo, and standing one up just for 3 checks was judged out of scope for this pass.
+
+**Gates**: `tsc`/eslint clean on every touched file; the new static test suite, executed (28/28);
+`prisma validate`+`prisma generate` clean; one isolated `npm run build`, exit 0. **Migration not
+applied to any database. Zero live-DB verification of any archive/dispute/system-event behavior.**
+
+Full evidence and the final consolidated matrix: `BLOCK_5.6_MASTER_CHAT_REPORT.md` section 15.
+
+**Verdict**: every CODE-level item in the consolidated matrix (archive policy, write lock, read
+history, dispute carve-out, bypass protection, archive-job awareness, system-event schema/writers/
+renderer/RU/TG/EN/fallbacks/pay-at-checkin semantics, role regression) = PASS or PASS STATIC.
+RUNTIME for all of it = BLOCKED. `BLOCK 5.6 (overall, 5.6+5.6A+5.6B+5.6C+5.6D) = PARTIAL`.
+No code-addressable scope remains identified without either a live database or a new product
+decision the user has not yet asked for.
+
+**NEXT**: once DB is restored - apply the prepared migration (`prisma migrate deploy` or
+equivalent, on a real connection, verified it applies cleanly), then run the full consolidated
+runtime matrix across every 5.6 sub-block (role-as-admin-guest live fixture, archive read/write
+behavior with a real disputed booking, the archive job actually skipping a real OPEN dispute,
+10+ minute reliability session, mobile 375x812 + desktop, RU/TG/EN live rendering, disputes
+end-to-end through the Admin panel, cleanup). Not starting BLOCK 5.7/a new product block until that
+runtime matrix is run. All prior pending-debt items carried forward unchanged (see BLOCK 5.6A's
+list, including the Map/Search backlog). **Pay-at-check-in 20% prepayment = PRODUCT DECISION, NOT
+IMPLEMENTED** - unchanged.
+
+## BLOCK DB-RECOVERY — Local PostgreSQL Restoration + Full Runtime Gate (COMPLETE)
+
+**DB outage from BLOCK 5.5A.1 onward is RESOLVED.** Root cause confirmed (not re-guessed): the
+`postgres` role's password no longer matched TajStay's `.env` - a pure credential mismatch, service
+was always running and the `tajstay` database was always intact (23 real pre-existing users found
+once reachable - never corrupted, never empty). Fixed via the minimal path explicitly preferred
+over a destructive reset: user-approved temporary `pg_hba.conf` trust-auth window (backed up
+first, restored immediately after), one `ALTER ROLE postgres WITH PASSWORD ...` matching `.env`,
+then `scram-sha-256` restored and service restarted. **No database was dropped or recreated, no
+data was touched.** Leftover `koryob`/`aromat` database and role objects from other local projects
+were found and explicitly left untouched, per instruction.
+
+**Migration**: the BLOCK 5.6D additive `chat_message_semantic_events` migration applied cleanly via
+`prisma migrate deploy` - `prisma migrate status` now reads "Database schema is up to date!", zero
+drift, all 23 migrations applied. `ChatMessage.eventType`/`eventPayload` confirmed present via a
+direct `information_schema` query.
+
+**BLOCK 5.5B - now COMPLETE, real evidence obtained for all four P1s**:
+- P1-1 (Admin Bookings null-user): real HTTP against a real offline booking - 200, no crash, guest
+  fallback renders correctly.
+- P1-2 (review eligibility): real HTTP - CONFIRMED denied, COMPLETED+correct guest allowed (Review
+  row actually created), COMPLETED+wrong guest denied.
+- P1-3 (Search HotelCard): real browser screenshot - photo/name/rating/layout all render correctly.
+- P1-4 (Pay Now completion/Payout safety): re-ran the original 5.5A.1 proof script - both defect
+  scenarios now correctly blocked (HTTP 307 to `error=complete_requires_paid`, payoutCount=0 in
+  both cases). Independently reconfirmed via BLOCK 5.4B's own security script, whose stale
+  pre-5.5B-fix assertion now "fails" for the right reason (the newer stricter checkout gate is
+  active) while its financial-safety checks (no Payout, no escrow log) still pass.
+
+**BLOCK 5.6 (5.6/5.6A/5.6B/5.6C/5.6D) - now COMPLETE for every item with real evidence obtained
+this pass**:
+- Role separation: created a real booking where an ADMIN account is its own guest, requested the
+  real chat page as that admin - confirmed NO admin title, NO purge control, NO admin
+  confirm-payment button. The exact reported screenshot bug, now proven fixed live, not just
+  unit-tested.
+- Archive/dispute lock matrix: full 7-state real DB/HTTP matrix - active-writable, terminal-locked,
+  terminal+OPEN-dispute-writable, RESOLVED-relocks-immediately, cold-archive-locked-but-readable
+  (guest AND owner), new-dispute-after-archive-denied (409), unrelated-user-denied. All PASS.
+  Archive job's own dispute-awareness separately verified: skips a booking with an OPEN dispute,
+  picks it up once resolved.
+- Admin disputes security: unauthenticated/non-admin resolve denied; the nonexistent-dispute-id
+  defect found in BLOCK 5.6C's code audit is now confirmed FIXED live (controlled response, no
+  crash).
+- Semantic system events: triggered a real writer, confirmed the SAME stored row renders in RU/TG/EN
+  depending on the viewer's locale cookie - the core promise proven live, not just unit-tested.
+- Mobile 375x812: real browser screenshot confirms bottom nav gone, floating assistant gone, compact
+  collapsible booking context works, status pill readable, date divider subtle, composer clean,
+  "Пожаловаться" compact. **New defect found live and fixed on the spot**: the desktop aside's
+  "Ход брони" (`BookingTimeline.tsx`) card had never been recolored in any prior 5.6 pass - still
+  full dark-glass. Fixed to the same `chat-side-card`/`--taj-color-*` tokens used everywhere else,
+  re-screenshotted, confirmed light and consistent.
+- Confirmed still-present, pre-existing, unrelated: the `BookingTimeline` date-format hydration
+  mismatch (server/client `toLocaleString` difference) - not new, not fixed, carried forward again.
+
+**Explicitly NOT done this pass** (named, not silently rounded up): a real 10+ minute reliability
+soak with an actually-decaying session; an exhaustive RU/TG/EN visual walkthrough of every UI state
+(only the semantic-event case was live-verified in all three languages); a screenshot of the Admin
+Disputes list page itself (its data/security path was proven via direct HTTP+DB, the page render
+was not separately screenshotted).
+
+**New debt discovered, not fixed** (out of this block's authorized scope - infrastructure recovery
++ runtime proof, not a new visual sweep): 7 more chat-adjacent components still on the old
+dark-glass palette (`ArrivalPaymentAction.tsx`, `PaymentMethodsBlock.tsx`, `PaymentReviewCard.tsx`,
+`RejectProofModal.tsx`, `MessagesInbox.tsx`, `GuestReviewWaitingCard.tsx`, `ReviewBanner.tsx`) -
+found by grep after fixing `BookingTimeline.tsx` (the one with direct screenshot evidence), flagged
+for the upcoming Master Visual/UX phase rather than fixed blind. Also:
+`test-block54b-security.ts`'s completion sub-test uses a stale 2029 checkout date that predates the
+5.5B checkout-gate fix - needs a one-line update to stay meaningful, not fixed this pass since its
+current "failure" is confirming the fix, not breaking it.
+
+**Regression (BLOCK 5.2-5.4)**: every existing script re-run against the now-reachable DB -
+5.2A concurrency ALL PASS, 5.3 lifecycle ALL PASS, 5.3A security ALL PASS, 5.3A expiry-job ALL
+PASS, 5.4B concurrency ALL PASS, 5.4B security 8/10 PASS (2 stale-expectation non-regressions, see
+above).
+
+**Gates**: `tsc`/eslint clean; `prisma validate`+`generate`+`migrate status` all clean; one
+isolated `npm run build`, exit 0; the BLOCK 5.6D pure-function static suite still 28/28 PASS.
+
+Full evidence: `BLOCK_DB_RECOVERY_REPORT.md`.
+
+**Verdict**: `DB RECOVERY = PASS`. `BLOCK 5.5B = COMPLETE`. `BLOCK 5.6 = COMPLETE` for every item
+with real evidence in the report (PARTIAL only on the three explicitly-named not-done items and
+the newly-found 7-file dark-palette debt, neither of which is a regression or an open correctness
+question). `READY FOR MASTER VISUAL/UX = YES`.
+
+**NEXT**: begin the Master Visual/UX phase per the user's own planned sequencing - Booking Wizard
+first, then Auth/Profile, Owner/Admin shell/dashboard, Header/notifications, Search/Map, and the
+rest of the accumulated screenshot-defect backlog (including the newly-found 7-file dark-palette
+debt above, the `koryob`/`aromat` leftover-object cleanup decision, and the stale regression-script
+date). Not starting any of those without the user's explicit go-ahead on which one first. Full
+pending-debt list carried forward from BLOCK 5.6A (Map/Search backlog, etc.) plus the new items
+named above. **Pay-at-check-in 20% prepayment = PRODUCT DECISION, NOT IMPLEMENTED** - unchanged.
+
 ## BLOCK 5.1 — Private Upload Security (IN PROGRESS, not COMPLETE)
 
 Full report: `BLOCK_5.1_REPORT.md` (delivered via SendUserFile). Fixes BLOCK 5.0's R-2 finding

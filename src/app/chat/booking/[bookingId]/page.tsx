@@ -59,9 +59,21 @@ export default async function BookingChatPage({
     );
   }
 
+  // BLOCK 5.6C: presentation role must reflect PARTICIPANT context first, privileged ADMIN access
+  // only as the fallback — otherwise a platform admin who is simply the guest on their own
+  // booking gets the moderation-facing "АДМИН · чат брони" UI instead of a normal guest
+  // conversation (the exact bug confirmed from the reported screenshot: `authorizeBookingAccess`
+  // correctly computes isGuest/isOwner/isAdmin independently, but the raw `user.role` was used
+  // for the *title* and, more importantly, for `currentUserRole` passed all the way down into
+  // BookingRoom/BookingChatPanel, which derives every moderation control from it). No new
+  // query-param or client-controlled flag is introduced — this is purely a presentation-priority
+  // fix over booleans the backend already computed authoritatively. An admin opening someone
+  // else's booking (isGuest=false, isOwner=false) still correctly gets the ADMIN/moderation view,
+  // e.g. via the "Открыть переписку" link from Admin -> Жалобы и споры.
+  const presentationRole: "GUEST" | "OWNER" | "ADMIN" = isGuest ? "GUEST" : isOwner ? "OWNER" : "ADMIN";
   const backHref = isAdmin || isGuest ? tripsHubPath("all") : "/dashboard/owner";
   const title =
-    user.role === "ADMIN"
+    presentationRole === "ADMIN"
       ? m(locale, "bookingRoom.titleAdmin")
       : isGuest
         ? m(locale, "bookingRoom.titleGuest")
@@ -69,7 +81,7 @@ export default async function BookingChatPage({
 
   const [paymentMethods, timeline, proofMeta] = await Promise.all([
     getHotelPaymentMethods(hotel.id),
-    getBookingTimeline(bookingId),
+    getBookingTimeline(bookingId, locale),
     getProofMetaFromLogs(bookingId)
   ]);
 
@@ -85,13 +97,13 @@ export default async function BookingChatPage({
       locale={locale}
       bookingId={bookingId}
       currentUserId={user.id}
-      currentUserRole={user.role as "GUEST" | "OWNER" | "ADMIN"}
+      currentUserRole={presentationRole}
       isGuest={isGuest}
       backHref={backHref}
       title={title}
       guestLabel={guestLabel}
       counterpartPreview={
-        isAdmin
+        presentationRole === "ADMIN"
           ? `${guestLabel} · ${hotel.name}`
           : isGuest
             ? m(locale, "bookingRoom.counterpartGuest")

@@ -7,7 +7,7 @@ import { BOOKING_STATUS } from "@/lib/domain/booking";
 import { publicUrl } from "@/lib/http/publicOrigin";
 import { clientIp, rateLimit } from "@/lib/security/rateLimit";
 import { isSafePublicHttpsUrl } from "@/lib/security/safeUrl";
-import { addBookingSystemMessage } from "@/lib/chat/bookingChat";
+import { addBookingSystemEvent } from "@/lib/chat/systemEvents";
 import { bookingHotel } from "@/lib/pms/bookingContext";
 
 const MAX_FILE_BYTES = 4 * 1024 * 1024;
@@ -191,9 +191,10 @@ export async function POST(req: NextRequest) {
       }
     });
 
-    await addBookingSystemMessage({
+    await addBookingSystemEvent({
       bookingId: booking.id,
-      message: "🛡️ Система: Чек отправлен. Ожидается проверка владельца и администратором."
+      eventType: "proof.submitted",
+      payload: {}
     });
   }
 

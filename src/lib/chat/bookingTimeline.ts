@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { BOOKING_STATUS } from "@/lib/domain/booking";
+import type { Locale } from "@/lib/i18n/locale";
+import { renderSystemEvent } from "@/lib/chat/systemEvents";
 
 export type TimelineEventKind =
   | "BOOKING_CREATED"
@@ -27,7 +29,7 @@ function pushUnique(events: BookingTimelineEvent[], event: BookingTimelineEvent)
   events.push(event);
 }
 
-export async function getBookingTimeline(bookingId: number): Promise<BookingTimelineEvent[]> {
+export async function getBookingTimeline(bookingId: number, locale: Locale = "ru"): Promise<BookingTimelineEvent[]> {
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
     select: {
@@ -52,7 +54,7 @@ export async function getBookingTimeline(bookingId: number): Promise<BookingTime
       where: { bookingId, senderRole: "SYSTEM", deletedAt: null },
       orderBy: { createdAt: "asc" },
       take: 80,
-      select: { id: true, body: true, createdAt: true }
+      select: { id: true, body: true, createdAt: true, eventType: true, eventPayload: true }
     })
   ]);
 
@@ -225,7 +227,7 @@ export async function getBookingTimeline(bookingId: number): Promise<BookingTime
       kind: "SYSTEM",
       at: msg.createdAt.toISOString(),
       labelKey: "bookingRoom.timeline.system",
-      detail: msg.body.replace(/^🛡️\s*/, "").trim()
+      detail: renderSystemEvent(locale, msg).replace(/^🛡️\s*/, "").trim()
     });
   }
 

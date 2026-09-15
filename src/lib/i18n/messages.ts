@@ -1582,8 +1582,15 @@ const ru: Tree = {
     deleteOld: "Удалить старые",
     systemNote: "Системное уведомление",
     noBookingLink: "без привязки к брони",
-    complaints: "Жалобы",
+    complaints: "Жалобы и споры",
     complaintsEmpty: "Пока нет жалоб.",
+    disputesTitle: "Споры",
+    disputesEmpty: "Пока нет споров.",
+    disputeReasonLabel: "Причина",
+    disputeOpenedBy: "Открыл",
+    disputeAgainst: "Против",
+    disputeResolutionPlaceholder: "Комментарий администратора (необязательно)",
+    disputeOpenConversation: "Открыть переписку",
     resolve: "Пометить как решено",
     name: "Название",
     city: "Город",
@@ -1630,7 +1637,7 @@ const ru: Tree = {
     bookings: "Бронирования",
     bookingsShort: "Брони",
     finance: "Финансы",
-    complaints: "Жалобы",
+    complaints: "Жалобы и споры",
     notifications: "Уведомления"
   },
   owner: {
@@ -1987,11 +1994,35 @@ const ru: Tree = {
     confirmPayBig: "Подтвердить оплату и бронь",
     you: "Вы",
     modalBack: "Назад",
+    guestCancelTitle: "Отменить бронирование?",
+    guestCancelDesc: "Бронь будет закрыта. Это действие необратимо.",
+    guestCancelConfirm: "Отменить",
     adminCancelTitle: "Отменить бронирование?",
     adminCancelDesc:
       "Бронь будет аннулирована, гость получит уведомление. Это действие необратимо.",
     adminCancelConfirm: "Аннулировать бронь",
     adminCancelDone: "Бронирование отменено администратором",
+    // BLOCK 5.6D — semantic system-event render strings (src/lib/chat/systemEvents.ts). These are
+    // rendered live in the VIEWER's locale from stored eventType/eventPayload; the legacy `body`
+    // text baked at write-time (see fallbackBodyRu in the same file) stays fixed forever and is
+    // only ever shown for legacy rows or an unrecognized event.
+    systemEvent: {
+      bookingWelcomePayNow:
+        "🛡️ Система: Ассалому алейкум! Пожалуйста, отправьте чек об оплате в течение {payMin} минут. Как только вы прикрепите файл в чате или на странице оплаты, откроется {reviewMin} минут на проверку владельцем и администратором. Если не успеваете — напишите нам здесь.",
+      bookingWelcomePayAtCheckIn:
+        "🛡️ Система: Ассалому алейкум! Бронирование подтверждено. Предварительная оплата не требуется — оплатите непосредственно в отеле при заселении.",
+      proofReceived: "🛡️ Система: Чек получен. Отведено {reviewMinutes} минут на проверку администратором и владельцем.",
+      paymentConfirmedOwner: "🛡️ Система: Бронирование подтверждено! Ждем вас.",
+      paymentConfirmedAdmin: "🛡️ Система: Администратор подтвердил оплату (проверка спора).",
+      proofRejected: "🛡️ Система: Чек отклонён. {reason} Пожалуйста, отправьте новый чек.",
+      proofSubmitted: "🛡️ Система: Чек отправлен. Ожидается проверка владельца и администратором.",
+      bookingCancelledByGuest: "🛡️ Система: Бронирование отменено пользователем. Сессия закрыта.",
+      arrivalPaymentConfirmed: "🛡️ Система: Оплата при заселении подтверждена. Гость заселён.",
+      checkinConfirmed: "🛡️ Система: Владелец подтвердил заселение. Средства заморожены до завершения.",
+      bookingExpired: "🛡️ Система: Бронь отменена по истечении 15 минут. Чат закрыт.",
+      proofReviewExpired: "🛡️ Система: Время проверки чека истекло. Оплата отклонена.",
+      bookingCancelledByAdmin: "🛡️ Система: Бронирование отменено администратором."
+    },
     quickReply: {
       host: {
         "1": "Здравствуйте! Да, объект свободен на эти даты.",
@@ -2009,7 +2040,7 @@ const ru: Tree = {
     },
     dispute: {
       title: "Спор по брони",
-      open: "Открыть спор",
+      open: "Пожаловаться",
       openStatus: "Спор в обработке",
       placeholder: "Опишите проблему (минимум 10 символов)",
       submit: "Отправить",
@@ -3573,8 +3604,15 @@ const tg: Tree = {
     deleteOld: "Куҳнаро нест кардан",
     systemNote: "Огоҳии системавӣ",
     noBookingLink: "бе пайваст ба брон",
-    complaints: "Шикоятҳо",
+    complaints: "Шикоятҳо ва баҳсҳо",
     complaintsEmpty: "Шикоят нест.",
+    disputesTitle: "Баҳсҳо",
+    disputesEmpty: "Баҳс нест.",
+    disputeReasonLabel: "Сабаб",
+    disputeOpenedBy: "Кушодааст",
+    disputeAgainst: "Бар зидди",
+    disputeResolutionPlaceholder: "Шарҳи админ (ихтиёрӣ)",
+    disputeOpenConversation: "Гуфтугӯро кушоед",
     resolve: "Ҳалшуда қайд кардан",
     name: "Ном",
     city: "Шаҳр",
@@ -3621,7 +3659,7 @@ const tg: Tree = {
     bookings: "Бронҳо",
     bookingsShort: "Бронҳо",
     finance: "Молия",
-    complaints: "Шикоятҳо",
+    complaints: "Шикоятҳо ва баҳсҳо",
     notifications: "Огоҳиҳо"
   },
   owner: {
@@ -3952,11 +3990,31 @@ const tg: Tree = {
     confirmPayBig: "Пардохт ва бронро тасдиқ кунед",
     you: "Шумо",
     modalBack: "Бозгашт",
+    guestCancelTitle: "Бронро бекор кунем?",
+    guestCancelDesc: "Брон пӯшида мешавад. Ин амал барқарор нест.",
+    guestCancelConfirm: "Бекор кунед",
     adminCancelTitle: "Бронро бекор кунем?",
     adminCancelDesc:
       "Брон бекор мешавад, меҳмон огоҳӣ мегирад. Ин амал барқарор нест.",
     adminCancelConfirm: "Бронро бекор кунед",
     adminCancelDone: "Брон аз ҷониби админ бекор шуд",
+    systemEvent: {
+      bookingWelcomePayNow:
+        "🛡️ Система: Ассалому алайкум! Лутфан дар муддати {payMin} дақиқа квитансияи пардохтро фиристед. Вақте файлро дар чат ё дар саҳифаи пардохт зам мекунед, барои санҷиш аз ҷониби соҳиб ва админ {reviewMin} дақиқа дода мешавад. Агар вақт набошад — ин ҷо ба мо нависед.",
+      bookingWelcomePayAtCheckIn:
+        "🛡️ Система: Ассалому алайкум! Брон тасдиқ шуд. Пешпардохт лозим нест — мустақиман дар меҳмонхона ҳангоми воридшавӣ пардохт кунед.",
+      proofReceived: "🛡️ Система: Квитансия гирифта шуд. Барои санҷиш аз ҷониби админ ва соҳиб {reviewMinutes} дақиқа дода мешавад.",
+      paymentConfirmedOwner: "🛡️ Система: Брон тасдиқ шуд! Мунтазири шумо ҳастем.",
+      paymentConfirmedAdmin: "🛡️ Система: Админ пардохтро тасдиқ кард (санҷиши баҳс).",
+      proofRejected: "🛡️ Система: Квитансия рад карда шуд. {reason} Лутфан квитансияи навро фиристед.",
+      proofSubmitted: "🛡️ Система: Квитансия фиристода шуд. Санҷиши соҳиб ва админ интизор аст.",
+      bookingCancelledByGuest: "🛡️ Система: Брон аз ҷониби корбар бекор карда шуд. Сессия баста шуд.",
+      arrivalPaymentConfirmed: "🛡️ Система: Пардохт ҳангоми воридшавӣ тасдиқ карда шуд. Меҳмон ҷойгир шуд.",
+      checkinConfirmed: "🛡️ Система: Соҳиб воридшавиро тасдиқ кард. Маблағ то анҷом ях карда шуд.",
+      bookingExpired: "🛡️ Система: Брон пас аз 15 дақиқа бекор карда шуд. Чат баста шуд.",
+      proofReviewExpired: "🛡️ Система: Вақти санҷиши квитансия гузашт. Пардохт рад карда шуд.",
+      bookingCancelledByAdmin: "🛡️ Система: Брон аз ҷониби админ бекор карда шуд."
+    },
     quickReply: {
       host: {
         "1": "Салом! Бале, объект дар ин санаҳо озод аст.",
@@ -3974,7 +4032,7 @@ const tg: Tree = {
     },
     dispute: {
       title: "Низоъ оид ба брон",
-      open: "Кушодани низоъ",
+      open: "Шикоят кардан",
       openStatus: "Низоъ дар коркард",
       placeholder: "Мушкилотро тавсиф кунед (ҳадди ақал 10 аломат)",
       submit: "Ирсол",
@@ -5534,8 +5592,15 @@ const en: Tree = {
     deleteOld: "Delete old",
     systemNote: "System notification",
     noBookingLink: "not linked to booking",
-    complaints: "Complaints",
+    complaints: "Complaints & disputes",
     complaintsEmpty: "No complaints yet.",
+    disputesTitle: "Disputes",
+    disputesEmpty: "No disputes yet.",
+    disputeReasonLabel: "Reason",
+    disputeOpenedBy: "Opened by",
+    disputeAgainst: "Against",
+    disputeResolutionPlaceholder: "Admin note (optional)",
+    disputeOpenConversation: "Open conversation",
     resolve: "Mark resolved",
     name: "Name",
     city: "City",
@@ -5582,7 +5647,7 @@ const en: Tree = {
     bookings: "Bookings",
     bookingsShort: "Bookings",
     finance: "Finance",
-    complaints: "Complaints",
+    complaints: "Complaints & disputes",
     notifications: "Notifications"
   },
   owner: {
@@ -5913,11 +5978,31 @@ const en: Tree = {
     confirmPayBig: "Confirm payment & booking",
     you: "You",
     modalBack: "Back",
+    guestCancelTitle: "Cancel this booking?",
+    guestCancelDesc: "The booking will be closed. This cannot be undone.",
+    guestCancelConfirm: "Cancel",
     adminCancelTitle: "Cancel this booking?",
     adminCancelDesc:
       "The booking will be voided and the guest will be notified. This cannot be undone.",
     adminCancelConfirm: "Void booking",
     adminCancelDone: "Booking cancelled by admin",
+    systemEvent: {
+      bookingWelcomePayNow:
+        "🛡️ System: Hello! Please send your payment receipt within {payMin} minutes. Once you attach a file in chat or on the payment page, you get {reviewMin} minutes for the host and admin to review. If you need more time — message us here.",
+      bookingWelcomePayAtCheckIn:
+        "🛡️ System: Hello! Your booking is confirmed. No prepayment is needed — pay directly at the hotel at check-in.",
+      proofReceived: "🛡️ System: Receipt received. {reviewMinutes} minutes given for the admin and host to review.",
+      paymentConfirmedOwner: "🛡️ System: Booking confirmed! We look forward to your stay.",
+      paymentConfirmedAdmin: "🛡️ System: The admin confirmed the payment (dispute review).",
+      proofRejected: "🛡️ System: Receipt rejected. {reason} Please send a new receipt.",
+      proofSubmitted: "🛡️ System: Receipt sent. Awaiting host and admin review.",
+      bookingCancelledByGuest: "🛡️ System: Booking cancelled by the guest. Session closed.",
+      arrivalPaymentConfirmed: "🛡️ System: Arrival payment confirmed. Guest checked in.",
+      checkinConfirmed: "🛡️ System: The host confirmed check-in. Funds held in escrow until completion.",
+      bookingExpired: "🛡️ System: Booking cancelled after the 15-minute window. Chat closed.",
+      proofReviewExpired: "🛡️ System: Receipt review time expired. Payment rejected.",
+      bookingCancelledByAdmin: "🛡️ System: Booking cancelled by the admin."
+    },
     quickReply: {
       host: {
         "1": "Hello! Yes, the property is available on those dates.",
@@ -5935,7 +6020,7 @@ const en: Tree = {
     },
     dispute: {
       title: "Booking dispute",
-      open: "Open dispute",
+      open: "Report an issue",
       openStatus: "Dispute in progress",
       placeholder: "Describe the issue (at least 10 characters)",
       submit: "Submit",

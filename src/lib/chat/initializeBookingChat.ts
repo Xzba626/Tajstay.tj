@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
-import { addBookingSystemMessage, BOOKING_CHAT_LOG_TYPE } from "@/lib/chat/bookingChat";
-import { buildChatInitWelcome } from "@/lib/chat/initWelcomeMessage";
+import { BOOKING_CHAT_LOG_TYPE } from "@/lib/chat/bookingChat";
+import { addBookingSystemEvent } from "@/lib/chat/systemEvents";
+import { paymentWindowMinutesFromBooking } from "@/lib/chat/initWelcomeMessage";
 
 async function globalAdminId(): Promise<number | null> {
   const admin = await prisma.user.findFirst({
@@ -28,7 +29,11 @@ export type InitBookingChatResult =
  * Создаёт приветствие и уведомления для трёхстороннего чата по брони.
  * Вызывается с сервера после успешного создания брони и из POST /api/chat/.../init.
  */
-export async function initializeBookingChatRoom(bookingId: number, locale?: string): Promise<InitBookingChatResult> {
+// BLOCK 5.6D: `locale` param kept for call-site compatibility (the init API route still passes
+// the viewer's locale cookie) but is no longer used to bake the welcome text — booking.welcome is
+// now a semantic event rendered per-VIEWER locale at read time (see systemEvents.ts), not baked
+// into `body` at write time.
+export async function initializeBookingChatRoom(bookingId: number, _locale?: string): Promise<InitBookingChatResult> {
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
     include: bookingInclude
@@ -51,8 +56,16 @@ export async function initializeBookingChatRoom(bookingId: number, locale?: stri
     return { ok: true, ownerId, adminId, alreadyInitialized: true };
   }
 
-  const welcome = buildChatInitWelcome(locale, booking);
-  await addBookingSystemMessage({ bookingId, message: welcome });
+  if (booking.payOnArrival) {
+    await addBookingSystemEvent({ bookingId, eventType: "booking.welcome", payload: { variant: "pay_at_checkin" } });
+  } else {
+    const payMin = paymentWindowMinutesFromBooking(booking);
+    await addBookingSystemEvent({
+      bookingId,
+      eventType: "booking.welcome",
+      payload: { variant: "pay_now", payMin, reviewMin: 5 }
+    });
+  }
 
   await prisma.notification.createMany({
     data: [

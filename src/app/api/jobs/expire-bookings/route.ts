@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { BOOKING_STATUS } from "@/lib/domain/booking";
-import { addBookingSystemMessage } from "@/lib/chat/bookingChat";
+import { addBookingSystemEvent } from "@/lib/chat/systemEvents";
 
 export const dynamic = "force-dynamic";
 
@@ -56,9 +56,10 @@ export async function POST(req: NextRequest) {
     // Add system message in chat
     await Promise.all(
       expired.map((b) =>
-        addBookingSystemMessage({
+        addBookingSystemEvent({
           bookingId: b.id,
-          message: "🛡️ Система: Бронь отменена по истечении 15 минут. Чат закрыт."
+          eventType: "booking.expired",
+          payload: {}
         }).catch(() => undefined)
       )
     );
@@ -109,9 +110,10 @@ export async function POST(req: NextRequest) {
     });
     await Promise.all(
       reviewIds.map((id) =>
-        addBookingSystemMessage({
+        addBookingSystemEvent({
           bookingId: id,
-          message: "🛡️ Система: Время проверки чека истекло. Оплата отклонена."
+          eventType: "proof.review_expired",
+          payload: {}
         }).catch(() => undefined)
       )
     );

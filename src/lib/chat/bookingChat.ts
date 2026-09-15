@@ -22,6 +22,10 @@ export type BookingChatMessage = {
   status: string;
   readAt: string | null;
   createdAt: string;
+  /** BLOCK 5.6D — present only on rows written via addBookingSystemEvent(); null for every
+   * legacy SYSTEM row and for every non-SYSTEM message. See src/lib/chat/systemEvents.ts. */
+  eventType: string | null;
+  eventPayload: string | null;
 };
 
 export type ArchivedExportRow = {
@@ -78,6 +82,8 @@ function rowToDto(
     senderName: string;
     status: string;
     readAt: Date | null;
+    eventType?: string | null;
+    eventPayload?: string | null;
   }
 ): BookingChatMessage {
   return {
@@ -90,7 +96,9 @@ function rowToDto(
     imageUrl: row.imageUrl,
     status: row.status,
     readAt: row.readAt?.toISOString() ?? null,
-    createdAt: row.createdAt.toISOString()
+    createdAt: row.createdAt.toISOString(),
+    eventType: row.eventType ?? null,
+    eventPayload: row.eventPayload ?? null
   };
 }
 
@@ -138,6 +146,21 @@ export async function getBookingChatMessages(bookingId: number, take = 200): Pro
   return rows.map((r) => rowToDto(bookingId, r));
 }
 
+/** BLOCK 5.6D — cold-storage archive read for the ORIGINAL guest/owner (not admin, which has its
+ * own fuller `getAdminBookingChatTimeline`): once `chatArchivedAt` is set, every row's
+ * `isArchived` flips to true, so the normal `getBookingChatMessages` (which filters
+ * `isArchived: false`) returns nothing — that mismatch was the actual bug behind "guest loses
+ * their own chat history after archive." Deliberately still excludes soft-deleted
+ * (`deletedAt` set) rows, same as the live view — archive read access is not a moderation view. */
+export async function getArchivedBookingChatMessages(bookingId: number, take = 500): Promise<BookingChatMessage[]> {
+  const rows = await prisma.chatMessage.findMany({
+    where: { bookingId, deletedAt: null },
+    orderBy: { createdAt: "asc" },
+    take
+  });
+  return rows.map((r) => rowToDto(bookingId, r));
+}
+
 /** Полная лента для админа: все записи ChatMessage (в т.ч. архив/soft-delete) + legacy ChatArchive. */
 export async function getAdminBookingChatTimeline(bookingId: number, take = 500): Promise<BookingChatMessage[]> {
   await migrateLegacyBookingChatLogs(bookingId);
@@ -162,7 +185,10 @@ export async function getAdminBookingChatTimeline(bookingId: number, take = 500)
     imageUrl: r.imageUrl,
     status: "READ",
     readAt: r.archivedAt.toISOString(),
-    createdAt: r.originalCreatedAt.toISOString()
+    createdAt: r.originalCreatedAt.toISOString(),
+    // Legacy ChatArchive predates eventType/eventPayload entirely — always renders from `body`.
+    eventType: null,
+    eventPayload: null
   }));
 
   return [...fromLive, ...fromArch].sort(
@@ -197,6 +223,10 @@ export async function addBookingChatMessage(input: {
   });
 }
 
+/** @deprecated BLOCK 5.6D — every former caller now uses `addBookingSystemEvent()`
+ * (src/lib/chat/systemEvents.ts), which writes the same legacy `body` plus structured
+ * eventType/eventPayload. Left in place (not deleted) only in case an out-of-tree caller still
+ * depends on this exact free-text signature; grep confirmed zero in-repo callers remain. */
 export async function addBookingSystemMessage(input: { bookingId: number; message: string }) {
   const text = input.message.trim();
   if (!text) return;
@@ -301,7 +331,15 @@ const TERMINAL_ARCHIVE_STATUSES = new Set([
   "CANCELLED_BY_GUEST"
 ]);
 
-/** Брони: терминальный статус, выезд > N дней назад, ещё не chatArchivedAt, есть что архивировать. */
+/** Брони: терминальный статус, выезд > N дней назад, ещё не chatArchivedAt, есть что архивировать.
+ * BLOCK 5.6D: excludes bookings with a still-OPEN Dispute — the scheduled archive job must not
+ * cold-archive (and thereby lock) a chat that a legitimate dispute is actively using for
+ * communication. Once the dispute resolves, the booking becomes eligible on the next run like
+ * any other terminal booking. This is the other half of the dispute-lock-carve-out: the write
+ * lock itself (isBookingChatLocked in messages/route.ts) is dispute-aware for the terminal-status
+ * case, but a booking that reaches full cold storage is ALWAYS locked regardless of any dispute
+ * (see systemEvents... no — see messages/route.ts isBookingChatLocked) - so archival simply must
+ * not happen yet while the dispute is open. */
 export async function findBookingsEligibleForChatArchive(daysAfterCheckout = 15): Promise<number[]> {
   const cutoff = new Date(Date.now() - daysAfterCheckout * 24 * 60 * 60 * 1000);
   const rows = await prisma.booking.findMany({
@@ -309,6 +347,7 @@ export async function findBookingsEligibleForChatArchive(daysAfterCheckout = 15)
       checkOut: { lt: cutoff },
       status: { in: [...TERMINAL_ARCHIVE_STATUSES] },
       chatArchivedAt: null,
+      disputes: { none: { status: "OPEN" } },
       OR: [
         { chatMessages: { some: { isArchived: false, deletedAt: null } } },
         { logs: { some: { type: BOOKING_CHAT_LOG_TYPE } } }

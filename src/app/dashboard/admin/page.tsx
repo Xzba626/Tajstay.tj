@@ -24,6 +24,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { scoreHotelRisk } from "@/lib/services/riskScoring";
 import { deriveEscrowState, getBookingGuestLabel } from "@/lib/domain/booking";
 import { bookingHotel } from "@/lib/pms/bookingContext";
+import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
 import { notificationText } from "@/lib/notifications/text";
 import { AdminDashboardOverview } from "@/components/admin/AdminDashboardOverview";
 import { AdminFinanceSection } from "@/components/admin/AdminFinanceSection";
@@ -156,6 +157,7 @@ export default async function AdminDashboardPage({
   let hotelSubscriptions: any[] = [];
   let notes: any[] = [];
   let complaints: any[] = [];
+  let disputes: any[] = [];
   let unreadCount = 0;
   let riskNotes: any[] = [];
   let ownerApplications: any[] = [];
@@ -397,6 +399,18 @@ export default async function AdminDashboardPage({
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * pageSize,
       take: pageSize
+    });
+
+    // BLOCK 5.6A — Dispute is the canonical live system (already wired into real booking chat via
+    // DisputeActions.tsx / /api/disputes); Complaint's own creation UI is dead code. This is the
+    // one gap Dispute had vs. Complaint: no aggregated admin view. Shares the "complaints" section
+    // (relabeled "Жалобы и споры") rather than a new sidebar entry, per the smallest-IA-change
+    // guidance — kept independent of the Complaint `status`/`q` filters above since Dispute has
+    // its own status vocabulary (OPEN/RESOLVED/REJECTED, not PENDING).
+    disputes = await prisma.dispute.findMany({
+      include: { booking: { include: { ...bookingWithHotelInclude, user: true } }, openedBy: true, against: true },
+      orderBy: { createdAt: "desc" },
+      take: 50
     });
   }
 
@@ -1206,6 +1220,78 @@ export default async function AdminDashboardPage({
         </div>
         {!complaints.length && <EmptyState title={m(locale, "admin.complaintsEmpty")} />}
         <Pagination page={page} totalPages={totalPages} />
+
+        <AdminSectionHead
+          title={m(locale, "admin.disputesTitle")}
+          meta={
+            <AdminSectionStats
+              stats={[
+                {
+                  label: m(locale, "admin.disputesTitle"),
+                  value: disputes.length,
+                  tone: disputes.some((d) => d.status === "OPEN") ? "danger" : "default"
+                }
+              ]}
+            />
+          }
+        />
+        <div className="admin-record-grid">
+          {disputes.map((d) => {
+            let hotelName = "Отель не определён";
+            try {
+              hotelName = bookingHotel(d.booking).name;
+            } catch {
+              /* malformed booking relations — fall back to the section label rather than crash */
+            }
+            const guestLabel = getBookingGuestLabel(d.booking);
+            return (
+              <AdminRecordCard
+                key={d.id}
+                highlight={d.status === "OPEN" ? "danger" : "default"}
+                footer={
+                  d.status === "OPEN" ? (
+                    <AdminNativeForm action="/api/admin/disputes/resolve" method="post">
+                      <input type="hidden" name="id" value={d.id} />
+                      <input
+                        type="text"
+                        name="resolution"
+                        placeholder={m(locale, "admin.disputeResolutionPlaceholder")}
+                        className="mb-2 w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] px-2.5 py-1.5 text-sm"
+                      />
+                      <AdminSubmitButton loadingLabel={m(locale, "admin.processing")}>{m(locale, "admin.resolve")}</AdminSubmitButton>
+                    </AdminNativeForm>
+                  ) : undefined
+                }
+              >
+                <div className="admin-record-card__title-row">
+                  <span className="admin-record-card__title">
+                    {guestLabel} · {hotelName}
+                  </span>
+                  <StatusBadge variant={complaintStatusVariant(d.status)}>{tStatus(d.status)}</StatusBadge>
+                </div>
+                <div className="admin-record-card__meta">
+                  {m(locale, "admin.disputeOpenedBy")}: {d.openedBy?.name ?? "—"} · {m(locale, "admin.disputeAgainst")}: {d.against?.name ?? "—"} ·{" "}
+                  {formatDateTimeShort(locale, d.createdAt)}
+                </div>
+                <div className="mt-3 whitespace-pre-wrap rounded-lg bg-[var(--admin-surface-muted)] p-3 text-sm">
+                  <span className="font-semibold">{m(locale, "admin.disputeReasonLabel")}:</span> {d.reason}
+                </div>
+                {d.resolution ? (
+                  <div className="mt-2 whitespace-pre-wrap rounded-lg bg-[var(--admin-surface-muted)] p-3 text-sm text-[var(--admin-text-muted)]">
+                    {d.resolution}
+                  </div>
+                ) : null}
+                <Link
+                  href={`/chat/booking/${d.bookingId}`}
+                  className="mt-3 inline-block text-xs font-semibold text-[#0f7a4d] hover:underline"
+                >
+                  {m(locale, "admin.disputeOpenConversation")}
+                </Link>
+              </AdminRecordCard>
+            );
+          })}
+        </div>
+        {!disputes.length && <EmptyState title={m(locale, "admin.disputesEmpty")} />}
       </section>}
     </div>
   );

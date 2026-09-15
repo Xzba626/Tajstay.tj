@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth/requireAuth";
 import { prisma } from "@/lib/prisma";
-import { getAdminBookingChatTimeline, getBookingChatMessages } from "@/lib/chat/bookingChat";
+import { getAdminBookingChatTimeline, getArchivedBookingChatMessages, getBookingChatMessages } from "@/lib/chat/bookingChat";
 import { markBookingChatMessagesRead } from "@/lib/chat/markMessagesRead";
+import { isBookingChatLocked } from "@/lib/chat/chatLock";
 import { BOOKING_STATUS } from "@/lib/domain/booking";
 import { saveChatAttachmentFile } from "@/lib/uploads/saveChatAttachment";
 import { canAccessBookingChat } from "@/lib/chat/bookingAccess";
@@ -14,19 +15,6 @@ import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
  * pathname to a client; only the authenticated proxy route may resolve it to bytes. */
 function chatImageProxyUrl(bookingId: number, messageId: number): string {
   return `/api/files/booking/${bookingId}/chat/${messageId}`;
-}
-
-const TERMINAL_NO_NEW_MESSAGES = new Set<string>([
-  BOOKING_STATUS.EXPIRED,
-  BOOKING_STATUS.CANCELLED,
-  "CANCELLED_BY_GUEST",
-  BOOKING_STATUS.REJECTED,
-  BOOKING_STATUS.COMPLETED
-]);
-
-function isBookingChatLocked(booking: { chatArchivedAt: Date | null; status: string }): boolean {
-  if (booking.chatArchivedAt) return true;
-  return TERMINAL_NO_NEW_MESSAGES.has(booking.status);
 }
 
 function toClientMessages<T extends { id: number; imageUrl: string | null }>(
@@ -77,20 +65,22 @@ export async function GET(_: NextRequest, { params }: { params: { bookingId: str
   const booking = await ensureAccess(bookingId, user.id);
   if (!booking) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const locked = isBookingChatLocked(booking);
+  const hasOpenDispute = Boolean(
+    await prisma.dispute.findFirst({ where: { bookingId, status: "OPEN" }, select: { id: true } })
+  );
+  const locked = isBookingChatLocked(booking, hasOpenDispute);
   const archivedFlag = Boolean(booking.chatArchivedAt);
-
-  if (archivedFlag && user.role !== "ADMIN") {
-    return NextResponse.json(
-      { ok: true, messages: [], chatArchived: true, canSend: false },
-      { status: 200 }
-    );
-  }
 
   await markBookingChatMessagesRead(bookingId, user.id);
 
-  let messages =
-    user.role === "ADMIN" && (archivedFlag || locked)
+  // BLOCK 5.6D — cold-archive history is readable by the original guest/owner/admin (accepted
+  // Option B): archived rows have `isArchived: true`, which `getBookingChatMessages` filters OUT,
+  // so a dedicated read path is needed rather than the previous "return an empty list to
+  // non-admins" behavior. `canSend` below still reflects `locked`, which is unconditionally true
+  // once archived - this is read-only history, not a reactivated conversation.
+  let messages = archivedFlag
+    ? await getArchivedBookingChatMessages(bookingId, 500)
+    : user.role === "ADMIN" && locked
       ? await getAdminBookingChatTimeline(bookingId, 500)
       : await getBookingChatMessages(bookingId, 200);
 
@@ -131,7 +121,10 @@ export async function POST(req: NextRequest, { params }: { params: { bookingId: 
   const isOwner = bookingHotel(booking).ownerId === user.id;
   const isAdmin = user.role === "ADMIN";
 
-  if (isBookingChatLocked(booking)) {
+  const hasOpenDisputeForPost = Boolean(
+    await prisma.dispute.findFirst({ where: { bookingId, status: "OPEN" }, select: { id: true } })
+  );
+  if (isBookingChatLocked(booking, hasOpenDisputeForPost)) {
     return NextResponse.json({ error: "Чат закрыт для новых сообщений" }, { status: 403 });
   }
 
@@ -211,7 +204,13 @@ export async function POST(req: NextRequest, { params }: { params: { bookingId: 
           body: "🛡️ Система: Чек получен. Отведено 5 минут на проверку администратором и владельцем.",
           imageUrl: null,
           isArchived: false,
-          deletedAt: null
+          deletedAt: null,
+          // BLOCK 5.6D: this writer stays inline (inside the same $transaction as the guest's own
+          // message + booking-status transition) rather than calling addBookingSystemEvent(), which
+          // is not itself transaction-aware — but it now populates the same eventType/eventPayload
+          // fields so it renders identically to every other semantic system event.
+          eventType: "proof.received",
+          eventPayload: JSON.stringify({ reviewMinutes: 5 })
         }
       });
     }
@@ -242,7 +241,7 @@ export async function POST(req: NextRequest, { params }: { params: { bookingId: 
   });
   if (!finalBooking) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const locked = isBookingChatLocked(finalBooking);
+  const locked = isBookingChatLocked(finalBooking, hasOpenDisputeForPost);
   let messages = await getBookingChatMessages(bookingId, 200);
   if (
     user.role === "OWNER" &&

@@ -30,20 +30,20 @@ export function BookingTimeline({
   if (!events.length) return null;
 
   return (
-    <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-md">
-      <h2 className="text-sm font-semibold text-slate-200">{m(locale, "bookingRoom.timeline.title")}</h2>
-      <ol className="mt-3 space-y-3 border-l border-white/10 pl-4">
+    <section className="chat-side-card">
+      <h2 className="text-sm font-semibold text-[var(--taj-color-text)]">{m(locale, "bookingRoom.timeline.title")}</h2>
+      <ol className="mt-3 space-y-3 border-l border-[var(--taj-color-border)] pl-4">
         {events.map((ev) => {
           const active = highlightKind && ev.kind === highlightKind;
           return (
           <li key={ev.id} className={`relative ${active ? "rounded-lg bg-indigo-500/10 -ml-2 pl-2 pr-1 py-1" : ""}`}>
             <span
-              className={`absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full ring-2 ring-[#050a0e] ${DOT[ev.kind] ?? "bg-slate-500"} ${active ? "scale-125 ring-indigo-300/40" : ""}`}
+              className={`absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full ring-2 ring-[var(--taj-color-bg-card-solid)] ${DOT[ev.kind] ?? "bg-slate-500"} ${active ? "scale-125 ring-indigo-300/40" : ""}`}
             />
-            <div className="text-xs font-medium text-slate-200">
+            <div className="text-xs font-medium text-[var(--taj-color-text)]">
               {ev.kind === "SYSTEM" && ev.detail ? ev.detail : m(locale, ev.labelKey)}
             </div>
-            <div className="text-[10px] text-slate-500">
+            <div className="text-[10px] text-[var(--taj-color-text-muted)]">
               {new Date(ev.at).toLocaleString(undefined, {
                 day: "2-digit",
                 month: "short",

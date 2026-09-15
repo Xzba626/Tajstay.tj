@@ -34,6 +34,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  // BLOCK 5.6D — dispute-bypass protection: a new dispute must not be able to reawaken a
+  // cold-archived chat (COMPLETED/CANCELLED/etc. long after checkout). The temporary
+  // dispute-writable window (isBookingChatLocked in messages/route.ts) only applies to a booking
+  // that is terminal but NOT YET archived; once `chatArchivedAt` is set, no new dispute may be
+  // opened at all — admins moderate an already-closed booking through the Admin panel, not by
+  // creating a fresh dispute to unlock the old conversation.
+  if (booking.chatArchivedAt) {
+    return NextResponse.json({ error: "Booking chat is archived — dispute cannot be reopened" }, { status: 409 });
+  }
+
   const againstId = isGuest ? ownerId : isOwner && guestId ? guestId : ownerId;
 
   const existing = await prisma.dispute.findFirst({

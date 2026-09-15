@@ -9,6 +9,8 @@ import { m } from "@/lib/i18n/messages";
 import { PaymentCountdown } from "@/app/payment/[code]/PaymentCountdown";
 import { TrustBadges } from "@/components/auth/TrustBadges";
 import type { TrustBadge } from "@/lib/auth/trustBadges";
+import { ChatConfirmDialog } from "@/components/chat/ChatConfirmDialog";
+import { renderSystemEvent } from "@/lib/chat/systemEvents";
 
 function mapChatApiError(raw: string | undefined): string {
   const v = (raw || "").trim();
@@ -44,6 +46,9 @@ type ChatMessage = {
   status?: string;
   readAt?: string | null;
   createdAt: string;
+  /** BLOCK 5.6D — present only on semantic SYSTEM events; see renderSystemEvent(). */
+  eventType?: string | null;
+  eventPayload?: string | null;
 };
 
 const HOST_QUICK_KEYS = ["1", "2", "3", "4", "5"] as const;
@@ -774,7 +779,11 @@ export function BookingChatPanel({
                         <span aria-hidden className="mr-1">
                           🛡️
                         </span>
-                        {msg.message.replace(/^🛡️\s*/, "")}
+                        {renderSystemEvent(locale, {
+                          eventType: msg.eventType ?? null,
+                          eventPayload: msg.eventPayload ?? null,
+                          body: msg.message
+                        }).replace(/^🛡️\s*/, "")}
                       </p>
                       <p className="mt-1 text-[9px] opacity-60">{timeLabel(msg.createdAt)}</p>
                     </div>
@@ -1056,88 +1065,39 @@ export function BookingChatPanel({
         {error && !authExpired ? <div className="text-xs text-[#b91c1c]">{error}</div> : null}
       </div>
 
-      {confirmCancelOpen ? (
-        <div className="fixed inset-0 z-[130] flex items-center justify-center px-4">
-          <div
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-            onClick={() => {
-              if (actionBusy) return;
-              setConfirmCancelOpen(false);
-            }}
-          />
-          <div className="relative w-full max-w-md rounded-2xl border border-white/10 bg-[rgba(15,23,42,0.95)] p-5 backdrop-blur-xl" style={{ borderRadius: 16 }}>
-            <div className="text-base font-semibold text-slate-100">Отменить бронирование?</div>
-            <div className="mt-2 text-sm text-slate-300">Бронь будет закрыта. Это действие необратимо.</div>
-            <div className="mt-4 flex flex-wrap justify-end gap-2">
-              <button
-                type="button"
-                disabled={actionBusy}
-                onClick={() => setConfirmCancelOpen(false)}
-                className="rounded-xl border border-white/15 px-4 py-2 text-sm text-slate-200"
-              >
-                Назад
-              </button>
-              <button
-                type="button"
-                disabled={actionBusy}
-                onClick={async () => {
-                  await callAction({
-                    nextStatus: "CANCELLED_BY_GUEST",
-                    url: `/api/bookings/${bookingId}/cancel-by-guest`,
-                    errorPrefix: "Не удалось отменить"
-                  });
-                  try {
-                    sessionStorage.setItem("toast:once", JSON.stringify({ message: "Бронирование отменено" }));
-                  } catch {
-                    /* ignore */
-                  }
-                  window.location.href = "/";
-                }}
-                className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white"
-              >
-                {actionBusy ? "…" : "Отменить"}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <ChatConfirmDialog
+        open={confirmCancelOpen}
+        title={m(locale, "chat.guestCancelTitle")}
+        description={m(locale, "chat.guestCancelDesc")}
+        cancelLabel={m(locale, "chat.modalBack")}
+        confirmLabel={m(locale, "chat.guestCancelConfirm")}
+        busy={actionBusy}
+        onCancel={() => setConfirmCancelOpen(false)}
+        onConfirm={async () => {
+          await callAction({
+            nextStatus: "CANCELLED_BY_GUEST",
+            url: `/api/bookings/${bookingId}/cancel-by-guest`,
+            errorPrefix: "Не удалось отменить"
+          });
+          try {
+            sessionStorage.setItem("toast:once", JSON.stringify({ message: "Бронирование отменено" }));
+          } catch {
+            /* ignore */
+          }
+          window.location.href = "/";
+        }}
+      />
 
-      {confirmAdminCancelOpen ? (
-        <div className="fixed inset-0 z-[130] flex items-center justify-center px-4">
-          <div
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-            onClick={() => {
-              if (actionBusy) return;
-              setConfirmAdminCancelOpen(false);
-            }}
-          />
-          <div
-            className="relative w-full max-w-md rounded-2xl border border-white/10 bg-[rgba(15,23,42,0.95)] p-5 backdrop-blur-xl"
-            style={{ borderRadius: 16 }}
-          >
-            <div className="text-base font-semibold text-slate-100">{m(locale, "chat.adminCancelTitle")}</div>
-            <div className="mt-2 text-sm text-slate-300">{m(locale, "chat.adminCancelDesc")}</div>
-            <div className="mt-4 flex flex-wrap justify-end gap-2">
-              <button
-                type="button"
-                disabled={actionBusy}
-                onClick={() => setConfirmAdminCancelOpen(false)}
-                className="rounded-xl border border-white/15 px-4 py-2 text-sm text-slate-200"
-              >
-                {m(locale, "chat.modalBack")}
-              </button>
-              <button
-                type="button"
-                disabled={actionBusy}
-                onClick={() => void submitAdminCancel()}
-                className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white"
-              >
-                {actionBusy ? "…" : m(locale, "chat.adminCancelConfirm")}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <ChatConfirmDialog
+        open={confirmAdminCancelOpen}
+        title={m(locale, "chat.adminCancelTitle")}
+        description={m(locale, "chat.adminCancelDesc")}
+        cancelLabel={m(locale, "chat.modalBack")}
+        confirmLabel={m(locale, "chat.adminCancelConfirm")}
+        busy={actionBusy}
+        onCancel={() => setConfirmAdminCancelOpen(false)}
+        onConfirm={() => void submitAdminCancel()}
+      />
     </>
   );
 

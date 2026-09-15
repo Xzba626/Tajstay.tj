@@ -452,6 +452,13 @@ model ChatMessage {
   /// SENT | DELIVERED | READ
   status      String    @default("SENT")
   readAt      DateTime?
+  /// BLOCK 5.6D — additive semantic system-event fields. Nullable, additive-only: legacy rows
+  /// keep eventType=null and continue rendering `body` verbatim (see addBookingSystemEvent()).
+  /// Only SYSTEM-role rows ever populate these; guest/owner/admin chat messages never do.
+  eventType    String?
+  /// JSON-encoded payload for `eventType`, mirroring the existing TransactionLog.payload
+  /// String-as-JSON convention already used elsewhere in this schema.
+  eventPayload String?
 
   @@index([bookingId])
   @@index([bookingId, createdAt])

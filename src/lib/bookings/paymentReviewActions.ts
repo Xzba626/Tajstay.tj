@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { BOOKING_STATUS } from "@/lib/domain/booking";
-import { addBookingSystemMessage } from "@/lib/chat/bookingChat";
+import { addBookingSystemEvent } from "@/lib/chat/systemEvents";
 import { assertDatesAvailable, DatesUnavailableError, withRoomOverlapGuard } from "@/lib/booking/availability";
 import { assertRoomTypeAvailable, RoomTypeUnavailableError, withRoomTypeCapacityGuard } from "@/lib/pms/inventory";
 import { bookingHotel } from "@/lib/pms/bookingContext";
@@ -137,12 +137,10 @@ export async function confirmBookingPayment({ bookingId, actorId, actorRole, rea
     }
   });
 
-  await addBookingSystemMessage({
+  await addBookingSystemEvent({
     bookingId,
-    message:
-      actorRole === "ADMIN"
-        ? "🛡️ Система: Администратор подтвердил оплату (проверка спора)."
-        : "🛡️ Система: Бронирование подтверждено! Ждем вас."
+    eventType: "payment.confirmed",
+    payload: { byRole: actorRole }
   });
 
   if (booking.userId != null) {
@@ -208,9 +206,10 @@ export async function rejectBookingPayment({ bookingId, actorId, actorRole, reas
     }
   });
 
-  await addBookingSystemMessage({
+  await addBookingSystemEvent({
     bookingId,
-    message: `🛡️ Система: Чек отклонён. ${trimmedReason} Пожалуйста, отправьте новый чек.`
+    eventType: "proof.rejected",
+    payload: { reason: trimmedReason }
   });
 
   if (booking.userId != null) {
