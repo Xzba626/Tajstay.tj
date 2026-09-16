@@ -2876,6 +2876,13 @@ const tg: Tree = {
       diff: "Шароит фарқ мекунад — саҳифаи меҳмонхонаро кушоед."
     }
   },
+  pms: {
+    viewByType: "Аз рӯи категория",
+    viewByRoom: "Аз рӯи хона",
+    typeAvailability: "Озод {available} аз {total}",
+    leftRooms: "Мондааст {n}",
+    mealRoomOnly: "Бе ғизо"
+  },
   checkout: {
     financeTitle: "Арзиш",
     nights: "Шабҳо",
@@ -5113,6 +5120,13 @@ const en: Tree = {
       from: "from {price} TJS",
       diff: "Conditions differ — open the hotel page to see the differences."
     }
+  },
+  pms: {
+    viewByType: "By category",
+    viewByRoom: "By room",
+    typeAvailability: "{available} of {total} free",
+    leftRooms: "{n} left",
+    mealRoomOnly: "Room only"
   },
   checkout: {
     financeTitle: "Pricing",

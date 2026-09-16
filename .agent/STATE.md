@@ -4,12 +4,12 @@ Read this before anything else. Load only the skill matching NEXT (see `CLAUDE.m
 Do not re-read old audit reports unless the task needs them. Keep this file short — DONE/OPEN/BLOCKED/
 NEXT, not a diary. Detailed rationale for a fix belongs in its commit message, not here.
 
-## CURRENT — OWNER BLOCK 6 (IN PROGRESS — not TECHNICALLY COMPLETE yet)
+## CURRENT — OWNER BLOCK 6 = TECHNICALLY COMPLETE (LOCAL) · BLOCK 7 GATED STOP
 
-- **BASE SHA:** `ac90ff3`
-- **DONE so far:** Owner IA (Calendar primary, More: Analytics/Expenses/Requisites/Staff/Audit); `requisites` alias; Calendar mobile day-strip + status/source labels + hotel scope; Overview KPI deep-links; Manager IDOR 403 on Owner finance APIs; payment snapshot V1≠V2 proof; tests 8/8 + IDOR + 5C 60/60 + block5 26/26; build EXIT=0.
-- **OPEN for closure:** full 5-viewport Owner matrix cells; Light/Dark/System Owner matrix; TJ/EN runtime matrix; multi-hotel switch E2E; Guest regression; full reconciliation table; Support form (hub KEEP / no fake submit); Email OTP DEFER; Phone BLOCKED (no SMS).
-- **NEXT:** finish remaining matrices + soft-nav QA → commit if not committed → final report → STOP. No BLOCK Admin 6.2.
+- **BASE:** `ac90ff3` · **IMPL:** `6fb0595` · **CLOSURE HEAD:** (set after commit)
+- **BLOCK 7:** **STOP** at gate — was attempted while BLOCK 6 PARTIAL; no Rooms/Categories/Media/360 mutations. Re-authorize BLOCK 7 from clean BLOCK 6 HEAD.
+- **Closure delta:** `pms.viewByType/Room` tg/en; `section=object`→`properties`; matrix QA after DB restore.
+- Do not start Admin 6.2.
 
 ## Governing instruction
 

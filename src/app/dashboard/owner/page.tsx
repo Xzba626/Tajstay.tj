@@ -189,7 +189,9 @@ export default async function OwnerDashboardPage({
       ? "analytics"
       : params?.section === "finances"
         ? "requisites"
-        : params?.section;
+        : params?.section === "object"
+          ? "properties"
+          : params?.section;
   const activeSection: OwnerSection =
     rawSection && VALID_OWNER_SECTIONS.has(rawSection as OwnerSection)
       ? (rawSection as OwnerSection)
