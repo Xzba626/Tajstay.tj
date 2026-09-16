@@ -35,12 +35,19 @@ export function ManagerTodayClient() {
 
   useEffect(() => {
     (async () => {
-      const res = await fetch("/api/manager/bookings", { credentials: "include" });
-      const json = await res.json();
-      if (res.ok) {
-        const list = (json.hotels ?? []) as Hotel[];
-        setHotels(list);
-        if (list[0]) setHotelId(list[0].id);
+      try {
+        const res = await fetch("/api/manager/bookings", { credentials: "include" });
+        const json = await res.json();
+        if (res.ok) {
+          const list = (json.hotels ?? []) as Hotel[];
+          setHotels(list);
+          if (list[0]) setHotelId(list[0].id);
+          else setLoading(false);
+        } else {
+          setLoading(false);
+        }
+      } catch {
+        setLoading(false);
       }
     })();
   }, []);

@@ -50,20 +50,26 @@ export async function GET(req: NextRequest) {
   });
 
   const avail = await getRoomTypeAvailability({ roomTypeId, checkIn, checkOut });
-  const physical = await prisma.room.findMany({
-    where: { hotelId, roomTypeId, availability: true },
-    select: { id: true, roomNumber: true, title: true, status: true }
-  });
 
-  const rooms = [];
-  for (const r of physical) {
-    if (r.status === "OUT_OF_SERVICE" || r.status === "MAINTENANCE") continue;
-    try {
-      await assertDatesAvailable({ roomId: r.id, checkIn, checkOut });
-      rooms.push({ id: r.id, roomNumber: r.roomNumber, title: r.title });
-    } catch (e) {
-      if (e instanceof DatesUnavailableError) continue;
-      throw e;
+  // Room-type capacity is authoritative. When exhausted, do not list physical
+  // rooms as selectable — unassigned MANAGER_MANUAL/OWNER_MANUAL stays still
+  // occupy inventory without an assignedRoomId EXCLUDE row.
+  const rooms: { id: number; roomNumber: string | null; title: string | null }[] = [];
+  if (avail.availableCount >= 1) {
+    const physical = await prisma.room.findMany({
+      where: { hotelId, roomTypeId, availability: true },
+      select: { id: true, roomNumber: true, title: true, status: true }
+    });
+
+    for (const r of physical) {
+      if (r.status === "OUT_OF_SERVICE" || r.status === "MAINTENANCE") continue;
+      try {
+        await assertDatesAvailable({ roomId: r.id, checkIn, checkOut });
+        rooms.push({ id: r.id, roomNumber: r.roomNumber, title: r.title });
+      } catch (e) {
+        if (e instanceof DatesUnavailableError) continue;
+        throw e;
+      }
     }
   }
 

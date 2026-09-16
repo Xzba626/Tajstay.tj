@@ -247,8 +247,8 @@ export function SignInClient({
     setFormError(null);
     setIsLoginSubmitting(true);
     try {
-      const email = loginEmail.trim().toLowerCase();
-      if (!email || !loginPassword) {
+      const identifier = loginEmail.trim();
+      if (!identifier || !loginPassword) {
         setFormError(L.fieldRequired);
         return;
       }
@@ -259,12 +259,17 @@ export function SignInClient({
         return;
       }
       try {
-        if (rememberMe) localStorage.setItem("tajstay_remember_login", email);
+        if (rememberMe) localStorage.setItem("tajstay_remember_login", identifier);
         else localStorage.removeItem("tajstay_remember_login");
       } catch {
         /* ignore */
       }
-      await postJson("/api/auth/email/login", { email, password: loginPassword });
+      // Managers (and phone-first guests) sign in with phone; email accounts keep email payload.
+      const looksLikePhone = /^[+0-9][\d\s()-]{6,}$/.test(identifier) || identifier.startsWith("+");
+      const payload = looksLikePhone
+        ? { phone: identifier, password: loginPassword }
+        : { email: identifier.toLowerCase(), password: loginPassword };
+      await postJson("/api/auth/email/login", payload);
       await refreshMe();
     } catch (err: unknown) {
       setFormError(mapApiErrorMessage(err instanceof Error ? err.message : ""));

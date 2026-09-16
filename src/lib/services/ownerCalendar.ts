@@ -8,7 +8,7 @@ import {
   isPendingOfflineStatus,
   isPendingOnlineStatus
 } from "@/lib/booking/availability";
-import { BOOKING_SOURCE, getBookingGuestLabel } from "@/lib/domain/booking";
+import { getBookingGuestLabel, isOfflineBookingSource } from "@/lib/domain/booking";
 import { getRoomTypeDaySummary } from "@/lib/pms/inventory";
 
 export type CalendarCellKind = "available" | "blocked" | "customPrice" | "online" | "offline" | "onlinePending";
@@ -49,7 +49,7 @@ function classifyBooking(
     offlineStatus: string | null;
   }
 ): "online" | "offline" | "onlinePending" | null {
-  if (b.source === BOOKING_SOURCE.OWNER_MANUAL) {
+  if (isOfflineBookingSource(b.source)) {
     if (isOccupyingOfflineStatus(b.offlineStatus)) return "offline";
     if (isPendingOfflineStatus(b.offlineStatus)) return "onlinePending";
     return null;
@@ -173,7 +173,7 @@ export async function getOwnerCalendarData(ownerId: number, days = 30, hotelId?:
         cellMeta[cellKey] = {
           bookingId: hit.id,
           publicCode: hit.publicCode,
-          status: hit.source === BOOKING_SOURCE.OWNER_MANUAL ? hit.offlineStatus ?? hit.status : hit.status,
+          status: isOfflineBookingSource(hit.source) ? hit.offlineStatus ?? hit.status : hit.status,
           guestLabel: getBookingGuestLabel(hit),
           guestPhone: hit.guestPhone ?? hit.phone ?? hit.user?.phone ?? undefined,
           checkIn: hit.checkIn.toISOString().slice(0, 10),

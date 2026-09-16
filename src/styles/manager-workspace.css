@@ -8,6 +8,9 @@
   max-width: 40rem;
   margin: 0 auto;
   color: var(--text-primary-semantic, #14231b);
+  box-sizing: border-box;
+  width: 100%;
+  overflow-x: clip;
 }
 
 .manager-page__title {
@@ -31,12 +34,15 @@
 .manager-form {
   display: grid;
   gap: 0.75rem;
+  width: 100%;
+  min-width: 0;
 }
 
 .manager-field {
   display: grid;
   gap: 0.35rem;
   font-size: 0.875rem;
+  min-width: 0;
 }
 
 .manager-field input,
@@ -44,6 +50,9 @@
 .manager-select,
 .manager-search input {
   min-height: 44px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   border: 1px solid var(--border-subtle, #d8e4dc);
   border-radius: 0.75rem;
   padding: 0.5rem 0.75rem;
@@ -55,6 +64,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.75rem;
+  min-width: 0;
 }
 
 .manager-radio {
@@ -165,6 +175,15 @@
   display: block;
   font-size: 0.75rem;
   opacity: 0.85;
+  max-width: min(12rem, 42vw);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.manager-workspace-shell .owner-workspace-header__brand {
+  min-width: 0;
+  max-width: calc(100% - 3rem);
 }
 
 @media (prefers-color-scheme: dark) {

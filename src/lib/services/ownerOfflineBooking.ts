@@ -1,6 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { assertDatesAvailable, DatesUnavailableError, withRoomOverlapGuard } from "@/lib/booking/availability";
-import { assertRoomTypeAvailable, RoomTypeUnavailableError, withRoomTypeCapacityGuard } from "@/lib/pms/inventory";
+import {
+  assertRoomTypeAvailable,
+  findAvailablePhysicalRoom,
+  RoomTypeUnavailableError,
+  withRoomTypeCapacityGuard
+} from "@/lib/pms/inventory";
 import {
   BOOKING_SOURCE,
   BOOKING_STATUS,
@@ -80,6 +85,14 @@ export async function createManualOfflineBooking(input: CreateManualOfflineBooki
       where: { id: physicalRoomId, hotelId: input.hotelId, roomTypeId: roomType.id }
     });
     if (!room) throw new Error("room_type_mismatch");
+  } else {
+    // Prefer a concrete physical room so EXCLUDE + Owner calendar room cells stay consistent.
+    // Type-capacity path remains as fallback when every sellable room is occupied/blocked.
+    physicalRoomId = await findAvailablePhysicalRoom({
+      roomTypeId: roomType.id,
+      checkIn: input.checkIn,
+      checkOut: input.checkOut
+    });
   }
 
   const quoted = quoteOfflineStayTotal({

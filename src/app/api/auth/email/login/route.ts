@@ -56,6 +56,12 @@ export async function POST(req: Request) {
     if (activeOrInvited === 0) {
       return NextResponse.json({ error: "access_suspended" }, { status: 403 });
     }
+    // First successful login with a valid temp/invite credential activates membership.
+    // mustChangePassword remains until Manager sets their own password.
+    await prisma.hotelStaff.updateMany({
+      where: { userId: user.id, status: "INVITED" },
+      data: { status: "ACTIVE", inviteTokenHash: null, inviteExpiresAt: null }
+    });
   }
 
   const res = NextResponse.json({ ok: true, role: user.role });

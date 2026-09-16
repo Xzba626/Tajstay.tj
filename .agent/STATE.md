@@ -4,6 +4,16 @@ Read this before anything else. Load only the skill matching NEXT (see `CLAUDE.m
 Do not re-read old audit reports unless the task needs them. Keep this file short — DONE/OPEN/BLOCKED/
 NEXT, not a diary. Detailed rationale for a fix belongs in its commit message, not here.
 
+## CURRENT — OWNER BLOCK 5C (closure)
+
+- **Authorized:** BLOCK 5C real-runtime closure only (no new Manager features / no redesign / no P0-S2).
+- **Impl base SHA:** `a5c4ce6` · **Working tree HEAD:** `a7e7235` + uncommitted 5C fixes (see git status).
+- **Migrations applied (local):** `20260916200000_owner_staff_manager`, `20260916210000_manager_manual_room_exclusion`.
+- **DONE this pass:** local runtime + browser Owner→Staff→Manager create; Manager shell/new booking `TS-NF8EYD` (`MANAGER_MANUAL`+`CASH`); search; Today; calendar occupancy after assign; analytics Cash/Offline; chat Manager→conversation; suspend UI; RU/TJ/EN staff; `owner-block5` 26/26; `owner-block5c-runtime` 60/60; concurrency 5.2A+5.4B PASS; `tsc`/`lint`/`build` EXIT=0.
+- **Fixes landed (uncommitted):** phone login payload; Manager empty-hotel loading; availability hide rooms when capacity 0; auto-assign physical room on manual create; calendar `MANAGER_MANUAL` classify + day summary via inventory.
+- **OPEN / not claimed:** PRODUCTION RUNTIME = NOT RUN · USER VISUAL ACCEPTANCE = PENDING · Owner dark theme on white CRM canvas PARTIAL · hamburger <44px a11y PARTIAL.
+- **NEXT:** STOP — await user visual acceptance / commit authorization. Do **not** start a new BLOCK.
+
 ## Governing instruction
 
 **MODE = HUMAN PRODUCT RECONSTRUCTION** (execution protocol issued 2026-09-10, supersedes the plain

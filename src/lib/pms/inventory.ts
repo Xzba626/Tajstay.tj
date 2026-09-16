@@ -348,27 +348,21 @@ export async function getHotelsDateAvailabilityBulk(
 }
 
 export async function getRoomTypeDaySummary(roomTypeId: number, day: Date) {
-  const rooms = await getPhysicalRoomsForType(roomTypeId);
-  const sellable = rooms.filter(isRoomSellable);
   const nextDay = new Date(day);
   nextDay.setUTCDate(nextDay.getUTCDate() + 1);
-
-  let occupied = 0;
-  for (const room of sellable) {
-    const bookings = await getRoomBookingsInRange(room.id, day, nextDay);
-    const hit = bookings.find((b) =>
-      bookingOccupiesDay(b.checkIn, b.checkOut, day) &&
-      (b.source === BOOKING_SOURCE.PLATFORM
-        ? isOccupyingOnlineStatus(b.status)
-        : isOccupyingOfflineStatus(b.offlineStatus))
-    );
-    if (hit) occupied += 1;
-  }
+  // Same authority as booking writes / Manager availability: include unassigned
+  // type-level offline (OWNER_MANUAL | MANAGER_MANUAL) and platform stays.
+  const snap = await getRoomTypeAvailability({
+    roomTypeId,
+    checkIn: day,
+    checkOut: nextDay,
+    includeActiveHolds: false
+  });
 
   return {
     roomTypeId,
-    total: sellable.length,
-    occupied,
-    available: Math.max(0, sellable.length - occupied)
+    total: snap.totalRooms,
+    occupied: snap.occupiedCount,
+    available: snap.availableCount
   };
 }
