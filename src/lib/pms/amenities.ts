@@ -63,7 +63,17 @@ export const AMENITY_LABELS: Record<string, { ru: string; tg: string; en: string
 };
 
 export function amenityLabel(locale: "ru" | "tg" | "en", id: string): string {
-  const row = AMENITY_LABELS[id];
+  const key = id.trim().toLowerCase();
+  const aliases: Record<string, string> = {
+    breakfast: "breakfast_included",
+    air_conditioning: "ac",
+    airconditioning: "ac",
+    private_bathroom: "private_bath",
+    view: "city_view",
+    wifi_free: "wifi"
+  };
+  const resolved = aliases[key] ?? key;
+  const row = AMENITY_LABELS[resolved];
   if (!row) return id.replace(/_/g, " ");
   return row[locale] ?? row.ru;
 }

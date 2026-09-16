@@ -21,7 +21,7 @@ export type HotelRoomTypeInput = {
   bedsCount: number;
   mealPlan: string;
   amenities: string;
-  photos: { url: string }[];
+  photos: { url: string; kind?: string | null; sceneLabel?: string | null }[];
   _count?: { rooms: number };
 };
 
@@ -40,6 +40,8 @@ export type RoomCategoryView = {
   name: string;
   description: string | null;
   photos: string[];
+  /** Equirectangular 360 scenes (honest 360° — not mesh 3D). */
+  panoScenes: { url: string; label: string }[];
   identical: boolean;
   count: number;
   minPrice: number;
@@ -117,6 +119,7 @@ function groupFromRooms(
     name,
     description,
     photos,
+    panoScenes: [],
     identical,
     count: rooms.length,
     minPrice: prices.length ? Math.min(...prices) : 0,
@@ -155,11 +158,16 @@ export function groupHotelRooms(input: {
   for (const roomType of input.roomTypes) {
     const members = input.rooms.filter((room) => room.roomTypeId === roomType.id && isBookable(room));
     members.forEach((room) => used.add(room.id));
+    const typePhotos = roomType.photos ?? [];
+    const gallery = typePhotos.filter((p) => (p.kind ?? "PHOTO") !== "PANO360").map((p) => p.url);
+    const panos = typePhotos
+      .filter((p) => p.kind === "PANO360")
+      .map((p, i) => ({ url: p.url, label: p.sceneLabel?.trim() || `360-${i + 1}` }));
     const group = groupFromRooms(
       roomType.name,
       roomType.description,
       members,
-      roomType.photos.map((photo) => photo.url),
+      gallery.length ? gallery : typePhotos.map((p) => p.url),
       roomType.id,
       input.checkIn,
       input.checkOut,
@@ -167,6 +175,7 @@ export function groupHotelRooms(input: {
       input.guests
     );
     if (group && (group.count > 0 || Number(roomType.basePrice) > 0)) {
+      group.panoScenes = panos;
       if (!group.count) {
         group.minPrice = Number(roomType.basePrice);
         group.maxPrice = Number(roomType.basePrice);

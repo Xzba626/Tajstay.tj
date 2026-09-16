@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
 import { RoomPhotoCarousel } from "@/components/RoomPhotoCarousel";
-import { parseAmenitiesJson } from "@/lib/pms/amenities";
+import { parseAmenitiesJson, amenityLabel } from "@/lib/pms/amenities";
 
 type RoomTypeRow = {
   id: number;
@@ -59,7 +59,7 @@ export function RoomTypeCards({
                   <div className="mt-2 flex flex-wrap gap-1">
                     {amenities.map((a) => (
                       <span key={a} className="rounded-full border border-brand-700 px-2 py-0.5 text-[11px] text-brand-200">
-                        {a}
+                        {amenityLabel(locale, a)}
                       </span>
                     ))}
                   </div>

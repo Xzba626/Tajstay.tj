@@ -6,16 +6,11 @@ import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
 import { RoomPhotoCarousel } from "@/components/RoomPhotoCarousel";
 import type { RoomCategoryView, RoomVariantView } from "@/lib/hotel/groupHotelRooms";
-
-const AMENITY_KEYS: Record<string, string> = {
-  wifi: "search.wifi",
-  breakfast: "search.breakfast",
-  parking: "search.parking"
-};
+import { amenityLabel as labelAmenity } from "@/lib/pms/amenities";
+import { RoomPanoramaViewer } from "@/components/hotel/RoomPanoramaViewer";
 
 function amenityLabel(locale: Locale, key: string) {
-  const path = AMENITY_KEYS[key.toLowerCase()];
-  return path ? m(locale, path) : key;
+  return labelAmenity(locale, key.toLowerCase());
 }
 
 function PriceLine({
@@ -117,6 +112,7 @@ function CategoryCard({
   group: RoomCategoryView;
 }) {
   const [open, setOpen] = useState(false);
+  const [panoOpen, setPanoOpen] = useState(false);
 
   return (
     <div className="glass-panel flex flex-col gap-4 rounded-xl p-4 sm:flex-row sm:items-stretch">
@@ -138,6 +134,15 @@ function CategoryCard({
             </div>
           ) : null}
           {group.identical ? <AmenityList locale={locale} amenities={group.amenities} /> : null}
+          {group.panoScenes?.length ? (
+            <button
+              type="button"
+              className="mt-2 rounded-lg border border-brand-500 px-3 py-2 text-sm font-medium text-brand-700"
+              onClick={() => setPanoOpen(true)}
+            >
+              {m(locale, "owner.roomsInv.view360")}
+            </button>
+          ) : null}
         </div>
 
         {group.identical ? (
@@ -169,6 +174,14 @@ function CategoryCard({
           </div>
         )}
       </div>
+      {panoOpen && group.panoScenes?.[0] ? (
+        <RoomPanoramaViewer
+          url={group.panoScenes[0].url}
+          scenes={group.panoScenes}
+          locale={locale}
+          onClose={() => setPanoOpen(false)}
+        />
+      ) : null}
     </div>
   );
 }

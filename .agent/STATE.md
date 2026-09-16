@@ -251,18 +251,20 @@ returning to earlier phases only if regression is found:
 
 ## NEXT
 
-**CURRENT AREA**: OWNER BLOCK 3 — Analytics / Revenue / Expenses / Net Profit / Audit (COMPLETE — STOP).
-**CURRENT ROUTE**: `/dashboard/owner?section=analytics` (+ overview, activity)
+**CURRENT AREA**: OWNER BLOCK 4 — Rooms / Categories / Inventory / 360° (COMPLETE — STOP).
+**CURRENT ROUTE**: `/dashboard/owner?section=rooms`
 **CURRENT ROLE**: Owner (`owner@tajstay.local`)
-**LAST VERIFIED CONTROL**: Period filter + Revenue drilldown + hotel switch (hotelId=1→2) + expense versioning DB proof + IDOR 403.
-**HEAD (dirty working tree, uncommitted BLOCK 2+3)**: `1f98276`
-**DO NOT START BLOCK 4** (Rooms/Categories/Manager) without explicit user authorization.
+**LAST VERIFIED CONTROL**: Slim Add Room (category+number only); hotel 1→2 isolation; amenity labels localized.
+**HEAD (dirty working tree, uncommitted BLOCK 2+3+4)**: `1f98276`
+**DO NOT START BLOCK 5** (Manager Workspace) without explicit user authorization.
 **USER VISUAL ACCEPTANCE**: PENDING
+**360 CAPTURE**: PARTIAL — upload/viewer PASS; in-browser camera capture not implemented (equirectangular upload path only).
 
 **Execution progress table** (per-area status — PASS only after full dimension check, not on sight):
 
 | Role | Route/Section | Desktop | Mobile | RU | TJ | EN | Visual | UX | Function | Data | Error | Perf | Security | Status |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Owner | Rooms (`?section=rooms`) | done | PARTIAL | done | keys | keys | compact inventory | done | done | RoomType SoT | localized | n/a | IDOR 403 | **CODE/TEST/BUILD/RUNTIME = PASS; USER VISUAL = PENDING** |
 | Owner | Analytics (`?section=analytics`) | done | PARTIAL (runtime desktop browser; full viewport matrix NOT RUN) | done | keys present | keys present | financial KPIs | done | done | REAL getHotelAnalytics | loadError i18n | n/a | IDOR 403 PASS | **CODE/TEST/BUILD/RUNTIME API = PASS; USER VISUAL = PENDING** |
 | Owner | Overview financial KPIs | done | PARTIAL | done | — | — | done | done | shared formulas | REAL | — | — | hotel-scoped | **RUNTIME PASS (local)** |
 | Owner | Activity history | done | PARTIAL | done | keys present | keys present | done | done | done | OwnerHotelAuditLog | — | — | IDOR 403 PASS | **RUNTIME PASS (local)** |
@@ -276,7 +278,7 @@ returning to earlier phases only if regression is found:
 | Admin | Complaints | — | — | — | — | — | — | — | — | — | — | — | — | OPEN |
 | Admin | Content | — | — | — | — | — | — | — | — | — | — | — | — | OPEN |
 | Admin | Notifications | — | — | — | — | — | — | — | — | — | — | — | — | OPEN |
-| Owner | Rooms / Manager / Calendar redesign | — | — | — | — | — | — | — | — | — | — | — | — | **OUT OF SCOPE — next blocks** |
+| Owner | Manager Workspace | — | — | — | — | — | — | — | — | — | — | — | — | **OUT OF SCOPE — BLOCK 5** |
 | Anonymous/Guest/Public | (all routes) | — | — | — | — | — | — | — | — | — | — | — | — | OPEN, not started |
 
 **Status vocabulary from here on** (do not collapse these into "closed"/"fixed" loosely):

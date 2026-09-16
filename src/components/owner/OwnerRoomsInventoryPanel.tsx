@@ -381,8 +381,7 @@ export function OwnerRoomsInventoryPanel({ locale, hotelId, hotelName }: Props) 
                 <div className="min-w-0 flex-1 text-left">
                   <div className="owner-record-card__title truncate">{t.name}</div>
                   <div className="owner-record-card__meta">
-                    {Number(t.basePrice).toLocaleString()} TJS · {t.maxGuests} ·{" "}
-                    {m(locale, "owner.pms.roomsCount", { n: String(t._count.rooms) })}
+                    {Number(t.basePrice).toLocaleString()} TJS · {t.maxGuests} · {t._count.rooms}
                   </div>
                   {am.length ? (
                     <div className="owner-rooms-inv__amen-preview">
