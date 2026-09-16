@@ -1,13 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { Bell, Building2, ChevronRight, CircleHelp, FileText, Globe, LayoutDashboard, Shield, User, type LucideIcon } from "lucide-react";
+import { Bell, Building2, ChevronRight, CircleHelp, FileText, LayoutDashboard, Shield, User, type LucideIcon } from "lucide-react";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
 import { ProfileLogoutConfirm } from "@/components/profile/ProfileLogoutConfirm";
 import { maskPhone } from "@/lib/format/maskPhone";
 import { maskEmail } from "@/lib/format/maskEmail";
 import { isPlaceholderAccountPhone } from "@/lib/auth/accountPhone";
+import { LocaleSwitcher } from "@/components/layout/LocaleSwitcher";
+import { ProfileThemeToggle } from "@/components/profile/ProfileThemeToggle";
+import type { ThemePreference } from "@/lib/theme";
 
 type UserFull = {
   name: string;
@@ -30,6 +33,7 @@ type Props = {
   user: UserFull;
   logoutLabel: string;
   unreadNotifications?: number;
+  themePreference: ThemePreference;
 };
 
 function HubGroupLabel({ children }: { children: string }) {
@@ -68,7 +72,7 @@ function HubNavBlock({
 // for Admin/Owner accounts, plus a separate "Подписки" row that overlapped Notification settings.
 // Product decision: this screen should read like an app settings screen — one canonical place per
 // piece of information, minimal height, role-aware content — not a personal-cabinet web page.
-export function ProfileMockupView({ locale, user, logoutLabel, unreadNotifications = 0 }: Props) {
+export function ProfileMockupView({ locale, user, logoutLabel, unreadNotifications = 0, themePreference }: Props) {
   const hasPhone = Boolean(user.phone && !isPlaceholderAccountPhone(user.phone));
   const phoneShort = hasPhone ? maskPhone(user.phone) : m(locale, "profile.phoneNotSet");
   const emailShort = maskEmail(user.email) ?? m(locale, "profile.emailNotSet");
@@ -85,8 +89,21 @@ export function ProfileMockupView({ locale, user, logoutLabel, unreadNotificatio
   return (
     <div className="profile-hub profile-center profile-hub--compact">
       <header className="profile-hub__compact-head">
-        <h1 className="profile-hub__compact-title">{m(locale, "profile.title")}</h1>
-        {roleLabel ? <p className="profile-hub__compact-subtitle">{user.name} · {roleLabel}</p> : null}
+        <div className="profile-hub__compact-head-row">
+          <div className="min-w-0">
+            <h1 className="profile-hub__compact-title">{m(locale, "profile.title")}</h1>
+            {roleLabel ? <p className="profile-hub__compact-subtitle">{user.name} · {roleLabel}</p> : null}
+          </div>
+          {/* MOBILE PROFILE / OWNER / SECURITY CORRECTION BLOCK: Language + Theme moved into the
+           * Profile header itself — the old standalone "Настройки" page existed almost entirely
+           * to host these two controls (confirmed: after removing the decorative Theme/Currency
+           * rows in an earlier pass, only the language selector was real). Removed as a
+           * standalone nav entry now that both controls live here directly. */}
+          <div className="profile-hub__compact-head-controls">
+            <LocaleSwitcher current={locale} iconOnly />
+            <ProfileThemeToggle current={themePreference} />
+          </div>
+        </div>
       </header>
 
       <div className="profile-hub__stack">
@@ -103,12 +120,6 @@ export function ProfileMockupView({ locale, user, logoutLabel, unreadNotificatio
             icon={Shield}
             title={m(locale, "profile.security")}
             summary={m(locale, "profile.securitySubtitle")}
-          />
-          <HubNavBlock
-            href="/profile/settings"
-            icon={Globe}
-            title={m(locale, "profile.settings")}
-            summary={m(locale, "profile.settingsSubtitle")}
           />
           <HubNavBlock
             href="/profile/subscriptions"

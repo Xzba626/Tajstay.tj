@@ -114,6 +114,516 @@
   font-family: var(--font-ui, Inter, system-ui, sans-serif);
 }
 
+/* ================================================================
+   MOBILE PROFILE / OWNER / SECURITY CORRECTION BLOCK — real Dark Mode.
+   Semantic tokens only (no filter/invert), TajStay green preserved as brand in both themes.
+   Follows the standard three-state contract: bare selector = light default, a
+   prefers-color-scheme fallback covers "System" when the user hasn't forced a choice, and an
+   explicit [data-theme] always wins in both directions. Scoped to the workspace shells
+   (.ts-workspace-light/.profile-page-light/.profile-center/.admin-command-center-shell/
+   .owner-command-center-shell) — the same list the light tokens above already use — because
+   these are the only surfaces this pass verified end-to-end (Profile + its subpages). Extending
+   this same pattern to the public marketing site and Auth screens is a separate, NOT YET DONE
+   pass — see the evidence report for exactly what was and wasn't checked.
+   ================================================================ */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .ts-workspace-light,
+  :root:not([data-theme="light"]) .profile-page-light,
+  :root:not([data-theme="light"]) .profile-center,
+  :root:not([data-theme="light"]) .admin-command-center-shell,
+  :root:not([data-theme="light"]) .owner-command-center-shell {
+    --ts-surface-page: #0f1713;
+    --ts-surface-primary: #16211c;
+    --ts-surface-secondary: #16211c;
+    --ts-surface-muted: #1c2822;
+    --ts-surface-elevated: #1c2822;
+    --ts-surface-nav: #121b16;
+    --ts-surface-modal: #16211c;
+
+    --ts-text-display: #f3f6f4;
+    --ts-text-title: #f3f6f4;
+    --ts-text-body: #e4ece7;
+    --ts-text-secondary: #a9baaf;
+    --ts-text-muted: #7f9587;
+    --ts-text-caption: #7f9587;
+    --ts-text-on-brand: #ffffff;
+
+    --ts-border-subtle: #24352c;
+    --ts-border-default: #24352c;
+    --ts-border-strong: #33473b;
+
+    /* Brand green itself does not change between themes — only the neutrals around it do. */
+    --ts-brand-primary: #14a874;
+    --ts-brand-primary-hover: #12c184;
+    --ts-brand-primary-pressed: #0f7a4d;
+    --ts-brand-primary-soft: #16332570;
+    --ts-brand-primary-border: #1f7d55;
+
+    --ts-semantic-success: #22c55e;
+    --ts-semantic-warning: #f59e0b;
+    --ts-semantic-danger: #f87171;
+    --ts-semantic-info: #38bdf8;
+
+    /* Same globals.css "brand palette lock" counter-override as the explicit-dark block below. */
+    --taj-color-text: var(--ts-text-body) !important;
+    --taj-color-text-secondary: var(--ts-text-secondary) !important;
+    --taj-color-text-muted: var(--ts-text-muted) !important;
+    --taj-color-border: var(--ts-border-subtle) !important;
+    --taj-color-border-strong: var(--ts-border-strong) !important;
+    --taj-color-bg-card: var(--ts-surface-primary) !important;
+    --taj-color-bg-card-solid: var(--ts-surface-primary) !important;
+    --taj-text: var(--ts-text-body) !important;
+    --taj-text-secondary: var(--ts-text-secondary) !important;
+    --taj-text-muted: var(--ts-text-muted) !important;
+    --taj-bg: var(--ts-surface-page) !important;
+    --taj-app-bg: var(--ts-surface-page) !important;
+    --taj-header: var(--ts-surface-nav) !important;
+    --brand-text: var(--ts-text-body) !important;
+    --taj-input: var(--ts-surface-primary) !important;
+    --taj-input-border: var(--ts-border-default) !important;
+    --taj-dropdown-bg: var(--ts-surface-elevated) !important;
+  }
+}
+
+:root[data-theme="dark"] .ts-workspace-light,
+:root[data-theme="dark"] .profile-page-light,
+:root[data-theme="dark"] .profile-center,
+:root[data-theme="dark"] .admin-command-center-shell,
+:root[data-theme="dark"] .owner-command-center-shell {
+  --ts-surface-page: #0f1713;
+  --ts-surface-primary: #16211c;
+  --ts-surface-secondary: #16211c;
+  --ts-surface-muted: #1c2822;
+  --ts-surface-elevated: #1c2822;
+  --ts-surface-nav: #121b16;
+  --ts-surface-modal: #16211c;
+
+  --ts-text-display: #f3f6f4;
+  --ts-text-title: #f3f6f4;
+  --ts-text-body: #e4ece7;
+  --ts-text-secondary: #a9baaf;
+  --ts-text-muted: #7f9587;
+  --ts-text-caption: #7f9587;
+  --ts-text-on-brand: #ffffff;
+
+  --ts-border-subtle: #24352c;
+  --ts-border-default: #24352c;
+  --ts-border-strong: #33473b;
+
+  --ts-brand-primary: #14a874;
+  --ts-brand-primary-hover: #12c184;
+  --ts-brand-primary-pressed: #0f7a4d;
+  --ts-brand-primary-soft: #16332570;
+  --ts-brand-primary-border: #1f7d55;
+
+  --ts-semantic-success: #22c55e;
+  --ts-semantic-warning: #f59e0b;
+  --ts-semantic-danger: #f87171;
+  --ts-semantic-info: #38bdf8;
+
+  /* Root cause of "dark mode won't apply" found while building this: globals.css has an
+     unconditional `:root, [data-theme="light"], [data-theme="dark"] { --taj-color-text: #14231b
+     !important; ... }` "brand palette lock" — it forces LIGHT values even under
+     `[data-theme="dark"]`, with !important, site-wide (evidently written to stop an earlier
+     broken dark-theme attempt from leaking, per this rule's own comment header). Most of
+     Profile's own CSS reads `--ts-*` directly (unaffected by that lock), but shared atoms
+     (buttons, admin/owner chrome) read `--taj-color-text`/`--taj-text`/`--brand-text`, which
+     *are* locked. This override reasserts them for dark mode with matching !important — it wins
+     because this selector's specificity is far higher than the lock's bare `[data-theme="dark"]`,
+     which is how two `!important` declarations resolve. The lock itself was NOT edited/removed,
+     to avoid reopening whatever regression it was written to prevent. */
+  --taj-color-text: var(--ts-text-body) !important;
+  --taj-color-text-secondary: var(--ts-text-secondary) !important;
+  --taj-color-text-muted: var(--ts-text-muted) !important;
+  --taj-color-border: var(--ts-border-subtle) !important;
+  --taj-color-border-strong: var(--ts-border-strong) !important;
+  --taj-color-bg-card: var(--ts-surface-primary) !important;
+  --taj-color-bg-card-solid: var(--ts-surface-primary) !important;
+  --taj-text: var(--ts-text-body) !important;
+  --taj-text-secondary: var(--ts-text-secondary) !important;
+  --taj-text-muted: var(--ts-text-muted) !important;
+  --taj-bg: var(--ts-surface-page) !important;
+  --taj-app-bg: var(--ts-surface-page) !important;
+  --taj-header: var(--ts-surface-nav) !important;
+  --brand-text: var(--ts-text-body) !important;
+  --taj-input: var(--ts-surface-primary) !important;
+  --taj-input-border: var(--ts-border-default) !important;
+  --taj-dropdown-bg: var(--ts-surface-elevated) !important;
+}
+
+/* Direct background/color assertion for the two Profile wrapper classes specifically — found
+   live that `--ts-surface-page` correctly resolved to the dark value on `.profile-page-light`
+   (confirmed via getComputedStyle) yet the element's rendered `background-color` stayed white,
+   meaning some other rule sets `background-color` on it directly rather than through this
+   variable. Also counters `src/styles/tajstay-brand-tokens.css`'s deliberate
+   ".profile-center, .profile-page-light { color: var(--text-primary-semantic, #14231b); ... }"
+   rule — an intentional historical "keep Profile light even on a dark app shell" guard from an
+   earlier phase, left in place rather than deleted (it may still matter for a context this pass
+   didn't audit), but explicitly overridden here now that Profile dark mode is a real requirement. */
+:root[data-theme="dark"] .profile-page-light,
+:root[data-theme="dark"] .profile-center {
+  background-color: var(--ts-surface-page) !important;
+  color: var(--ts-text-body) !important;
+}
+
+:root[data-theme="dark"] .profile-hub__compact-title {
+  color: var(--ts-text-title) !important;
+}
+
+:root[data-theme="dark"] .profile-hub__compact-subtitle {
+  color: var(--ts-text-secondary) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .profile-page-light,
+  :root:not([data-theme="light"]) .profile-center {
+    background-color: var(--ts-surface-page) !important;
+    color: var(--ts-text-body) !important;
+  }
+
+  :root:not([data-theme="light"]) .profile-hub__compact-title {
+    color: var(--ts-text-title) !important;
+  }
+
+  :root:not([data-theme="light"]) .profile-hub__compact-subtitle {
+    color: var(--ts-text-secondary) !important;
+  }
+}
+
+/* Explicit light choice must win over the OS being in dark mode too (the ":not([data-theme=
+   \"light\"])" guard above already handles this for the media-query branch; this rule is the
+   corresponding guard for anything that might match :root[data-theme="dark"] AND a stale/cached
+   light explicit value in the same cascade — defensive, cheap, matches the standard contract). */
+:root[data-theme="light"] .ts-workspace-light,
+:root[data-theme="light"] .profile-page-light,
+:root[data-theme="light"] .profile-center,
+:root[data-theme="light"] .admin-command-center-shell,
+:root[data-theme="light"] .owner-command-center-shell {
+  --ts-surface-page: #ffffff;
+  --ts-surface-primary: #ffffff;
+  --ts-surface-secondary: #ffffff;
+  --ts-surface-muted: #f4f4f5;
+  --ts-surface-elevated: #ffffff;
+  --ts-surface-nav: #ffffff;
+  --ts-surface-modal: #ffffff;
+  --ts-text-title: #14231b;
+  --ts-text-body: #14231b;
+  --ts-text-secondary: #66756d;
+  --ts-text-muted: #66756d;
+}
+
+/* ================================================================
+   SECURITY CORRECTION BLOCK, SECTION E: globals.css has a large, deliberately-LAST
+   "MOBILE UI FOUNDATION — light workspace isolation" rule set (search that exact
+   comment in globals.css) that unconditionally forces every Profile subpage list
+   primitive (rows, group headers/bodies, info rows, language list, back link,
+   ScreenHeader title/subtitle) to light semantic tokens with !important, regardless
+   of [data-theme]. Live-audited on /profile/security: this is why the page title
+   and every "Тағири рамз/телефон/email" row rendered dark-on-dark and the row
+   group kept a hardcoded white card background in Dark Mode. NOT deleting that
+   block (unaudited pages may still depend on it) — reasserting the same
+   properties here with higher-specificity selectors + matching !important, same
+   pattern as the .profile-page-light/.profile-hub__compact-title overrides above. */
+:root[data-theme="dark"] .profile-page-light .profile-subpage-row,
+:root[data-theme="dark"] .ts-workspace-light .profile-subpage-row {
+  color: var(--ts-text-body) !important;
+}
+
+:root[data-theme="dark"] .profile-page-light .profile-subpage-row__label,
+:root[data-theme="dark"] .profile-page-light .profile-subpage-row__value,
+:root[data-theme="dark"] .profile-page-light .profile-subpage-group__title,
+:root[data-theme="dark"] .profile-page-light .profile-info-row__label,
+:root[data-theme="dark"] .profile-page-light .profile-info-row__value,
+:root[data-theme="dark"] .profile-page-light .profile-info-row__hint,
+:root[data-theme="dark"] .profile-page-light .profile-subpage-lang__item,
+:root[data-theme="dark"] .profile-center .profile-subpage-row__label,
+:root[data-theme="dark"] .profile-center .profile-subpage-row__value,
+:root[data-theme="dark"] .profile-center .profile-info-row__label,
+:root[data-theme="dark"] .profile-center .profile-info-row__value,
+:root[data-theme="dark"] .ts-workspace-light .profile-subpage-row__label,
+:root[data-theme="dark"] .ts-workspace-light .profile-subpage-row__value,
+:root[data-theme="dark"] .ts-workspace-light .profile-info-row__label,
+:root[data-theme="dark"] .ts-workspace-light .profile-info-row__value {
+  color: var(--ts-text-body) !important;
+}
+
+:root[data-theme="dark"] .profile-page-light .profile-subpage-row__value,
+:root[data-theme="dark"] .profile-page-light .profile-subpage-group__title,
+:root[data-theme="dark"] .profile-page-light .profile-info-row__label,
+:root[data-theme="dark"] .profile-page-light .profile-info-row__hint,
+:root[data-theme="dark"] .profile-page-light .profile-subpage-row__chevron,
+:root[data-theme="dark"] .profile-page-light .profile-subpage-row__badge,
+:root[data-theme="dark"] .ts-workspace-light .profile-subpage-row__value,
+:root[data-theme="dark"] .ts-workspace-light .profile-subpage-group__title,
+:root[data-theme="dark"] .ts-workspace-light .profile-info-row__label,
+:root[data-theme="dark"] .ts-workspace-light .profile-info-row__hint {
+  color: var(--ts-text-muted) !important;
+}
+
+:root[data-theme="dark"] .profile-page-light .profile-subpage-row__badge,
+:root[data-theme="dark"] .ts-workspace-light .profile-subpage-row__badge {
+  background: var(--ts-surface-muted) !important;
+}
+
+:root[data-theme="dark"] .profile-page-light a.profile-subpage-row,
+:root[data-theme="dark"] .ts-workspace-light a.profile-subpage-row {
+  color: var(--ts-text-title) !important;
+}
+
+:root[data-theme="dark"] .profile-page-light .profile-subpage__back,
+:root[data-theme="dark"] .ts-workspace-light .profile-subpage__back {
+  color: var(--ts-brand-primary) !important;
+}
+
+:root[data-theme="dark"] .profile-page-light .app-screen-header__title,
+:root[data-theme="dark"] .ts-workspace-light .app-screen-header__title {
+  color: var(--ts-text-title) !important;
+}
+
+:root[data-theme="dark"] .profile-page-light .app-screen-header__subtitle,
+:root[data-theme="dark"] .ts-workspace-light .app-screen-header__subtitle {
+  color: var(--ts-text-secondary) !important;
+}
+
+:root[data-theme="dark"] .profile-page-light .profile-subpage-lang__item,
+:root[data-theme="dark"] .ts-workspace-light .profile-subpage-lang__item {
+  background: var(--ts-surface-primary) !important;
+  color: var(--ts-text-title) !important;
+  border-bottom: 1px solid var(--ts-border-subtle) !important;
+}
+
+:root[data-theme="dark"] .profile-page-light .profile-subpage-lang__item.is-active,
+:root[data-theme="dark"] .ts-workspace-light .profile-subpage-lang__item.is-active {
+  background: var(--ts-brand-primary-soft) !important;
+  color: var(--ts-brand-primary) !important;
+}
+
+:root[data-theme="dark"] .profile-page-light .profile-subpage-lang__check,
+:root[data-theme="dark"] .ts-workspace-light .profile-subpage-lang__check {
+  color: var(--ts-brand-primary) !important;
+}
+
+:root[data-theme="dark"] .profile-page-light .profile-subpage-group__body,
+:root[data-theme="dark"] .ts-workspace-light .profile-subpage-group__body,
+:root[data-theme="dark"] .profile-page-light .profile-subpage-lang {
+  background: var(--ts-surface-primary) !important;
+  border-color: var(--ts-border-subtle) !important;
+}
+
+:root[data-theme="dark"] .profile-page-light h1,
+:root[data-theme="dark"] .profile-page-light h2,
+:root[data-theme="dark"] .profile-page-light h3,
+:root[data-theme="dark"] .profile-page-light h4,
+:root[data-theme="dark"] .profile-page-light h5,
+:root[data-theme="dark"] .profile-page-light h6,
+:root[data-theme="dark"] .profile-center h1,
+:root[data-theme="dark"] .profile-center h2,
+:root[data-theme="dark"] .profile-center h3,
+:root[data-theme="dark"] .ts-workspace-light h1,
+:root[data-theme="dark"] .ts-workspace-light h2,
+:root[data-theme="dark"] .ts-workspace-light h3 {
+  color: var(--ts-text-title) !important;
+}
+
+:root[data-theme="dark"] .profile-page-light p,
+:root[data-theme="dark"] .profile-center p,
+:root[data-theme="dark"] .ts-workspace-light p {
+  color: var(--ts-text-secondary) !important;
+}
+
+:root[data-theme="dark"] .profile-page-light span,
+:root[data-theme="dark"] .profile-page-light label,
+:root[data-theme="dark"] .profile-page-light small,
+:root[data-theme="dark"] .profile-page-light li,
+:root[data-theme="dark"] .profile-center span,
+:root[data-theme="dark"] .profile-center label,
+:root[data-theme="dark"] .profile-center small,
+:root[data-theme="dark"] .profile-center li,
+:root[data-theme="dark"] .ts-workspace-light span,
+:root[data-theme="dark"] .ts-workspace-light label,
+:root[data-theme="dark"] .ts-workspace-light small,
+:root[data-theme="dark"] .ts-workspace-light li {
+  color: inherit;
+}
+
+:root[data-theme="dark"] .profile-page-light .text-muted,
+:root[data-theme="dark"] .profile-center .text-muted,
+:root[data-theme="dark"] .ts-workspace-light .text-muted {
+  color: var(--ts-text-muted) !important;
+}
+
+:root[data-theme="dark"] .profile-page-light [class*="bg-white"],
+:root[data-theme="dark"] .profile-center [class*="bg-white"],
+:root[data-theme="dark"] .ts-workspace-light [class*="bg-white"] {
+  background-color: var(--ts-surface-primary) !important;
+  background-image: none !important;
+}
+
+:root[data-theme="dark"] .profile-page-light input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+:root[data-theme="dark"] .profile-page-light textarea,
+:root[data-theme="dark"] .profile-page-light select,
+:root[data-theme="dark"] .profile-center input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+:root[data-theme="dark"] .profile-center textarea,
+:root[data-theme="dark"] .profile-center select,
+:root[data-theme="dark"] .ts-workspace-light input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+:root[data-theme="dark"] .ts-workspace-light textarea,
+:root[data-theme="dark"] .ts-workspace-light select {
+  background: var(--ts-surface-primary) !important;
+  border: 1px solid var(--ts-border-default) !important;
+  color: var(--ts-text-title) !important;
+}
+
+:root[data-theme="dark"] .profile-page-light input::placeholder,
+:root[data-theme="dark"] .profile-page-light textarea::placeholder,
+:root[data-theme="dark"] .profile-center input::placeholder,
+:root[data-theme="dark"] .profile-center textarea::placeholder,
+:root[data-theme="dark"] .ts-workspace-light input::placeholder,
+:root[data-theme="dark"] .ts-workspace-light textarea::placeholder {
+  color: var(--ts-text-muted) !important;
+}
+
+/* Same set again for System theme (prefers-color-scheme, no explicit override). */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .profile-page-light .profile-subpage-row,
+  :root:not([data-theme="light"]) .ts-workspace-light .profile-subpage-row {
+    color: var(--ts-text-body) !important;
+  }
+
+  :root:not([data-theme="light"]) .profile-page-light .profile-subpage-row__label,
+  :root:not([data-theme="light"]) .profile-page-light .profile-subpage-row__value,
+  :root:not([data-theme="light"]) .profile-page-light .profile-subpage-group__title,
+  :root:not([data-theme="light"]) .profile-page-light .profile-info-row__label,
+  :root:not([data-theme="light"]) .profile-page-light .profile-info-row__value,
+  :root:not([data-theme="light"]) .profile-page-light .profile-info-row__hint,
+  :root:not([data-theme="light"]) .profile-page-light .profile-subpage-lang__item,
+  :root:not([data-theme="light"]) .ts-workspace-light .profile-subpage-row__label,
+  :root:not([data-theme="light"]) .ts-workspace-light .profile-subpage-row__value,
+  :root:not([data-theme="light"]) .ts-workspace-light .profile-info-row__label,
+  :root:not([data-theme="light"]) .ts-workspace-light .profile-info-row__value {
+    color: var(--ts-text-body) !important;
+  }
+
+  :root:not([data-theme="light"]) .profile-page-light .profile-subpage-row__value,
+  :root:not([data-theme="light"]) .profile-page-light .profile-subpage-group__title,
+  :root:not([data-theme="light"]) .profile-page-light .profile-info-row__label,
+  :root:not([data-theme="light"]) .profile-page-light .profile-info-row__hint,
+  :root:not([data-theme="light"]) .profile-page-light .profile-subpage-row__chevron,
+  :root:not([data-theme="light"]) .profile-page-light .profile-subpage-row__badge,
+  :root:not([data-theme="light"]) .ts-workspace-light .profile-subpage-row__value,
+  :root:not([data-theme="light"]) .ts-workspace-light .profile-subpage-group__title,
+  :root:not([data-theme="light"]) .ts-workspace-light .profile-info-row__label,
+  :root:not([data-theme="light"]) .ts-workspace-light .profile-info-row__hint {
+    color: var(--ts-text-muted) !important;
+  }
+
+  :root:not([data-theme="light"]) .profile-page-light .profile-subpage-row__badge,
+  :root:not([data-theme="light"]) .ts-workspace-light .profile-subpage-row__badge {
+    background: var(--ts-surface-muted) !important;
+  }
+
+  :root:not([data-theme="light"]) .profile-page-light a.profile-subpage-row,
+  :root:not([data-theme="light"]) .ts-workspace-light a.profile-subpage-row {
+    color: var(--ts-text-title) !important;
+  }
+
+  :root:not([data-theme="light"]) .profile-page-light .profile-subpage__back,
+  :root:not([data-theme="light"]) .ts-workspace-light .profile-subpage__back {
+    color: var(--ts-brand-primary) !important;
+  }
+
+  :root:not([data-theme="light"]) .profile-page-light .app-screen-header__title,
+  :root:not([data-theme="light"]) .ts-workspace-light .app-screen-header__title {
+    color: var(--ts-text-title) !important;
+  }
+
+  :root:not([data-theme="light"]) .profile-page-light .app-screen-header__subtitle,
+  :root:not([data-theme="light"]) .ts-workspace-light .app-screen-header__subtitle {
+    color: var(--ts-text-secondary) !important;
+  }
+
+  :root:not([data-theme="light"]) .profile-page-light .profile-subpage-lang__item,
+  :root:not([data-theme="light"]) .ts-workspace-light .profile-subpage-lang__item {
+    background: var(--ts-surface-primary) !important;
+    color: var(--ts-text-title) !important;
+    border-bottom: 1px solid var(--ts-border-subtle) !important;
+  }
+
+  :root:not([data-theme="light"]) .profile-page-light .profile-subpage-lang__item.is-active,
+  :root:not([data-theme="light"]) .ts-workspace-light .profile-subpage-lang__item.is-active {
+    background: var(--ts-brand-primary-soft) !important;
+    color: var(--ts-brand-primary) !important;
+  }
+
+  :root:not([data-theme="light"]) .profile-page-light .profile-subpage-lang__check,
+  :root:not([data-theme="light"]) .ts-workspace-light .profile-subpage-lang__check {
+    color: var(--ts-brand-primary) !important;
+  }
+
+  :root:not([data-theme="light"]) .profile-page-light .profile-subpage-group__body,
+  :root:not([data-theme="light"]) .ts-workspace-light .profile-subpage-group__body,
+  :root:not([data-theme="light"]) .profile-page-light .profile-subpage-lang {
+    background: var(--ts-surface-primary) !important;
+    border-color: var(--ts-border-subtle) !important;
+  }
+
+  :root:not([data-theme="light"]) .profile-page-light h1,
+  :root:not([data-theme="light"]) .profile-page-light h2,
+  :root:not([data-theme="light"]) .profile-page-light h3,
+  :root:not([data-theme="light"]) .profile-page-light h4,
+  :root:not([data-theme="light"]) .profile-page-light h5,
+  :root:not([data-theme="light"]) .profile-page-light h6,
+  :root:not([data-theme="light"]) .profile-center h1,
+  :root:not([data-theme="light"]) .profile-center h2,
+  :root:not([data-theme="light"]) .profile-center h3,
+  :root:not([data-theme="light"]) .ts-workspace-light h1,
+  :root:not([data-theme="light"]) .ts-workspace-light h2,
+  :root:not([data-theme="light"]) .ts-workspace-light h3 {
+    color: var(--ts-text-title) !important;
+  }
+
+  :root:not([data-theme="light"]) .profile-page-light p,
+  :root:not([data-theme="light"]) .profile-center p,
+  :root:not([data-theme="light"]) .ts-workspace-light p {
+    color: var(--ts-text-secondary) !important;
+  }
+
+  :root:not([data-theme="light"]) .profile-page-light .text-muted,
+  :root:not([data-theme="light"]) .profile-center .text-muted,
+  :root:not([data-theme="light"]) .ts-workspace-light .text-muted {
+    color: var(--ts-text-muted) !important;
+  }
+
+  :root:not([data-theme="light"]) .profile-page-light [class*="bg-white"],
+  :root:not([data-theme="light"]) .profile-center [class*="bg-white"],
+  :root:not([data-theme="light"]) .ts-workspace-light [class*="bg-white"] {
+    background-color: var(--ts-surface-primary) !important;
+    background-image: none !important;
+  }
+
+  :root:not([data-theme="light"]) .profile-page-light input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  :root:not([data-theme="light"]) .profile-page-light textarea,
+  :root:not([data-theme="light"]) .profile-page-light select,
+  :root:not([data-theme="light"]) .profile-center input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  :root:not([data-theme="light"]) .profile-center textarea,
+  :root:not([data-theme="light"]) .profile-center select,
+  :root:not([data-theme="light"]) .ts-workspace-light input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  :root:not([data-theme="light"]) .ts-workspace-light textarea,
+  :root:not([data-theme="light"]) .ts-workspace-light select {
+    background: var(--ts-surface-primary) !important;
+    border: 1px solid var(--ts-border-default) !important;
+    color: var(--ts-text-title) !important;
+  }
+
+  :root:not([data-theme="light"]) .profile-page-light input::placeholder,
+  :root:not([data-theme="light"]) .profile-page-light textarea::placeholder,
+  :root:not([data-theme="light"]) .profile-center input::placeholder,
+  :root:not([data-theme="light"]) .profile-center textarea::placeholder,
+  :root:not([data-theme="light"]) .ts-workspace-light input::placeholder,
+  :root:not([data-theme="light"]) .ts-workspace-light textarea::placeholder {
+    color: var(--ts-text-muted) !important;
+  }
+}
+
 /* Application UI titles: sans, not editorial serif */
 .ts-workspace-light h1,
 .ts-workspace-light h2,

@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { PageContainer } from "@/components/ds";
 import { ScreenHeader } from "@/components/navigation/ScreenHeader";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
+import { ProfileBackButton } from "@/components/profile/ProfileBackButton";
 
 export function ProfileSubpageShell({
   locale,
@@ -22,11 +22,7 @@ export function ProfileSubpageShell({
       <ScreenHeader
         title={title}
         subtitle={subtitle}
-        action={
-          <Link href={backHref} className="profile-subpage__back">
-            {m(locale, "common.back")}
-          </Link>
-        }
+        action={<ProfileBackButton href={backHref} label={m(locale, "common.back")} />}
       />
       <div className="profile-subpage__body">{children}</div>
     </PageContainer>

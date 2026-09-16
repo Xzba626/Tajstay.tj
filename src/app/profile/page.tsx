@@ -5,6 +5,8 @@ import { m } from "@/lib/i18n/messages";
 import { ProfileMockupView } from "@/components/profile/ProfileMockupView";
 import { PageContainer } from "@/components/ds";
 import { getUnreadNotificationsCount } from "@/lib/notifications/unread";
+import { cookies } from "next/headers";
+import { THEME_COOKIE, normalizeTheme } from "@/lib/theme";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +39,8 @@ export default async function ProfilePage() {
 
   if (!full) return null;
 
+  const themePreference = normalizeTheme((await cookies()).get(THEME_COOKIE)?.value);
+
   return (
     <PageContainer width="default" className="profile-page-light profile-workspace ts-workspace-light">
       <ProfileMockupView
@@ -44,6 +48,7 @@ export default async function ProfilePage() {
         user={{ ...full, bookingsCount: full._count.bookings, favoritesCount: full._count.favorites }}
         logoutLabel={m(locale, "userMenu.logout")}
         unreadNotifications={unreadNotifications}
+        themePreference={themePreference}
       />
     </PageContainer>
   );

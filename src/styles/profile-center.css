@@ -3,9 +3,27 @@
  */
 
 .profile-page-light {
-  background: #ffffff;
-  color: var(--text-primary, #0f172a);
+  /* Was a hardcoded #ffffff, not a token — confirmed live as the reason the page background
+     stayed white in Dark Mode while the cards inside it correctly went dark. */
+  background: var(--ts-surface-page, #ffffff);
+  color: var(--ts-text-body, #0f172a);
   min-height: calc(100dvh - 3.5rem);
+}
+
+/* MOBILE PROFILE / OWNER / SECURITY CORRECTION BLOCK — root cause of the huge empty gaps between
+   Security's "Ҳисоб"/"Ба зудӣ" groups (and the same defect on every other Profile subpage using
+   ProfileSubpageGroup, which renders a bare <section>): a global marketing rule in globals.css,
+   `section { padding-top: 2.5rem; padding-bottom: 2.5rem; }`, applies to EVERY <section> site-wide
+   with no scoping. This is the exact same bug already root-caused and fixed for Admin in ADMIN
+   6.1B (`.admin-command-center section { padding: 0 }`) — Profile was never given the equivalent
+   override. Confirmed via computed-style measurement before fixing, not guessed: each
+   `.profile-subpage-group` measured `padding: 40px 0px` with nothing in this file's own rules
+   accounting for it. */
+.profile-page-light section,
+.profile-center section,
+.profile-hub section {
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 .profile-page-light .profile-center__title {
@@ -589,13 +607,58 @@
   margin: 0;
   font-size: 1.125rem;
   font-weight: 700;
-  color: #0f172a;
+  /* Was hardcoded #0f172a — invisible against a dark page background once .profile-page-light's
+     own background became theme-aware. */
+  color: var(--ts-text-title, #0f172a);
 }
 
 .profile-hub__compact-subtitle {
   margin: 0.2rem 0 0;
   font-size: 0.8rem;
-  color: #64748b;
+  color: var(--ts-text-secondary, #64748b);
+}
+
+/* MOBILE PROFILE / OWNER / SECURITY CORRECTION BLOCK: Language + Theme controls in the header. */
+.profile-hub__compact-head-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.profile-hub__compact-head-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.profile-theme-toggle {
+  display: flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid var(--ts-border-subtle, #e2e8f0);
+  background: var(--ts-surface-muted, #f4f4f5);
+  padding: 0.15rem;
+}
+
+.profile-theme-toggle__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  color: var(--ts-text-muted, #71717a);
+}
+
+.profile-theme-toggle__btn.is-active {
+  background: var(--ts-brand-primary, #0f7a4d);
+  color: #ffffff;
+}
+
+.profile-theme-toggle__btn:disabled {
+  opacity: 0.6;
 }
 
 .profile-hub__identity-row {
@@ -980,6 +1043,37 @@
   font-weight: 600;
   color: var(--ts-brand-primary, #0f7a4d);
   text-decoration: none;
+}
+
+/* MOBILE PROFILE / OWNER / SECURITY CORRECTION BLOCK, PROBLEM K: replaces the bare text link
+   above (still kept for anything not yet migrated) with a real navigation-control affordance. */
+.profile-back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+  padding: 0.4rem 0.6rem 0.4rem 0.4rem;
+  margin: -0.4rem -0.6rem -0.4rem -0.4rem;
+  border-radius: 0.625rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ts-brand-primary, #0f7a4d);
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+
+.profile-back-button:hover {
+  background: var(--ts-brand-primary-soft, #f4f4f5);
+}
+
+.profile-back-button:focus-visible {
+  outline: 2px solid var(--ts-brand-primary, #0f7a4d);
+  outline-offset: 2px;
+}
+
+.profile-back-button__icon {
+  flex-shrink: 0;
 }
 
 .profile-subpage__body {

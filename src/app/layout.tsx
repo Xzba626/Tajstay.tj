@@ -27,6 +27,8 @@ import { assertProdSecrets } from "@/lib/security/envGuard";
 import { resolveMetadataBase } from "@/lib/site-url";
 import { getPendingTripsCount } from "@/lib/trips/pendingCount";
 import { ShellBoundaryGuard } from "@/components/layout/ShellBoundaryGuard";
+import { cookies } from "next/headers";
+import { THEME_COOKIE, normalizeTheme, themeAttrFor } from "@/lib/theme";
 
 export async function generateMetadata(): Promise<Metadata> {
   const content = await getSiteContent();
@@ -81,8 +83,21 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   // Cookie/PWA prompts) must not leak into those two. Classified in middleware.ts, not CSS.
   const resolvedShell = shellHeader === "admin" || shellHeader === "owner" ? shellHeader : "consumer";
   const isConsumerShell = resolvedShell === "consumer";
+  // MOBILE PROFILE / OWNER / SECURITY CORRECTION BLOCK: theme preference is read from a cookie
+  // server-side (same pattern as the locale cookie) so the correct `data-theme` attribute is
+  // already present in the very first HTML sent to the browser — no client-side toggle-after-
+  // mount, no light->dark flash. "system" omits the attribute entirely and lets the
+  // `@media (prefers-color-scheme: dark)` CSS fallback (tajstay-design-system.css) decide, which
+  // is the only way "System" can track the OS without a hydration mismatch.
+  const themePref = normalizeTheme((await cookies()).get(THEME_COOKIE)?.value);
+  const themeAttr = themeAttrFor(themePref);
   return (
-    <html lang={locale} className="scroll-smooth" data-theme="light" suppressHydrationWarning>
+    <html
+      lang={locale}
+      className="scroll-smooth"
+      {...(themeAttr ? { "data-theme": themeAttr } : {})}
+      suppressHydrationWarning
+    >
       <head>
         <link rel="manifest" href="/manifest.webmanifest" />
         <link rel="icon" href="/favicon.ico" sizes="48x48" />
