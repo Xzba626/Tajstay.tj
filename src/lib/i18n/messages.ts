@@ -1932,7 +1932,12 @@ const ru: Tree = {
       labelPlaceholder: "Название (например, Humo)",
       recipientPlaceholder: "Получатель",
       identifierPlaceholder: "Номер карты / счёта / кошелька",
-      instructionsPlaceholder: "Инструкция для гостя (необязательно)"
+      instructionsPlaceholder: "Инструкция для гостя (необязательно)",
+      typeFieldLabel: "Тип",
+      typeCard: "Карта",
+      typeWallet: "Электронный кошелёк",
+      typeBank: "Банковский счёт",
+      typeOther: "Другое"
     },
     payAtCheckIn: {
       toggleLabel: "Оплата при заселении",
@@ -3956,6 +3961,11 @@ const tg: Tree = {
       inactive: "Хомӯш",
       remove: "Нест кардан",
       labelPlaceholder: "Ном (масалан, Humo)",
+      typeFieldLabel: "Навъ",
+      typeCard: "Корт",
+      typeWallet: "Ҳамьёни электронӣ",
+      typeBank: "Ҳисоби бонкӣ",
+      typeOther: "Дигар",
       recipientPlaceholder: "Гиранда",
       identifierPlaceholder: "Рақами корт / ҳисоб / кошелёк",
       instructionsPlaceholder: "Дастур барои меҳмон (ихтиёрӣ)"
@@ -5974,6 +5984,11 @@ const en: Tree = {
       inactive: "Disabled",
       remove: "Remove",
       labelPlaceholder: "Label (e.g. Humo)",
+      typeFieldLabel: "Type",
+      typeCard: "Card",
+      typeWallet: "E-wallet",
+      typeBank: "Bank account",
+      typeOther: "Other",
       recipientPlaceholder: "Recipient name",
       identifierPlaceholder: "Card / account / wallet number",
       instructionsPlaceholder: "Instructions for the guest (optional)"

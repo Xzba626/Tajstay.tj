@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { CreditCard, Wallet, Landmark, MoreHorizontal, Check, ChevronDown } from "lucide-react";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
 
@@ -18,6 +19,102 @@ type PaymentMethod = {
 };
 
 const TYPES = ["CARD", "WALLET", "BANK", "OTHER"] as const;
+const TYPE_ICONS = { CARD: CreditCard, WALLET: Wallet, BANK: Landmark, OTHER: MoreHorizontal } as const;
+
+/**
+ * MOBILE PROFILE / OWNER PANEL / FINANCE CORRECTION BLOCK, PROBLEM 11+12: this field used to be a
+ * plain `<select>` rendering the raw stored enum ("CARD", "WALLET", "BANK", "OTHER") as its visible
+ * text, AND its native option list rendered as an OS-styled dark popup with zero TajStay styling
+ * (confirmed exactly matching the screenshot). Backend/DB value is untouched (still the plain
+ * string enum, per the explicit "don't change the enum just for UI" instruction) — only the
+ * presentation layer changes: a localized label function plus a custom, accessible, light-themed
+ * listbox replacing the native select entirely.
+ */
+function paymentTypeLabel(locale: Locale, type: string): string {
+  switch (type) {
+    case "CARD":
+      return m(locale, "owner.paymentMethods.typeCard");
+    case "WALLET":
+      return m(locale, "owner.paymentMethods.typeWallet");
+    case "BANK":
+      return m(locale, "owner.paymentMethods.typeBank");
+    default:
+      return m(locale, "owner.paymentMethods.typeOther");
+  }
+}
+
+function PaymentTypeSelect({
+  locale,
+  value,
+  onChange
+}: {
+  locale: Locale;
+  value: (typeof TYPES)[number];
+  onChange: (t: (typeof TYPES)[number]) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function onDocClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("mousedown", onDocClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDocClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, []);
+
+  const ValueIcon = TYPE_ICONS[value];
+
+  return (
+    <div className="relative" ref={ref}>
+      <label className="owner-payment-type-label">{m(locale, "owner.paymentMethods.typeFieldLabel")}</label>
+      <button
+        type="button"
+        className="owner-payment-type-trigger"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+      >
+        <ValueIcon size={16} aria-hidden />
+        <span className="flex-1 text-left">{paymentTypeLabel(locale, value)}</span>
+        <ChevronDown size={16} aria-hidden />
+      </button>
+      {open ? (
+        <ul className="owner-payment-type-listbox" role="listbox">
+          {TYPES.map((t) => {
+            const Icon = TYPE_ICONS[t];
+            const selected = t === value;
+            return (
+              <li key={t}>
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={selected}
+                  className="owner-payment-type-option"
+                  onClick={() => {
+                    onChange(t);
+                    setOpen(false);
+                  }}
+                >
+                  <Icon size={16} aria-hidden />
+                  <span className="flex-1 text-left">{paymentTypeLabel(locale, t)}</span>
+                  {selected ? <Check size={16} aria-hidden /> : null}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
+    </div>
+  );
+}
 
 const emptyDraft = {
   type: "CARD" as (typeof TYPES)[number],
@@ -187,17 +284,11 @@ function HotelPaymentMethodsEditor({ locale, hotel }: { locale: Locale; hotel: H
 
       {adding ? (
         <div className="space-y-2 rounded-xl border border-white/10 bg-black/10 p-3">
-          <select
+          <PaymentTypeSelect
+            locale={locale}
             value={draft.type}
-            onChange={(e) => setDraft((d) => ({ ...d, type: e.target.value as (typeof TYPES)[number] }))}
-            className="w-full rounded-lg border border-white/15 bg-black/20 px-3 py-2 text-sm text-white"
-          >
-            {TYPES.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
+            onChange={(t) => setDraft((d) => ({ ...d, type: t }))}
+          />
           <input
             value={draft.displayLabel}
             onChange={(e) => setDraft((d) => ({ ...d, displayLabel: e.target.value }))}

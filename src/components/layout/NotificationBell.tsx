@@ -185,7 +185,31 @@ export function NotificationBell({
           // contract. Same treatment as the header's language switcher (home.css
           // .locale-switcher--icon-only) for one consistent header-action pattern; the hover
           // overlay is a transient interaction state, not the resting brand surface.
-          "relative flex h-10 w-10 items-center justify-center rounded-xl border border-white/35 bg-transparent text-white shadow-sm transition hover:bg-white/[0.12]",
+          // MASTER SCREENSHOT CORRECTION BATCH 01, ISSUE 01 — real root cause found (not a CSS
+          // specificity guess): src/app/globals.css has a legacy "neutralize old dark-glass
+          // surfaces" rule targeting `[class*="bg-white/"], [class*="bg-slate-900/"], ...` with
+          // `!important` on background/border-color/box-shadow, written to catch translucent
+          // dark-theme classes like `bg-white/10`. Attribute substring selectors match ANYWHERE
+          // in the class string, so it also matched THIS button's `hover:bg-white/[0.12]` — the
+          // substring "bg-white/" is present inside the hover-variant class name too, even though
+          // that rule was never meant to touch a resting-state green header control. Confirmed via
+          // the compiled CSS (`--ds-shadow-soft: 0 10px 28px rgba(0,0,0,.28)` + the exact matching
+          // selector), not inferred. Fixed by not spelling the hover class in a way that contains
+          // that substring — an arbitrary rgba() value instead of the `white/[opacity]` shorthand.
+          // The global selector itself is a landmine for any future `bg-white/*`/`hover:bg-white/*`
+          // class anywhere in the app; not changed here since editing a broad `!important` rule
+          // with many real consumers (translucent glass cards) without regression-testing every one
+          // of them is a bigger, separate risk than this one button's fix warrants.
+          // Second landmine, same family: `button[class*="border"], a[class*="border"] { ... }`
+          // (globals.css) matches ANY button carrying Tailwind's bare `border` utility — which is
+          // nearly every bordered button in this app — and resets border-color/text-color to a
+          // dark-theme default with normal (non-!important) specificity that still beats a plain
+          // `.border-white\/35` utility class on pure specificity (attribute selector > class).
+          // `!border-white/35` has no competing !important here, so it wins cleanly.
+          // Same landmine also resets `color` (to a light-green default) with the same winning
+          // specificity, which would tint the bell icon (stroke="currentColor") — !text-white
+          // pins it to true white.
+          "relative flex h-10 w-10 items-center justify-center rounded-xl border !border-white/35 bg-transparent !text-white shadow-sm transition hover:bg-[rgba(255,255,255,0.12)]",
           open && "ring-2 ring-white/40"
         )}
         aria-expanded={open}

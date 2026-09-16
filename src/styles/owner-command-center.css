@@ -1105,3 +1105,70 @@
 .owner-onboarding__dismiss:active {
   color: var(--owner-text);
 }
+
+/* MOBILE PROFILE / OWNER PANEL / FINANCE CORRECTION BLOCK, PROBLEM 11+12: payment-method type
+   picker — deliberately light (white surface, green selected state), not the surrounding dark
+   card, per the explicit requirement that this control must not render as a dark OS-native popup
+   in Light Mode. Replaces a plain <select> whose native option list could not be themed at all. */
+.owner-payment-type-label {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.owner-payment-type-trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.625rem;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #14231b;
+  font-size: 0.875rem;
+}
+
+.owner-payment-type-trigger:hover {
+  background: #f8fafc;
+}
+
+.owner-payment-type-listbox {
+  position: absolute;
+  z-index: 40;
+  left: 0;
+  right: 0;
+  margin-top: 0.35rem;
+  list-style: none;
+  padding: 0.3rem;
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.16);
+}
+
+.owner-payment-type-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 0.5rem;
+  color: #14231b;
+  font-size: 0.875rem;
+  text-align: left;
+}
+
+.owner-payment-type-option:hover {
+  background: #f4f6f5;
+}
+
+.owner-payment-type-option[aria-selected="true"] {
+  background: rgba(15, 122, 77, 0.1);
+  color: #0f7a4d;
+  font-weight: 600;
+}
