@@ -55,6 +55,7 @@ export type OwnerSidebarLabels = {
     messages: string;
     reviews: string;
     finances: string;
+    expenses: string;
     statistics: string;
     activity: string;
     staff: string;
@@ -90,8 +91,9 @@ function buildItems(labels: OwnerSidebarLabels): SidebarItem[] {
     { section: "calendar", label: labels.items.calendar, Icon: CalendarDays },
     { href: "/dashboard/messages", label: labels.items.messages, Icon: MessageSquare },
     { section: "reviews", label: labels.items.reviews, Icon: Star },
-    { section: "finances", label: labels.items.finances, Icon: CreditCard },
     { section: "analytics", label: labels.items.statistics, Icon: BarChart3 },
+    { section: "expenses", label: labels.items.expenses, Icon: Wallet },
+    { section: "requisites", label: labels.items.finances, Icon: CreditCard },
     { section: "activity", label: labels.items.activity, Icon: ScrollText },
     { section: "staff", label: labels.items.staff, Icon: UsersRound },
     { section: "help", label: labels.items.help, Icon: CircleHelp },
@@ -103,16 +105,16 @@ const MOBILE_PRIMARY = ["overview", "properties", "bookings", "calendar"] as con
 
 const OWNER_DRAWER_GROUPS = [
   { key: "operations" as const, sections: ["rooms", "offline-bookings", "staff"] },
-  { key: "insights" as const, sections: ["finances", "analytics", "reviews", "notifications", "activity"] },
-  { key: "support" as const, hrefs: ["/dashboard/messages"], sections: ["help"] as string[] }
+  { key: "insights" as const, sections: ["analytics", "expenses", "requisites", "activity", "notifications"] },
+  { key: "support" as const, hrefs: ["/dashboard/messages"], sections: ["help", "reviews"] as string[] }
 ];
 
 const OWNER_SIDEBAR_GROUPS = [
   { key: "overview" as const, sections: ["overview"] },
   { key: "properties" as const, sections: ["properties", "rooms"] },
-  { key: "operations" as const, sections: ["bookings", "offline-bookings", "calendar", "staff"] },
-  { key: "insights" as const, sections: ["finances", "analytics", "reviews", "notifications", "activity"] },
-  { key: "support" as const, sections: ["help"], hrefs: ["/dashboard/messages"] as string[] }
+  { key: "operations" as const, sections: ["bookings", "calendar", "offline-bookings", "staff"] },
+  { key: "insights" as const, sections: ["analytics", "expenses", "requisites", "activity", "notifications"] },
+  { key: "support" as const, sections: ["help", "reviews"], hrefs: ["/dashboard/messages"] as string[] }
 ];
 
 function resolveHref(pathname: string, item: SidebarItem, hotelId?: string | null): string {

@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
+import { ownerBookingSourceLabel, ownerStatusLabel } from "@/lib/i18n/ownerPresentation";
 import type { CalendarCellKind, CalendarCellMeta, RoomTypeCalendarRow } from "@/lib/services/ownerCalendar";
 
 type RoomRow = {
@@ -62,7 +63,8 @@ export function OwnerCalendar({
   days,
   cells,
   cellMeta = {},
-  hotels = []
+  hotels = [],
+  activeHotelId = 0
 }: {
   locale: Locale;
   rooms: RoomRow[];
@@ -71,10 +73,12 @@ export function OwnerCalendar({
   cells: Record<string, CalendarCellKind>;
   cellMeta?: Record<string, CalendarCellMeta>;
   hotels?: HotelFilter[];
+  /** Canonical Owner hotel scope from URL — do not default to "all hotels". */
+  activeHotelId?: number;
 }) {
   const router = useRouter();
   const [viewMode, setViewMode] = useState<"room" | "type">("room");
-  const [hotelFilter, setHotelFilter] = useState<number | "all">("all");
+  const [hotelFilter, setHotelFilter] = useState<number | "all">(activeHotelId > 0 ? activeHotelId : "all");
   const [roomFilter, setRoomFilter] = useState<number | "all">("all");
   const [roomId, setRoomId] = useState<number | null>(null);
   const [rangeStart, setRangeStart] = useState<string | null>(null);
@@ -83,6 +87,17 @@ export function OwnerCalendar({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [detail, setDetail] = useState<{ roomId: number; dayKey: string; kind: CalendarCellKind } | null>(null);
+  const [mobileDayKey, setMobileDayKey] = useState<string>(days[0]?.key ?? "");
+
+  useEffect(() => {
+    if (activeHotelId > 0) setHotelFilter(activeHotelId);
+  }, [activeHotelId]);
+
+  useEffect(() => {
+    if (days.length && !days.some((d) => d.key === mobileDayKey)) {
+      setMobileDayKey(days[0].key);
+    }
+  }, [days, mobileDayKey]);
 
   const roomOptions = useMemo(() => {
     return rooms.filter((r) => hotelFilter === "all" || r.hotel.id === hotelFilter);
@@ -116,35 +131,52 @@ export function OwnerCalendar({
     return cellMeta[`${detail.roomId}|${detail.dayKey}`];
   }, [detail, cellMeta]);
 
+  const mobileDayRows = useMemo(() => {
+    if (!mobileDayKey) return [];
+    return filteredRooms.map((r) => {
+      const key = `${r.id}|${mobileDayKey}`;
+      const kind = cells[key] ?? "available";
+      return { room: r, kind, meta: cellMeta[key] };
+    });
+  }, [filteredRooms, mobileDayKey, cells, cellMeta]);
+
   const onCellClick = useCallback(
     (rId: number, dayKey: string, kind: CalendarCellKind) => {
-      setError(null);
       if (BOOKING_KINDS.includes(kind)) {
         setDetail({ roomId: rId, dayKey, kind });
         return;
       }
       setDetail(null);
-      if (roomId !== rId || !rangeStart) {
+      if (roomId !== rId) {
         setRoomId(rId);
         setRangeStart(dayKey);
         setRangeEnd(null);
         return;
       }
-      setRangeEnd(dayKey);
+      if (!rangeStart) {
+        setRangeStart(dayKey);
+        return;
+      }
+      if (!rangeEnd) {
+        setRangeEnd(dayKey);
+        return;
+      }
+      setRangeStart(dayKey);
+      setRangeEnd(null);
     },
-    [roomId, rangeStart]
+    [roomId, rangeStart, rangeEnd]
   );
 
-  const clearSelection = () => {
+  function clearSelection() {
     setRoomId(null);
     setRangeStart(null);
     setRangeEnd(null);
     setCustomPrice("");
     setError(null);
     setDetail(null);
-  };
+  }
 
-  const applyBulk = async (opts: { isBlocked?: boolean; customPrice?: number | null; clear?: boolean }) => {
+  async function applyBulk(opts: { isBlocked?: boolean; customPrice?: number | null; clear?: boolean }) {
     if (!roomId || !rangeStart) return;
     const start = rangeStart;
     const end = rangeEnd ?? rangeStart;
@@ -163,18 +195,17 @@ export function OwnerCalendar({
         })
       });
       if (!res.ok) {
-        const j = (await res.json().catch(() => ({}))) as { error?: string };
-        setError(j.error ?? "failed");
+        setError(m(locale, "owner.calendar.actionError"));
         return;
       }
       clearSelection();
       router.refresh();
     } catch {
-      setError("failed");
+      setError(m(locale, "owner.calendar.actionError"));
     } finally {
       setBusy(false);
     }
-  };
+  }
 
   const offlineHref = useMemo(() => {
     if (!roomId || !rangeStart) return "/dashboard/owner?section=offline-bookings";
@@ -190,7 +221,83 @@ export function OwnerCalendar({
     return `/dashboard/owner?${params.toString()}`;
   }, [roomId, rangeStart, rangeEnd, days]);
 
+  const showHotelFilter = hotels.length > 1 && !(activeHotelId > 0);
   const selectedBookingId = detailMeta?.bookingId ?? null;
+
+  function renderDetailDialog() {
+    if (!detail || !detailMeta?.bookingId) return null;
+    const ref = detailMeta.publicCode || (detailMeta.bookingId ? `#${detailMeta.bookingId}` : "—");
+    return (
+      <div className="owner-panel owner-calendar-detail" role="dialog" aria-labelledby="cal-detail-title">
+        <div className="owner-calendar-detail__head">
+          <div>
+            <h3 id="cal-detail-title" className="owner-calendar-detail__title">
+              {detailMeta.hotelName}
+            </h3>
+            <p className="owner-calendar-detail__subtitle">
+              {detailMeta.roomTitle} · {detailMeta.checkIn} — {detailMeta.checkOut}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setDetail(null)}
+            className="owner-btn owner-btn--ghost owner-btn--sm"
+            aria-label={m(locale, "owner.calendar.detailClose")}
+          >
+            ✕
+          </button>
+        </div>
+        <dl className="owner-calendar-detail__rows">
+          <div className="owner-calendar-detail__row">
+            <dt className="owner-calendar-detail__label">{m(locale, "owner.calendar.detailReference")}</dt>
+            <dd className="owner-calendar-detail__value">{ref}</dd>
+          </div>
+          <div className="owner-calendar-detail__row">
+            <dt className="owner-calendar-detail__label">{m(locale, "owner.calendar.detailGuest")}</dt>
+            <dd className="owner-calendar-detail__value">{detailMeta.guestLabel ?? "—"}</dd>
+          </div>
+          {detailMeta.guestPhone ? (
+            <div className="owner-calendar-detail__row">
+              <dt className="owner-calendar-detail__label">{m(locale, "owner.calendar.detailPhone")}</dt>
+              <dd className="owner-calendar-detail__value">{detailMeta.guestPhone}</dd>
+            </div>
+          ) : null}
+          <div className="owner-calendar-detail__row">
+            <dt className="owner-calendar-detail__label">{m(locale, "owner.calendar.detailStatus")}</dt>
+            <dd className="owner-calendar-detail__value">{ownerStatusLabel(locale, detailMeta.status)}</dd>
+          </div>
+          {detailMeta.paymentStatus ? (
+            <div className="owner-calendar-detail__row">
+              <dt className="owner-calendar-detail__label">{m(locale, "owner.calendar.detailPayment")}</dt>
+              <dd className="owner-calendar-detail__value">{ownerStatusLabel(locale, detailMeta.paymentStatus)}</dd>
+            </div>
+          ) : null}
+          {detailMeta.source ? (
+            <div className="owner-calendar-detail__row">
+              <dt className="owner-calendar-detail__label">{m(locale, "owner.calendar.detailSource")}</dt>
+              <dd className="owner-calendar-detail__value">{ownerBookingSourceLabel(locale, detailMeta.source)}</dd>
+            </div>
+          ) : null}
+          {detailMeta.totalPrice ? (
+            <div className="owner-calendar-detail__row">
+              <dt className="owner-calendar-detail__label">{m(locale, "owner.calendar.detailAmount")}</dt>
+              <dd className="owner-calendar-detail__value">
+                {detailMeta.totalPrice} {m(locale, "owner.calendar.currency")}
+              </dd>
+            </div>
+          ) : null}
+        </dl>
+        <div className="owner-calendar-detail__actions">
+          <Link href={`/chat/booking/${detailMeta.bookingId}`} className="owner-btn owner-btn--primary owner-btn--sm">
+            {m(locale, "owner.calendar.openBooking")}
+          </Link>
+          <button type="button" onClick={() => setDetail(null)} className="owner-btn owner-btn--secondary owner-btn--sm">
+            {m(locale, "owner.calendar.detailClose")}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="owner-panel owner-calendar">
@@ -226,9 +333,9 @@ export function OwnerCalendar({
         </button>
       </div>
 
-      {(hotels.length > 1 || rooms.length > 1) && (
+      {(showHotelFilter || rooms.length > 1) && (
         <div className="mt-3 flex flex-wrap gap-2">
-          {hotels.length > 1 ? (
+          {showHotelFilter ? (
             <select
               value={hotelFilter === "all" ? "" : String(hotelFilter)}
               onChange={(e) => {
@@ -236,7 +343,7 @@ export function OwnerCalendar({
                 setHotelFilter(v ? Number(v) : "all");
                 setRoomFilter("all");
               }}
-              className="h-9 max-w-[min(100%,14rem)] rounded-lg border border-slate-200 px-2 text-xs"
+              className="owner-input h-11 max-w-[min(100%,14rem)] text-xs"
               aria-label={m(locale, "owner.calendar.filterHotel")}
             >
               <option value="">{m(locale, "owner.calendar.filterAllHotels")}</option>
@@ -254,7 +361,7 @@ export function OwnerCalendar({
                 const v = e.target.value;
                 setRoomFilter(v ? Number(v) : "all");
               }}
-              className="h-9 max-w-[min(100%,14rem)] rounded-lg border border-slate-200 px-2 text-xs"
+              className="owner-input h-11 max-w-[min(100%,14rem)] text-xs"
               aria-label={m(locale, "owner.calendar.filterRoom")}
             >
               <option value="">{m(locale, "owner.calendar.filterAllRooms")}</option>
@@ -296,7 +403,7 @@ export function OwnerCalendar({
                 value={customPrice}
                 onChange={(e) => setCustomPrice(e.target.value)}
                 placeholder={m(locale, "owner.priceIfOpen")}
-                className="owner-input owner-btn--sm !h-8 !w-24 !text-xs"
+                className="owner-input owner-btn--sm !h-11 !w-24 !text-xs"
               />
               <button
                 type="button"
@@ -324,22 +431,65 @@ export function OwnerCalendar({
               </Link>
             ) : null}
           </div>
-          {error ? <p className="owner-toast--error mt-2">{m(locale, "owner.calendar.actionError")}</p> : null}
+          {error ? <p className="owner-toast--error mt-2">{error}</p> : null}
         </div>
       ) : null}
 
-      <div className="owner-calendar-scroll mt-3 max-h-[min(70vh,520px)] overflow-auto rounded-xl border border-[var(--owner-border)]">
+      <div className="owner-calendar-mobile mt-3 md:hidden">
+        <div className="owner-calendar-daystrip" role="tablist" aria-label={m(locale, "owner.calendar.dayStrip")}>
+          {days.slice(0, 14).map((d) => {
+            const active = d.key === mobileDayKey;
+            return (
+              <button
+                key={d.key}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                className={`owner-calendar-daystrip__day${active ? " is-active" : ""}`}
+                onClick={() => setMobileDayKey(d.key)}
+              >
+                <span className="owner-calendar-daystrip__num">{d.day}</span>
+                <span className="owner-calendar-daystrip__mon">{d.month}</span>
+              </button>
+            );
+          })}
+        </div>
+        <ul className="owner-calendar-daylist mt-3 space-y-2">
+          {mobileDayRows.map(({ room: r, kind, meta }) => (
+            <li key={r.id}>
+              <button
+                type="button"
+                className="owner-calendar-daylist__row"
+                onClick={() => onCellClick(r.id, mobileDayKey, kind)}
+              >
+                <span className="owner-calendar-daylist__room">
+                  <span className="owner-calendar-daylist__title">{r.roomNumber ?? r.title}</span>
+                  <span className="owner-calendar-daylist__sub">{r.hotel.name}</span>
+                </span>
+                <span className={`owner-cal-cell owner-cal-cell--legend owner-cal-cell--${kind}`} aria-hidden />
+                <span className="owner-calendar-daylist__status">
+                  {BOOKING_KINDS.includes(kind)
+                    ? meta?.publicCode ||
+                      ownerStatusLabel(locale, meta?.status) ||
+                      cellTooltip(kind, meta, locale)
+                    : cellTooltip(kind, meta, locale)}
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="owner-calendar-scroll mt-3 hidden max-h-[min(70vh,520px)] overflow-auto rounded-xl border border-[var(--owner-border)] md:block">
         <table className="owner-calendar-table min-w-[720px] border-collapse text-xs md:min-w-[980px]">
-          <thead className="sticky top-0 z-20">
+          <thead>
             <tr className="owner-calendar-table__head">
               <th className="owner-calendar-table__row-label sticky left-0 z-30">
-                {viewMode === "type" ? m(locale, "owner.calendar.roomCol") : m(locale, "owner.calendar.roomCol")}
+                {viewMode === "type" ? m(locale, "pms.viewByType") : m(locale, "pms.viewByRoom")}
               </th>
               {days.map((d) => (
                 <th key={d.key} className="owner-calendar-table__day">
-                  <span className="block text-[10px] leading-tight md:text-xs">
-                    {d.day}.{String(d.month).padStart(2, "0")}
-                  </span>
+                  {d.day}.{d.month}
                 </th>
               ))}
             </tr>
@@ -347,30 +497,21 @@ export function OwnerCalendar({
           <tbody>
             {viewMode === "type"
               ? typeRows.map((rt) => (
-                  <tr key={rt.id}>
+                  <tr key={`t-${rt.id}`}>
                     <td className="owner-calendar-table__row-label sticky left-0 z-10">
                       <div className="owner-calendar-table__row-title">{rt.name}</div>
                       <div className="owner-calendar-table__row-sub">{rt.hotelName}</div>
                     </td>
                     {days.map((d) => {
-                      const snap = rt.cells[d.key] ?? { available: 0, total: 0 };
-                      const full = snap.total > 0 && snap.available === 0;
+                      const summary = rt.cells[d.key];
+                      const free = summary ? summary.available : 0;
+                      const total = summary ? summary.total : 0;
+                      const kind: CalendarCellKind =
+                        free <= 0 ? "online" : free < total ? "onlinePending" : "available";
                       return (
-                        <td key={`${rt.id}|${d.key}`} className="border-b border-r px-1 py-1.5 text-center">
-                          <span
-                            className={`owner-type-avail ${
-                              full
-                                ? "owner-type-avail--full"
-                                : snap.available > 0
-                                  ? "owner-type-avail--partial"
-                                  : "owner-type-avail--empty"
-                            }`}
-                            title={m(locale, "pms.typeAvailability", {
-                              available: String(snap.available),
-                              total: String(snap.total)
-                            })}
-                          >
-                            {snap.available}/{snap.total}
+                        <td key={d.key} className="p-0.5 text-center">
+                          <span className={CELL_CLASS[kind]} title={`${free}/${total}`}>
+                            {free}/{total}
                           </span>
                         </td>
                       );
@@ -378,90 +519,39 @@ export function OwnerCalendar({
                   </tr>
                 ))
               : filteredRooms.map((r) => (
-              <tr key={r.id}>
-                <td className="owner-calendar-table__row-label sticky left-0 z-10">
-                  <div className="owner-calendar-table__row-title">{r.roomNumber ?? r.title}</div>
-                  <div className="owner-calendar-table__row-sub">
-                    {r.title}
-                    {r.status && r.status !== "ACTIVE" ? ` · ${r.status}` : ""}
-                  </div>
-                </td>
-                {days.map((d) => {
-                  const key = `${r.id}|${d.key}`;
-                  const kind = cells[key] ?? "available";
-                  const meta = cellMeta[key];
-                  const tip = cellTooltip(kind, meta, locale);
-                  const selected = roomId === r.id && inRange(d.key, rangeStart, rangeEnd, days);
-                  return (
-                    <td key={key} className="border-b border-r px-0.5 py-1 text-center">
-                      <button
-                        type="button"
-                        title={tip}
-                        onClick={() => onCellClick(r.id, d.key, kind)}
-                        className={`mx-auto flex h-8 w-8 items-center justify-center transition md:h-7 md:w-7 ${CELL_CLASS[kind]} ${
-                          selected ? "owner-cal-cell--selected" : ""
-                        } ${kind === "available" ? "rounded-full" : "rounded-md"}`}
-                        aria-pressed={selected}
-                        aria-label={`${r.title} ${d.key} ${tip}`}
-                      />
+                  <tr key={r.id}>
+                    <td className="owner-calendar-table__row-label sticky left-0 z-10">
+                      <div className="owner-calendar-table__row-title">{r.roomNumber ?? r.title}</div>
+                      <div className="owner-calendar-table__row-sub">
+                        {r.hotel.name}
+                        {r.housekeepingStatus ? ` · ${r.housekeepingStatus}` : ""}
+                      </div>
                     </td>
-                  );
-                })}
-              </tr>
-            ))}
+                    {days.map((d) => {
+                      const key = `${r.id}|${d.key}`;
+                      const kind = cells[key] ?? "available";
+                      const meta = cellMeta[key];
+                      const selected = roomId === r.id && inRange(d.key, rangeStart, rangeEnd, days);
+                      return (
+                        <td key={d.key} className="p-0.5 text-center">
+                          <button
+                            type="button"
+                            className={`${CELL_CLASS[kind]} ${selected ? "owner-cal-cell--selected" : ""}`}
+                            title={cellTooltip(kind, meta, locale)}
+                            onClick={() => onCellClick(r.id, d.key, kind)}
+                          >
+                            {kind === "customPrice" && meta?.customPrice ? meta.customPrice : ""}
+                          </button>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
           </tbody>
         </table>
       </div>
 
-      {detail && detailMeta?.bookingId ? (
-        <div className="owner-panel owner-calendar-detail" role="dialog" aria-labelledby="cal-detail-title">
-          <div className="owner-calendar-detail__head">
-            <div>
-              <h3 id="cal-detail-title" className="owner-calendar-detail__title">
-                {detailMeta.hotelName}
-              </h3>
-              <p className="owner-calendar-detail__subtitle">
-                {detailMeta.roomTitle} · {detailMeta.checkIn} — {detailMeta.checkOut}
-              </p>
-            </div>
-            <button type="button" onClick={() => setDetail(null)} className="owner-btn owner-btn--ghost owner-btn--sm" aria-label={m(locale, "owner.calendar.detailClose")}>
-              ✕
-            </button>
-          </div>
-          <dl className="owner-calendar-detail__rows">
-            <div className="owner-calendar-detail__row">
-              <dt className="owner-calendar-detail__label">{m(locale, "owner.calendar.detailGuest")}</dt>
-              <dd className="owner-calendar-detail__value">{detailMeta.guestLabel ?? "—"}</dd>
-            </div>
-            {detailMeta.guestPhone ? (
-              <div className="owner-calendar-detail__row">
-                <dt className="owner-calendar-detail__label">{m(locale, "owner.calendar.detailPhone")}</dt>
-                <dd className="owner-calendar-detail__value">{detailMeta.guestPhone}</dd>
-              </div>
-            ) : null}
-            <div className="owner-calendar-detail__row">
-              <dt className="owner-calendar-detail__label">{m(locale, "owner.calendar.detailStatus")}</dt>
-              <dd className="owner-calendar-detail__value">{detailMeta.status ?? detail.kind}</dd>
-            </div>
-            {detailMeta.totalPrice ? (
-              <div className="owner-calendar-detail__row">
-                <dt className="owner-calendar-detail__label">{m(locale, "owner.calendar.detailAmount")}</dt>
-                <dd className="owner-calendar-detail__value">
-                  {detailMeta.totalPrice} {m(locale, "owner.calendar.currency")}
-                </dd>
-              </div>
-            ) : null}
-          </dl>
-          <div className="owner-calendar-detail__actions">
-            <Link href={`/chat/booking/${detailMeta.bookingId}`} className="owner-btn owner-btn--primary owner-btn--sm">
-              {m(locale, "owner.calendar.openBooking")}
-            </Link>
-            <button type="button" onClick={() => setDetail(null)} className="owner-btn owner-btn--secondary owner-btn--sm">
-              {m(locale, "owner.calendar.detailClose")}
-            </button>
-          </div>
-        </div>
-      ) : null}
+      {renderDetailDialog()}
     </div>
   );
 }

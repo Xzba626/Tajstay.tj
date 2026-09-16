@@ -4,13 +4,12 @@ Read this before anything else. Load only the skill matching NEXT (see `CLAUDE.m
 Do not re-read old audit reports unless the task needs them. Keep this file short — DONE/OPEN/BLOCKED/
 NEXT, not a diary. Detailed rationale for a fix belongs in its commit message, not here.
 
-## CURRENT — OWNER BLOCK 5 = TECHNICALLY COMPLETE (LOCAL)
+## CURRENT — OWNER BLOCK 6 (IN PROGRESS — not TECHNICALLY COMPLETE yet)
 
-- **Authorized stop:** BLOCK 5D closed DARK/ACCESSIBILITY PARTIAL + responsive evidence gaps. Do **not** start BLOCK 6 until user authorizes.
-- **Impl base:** `a5c4ce6` · **5C:** `c48d5cc` · **5D:** see FINAL SHA below after commit.
-- **DONE:** Owner/Manager dark shell+header canvas + title tokens; Manager hamburger 44×44 (icon ~18px); locale/brand targets; Manager 320–430 matrix; Owner Staff 320/390/430; Light/Dark/System; tests 26/26 + 60/60 + 5.4B; lint/tsc/build EXIT=0.
-- **OPEN:** PRODUCTION RUNTIME = NOT RUN · USER VISUAL ACCEPTANCE = PENDING.
-- **NEXT:** STOP. Await user authorization for BLOCK 6.
+- **BASE SHA:** `ac90ff3`
+- **DONE so far:** Owner IA (Calendar primary, More: Analytics/Expenses/Requisites/Staff/Audit); `requisites` alias; Calendar mobile day-strip + status/source labels + hotel scope; Overview KPI deep-links; Manager IDOR 403 on Owner finance APIs; payment snapshot V1≠V2 proof; tests 8/8 + IDOR + 5C 60/60 + block5 26/26; build EXIT=0.
+- **OPEN for closure:** full 5-viewport Owner matrix cells; Light/Dark/System Owner matrix; TJ/EN runtime matrix; multi-hotel switch E2E; Guest regression; full reconciliation table; Support form (hub KEEP / no fake submit); Email OTP DEFER; Phone BLOCKED (no SMS).
+- **NEXT:** finish remaining matrices + soft-nav QA → commit if not committed → final report → STOP. No BLOCK Admin 6.2.
 
 ## Governing instruction
 

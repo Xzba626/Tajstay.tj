@@ -25,7 +25,7 @@ export async function getOwnerOnboardingSteps(ownerId: number): Promise<OwnerOnb
   return [
     { id: "property", done: hasProperty, href: "/dashboard/owner?section=properties" },
     { id: "photos", done: hasPhotos, href: "/dashboard/owner?section=properties" },
-    { id: "payment", done: hasPayment, href: "/dashboard/owner?section=finances" },
+    { id: "payment", done: hasPayment, href: "/dashboard/owner?section=requisites" },
     { id: "calendar", done: hasCalendar, href: "/dashboard/owner?section=calendar" },
     { id: "publish", done: hasPublished, href: "/dashboard/owner?section=properties" }
   ];

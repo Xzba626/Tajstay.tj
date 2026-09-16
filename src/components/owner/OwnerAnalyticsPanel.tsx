@@ -11,6 +11,7 @@ type Props = {
   locale: Locale;
   hotelId: number;
   hotelName: string;
+  initialDetail?: "revenue" | "expenses" | "profit" | null;
 };
 
 type ExpenseRow = {
@@ -23,12 +24,12 @@ type ExpenseRow = {
   effectiveFrom: string | null;
 };
 
-export function OwnerAnalyticsPanel({ locale, hotelId, hotelName }: Props) {
+export function OwnerAnalyticsPanel({ locale, hotelId, hotelName, initialDetail = null }: Props) {
   const [period, setPeriod] = useState<AnalyticsPeriodKey>("today");
   const [data, setData] = useState<HotelAnalyticsDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [detail, setDetail] = useState<"revenue" | "expenses" | "profit" | null>(null);
+  const [detail, setDetail] = useState<"revenue" | "expenses" | "profit" | null>(initialDetail ?? null);
   const [expenses, setExpenses] = useState<ExpenseRow[]>([]);
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState({

@@ -24,6 +24,8 @@ export type CalendarCellMeta = {
   bookingId?: number;
   publicCode?: string | null;
   status?: string;
+  paymentStatus?: string | null;
+  source?: string | null;
   guestLabel?: string;
   guestPhone?: string;
   checkIn?: string;
@@ -113,6 +115,7 @@ export async function getOwnerCalendarData(ownerId: number, days = 30, hotelId?:
         publicCode: true,
         phone: true,
         totalPrice: true,
+        paymentStatus: true,
         room: { select: { title: true, hotel: { select: { name: true } } } },
         user: { select: { name: true, phone: true } }
       },
@@ -174,6 +177,8 @@ export async function getOwnerCalendarData(ownerId: number, days = 30, hotelId?:
           bookingId: hit.id,
           publicCode: hit.publicCode,
           status: isOfflineBookingSource(hit.source) ? hit.offlineStatus ?? hit.status : hit.status,
+          paymentStatus: hit.paymentStatus,
+          source: hit.source,
           guestLabel: getBookingGuestLabel(hit),
           guestPhone: hit.guestPhone ?? hit.phone ?? hit.user?.phone ?? undefined,
           checkIn: hit.checkIn.toISOString().slice(0, 10),

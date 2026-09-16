@@ -65,6 +65,8 @@ type OwnerSection =
   | "notifications"
   | "reviews"
   | "finances"
+  | "requisites"
+  | "expenses"
   | "analytics"
   | "activity"
   | "staff"
@@ -80,6 +82,8 @@ const VALID_OWNER_SECTIONS = new Set<OwnerSection>([
   "notifications",
   "reviews",
   "finances",
+  "requisites",
+  "expenses",
   "analytics",
   "activity",
   "staff",
@@ -101,6 +105,8 @@ const HOTEL_SCOPED_SECTIONS = new Set<OwnerSection>([
   "calendar",
   "reviews",
   "finances",
+  "requisites",
+  "expenses",
   "analytics",
   "activity",
   "staff"
@@ -178,7 +184,12 @@ export default async function OwnerDashboardPage({
   const params = searchParams ? await searchParams : undefined;
   const onboardingSteps = await getOwnerOnboardingSteps(user.id);
   const showOnboardingWelcome = (params?.onboarding ?? "") === "1";
-  const rawSection = params?.section === "statistics" ? "analytics" : params?.section;
+  const rawSection =
+    params?.section === "statistics"
+      ? "analytics"
+      : params?.section === "finances"
+        ? "requisites"
+        : params?.section;
   const activeSection: OwnerSection =
     rawSection && VALID_OWNER_SECTIONS.has(rawSection as OwnerSection)
       ? (rawSection as OwnerSection)
@@ -399,7 +410,7 @@ export default async function OwnerDashboardPage({
       orderBy: { createdAt: "desc" },
       take: 50
     });
-  } else if (activeSection === "finances") {
+  } else if (activeSection === "finances" || activeSection === "requisites") {
     // Payment details / Реквизиты only — revenue/payout analytics stay for Analytics BLOCK.
     hotels = hotelId
       ? await prisma.hotel.findMany({
@@ -408,7 +419,7 @@ export default async function OwnerDashboardPage({
           select: { id: true, name: true }
         })
       : [];
-  } else if (activeSection === "analytics" || activeSection === "activity") {
+  } else if (activeSection === "analytics" || activeSection === "activity" || activeSection === "expenses" || activeSection === "staff") {
     hotels = hotelId
       ? await prisma.hotel.findMany({
           where: { id: hotelId, ownerId: user.id },
@@ -419,7 +430,17 @@ export default async function OwnerDashboardPage({
     hotels = await prisma.hotel.findMany({ where: hotelRoomFilter, include: { rooms: true } });
   } else if (activeSection === "calendar") {
     const cal = await getOwnerCalendarData(user.id, 30, hotelId || undefined);
-    hotels = await prisma.hotel.findMany({ where: { ownerId: user.id }, orderBy: { createdAt: "desc" } });
+    hotels = hotelId
+      ? await prisma.hotel.findMany({
+          where: { id: hotelId, ownerId: user.id },
+          orderBy: { createdAt: "desc" },
+          select: { id: true, name: true }
+        })
+      : await prisma.hotel.findMany({
+          where: { ownerId: user.id, status: "APPROVED" },
+          orderBy: { createdAt: "desc" },
+          select: { id: true, name: true }
+        });
     rooms = cal.rooms;
     calendarCells = cal.cells;
     calendarCellMeta = cal.cellMeta;
@@ -588,7 +609,10 @@ export default async function OwnerDashboardPage({
             <div className="owner-panel space-y-4">
               {hotelAnalytics ? (
                 <div className="owner-analytics__kpi-grid">
-                  <div className="owner-analytics__kpi owner-analytics__kpi--brand">
+                  <a
+                    href={`/dashboard/owner?section=analytics${hotelId ? `&hotelId=${hotelId}` : ""}`}
+                    className="owner-analytics__kpi owner-analytics__kpi--brand"
+                  >
                     <span className="owner-analytics__kpi-label">{m(locale, "owner.analytics.revenue")}</span>
                     <span className="owner-analytics__kpi-value">
                       {Math.round(hotelAnalytics.revenue.total).toLocaleString()} TJS
@@ -598,8 +622,11 @@ export default async function OwnerDashboardPage({
                       {Math.round(hotelAnalytics.revenue.card)} · {m(locale, "owner.analytics.settlement.cash")}{" "}
                       {Math.round(hotelAnalytics.revenue.cash)}
                     </span>
-                  </div>
-                  <div className="owner-analytics__kpi">
+                  </a>
+                  <a
+                    href={`/dashboard/owner?section=bookings${hotelId ? `&hotelId=${hotelId}` : ""}`}
+                    className="owner-analytics__kpi"
+                  >
                     <span className="owner-analytics__kpi-label">{m(locale, "owner.analytics.bookings")}</span>
                     <span className="owner-analytics__kpi-value">
                       {hotelAnalytics.bookings.onlineCount + hotelAnalytics.bookings.offlineCount}
@@ -608,19 +635,25 @@ export default async function OwnerDashboardPage({
                       {m(locale, "owner.analytics.online")}: {hotelAnalytics.bookings.onlineCount} ·{" "}
                       {m(locale, "owner.analytics.offline")}: {hotelAnalytics.bookings.offlineCount}
                     </span>
-                  </div>
-                  <div className="owner-analytics__kpi">
+                  </a>
+                  <a
+                    href={`/dashboard/owner?section=expenses${hotelId ? `&hotelId=${hotelId}` : ""}`}
+                    className="owner-analytics__kpi"
+                  >
                     <span className="owner-analytics__kpi-label">{m(locale, "owner.analytics.expenses")}</span>
                     <span className="owner-analytics__kpi-value">
                       {Math.round(hotelAnalytics.expenses.total).toLocaleString()} TJS
                     </span>
-                  </div>
-                  <div className="owner-analytics__kpi">
+                  </a>
+                  <a
+                    href={`/dashboard/owner?section=analytics${hotelId ? `&hotelId=${hotelId}` : ""}`}
+                    className="owner-analytics__kpi"
+                  >
                     <span className="owner-analytics__kpi-label">{m(locale, "owner.analytics.netProfit")}</span>
                     <span className="owner-analytics__kpi-value">
                       {Math.round(hotelAnalytics.netProfit).toLocaleString()} TJS
                     </span>
-                  </div>
+                  </a>
                 </div>
               ) : null}
               <div className="owner-quick-actions">
@@ -1248,6 +1281,7 @@ export default async function OwnerDashboardPage({
                 cells={calendarCells}
                 cellMeta={calendarCellMeta}
                 hotels={hotels.map((h: { id: number; name: string }) => ({ id: h.id, name: h.name }))}
+                activeHotelId={hotelId}
               />
               <Pagination page={page} totalPages={totalPages} />
             </>
@@ -1299,8 +1333,8 @@ export default async function OwnerDashboardPage({
         </section>
       )}
 
-      {activeSection === "finances" && (
-        <section id="finances" className="scroll-mt-28 space-y-4">
+      {(activeSection === "requisites" || activeSection === "finances") && (
+        <section id="requisites" className="scroll-mt-28 space-y-4">
           <div className="flex items-center gap-2">
             <span className="owner-section-head__bar" aria-hidden />
             <h2 className="owner-section-head__title">{m(locale, "owner.finances.title")}</h2>
@@ -1311,6 +1345,25 @@ export default async function OwnerDashboardPage({
               : m(locale, "owner.finances.hint")}
           </p>
           <HotelPaymentMethodsManager locale={locale} hotels={hotels} />
+        </section>
+      )}
+
+      {activeSection === "expenses" && (
+        <section id="expenses" className="scroll-mt-28 space-y-4">
+          <div className="owner-section-head">
+            <span className="owner-section-head__bar" aria-hidden />
+            <h2 className="owner-section-head__title">{m(locale, "owner.navExpenses")}</h2>
+          </div>
+          {hotels[0] ? (
+            <OwnerAnalyticsPanel
+              locale={locale}
+              hotelId={hotels[0].id}
+              hotelName={hotels[0].name}
+              initialDetail="expenses"
+            />
+          ) : (
+            <EmptyState title={m(locale, "owner.analytics.noHotel")} />
+          )}
         </section>
       )}
 

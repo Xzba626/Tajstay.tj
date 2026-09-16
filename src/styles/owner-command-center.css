@@ -843,6 +843,93 @@
 
 .owner-calendar-scroll {
   background: var(--owner-surface);
+  -webkit-overflow-scrolling: touch;
+}
+
+.owner-calendar-daystrip {
+  display: flex;
+  gap: 0.35rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.owner-calendar-daystrip__day {
+  flex: 0 0 auto;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.35rem 0.4rem;
+  border-radius: 0.625rem;
+  border: 1px solid var(--ts-border-subtle, var(--owner-border, #e2e8f0));
+  background: var(--ts-surface-primary, #fff);
+  color: var(--ts-text-body, #14231b);
+  display: grid;
+  place-items: center;
+  line-height: 1.1;
+}
+
+.owner-calendar-daystrip__day.is-active {
+  border-color: #0f7a4d;
+  background: rgba(15, 122, 77, 0.1);
+  color: #0f7a4d;
+  font-weight: 600;
+}
+
+.owner-calendar-daystrip__num {
+  font-size: 0.875rem;
+}
+
+.owner-calendar-daystrip__mon {
+  font-size: 0.625rem;
+  opacity: 0.75;
+}
+
+.owner-calendar-daylist__row {
+  width: 100%;
+  min-height: 44px;
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--ts-border-subtle, var(--owner-border, #e2e8f0));
+  background: var(--ts-surface-primary, #fff);
+  color: inherit;
+  text-align: left;
+}
+
+.owner-calendar-daylist__title {
+  display: block;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.owner-calendar-daylist__sub {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--ts-text-secondary, #4a6356);
+}
+
+.owner-calendar-daylist__status {
+  font-size: 0.75rem;
+  color: var(--ts-text-secondary, #4a6356);
+  max-width: 7rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.owner-analytics__kpi-grid a.owner-analytics__kpi {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.owner-analytics__kpi-grid a.owner-analytics__kpi:focus-visible {
+  outline: 2px solid #0f7a4d;
+  outline-offset: 2px;
 }
 
 .owner-calendar-table__head {

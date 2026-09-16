@@ -364,26 +364,23 @@ export function MobileMenu({
 
           {isOwner ? (
             <DrawerAccordion title={L.ownerBlock} icon={<Building2 size={18} aria-hidden />}>
-              <DrawerSubLink href="/dashboard/owner?section=properties" onNavigate={closeForNavigation}>
-                {L.ownerAdd}
-              </DrawerSubLink>
-              <DrawerSubLink href="/dashboard/owner?section=properties" onNavigate={closeForNavigation}>
+              <DrawerSubLink href="/dashboard/owner?section=overview" onNavigate={closeForNavigation}>
                 {L.ownerList}
               </DrawerSubLink>
-              <DrawerSubLink href="/dashboard/owner?section=calendar" onNavigate={closeForNavigation}>
-                {L.ownerCalendar}
+              <DrawerSubLink href="/dashboard/owner?section=properties" onNavigate={closeForNavigation}>
+                {L.ownerAdd}
               </DrawerSubLink>
               <DrawerSubLink href="/dashboard/owner?section=bookings" onNavigate={closeForNavigation}>
                 {L.ownerBookings}
               </DrawerSubLink>
-              <DrawerSubLink href="/dashboard/owner?section=statistics" onNavigate={closeForNavigation}>
+              <DrawerSubLink href="/dashboard/owner?section=calendar" onNavigate={closeForNavigation}>
+                {L.ownerCalendar}
+              </DrawerSubLink>
+              <DrawerSubLink href="/dashboard/owner?section=analytics" onNavigate={closeForNavigation}>
                 {L.ownerAnalytics}
               </DrawerSubLink>
-              <DrawerSubLink href="/dashboard/owner?section=finances" onNavigate={closeForNavigation}>
+              <DrawerSubLink href="/dashboard/owner?section=requisites" onNavigate={closeForNavigation}>
                 {L.ownerIncome}
-              </DrawerSubLink>
-              <DrawerSubLink href="/dashboard/owner?section=reviews" onNavigate={closeForNavigation}>
-                {L.ownerReviews}
               </DrawerSubLink>
               <DrawerSubLink href="/dashboard/owner?section=help" onNavigate={closeForNavigation}>
                 {L.ownerSupport}
