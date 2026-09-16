@@ -49,7 +49,16 @@ export async function POST(req: Request) {
   const ok = await verifyPassword(password, user.password);
   if (!ok) return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
 
-  const res = NextResponse.json({ ok: true });
+  if (user.role === "MANAGER") {
+    const activeOrInvited = await prisma.hotelStaff.count({
+      where: { userId: user.id, status: { in: ["ACTIVE", "INVITED"] } }
+    });
+    if (activeOrInvited === 0) {
+      return NextResponse.json({ error: "access_suspended" }, { status: 403 });
+    }
+  }
+
+  const res = NextResponse.json({ ok: true, role: user.role });
   await createSessionCookie(user.id, res);
   return res;
 }

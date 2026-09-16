@@ -1,5 +1,7 @@
 /** Prisma where fragments for owner-scoped bookings (PMS: roomType / assigned / legacy room). */
 
+import { OFFLINE_BOOKING_SOURCES } from "@/lib/domain/booking";
+
 /**
  * `hotelId` is optional (single-hotel owners have nothing to scope down from), but when present
  * it must narrow every branch of the OR — otherwise a multi-hotel owner filtered to Hotel A would
@@ -20,7 +22,18 @@ export function ownerBookingWhere(ownerId: number, hotelId?: number) {
 
 export function ownerOfflineBookingWhere(ownerId: number, hotelId?: number) {
   return {
-    source: "OWNER_MANUAL" as const,
+    source: { in: [...OFFLINE_BOOKING_SOURCES] },
     ...ownerBookingWhere(ownerId, hotelId)
+  };
+}
+
+/** Hotel-scoped booking filter for Manager (or any hotelId AuthZ already checked). */
+export function hotelBookingWhere(hotelId: number) {
+  return {
+    OR: [
+      { room: { hotelId } },
+      { roomType: { hotelId } },
+      { assignedRoom: { hotelId } }
+    ]
   };
 }

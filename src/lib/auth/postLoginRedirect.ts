@@ -16,6 +16,7 @@ export function safeReturnPath(raw: string | null | undefined): string | null {
 export function defaultDashboardForRole(role: string): string {
   if (role === "ADMIN") return "/dashboard/admin";
   if (role === "OWNER") return "/dashboard/owner";
+  if (role === "MANAGER") return "/dashboard/manager";
   return "/history";
 }
 
@@ -30,6 +31,10 @@ export function postLoginRedirect(role: string, next: string | null | undefined)
   if (n.startsWith("/dashboard/owner")) {
     if (role === "OWNER") return n;
     return "/history?notice=ownerOnly";
+  }
+  if (n.startsWith("/dashboard/manager")) {
+    if (role === "MANAGER") return n;
+    return "/history?notice=managerOnly";
   }
   return n;
 }

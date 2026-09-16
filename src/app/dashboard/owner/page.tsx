@@ -28,6 +28,7 @@ import { OfflineBookingForm } from "@/components/owner/OfflineBookingForm";
 import { OfflineBookingsList } from "@/components/owner/OfflineBookingsList";
 import { OwnerAnalyticsPanel } from "@/components/owner/OwnerAnalyticsPanel";
 import { OwnerActivityLogPanel } from "@/components/owner/OwnerActivityLogPanel";
+import { OwnerStaffPanel } from "@/components/owner/OwnerStaffPanel";
 import { getHotelAnalytics } from "@/lib/owner/analytics/getHotelAnalytics";
 import type { HotelAnalyticsDto } from "@/lib/owner/analytics/getHotelAnalytics";
 import { OwnerCalendar } from "@/components/owner/OwnerCalendar";
@@ -37,7 +38,7 @@ import ReviewReplyForm from "@/components/ReviewReplyForm";
 import { getOwnerCalendarData } from "@/lib/services/ownerCalendar";
 import { getOwnerOnboardingSteps } from "@/lib/services/ownerOnboarding";
 import { OwnerOnboardingPanel } from "@/components/owner/OwnerOnboardingPanel";
-import { BOOKING_SOURCE, getBookingGuestLabel } from "@/lib/domain/booking";
+import { BOOKING_SOURCE, getBookingGuestLabel, isOfflineBookingSource } from "@/lib/domain/booking";
 import { AppImage } from "@/components/ui/AppImage";
 import { OwnerRoomsInventoryPanel } from "@/components/owner/OwnerRoomsInventoryPanel";
 import { HotelLocationPicker } from "@/components/owner/HotelLocationPicker";
@@ -66,6 +67,7 @@ type OwnerSection =
   | "finances"
   | "analytics"
   | "activity"
+  | "staff"
   | "help";
 
 const VALID_OWNER_SECTIONS = new Set<OwnerSection>([
@@ -80,6 +82,7 @@ const VALID_OWNER_SECTIONS = new Set<OwnerSection>([
   "finances",
   "analytics",
   "activity",
+  "staff",
   "help"
 ]);
 
@@ -99,7 +102,8 @@ const HOTEL_SCOPED_SECTIONS = new Set<OwnerSection>([
   "reviews",
   "finances",
   "analytics",
-  "activity"
+  "activity",
+  "staff"
 ]);
 
 function looksLikeTestValue(v: unknown) {
@@ -895,299 +899,14 @@ export default async function OwnerDashboardPage({
             <span className="owner-section-head__bar" aria-hidden />
             <h2 className="owner-section-head__title">{m(locale, "owner.sectionRooms")}</h2>
           </div>
-          <OwnerRoomTypesPanel locale={locale} hotels={hotels.map((h) => ({ id: h.id, name: h.name }))} />
-
-          <DataToolbar
-            section="rooms"
-            submitLabel={m(locale, "search.search")}
-            fields={[
-              { kind: "search", name: "q", placeholder: m(locale, "admin.searchPlaceholder") },
-              {
-                kind: "select",
-                name: "hotelId",
-                label: m(locale, "owner.objects"),
-                options: [
-                  { value: "", label: m(locale, "admin.filterAll") },
-                  ...hotels.map((h) => ({ value: String(h.id), label: `${h.name} · ${h.city}` }))
-                ]
-              },
-              {
-                kind: "select",
-                name: "availability",
-                label: m(locale, "owner.available"),
-                options: [
-                  { value: "", label: m(locale, "admin.filterAll") },
-                  { value: "1", label: m(locale, "owner.availableYes") },
-                  { value: "0", label: m(locale, "owner.availableNo") }
-                ]
-              }
-            ]}
-          />
-
-          {!rooms.length ? (
-            <EmptyState title={m(locale, "owner.roomsEmpty")} description={m(locale, "owner.roomsEmptyHint")} />
+          {!hotelId ? (
+            <p className="owner-section-lead">{m(locale, "owner.roomsInv.needHotel")}</p>
           ) : (
-            <div className="grid gap-6 lg:grid-cols-2">
-              {rooms.map((r) => (
-                <div key={r.id} className="owner-record-card">
-                  <RoomPhotoCarousel
-                    urls={(r.photos as { url: string }[] | undefined)?.map((p) => p.url) ?? []}
-                    title={safeText(r.title, m(locale, "owner.roomCardTitle"))}
-                    variant="light"
-                  />
-
-                  <div className="mt-4 flex flex-wrap items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="owner-record-card__title truncate">
-                        {r.roomNumber ? `${r.roomNumber} · ` : ""}
-                        {safeText(r.title, m(locale, "owner.roomCardTitle"))}
-                      </div>
-                      <div className="mt-1 owner-section-lead">
-                        {safeText(r.hotel.name, m(locale, "owner.fieldNamePh"))} · {safeText(r.hotel.city, m(locale, "owner.fieldCityPh"))}
-                        {r.roomType?.name ? ` · ${r.roomType.name}` : ""}
-                      </div>
-                    </div>
-                    <StatusBadge variant={r.availability ? "success" : "neutral"}>
-                      {r.availability ? m(locale, "owner.availableYes") : m(locale, "owner.availableNo")}
-                    </StatusBadge>
-                  </div>
-
-                  <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
-                    <div className="owner-stat-chip">
-                      <div className="owner-stat-chip__label">{m(locale, "owner.priceNight")}</div>
-                      <div className="owner-stat-chip__value">{Number(r.price)} TJS</div>
-                    </div>
-                    <div className="owner-stat-chip">
-                      <div className="owner-stat-chip__label">{m(locale, "owner.capacity")}</div>
-                      <div className="owner-stat-chip__value">{r.capacity}</div>
-                    </div>
-                  </div>
-
-                  <details className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
-                    <summary className="cursor-pointer list-none text-sm font-semibold text-green-900">{m(locale, "owner.roomEditTitle")}</summary>
-                    {(r.photos as { id: number; url: string }[] | undefined)?.length ? (
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        {(r.photos as { id: number; url: string }[]).map((p) => (
-                          <form
-                            key={p.id}
-                            action={`/api/owner/rooms/${r.id}`}
-                            method="post"
-                            className="relative h-16 w-16 overflow-hidden rounded-lg border border-slate-200"
-                          >
-                            <AppImage src={p.url} alt="" fill className="object-cover" sizes="64px" />
-                            <input type="hidden" name="intent" value="delete_photo" />
-                            <input type="hidden" name="photoId" value={p.id} />
-                            <button
-                              type="submit"
-                              className="absolute right-0 top-0 flex h-6 w-6 items-center justify-center bg-red-600 text-xs font-bold text-white hover:bg-red-700"
-                              aria-label="Удалить фото"
-                            >
-                              ×
-                            </button>
-                          </form>
-                        ))}
-                      </div>
-                    ) : null}
-                    <form action={`/api/owner/rooms/${r.id}`} method="post" encType="multipart/form-data" className="mt-4 space-y-4">
-                      <input type="hidden" name="intent" value="update" />
-                      <div className="grid gap-4 md:grid-cols-2">
-                        <div>
-                          <label className="owner-field__label">{m(locale, "owner.roomTitle")}</label>
-                          <input
-                            name="title"
-                            defaultValue={looksLikeTestValue(r.title) ? "" : r.title}
-                            placeholder={m(locale, "owner.roomTitle")}
-                            className="owner-input owner-input--lg"
-                          />
-                        </div>
-                        <div>
-                          <label className="owner-field__label">{m(locale, "owner.priceNight")}</label>
-                          <input
-                            name="price"
-                            type="number"
-                            min={0}
-                            step={1}
-                            defaultValue={Number(r.price)}
-                            placeholder={m(locale, "owner.priceNightPh")}
-                            className="owner-input owner-input--lg"
-                          />
-                        </div>
-                        <div>
-                          <label className="owner-field__label">{m(locale, "owner.capacity")}</label>
-                          <input
-                            name="capacity"
-                            type="number"
-                            min={1}
-                            defaultValue={r.capacity}
-                            className="owner-input owner-input--lg"
-                          />
-                        </div>
-                        <div>
-                          <label className="owner-field__label">{m(locale, "owner.weekendPrice")}</label>
-                          <input
-                            name="weekendPrice"
-                            type="number"
-                            min={0}
-                            step={1}
-                            defaultValue={r.weekendPrice != null ? Number(r.weekendPrice) : undefined}
-                            className="owner-input owner-input--lg"
-                          />
-                        </div>
-                        <div>
-                          <label className="owner-field__label">{m(locale, "owner.minNights")}</label>
-                          <input
-                            name="minNights"
-                            type="number"
-                            min={1}
-                            defaultValue={Math.max(1, Number(r.minNights ?? 1) || 1)}
-                            className="owner-input owner-input--lg"
-                          />
-                        </div>
-                        <div>
-                          <label className="owner-field__label">{m(locale, "owner.extraGuestPrice")}</label>
-                          <input
-                            name="extraGuestPrice"
-                            type="number"
-                            min={0}
-                            step={1}
-                            defaultValue={r.extraGuestPrice != null ? Number(r.extraGuestPrice) : undefined}
-                            className="owner-input owner-input--lg"
-                          />
-                        </div>
-                        <div className="flex items-end">
-                          <label className="owner-field__label flex items-center gap-2">
-                            <input type="checkbox" name="availability" value="1" defaultChecked={r.availability} className="h-4 w-4 rounded border-[var(--owner-border)] text-[var(--owner-accent)]" />
-                            {m(locale, "owner.available")}
-                          </label>
-                        </div>
-                        <div className="md:col-span-2">
-                          <label className="owner-field__label">{m(locale, "owner.amenities")}</label>
-                          <input
-                            name="amenities"
-                            defaultValue={(() => {
-                              try {
-                                const arr = JSON.parse(r.amenities);
-                                return Array.isArray(arr) ? arr.join(", ") : String(r.amenities);
-                              } catch {
-                                return String(r.amenities ?? "");
-                              }
-                            })()}
-                            placeholder={m(locale, "owner.roomAmenitiesPh")}
-                            className="owner-input owner-input--lg"
-                          />
-                        </div>
-                        <div className="md:col-span-2">
-                          <label className="owner-field__label">Добавить фото номера</label>
-                          <input
-                            name="roomPhotos"
-                            type="file"
-                            accept="image/jpeg,image/png,image/webp"
-                            multiple
-                            capture="environment"
-                            className="w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm file:mr-3 file:rounded-lg file:border-0 file:owner-btn file:owner-btn--primary file:px-3 file:py-1.5 file:text-white"
-                          />
-                          <p className="owner-field__hint">Можно выбрать несколько файлов (до 5 МБ каждый).</p>
-                        </div>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        <button type="submit" className="owner-btn owner-btn--primary active:scale-[0.99]">
-                          {m(locale, "owner.saveRoom")}
-                        </button>
-                        <button
-                          formAction={`/api/owner/rooms/${r.id}`}
-                          formMethod="post"
-                          name="intent"
-                          value="archive"
-                          className="h-11 rounded-2xl border border-red-200 bg-red-50 px-5 text-sm font-semibold text-red-800 hover:bg-red-100 active:scale-[0.99]"
-                        >
-                          {m(locale, "owner.archiveRoom")}
-                        </button>
-                      </div>
-                    </form>
-                  </details>
-                </div>
-              ))}
-            </div>
-          )}
-          <Pagination page={page} totalPages={totalPages} />
-
-          {hotels.length > 0 && (
-            <details className="rounded-3xl border border-dashed border-green-300 bg-green-50/40 p-6">
-              <summary className="cursor-pointer list-none text-sm font-semibold text-green-900">{m(locale, "owner.roomAddTitle")}</summary>
-              <form action="/api/owner/rooms" method="post" encType="multipart/form-data" className="mt-4 grid gap-4 md:grid-cols-2">
-                <div className="md:col-span-2">
-                  <label className="owner-field__label">{m(locale, "owner.objects")}</label>
-                  <select
-                    name="hotelId"
-                    className="owner-input owner-input--lg"
-                  >
-                    {hotels.map((h) => (
-                      <option key={h.id} value={h.id}>
-                        {safeText(h.name, m(locale, "owner.fieldNamePh"))} · {safeText(h.city, m(locale, "owner.fieldCityPh"))}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="owner-field__label">{m(locale, "owner.roomTitle")}</label>
-                  <input
-                    name="title"
-                    required
-                    placeholder={m(locale, "owner.roomTitle")}
-                    className="owner-input owner-input--lg"
-                  />
-                </div>
-                <div>
-                  <label className="owner-field__label">{m(locale, "owner.priceNight")}</label>
-                  <input
-                    name="price"
-                    type="number"
-                    min={0}
-                    step={1}
-                    required
-                    placeholder={m(locale, "owner.priceNightPh")}
-                    className="owner-input owner-input--lg"
-                  />
-                </div>
-                <div>
-                  <label className="owner-field__label">{m(locale, "owner.capacity")}</label>
-                  <input name="capacity" type="number" min={1} defaultValue={2} className="owner-input owner-input--lg" />
-                </div>
-                <div>
-                  <label className="owner-field__label">{m(locale, "owner.weekendPrice")}</label>
-                  <input name="weekendPrice" type="number" min={0} step={1} className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm" />
-                </div>
-                <div>
-                  <label className="owner-field__label">{m(locale, "owner.minNights")}</label>
-                  <input name="minNights" type="number" min={1} defaultValue={1} className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm" />
-                </div>
-                <div>
-                  <label className="owner-field__label">{m(locale, "owner.extraGuestPrice")}</label>
-                  <input name="extraGuestPrice" type="number" min={0} step={1} className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm" />
-                </div>
-                <div className="md:col-span-2">
-                  <label className="owner-field__label">{m(locale, "owner.amenities")}</label>
-                  <input name="amenities" placeholder={m(locale, "owner.roomAmenitiesPh")} className="owner-input owner-input--lg" />
-                </div>
-                <div className="md:col-span-2">
-                  <label className="owner-field__label">Фото номера</label>
-                  <input
-                    name="roomPhotos"
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    multiple
-                    capture="environment"
-                    className="w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm file:mr-3 file:rounded-lg file:border-0 file:owner-btn file:owner-btn--primary file:px-3 file:py-1.5 file:text-white"
-                  />
-                  <p className="owner-field__hint">
-                    Несколько фото — на карточке номера и на сайте показываются слайдером (стрелки и свайп на телефоне).
-                  </p>
-                </div>
-                <button type="submit" className="owner-btn owner-btn--primary active:scale-[0.99] md:col-span-2">
-                  {m(locale, "owner.addRoomCta")}
-                </button>
-              </form>
-            </details>
+            <OwnerRoomsInventoryPanel
+              locale={locale}
+              hotelId={hotelId}
+              hotelName={approvedOwnerHotels.find((h) => h.id === hotelId)?.name ?? hotels[0]?.name ?? ""}
+            />
           )}
         </section>
       )}
@@ -1239,9 +958,11 @@ export default async function OwnerDashboardPage({
               <div key={b.id} className="owner-record-card text-sm">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="owner-record-card__title">{getBookingGuestLabel(b)}</span>
-                  <StatusBadge variant={b.source === BOOKING_SOURCE.OWNER_MANUAL ? "neutral" : bookingStatusVariant(b.status)}>
-                    {b.source === BOOKING_SOURCE.OWNER_MANUAL
-                      ? m(locale, "owner.bookingBadge.offline")
+                  <StatusBadge variant={isOfflineBookingSource(b.source) ? "neutral" : bookingStatusVariant(b.status)}>
+                    {isOfflineBookingSource(b.source)
+                      ? b.source === BOOKING_SOURCE.MANAGER_MANUAL
+                        ? m(locale, "owner.bookingBadge.offlineManager")
+                        : m(locale, "owner.bookingBadge.offline")
                       : m(locale, "owner.bookingBadge.online")}
                   </StatusBadge>
                   <StatusBadge variant={bookingStatusVariant(b.status)}>{tStatus(locale, b.status)}</StatusBadge>
@@ -1615,6 +1336,20 @@ export default async function OwnerDashboardPage({
           </div>
           {hotelId ? (
             <OwnerActivityLogPanel locale={locale} hotelId={hotelId} />
+          ) : (
+            <EmptyState title={m(locale, "owner.analytics.noHotel")} />
+          )}
+        </section>
+      )}
+
+      {activeSection === "staff" && (
+        <section id="staff" className="scroll-mt-28 space-y-4">
+          <div className="owner-section-head">
+            <span className="owner-section-head__bar" aria-hidden />
+            <h2 className="owner-section-head__title">{m(locale, "owner.staff.title")}</h2>
+          </div>
+          {hotelId ? (
+            <OwnerStaffPanel locale={locale} hotelId={hotelId} />
           ) : (
             <EmptyState title={m(locale, "owner.analytics.noHotel")} />
           )}

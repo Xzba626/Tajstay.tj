@@ -81,9 +81,9 @@ function staticChecks() {
   );
   check(
     "nav.drawer_no_calendar_dup",
-    sidebar.includes('sections: ["rooms", "offline-bookings"]') &&
-      sidebar.includes('sections: ["finances", "statistics", "reviews", "notifications"]'),
-    "calendar out of More; requisites in More"
+    sidebar.includes('sections: ["rooms", "offline-bookings", "staff"]') &&
+      sidebar.includes('sections: ["finances", "analytics", "reviews", "notifications", "activity"]'),
+    "calendar out of More; staff+requisites in More"
   );
 
   const page = read("src/app/dashboard/owner/page.tsx");

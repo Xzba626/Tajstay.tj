@@ -1,13 +1,13 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/requireAuth";
-import { canAccessBookingChat } from "@/lib/chat/bookingAccess";
+import { canAccessBookingChatAsync } from "@/lib/chat/bookingAccess";
 import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest, ctx: { params: Promise<{ bookingId: string }> }) {
-  const user = await requireUser(["GUEST", "OWNER", "ADMIN"]);
+  const user = await requireUser(["GUEST", "OWNER", "ADMIN", "MANAGER"]);
   if (!user) return new Response("Unauthorized", { status: 401 });
 
   const { bookingId: raw } = await ctx.params;
@@ -18,7 +18,7 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ bookingId: 
     where: { id: bookingId },
     include: bookingWithHotelInclude
   });
-  if (!booking || !canAccessBookingChat(booking, user)) {
+  if (!booking || !(await canAccessBookingChatAsync(booking, user))) {
     return new Response("Forbidden", { status: 403 });
   }
 

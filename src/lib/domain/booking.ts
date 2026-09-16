@@ -52,10 +52,22 @@ export const OWNER_APPLICATION_STATUS = {
 
 export const BOOKING_SOURCE = {
   PLATFORM: "PLATFORM",
-  OWNER_MANUAL: "OWNER_MANUAL"
+  OWNER_MANUAL: "OWNER_MANUAL",
+  /// Offline booking created by hotel Manager (staff) — still offline channel, distinct actor.
+  MANAGER_MANUAL: "MANAGER_MANUAL"
 } as const;
 
 export type BookingSource = (typeof BOOKING_SOURCE)[keyof typeof BOOKING_SOURCE];
+
+/** Offline channel sources (not online guest checkout). Independent of Cash/Card settlement. */
+export const OFFLINE_BOOKING_SOURCES: readonly BookingSource[] = [
+  BOOKING_SOURCE.OWNER_MANUAL,
+  BOOKING_SOURCE.MANAGER_MANUAL
+];
+
+export function isOfflineBookingSource(source: string | null | undefined): boolean {
+  return source === BOOKING_SOURCE.OWNER_MANUAL || source === BOOKING_SOURCE.MANAGER_MANUAL;
+}
 
 export const OFFLINE_STATUS = {
   PENDING: "PENDING",

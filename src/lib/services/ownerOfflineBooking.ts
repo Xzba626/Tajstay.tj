@@ -1,12 +1,20 @@
 import { prisma } from "@/lib/prisma";
 import { assertDatesAvailable, DatesUnavailableError, withRoomOverlapGuard } from "@/lib/booking/availability";
 import { assertRoomTypeAvailable, RoomTypeUnavailableError, withRoomTypeCapacityGuard } from "@/lib/pms/inventory";
-import { BOOKING_SOURCE, BOOKING_STATUS, OFFLINE_STATUS, type OfflineStatus } from "@/lib/domain/booking";
+import {
+  BOOKING_SOURCE,
+  BOOKING_STATUS,
+  OFFLINE_STATUS,
+  isOfflineBookingSource,
+  type OfflineStatus
+} from "@/lib/domain/booking";
 import { createNotification } from "@/lib/notifications/create";
 import { generateBookingCode } from "@/lib/services/bookingCode";
 import { normalizePhone } from "@/lib/validation/phone";
 import { normalizeSettlementChannel, SETTLEMENT_CHANNEL } from "@/lib/owner/analytics/settlement";
 import { markBookingRevenueRecognized } from "@/lib/owner/analytics/getHotelAnalytics";
+import { writeOwnerHotelAudit } from "@/lib/owner/analytics/audit";
+import { quoteOfflineStayTotal } from "@/lib/services/offlinePricing";
 
 const OFFLINE_STATUSES = new Set<string>(Object.values(OFFLINE_STATUS));
 
@@ -19,8 +27,11 @@ export async function assertRoomOwnedByOwner(roomId: number, ownerId: number) {
   return room;
 }
 
-export type CreateOfflineBookingInput = {
-  ownerId: number;
+export type CreateManualOfflineBookingInput = {
+  /** Actor creating the booking (Owner or Manager user id). */
+  actorUserId: number;
+  actorRole: "OWNER" | "MANAGER";
+  hotelId: number;
   roomTypeId: number;
   roomId?: number | null;
   checkIn: Date;
@@ -29,46 +40,86 @@ export type CreateOfflineBookingInput = {
   guestPhone: string;
   guestEmail?: string | null;
   guestCount?: number;
-  totalPrice: number;
+  /** If omitted, authoritative price from category × nights. */
+  totalPrice?: number | null;
   prepayment?: number | null;
   offlinePaymentType?: string | null;
   offlineNote?: string | null;
   offlineStatus?: OfflineStatus;
+  /** When true and settlement is CASH/CARD with full prepayment, mark PAID. */
+  markPaid?: boolean;
 };
 
-export async function createOwnerOfflineBooking(input: CreateOfflineBookingInput) {
+/**
+ * Canonical offline booking create for Owner and Manager.
+ * Source = OWNER_MANUAL | MANAGER_MANUAL (channel), settlement = CASH|CARD (payment dimension).
+ * Uses the same physical-room EXCLUDE / RoomType capacity guards as online booking.
+ */
+export async function createManualOfflineBooking(input: CreateManualOfflineBookingInput) {
   const guestPhone = normalizePhone(input.guestPhone);
   if (!guestPhone) throw new Error("invalid_phone");
+  if (input.checkOut.getTime() <= input.checkIn.getTime()) throw new Error("invalid_dates");
 
   const roomType = await prisma.roomType.findFirst({
-    where: { id: input.roomTypeId, hotel: { ownerId: input.ownerId } },
+    where: { id: input.roomTypeId, hotelId: input.hotelId },
     include: { hotel: true }
   });
   if (!roomType) throw new Error("forbidden");
   if (roomType.hotel.status !== "APPROVED") throw new Error("hotel_not_available");
 
-  let physicalRoomId = input.roomId ?? null;
-  if (physicalRoomId) {
-    const room = await assertRoomOwnedByOwner(physicalRoomId, input.ownerId);
-    if (!room || room.roomTypeId !== roomType.id) throw new Error("room_type_mismatch");
+  if (input.actorRole === "OWNER" && roomType.hotel.ownerId !== input.actorUserId) {
+    throw new Error("forbidden");
   }
 
-  const prepayment = input.prepayment != null ? Math.max(0, Number(input.prepayment)) : 0;
-  const totalPrice = Math.max(0, Number(input.totalPrice));
+  const guestCount = Math.max(1, input.guestCount ?? 1);
+  if (guestCount > roomType.maxGuests) throw new Error("guest_capacity");
+
+  let physicalRoomId = input.roomId ?? null;
+  if (physicalRoomId) {
+    const room = await prisma.room.findFirst({
+      where: { id: physicalRoomId, hotelId: input.hotelId, roomTypeId: roomType.id }
+    });
+    if (!room) throw new Error("room_type_mismatch");
+  }
+
+  const quoted = quoteOfflineStayTotal({
+    basePrice: Number(roomType.basePrice),
+    checkIn: input.checkIn,
+    checkOut: input.checkOut
+  });
+  // Manager must not invent price; Owner legacy form may still pass totalPrice — prefer quote when missing/invalid.
+  const totalPrice =
+    input.totalPrice != null && Number(input.totalPrice) > 0
+      ? input.actorRole === "OWNER"
+        ? Math.max(0, Number(input.totalPrice))
+        : quoted
+      : quoted;
+  if (input.actorRole === "MANAGER" && input.totalPrice != null && Math.abs(Number(input.totalPrice) - quoted) > 0.01) {
+    // Ignore override — authoritative quote wins (no silent Manager price override).
+  }
+
+  const prepayment =
+    input.prepayment != null
+      ? Math.max(0, Number(input.prepayment))
+      : input.markPaid
+        ? totalPrice
+        : 0;
   const remainingAmount = Math.max(0, totalPrice - prepayment);
   const offlineStatus = input.offlineStatus ?? OFFLINE_STATUS.CONFIRMED;
   if (!OFFLINE_STATUSES.has(offlineStatus)) throw new Error("invalid_status");
 
   const publicCode = await generateBookingCode();
-  const guestCount = Math.max(1, input.guestCount ?? 1);
   const settlementRaw = normalizeSettlementChannel(input.offlinePaymentType);
   const settlement =
     settlementRaw === SETTLEMENT_CHANNEL.UNKNOWN ? SETTLEMENT_CHANNEL.CASH : settlementRaw;
   const paidNow = prepayment >= totalPrice && totalPrice > 0;
 
+  const source =
+    input.actorRole === "MANAGER" ? BOOKING_SOURCE.MANAGER_MANUAL : BOOKING_SOURCE.OWNER_MANUAL;
+
   const createData = {
-    source: BOOKING_SOURCE.OWNER_MANUAL,
-    createdByOwnerId: input.ownerId,
+    source,
+    createdByOwnerId: input.actorRole === "OWNER" ? input.actorUserId : null,
     userId: null,
     roomTypeId: input.roomTypeId,
     roomId: physicalRoomId,
@@ -95,16 +146,10 @@ export async function createOwnerOfflineBooking(input: CreateOfflineBookingInput
     status: BOOKING_STATUS.CONFIRMED,
     paymentStatus: paidNow ? "PAID" : "PENDING",
     revenueRecognizedAt: paidNow ? new Date() : null,
-    payOnArrival: true,
+    payOnArrival: !paidNow,
     paymentMethod: settlement === SETTLEMENT_CHANNEL.CASH ? "ARRIVAL" : settlement
   } as const;
 
-  // Check-then-create folded into one atomic operation - a new offline booking defaults straight
-  // into CONFIRMED (occupying), so the old separate SELECT-then-INSERT was a genuine race point
-  // (proven live, see Block 2 report). Physical room: withRoomOverlapGuard (DB EXCLUDE
-  // constraint). RoomType-only (no physical room yet): withRoomTypeCapacityGuard (per-roomType
-  // advisory lock + re-check inside the same transaction) - the EXCLUDE constraint has no column
-  // to range-exclude on for an unassigned booking, see Block 2.1 report.
   let booking;
   try {
     if (physicalRoomId) {
@@ -126,19 +171,90 @@ export async function createOwnerOfflineBooking(input: CreateOfflineBookingInput
     throw e;
   }
 
-  await createNotification({
-    userId: input.ownerId,
-    type: "OWNER_OFFLINE_BOOKING_CREATED",
-    bookingId: booking.id,
-    link: `/dashboard/owner?section=offline-bookings`,
-    meta: { roomTypeId: input.roomTypeId, roomId: physicalRoomId, publicCode }
+  await writeOwnerHotelAudit({
+    hotelId: input.hotelId,
+    actorUserId: input.actorUserId,
+    actorRole: input.actorRole,
+    action: "offline_booking.created",
+    entityType: "Booking",
+    entityId: booking.id,
+    afterState: {
+      publicCode: booking.publicCode,
+      source,
+      settlement,
+      totalPrice,
+      paymentStatus: booking.paymentStatus
+    }
   });
+
+  if (input.actorRole === "OWNER") {
+    await createNotification({
+      userId: input.actorUserId,
+      type: "OWNER_OFFLINE_BOOKING_CREATED",
+      bookingId: booking.id,
+      link: `/dashboard/owner?section=offline-bookings`,
+      meta: { roomTypeId: input.roomTypeId, roomId: physicalRoomId, publicCode }
+    });
+  } else {
+    // Notify hotel owner that Manager created an offline booking.
+    await createNotification({
+      userId: roomType.hotel.ownerId,
+      type: "OWNER_OFFLINE_BOOKING_CREATED",
+      bookingId: booking.id,
+      link: `/dashboard/owner?section=offline-bookings&hotelId=${input.hotelId}`,
+      meta: { roomTypeId: input.roomTypeId, roomId: physicalRoomId, publicCode, byManagerId: input.actorUserId }
+    });
+  }
 
   if (paidNow) {
     await markBookingRevenueRecognized(booking.id, { settlementChannel: settlement });
   }
 
   return booking;
+}
+
+/** @deprecated Prefer createManualOfflineBooking — kept for Owner form compatibility. */
+export type CreateOfflineBookingInput = {
+  ownerId: number;
+  roomTypeId: number;
+  roomId?: number | null;
+  checkIn: Date;
+  checkOut: Date;
+  guestName: string;
+  guestPhone: string;
+  guestEmail?: string | null;
+  guestCount?: number;
+  totalPrice: number;
+  prepayment?: number | null;
+  offlinePaymentType?: string | null;
+  offlineNote?: string | null;
+  offlineStatus?: OfflineStatus;
+};
+
+export async function createOwnerOfflineBooking(input: CreateOfflineBookingInput) {
+  const roomType = await prisma.roomType.findFirst({
+    where: { id: input.roomTypeId, hotel: { ownerId: input.ownerId } },
+    select: { hotelId: true }
+  });
+  if (!roomType) throw new Error("forbidden");
+  return createManualOfflineBooking({
+    actorUserId: input.ownerId,
+    actorRole: "OWNER",
+    hotelId: roomType.hotelId,
+    roomTypeId: input.roomTypeId,
+    roomId: input.roomId,
+    checkIn: input.checkIn,
+    checkOut: input.checkOut,
+    guestName: input.guestName,
+    guestPhone: input.guestPhone,
+    guestEmail: input.guestEmail,
+    guestCount: input.guestCount,
+    totalPrice: input.totalPrice,
+    prepayment: input.prepayment,
+    offlinePaymentType: input.offlinePaymentType,
+    offlineNote: input.offlineNote,
+    offlineStatus: input.offlineStatus
+  });
 }
 
 export type UpdateOfflineBookingInput = {
@@ -157,21 +273,21 @@ export async function updateOwnerOfflineBooking(input: UpdateOfflineBookingInput
   const existing = await prisma.booking.findFirst({
     where: {
       id: input.bookingId,
-      source: BOOKING_SOURCE.OWNER_MANUAL,
-      room: { hotel: { ownerId: input.ownerId } }
+      source: { in: [BOOKING_SOURCE.OWNER_MANUAL, BOOKING_SOURCE.MANAGER_MANUAL] },
+      OR: [
+        { room: { hotel: { ownerId: input.ownerId } } },
+        { roomType: { hotel: { ownerId: input.ownerId } } },
+        { assignedRoom: { hotel: { ownerId: input.ownerId } } }
+      ]
     }
   });
-  if (!existing) throw new Error("not_found");
+  if (!existing || !isOfflineBookingSource(existing.source)) throw new Error("not_found");
 
   const checkIn = input.checkIn ?? existing.checkIn;
   const checkOut = input.checkOut ?? existing.checkOut;
   if (checkOut.getTime() <= checkIn.getTime()) throw new Error("invalid_dates");
 
   const physicalId = existing.assignedRoomId ?? existing.roomId;
-  // Pre-check only (dates unchanged from what was already an occupying booking, or the branch
-  // handles the actual re-check+write atomically below when dates DO change) - kept as an early,
-  // cheap rejection for the common "no date change" case; the atomic guard below is what actually
-  // prevents the race when dates are changing.
   if ((input.checkIn || input.checkOut) && physicalId) {
     try {
       await assertDatesAvailable({ roomId: physicalId, checkIn, checkOut, excludeBookingId: existing.id });
@@ -219,10 +335,6 @@ export async function updateOwnerOfflineBooking(input: UpdateOfflineBookingInput
     paymentStatus: prepayment >= totalPrice && totalPrice > 0 ? "PAID" : "PENDING"
   } as const;
 
-  // Same SELECT-then-write gap as create above, relevant whenever this update moves offlineStatus
-  // into an occupying value or changes dates on an already-occupying booking. Physical room:
-  // withRoomOverlapGuard. RoomType-only (no physical room resolved): withRoomTypeCapacityGuard,
-  // re-checking capacity inside the same locked transaction as the write.
   try {
     if (physicalId) {
       return await withRoomOverlapGuard(() => prisma.booking.update({ where: { id: existing.id }, data: updateData }));
@@ -230,9 +342,6 @@ export async function updateOwnerOfflineBooking(input: UpdateOfflineBookingInput
     if (existing.roomTypeId) {
       const roomTypeId = existing.roomTypeId;
       return await withRoomTypeCapacityGuard(roomTypeId, async (tx) => {
-        // Always re-verify inside the lock, not only when dates changed - offlineStatus alone can
-        // transition into an occupying value with no date change, and that transition is itself
-        // the occupying moment. The lock+recheck is cheap; correctness over micro-optimization.
         await assertRoomTypeAvailable({ roomTypeId, checkIn, checkOut, excludeBookingId: existing.id, client: tx });
         return tx.booking.update({ where: { id: existing.id }, data: updateData });
       });

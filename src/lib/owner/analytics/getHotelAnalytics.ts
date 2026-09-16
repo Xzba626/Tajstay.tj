@@ -16,7 +16,7 @@
  * PENDING CONFIRMATION: PLATFORM + status PENDING_OWNER (current state, not period-bound)
  */
 import { prisma } from "@/lib/prisma";
-import { BOOKING_SOURCE, BOOKING_STATUS } from "@/lib/domain/booking";
+import { BOOKING_SOURCE, BOOKING_STATUS, OFFLINE_BOOKING_SOURCES } from "@/lib/domain/booking";
 import { resolveAnalyticsPeriod, type AnalyticsPeriodKey } from "@/lib/owner/analytics/period";
 import { allocateExpenseVersionsToPeriod } from "@/lib/owner/analytics/expenses";
 import { fromMinor, toMinor } from "@/lib/owner/analytics/money";
@@ -149,7 +149,7 @@ export async function getHotelAnalytics(opts: {
               OR: [
                 { status: BOOKING_STATUS.CANCELLED, createdAt: { gte: period.start, lte: period.end } },
                 {
-                  source: BOOKING_SOURCE.OWNER_MANUAL,
+                  source: { in: [...OFFLINE_BOOKING_SOURCES] },
                   offlineStatus: "CANCELLED",
                   createdAt: { gte: period.start, lte: period.end }
                 }
@@ -170,7 +170,7 @@ export async function getHotelAnalytics(opts: {
                   status: { in: [BOOKING_STATUS.CONFIRMED, BOOKING_STATUS.CHECKED_IN, BOOKING_STATUS.COMPLETED] }
                 },
                 {
-                  source: BOOKING_SOURCE.OWNER_MANUAL,
+                  source: { in: [...OFFLINE_BOOKING_SOURCES] },
                   offlineStatus: { in: ["CONFIRMED", "CHECKED_IN", "CHECKED_OUT"] }
                 }
               ]
@@ -190,7 +190,7 @@ export async function getHotelAnalytics(opts: {
                   status: { in: [BOOKING_STATUS.CONFIRMED, BOOKING_STATUS.CHECKED_IN, BOOKING_STATUS.COMPLETED] }
                 },
                 {
-                  source: BOOKING_SOURCE.OWNER_MANUAL,
+                  source: { in: [...OFFLINE_BOOKING_SOURCES] },
                   offlineStatus: { in: ["CONFIRMED", "CHECKED_IN", "CHECKED_OUT"] }
                 }
               ]

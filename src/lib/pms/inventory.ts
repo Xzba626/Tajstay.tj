@@ -99,7 +99,7 @@ export async function getRoomTypeAvailability(params: {
       OR: [
         { source: BOOKING_SOURCE.PLATFORM, status: { in: ["CONFIRMED", "CHECKED_IN", "COMPLETED"] } },
         {
-          source: BOOKING_SOURCE.OWNER_MANUAL,
+          source: { in: [BOOKING_SOURCE.OWNER_MANUAL, BOOKING_SOURCE.MANAGER_MANUAL] },
           offlineStatus: { in: [...OCCUPYING_OFFLINE_STATUSES] }
         },
         ...(includeActiveHolds
@@ -276,7 +276,7 @@ export async function getHotelsDateAvailabilityBulk(
             roomId: { in: sellableRoomIds },
             OR: [
               { source: BOOKING_SOURCE.PLATFORM, status: { in: [...OCCUPYING_ONLINE_STATUSES] } },
-              { source: BOOKING_SOURCE.OWNER_MANUAL, offlineStatus: { in: [...OCCUPYING_OFFLINE_STATUSES] } },
+              { source: { in: [BOOKING_SOURCE.OWNER_MANUAL, BOOKING_SOURCE.MANAGER_MANUAL] }, offlineStatus: { in: [...OCCUPYING_OFFLINE_STATUSES] } },
               {
                 source: BOOKING_SOURCE.PLATFORM,
                 status: { in: [...ACTIVE_HOLD_STATUSES] },
@@ -290,7 +290,7 @@ export async function getHotelsDateAvailabilityBulk(
             roomId: null,
             OR: [
               { source: BOOKING_SOURCE.PLATFORM, status: { in: [...OCCUPYING_ONLINE_STATUSES] } },
-              { source: BOOKING_SOURCE.OWNER_MANUAL, offlineStatus: { in: [...OCCUPYING_OFFLINE_STATUSES] } },
+              { source: { in: [BOOKING_SOURCE.OWNER_MANUAL, BOOKING_SOURCE.MANAGER_MANUAL] }, offlineStatus: { in: [...OCCUPYING_OFFLINE_STATUSES] } },
               {
                 source: BOOKING_SOURCE.PLATFORM,
                 status: { in: [...ACTIVE_HOLD_STATUSES] },

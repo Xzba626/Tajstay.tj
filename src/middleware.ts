@@ -42,7 +42,7 @@ export async function middleware(req: NextRequest) {
   requestHeaders.set("x-tajstay-shell", shellFor(path));
   const withShellHeader = () => NextResponse.next({ request: { headers: requestHeaders } });
 
-  if (!path.startsWith("/dashboard/admin") && !path.startsWith("/dashboard/owner")) {
+  if (!path.startsWith("/dashboard/admin") && !path.startsWith("/dashboard/owner") && !path.startsWith("/dashboard/manager")) {
     return withShellHeader();
   }
 

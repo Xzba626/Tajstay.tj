@@ -124,7 +124,7 @@ export async function getRoomBookingsInRange(roomId: number, from: Date, to: Dat
           status: { in: [...CALENDAR_ONLINE_STATUSES] }
         },
         {
-          source: BOOKING_SOURCE.OWNER_MANUAL,
+          source: { in: [BOOKING_SOURCE.OWNER_MANUAL, BOOKING_SOURCE.MANAGER_MANUAL] },
           offlineStatus: { in: [...OCCUPYING_OFFLINE_STATUSES, ...PENDING_OFFLINE_STATUSES] }
         }
       ]
@@ -270,7 +270,7 @@ export async function assertDatesAvailable(params: {
           status: { in: [...OCCUPYING_ONLINE_STATUSES] }
         },
         {
-          source: BOOKING_SOURCE.OWNER_MANUAL,
+          source: { in: [BOOKING_SOURCE.OWNER_MANUAL, BOOKING_SOURCE.MANAGER_MANUAL] },
           offlineStatus: { in: [...OCCUPYING_OFFLINE_STATUSES] }
         },
         ...(includeActiveHolds

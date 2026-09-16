@@ -5,7 +5,7 @@
  * so it can be imported from an edge-runtime module and a "use client" component without pulling
  * in `next/server` or any React code.
  */
-export type ShellKind = "admin" | "owner" | "consumer";
+export type ShellKind = "admin" | "owner" | "manager" | "consumer";
 
 function isSegmentPrefix(path: string, prefix: string): boolean {
   return path === prefix || path.startsWith(`${prefix}/`);
@@ -14,5 +14,6 @@ function isSegmentPrefix(path: string, prefix: string): boolean {
 export function shellFor(path: string): ShellKind {
   if (isSegmentPrefix(path, "/dashboard/admin")) return "admin";
   if (isSegmentPrefix(path, "/dashboard/owner")) return "owner";
+  if (isSegmentPrefix(path, "/dashboard/manager")) return "manager";
   return "consumer";
 }

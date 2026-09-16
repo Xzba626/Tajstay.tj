@@ -5,7 +5,7 @@ export type BookingChannel = "online" | "offline" | "unknown";
 
 export function bookingChannelFromSource(source: string | null | undefined): BookingChannel {
   if (source === BOOKING_SOURCE.PLATFORM) return "online";
-  if (source === BOOKING_SOURCE.OWNER_MANUAL) return "offline";
+  if (source === BOOKING_SOURCE.OWNER_MANUAL || source === BOOKING_SOURCE.MANAGER_MANUAL) return "offline";
   return "unknown";
 }
 

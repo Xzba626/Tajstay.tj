@@ -81,7 +81,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   // Admin/Owner CRM shells render their own chrome (see dashboard/admin, dashboard/owner
   // layouts) — the Public/Consumer shell below (Header/Footer/MobileBottomNav/AppShell/
   // Cookie/PWA prompts) must not leak into those two. Classified in middleware.ts, not CSS.
-  const resolvedShell = shellHeader === "admin" || shellHeader === "owner" ? shellHeader : "consumer";
+  const resolvedShell =
+    shellHeader === "admin" || shellHeader === "owner" || shellHeader === "manager" ? shellHeader : "consumer";
   const isConsumerShell = resolvedShell === "consumer";
   // MOBILE PROFILE / OWNER / SECURITY CORRECTION BLOCK: theme preference is read from a cookie
   // server-side (same pattern as the locale cookie) so the correct `data-theme` attribute is

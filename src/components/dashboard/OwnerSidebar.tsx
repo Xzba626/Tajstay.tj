@@ -16,6 +16,7 @@ import {
   MessageSquare,
   ScrollText,
   Star,
+  UsersRound,
   Wallet
 } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -56,6 +57,7 @@ export type OwnerSidebarLabels = {
     finances: string;
     statistics: string;
     activity: string;
+    staff: string;
     help: string;
     notifications: string;
   };
@@ -91,6 +93,7 @@ function buildItems(labels: OwnerSidebarLabels): SidebarItem[] {
     { section: "finances", label: labels.items.finances, Icon: CreditCard },
     { section: "analytics", label: labels.items.statistics, Icon: BarChart3 },
     { section: "activity", label: labels.items.activity, Icon: ScrollText },
+    { section: "staff", label: labels.items.staff, Icon: UsersRound },
     { section: "help", label: labels.items.help, Icon: CircleHelp },
     { section: "notifications", label: labels.items.notifications, Icon: Bell }
   ];
@@ -99,7 +102,7 @@ function buildItems(labels: OwnerSidebarLabels): SidebarItem[] {
 const MOBILE_PRIMARY = ["overview", "properties", "bookings", "calendar"] as const;
 
 const OWNER_DRAWER_GROUPS = [
-  { key: "operations" as const, sections: ["rooms", "offline-bookings"] },
+  { key: "operations" as const, sections: ["rooms", "offline-bookings", "staff"] },
   { key: "insights" as const, sections: ["finances", "analytics", "reviews", "notifications", "activity"] },
   { key: "support" as const, hrefs: ["/dashboard/messages"], sections: ["help"] as string[] }
 ];
@@ -107,7 +110,7 @@ const OWNER_DRAWER_GROUPS = [
 const OWNER_SIDEBAR_GROUPS = [
   { key: "overview" as const, sections: ["overview"] },
   { key: "properties" as const, sections: ["properties", "rooms"] },
-  { key: "operations" as const, sections: ["bookings", "offline-bookings", "calendar"] },
+  { key: "operations" as const, sections: ["bookings", "offline-bookings", "calendar", "staff"] },
   { key: "insights" as const, sections: ["finances", "analytics", "reviews", "notifications", "activity"] },
   { key: "support" as const, sections: ["help"], hrefs: ["/dashboard/messages"] as string[] }
 ];

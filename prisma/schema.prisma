@@ -54,6 +54,7 @@ model User {
   disputesAgainst     Dispute[]           @relation("DisputesAgainst")
   pushSubscriptions   PushSubscription[]
   notificationPreference NotificationPreference?
+  hotelStaffMemberships HotelStaff[]
 }
 
 model Account {
@@ -306,18 +307,29 @@ model Room {
   @@index([status])
 }
 
-/// Сотрудники отеля (ресепшен / housekeeping)
+/// Hotel-scoped staff (Manager / reception). Access is never global across an owner's hotels.
 model HotelStaff {
-  id        Int      @id @default(autoincrement())
-  hotelId   Int
-  hotel     Hotel    @relation(fields: [hotelId], references: [id], onDelete: Cascade)
-  userId    Int
-  /// RECEPTIONIST | HOUSEKEEPING
-  staffRole String
-  createdAt DateTime @default(now())
+  id                 Int       @id @default(autoincrement())
+  hotelId            Int
+  hotel              Hotel     @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  userId             Int
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// MANAGER | RECEPTIONIST | HOUSEKEEPING
+  staffRole          String
+  /// ACTIVE | INVITED | SUSPENDED | REMOVED
+  status             String    @default("ACTIVE")
+  inviteTokenHash    String?
+  inviteExpiresAt    DateTime?
+  mustChangePassword Boolean   @default(false)
+  lastActiveAt       DateTime?
+  createdByUserId    Int?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   @@unique([hotelId, userId])
   @@index([userId])
+  @@index([hotelId, status])
+  @@index([inviteTokenHash])
 }
 
 /// Фото номера (галерея / слайдер на карточке и странице отеля).
