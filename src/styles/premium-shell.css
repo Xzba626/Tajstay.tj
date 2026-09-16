@@ -268,7 +268,7 @@
 /* ---- App shell layout ---- */
 @media (max-width: 767px) {
   body.app-shell main {
-    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0));
+    padding-bottom: calc(var(--mobile-bottom-nav-height, 4.5rem) + env(safe-area-inset-bottom, 0));
   }
 
   body.app-shell .site-footer,

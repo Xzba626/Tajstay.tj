@@ -58,8 +58,8 @@ export default async function ProfilePersonalPage() {
       <div className="profile-panel flex items-center gap-4">
         <ProfileAvatar name={full.name} imageUrl={full.image ?? full.telegramPhotoUrl} />
         <div>
-          <p className="text-lg font-semibold text-[var(--ts-text-title,#0f172a)]">{full.name}</p>
-          <p className="text-sm text-[var(--ts-text-muted,#475569)]">{m(locale, "profile.personalPhotoHint")}</p>
+          <p className="text-lg font-semibold text-white">{full.name}</p>
+          <p className="text-sm text-white/80">{m(locale, "profile.personalPhotoHint")}</p>
         </div>
       </div>
 

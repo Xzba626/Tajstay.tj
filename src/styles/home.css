@@ -727,36 +727,36 @@ body:has(.ts-workspace-light) .header-auth-signin-mobile {
   color: #ffffff;
 }
 
-/* Admin/Owner workspaces: Header still light there (see globals.css shell-leak note) */
+/* Admin/Owner/Profile: header is always #0F7A4D — keep nav/locale controls on-brand white. */
 body:has(.ts-workspace-light) .locale-switcher--icon-only .locale-switcher-trigger--icon {
-  border-color: #e4e4e7;
-  background: #ffffff;
-  color: #3f3f46;
+  border-color: rgba(255, 255, 255, 0.35);
+  background: transparent;
+  color: #ffffff;
 }
 
 body:has(.ts-workspace-light) .locale-switcher--icon-only .locale-switcher-trigger--icon:hover,
 body:has(.ts-workspace-light) .locale-switcher--icon-only .locale-switcher-trigger--icon[aria-expanded="true"] {
-  background: #f4f4f5;
-  border-color: #0f7a4d;
-  color: #0f7a4d;
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.6);
+  color: #ffffff;
 }
 
 body:has(.ts-workspace-light) .locale-switcher--icon-only .locale-switcher-trigger--icon svg {
-  color: inherit;
+  color: #ffffff;
 }
 
 body:has(.ts-workspace-light) .site-header .header-nav-link {
-  color: #3f3f46;
+  color: rgba(255, 255, 255, 0.85);
 }
 
 body:has(.ts-workspace-light) .site-header .header-nav-link:hover {
-  background: #f4f4f5;
-  color: #14231b;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
 }
 
 body:has(.ts-workspace-light) .site-header .header-nav-link.is-active {
-  background: rgba(15, 122, 77, 0.1);
-  color: #0f7a4d;
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
 }
 
 /* ---- Home hotel cards ---- */

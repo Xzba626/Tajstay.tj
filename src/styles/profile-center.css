@@ -7,7 +7,20 @@
      stayed white in Dark Mode while the cards inside it correctly went dark. */
   background: var(--ts-surface-page, #ffffff);
   color: var(--ts-text-body, #0f172a);
-  min-height: calc(100dvh - 3.5rem);
+  /* SECURITY CORRECTION BLOCK, Section 1/2: this was `calc(100dvh - 3.5rem)` — a stale guess
+     from before the workspace header became `position: fixed` (workspace-mobile-shell.css) and
+     `main` started reserving its own `padding-top`/`padding-bottom: calc(4.5rem + safe-area)` for
+     the fixed header and the global app tab bar. This shell renders INSIDE that already-padded
+     `main`, so forcing it to `100dvh - 56px` regardless of `main`'s real reserved space made
+     `main`'s total requested height (72px + 788px + 72px = 932px on a 844px-tall viewport)
+     overflow the viewport by 88px on every short page (e.g. /profile/security) — a genuine
+     phantom scroll, not real content. This now mirrors `main`'s actual padding formula instead of
+     a disconnected guess, so a short page fills exactly the space between header and bottom nav
+     with zero leftover, while a page whose real content is taller still scrolls normally. */
+  min-height: calc(
+    100dvh - var(--workspace-header-height, 4.5rem) - var(--mobile-bottom-nav-height, 4.5rem) -
+      env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)
+  );
 }
 
 /* MOBILE PROFILE / OWNER / SECURITY CORRECTION BLOCK — root cause of the huge empty gaps between
@@ -993,21 +1006,23 @@
   gap: 0.55rem;
   min-height: var(--ws-row-min-height, 2.65rem);
   padding: 0.55rem 0.65rem;
-  border: 1px solid var(--ts-border-subtle, #e2e8f0);
+  border: 1px solid #0f7a4d;
   border-radius: 0.75rem;
-  background: var(--ts-surface-primary, #ffffff);
-  color: var(--ts-text-body, #1e293b);
+  /* Profile menu rows are brand functional blocks — stay #0F7A4D in Light and Dark. */
+  background: #0f7a4d;
+  color: #ffffff;
   text-decoration: none;
 }
 
 .profile-hub__nav-block:active {
   transform: scale(0.99);
-  background: var(--ts-surface-muted, #f4f6f5);
+  background: #0f7a4d;
+  filter: brightness(0.94);
 }
 
 .profile-hub__nav-block-icon {
   flex-shrink: 0;
-  color: var(--ts-brand-primary, #0f7a4d);
+  color: #ffffff;
 }
 
 .profile-hub__nav-block-copy {
@@ -1021,12 +1036,12 @@
 .profile-hub__nav-block-title {
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--ts-text-title, #0f172a);
+  color: #ffffff;
 }
 
 .profile-hub__nav-block-summary {
   font-size: 0.6875rem;
-  color: var(--ts-text-muted, #475569);
+  color: rgba(255, 255, 255, 0.82);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1034,8 +1049,8 @@
 
 .profile-hub__nav-block-chevron {
   flex-shrink: 0;
-  color: var(--ts-text-muted, #475569);
-  opacity: 0.75;
+  color: rgba(255, 255, 255, 0.85);
+  opacity: 1;
 }
 
 .profile-subpage__back {
@@ -1083,9 +1098,10 @@
 }
 
 .profile-panel {
-  border: 1px solid var(--ts-border-subtle, #e2e8f0);
+  border: 1px solid #0f7a4d;
   border-radius: 0.75rem;
-  background: var(--ts-surface-primary, #ffffff);
+  background: #0f7a4d;
+  color: #ffffff;
   padding: 0.85rem 0.9rem;
 }
 
@@ -1102,14 +1118,14 @@
   padding: 0.75rem 0.9rem 0.35rem;
   font-size: 0.8125rem;
   font-weight: 700;
-  color: var(--ts-text-title, #0f172a);
+  color: #ffffff;
 }
 
 .profile-info-row {
   display: grid;
   gap: 0.15rem;
   padding: 0.65rem 0.9rem;
-  border-top: 1px solid var(--ts-border-subtle, #e2e8f0);
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
 }
 
 .profile-info-row:first-child {
@@ -1121,18 +1137,18 @@
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--ts-text-muted, #475569);
+  color: rgba(255, 255, 255, 0.78);
 }
 
 .profile-info-row__value {
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--ts-text-title, #0f172a);
+  color: #ffffff;
 }
 
 .profile-info-row__hint {
   font-size: 0.6875rem;
-  color: var(--ts-text-muted, #475569);
+  color: rgba(255, 255, 255, 0.78);
 }
 
 .profile-info-row {
@@ -1149,7 +1165,7 @@
 }
 
 .profile-info-row--link:hover {
-  background: var(--ts-surface-muted, #f8fafc);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .profile-info-row__chevron {
@@ -1157,7 +1173,7 @@
   right: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--ts-text-muted, #94a3b8);
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .profile-info-row__edit-trigger {
@@ -1262,9 +1278,9 @@
 }
 
 .profile-subpage-group__body {
-  border: 1px solid var(--ts-border-subtle, #e2e8f0);
+  border: 1px solid #0f7a4d;
   border-radius: 0.75rem;
-  background: var(--ts-surface-primary, #ffffff);
+  background: #0f7a4d;
   overflow: hidden;
 }
 
@@ -1274,8 +1290,8 @@
   gap: 0.55rem;
   min-height: 2.75rem;
   padding: 0.55rem 0.65rem;
-  border-bottom: 1px solid var(--ts-border-subtle, #e2e8f0);
-  color: var(--ts-text-body, #1e293b);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+  color: #ffffff;
   text-decoration: none;
 }
 
@@ -1284,7 +1300,7 @@
 }
 
 .profile-subpage-row:active:not(.profile-subpage-row--disabled) {
-  background: var(--ts-surface-muted, #f4f6f5);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .profile-subpage-row--disabled {
@@ -1294,7 +1310,7 @@
 
 .profile-subpage-row__icon {
   flex-shrink: 0;
-  color: var(--ts-brand-primary, #0f7a4d);
+  color: #ffffff;
 }
 
 .profile-subpage-row__label {
@@ -1302,13 +1318,13 @@
   min-width: 0;
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--ts-text-title, #0f172a);
+  color: #ffffff;
 }
 
 .profile-subpage-row__value {
   flex-shrink: 0;
   font-size: 0.75rem;
-  color: var(--ts-text-muted, #475569);
+  color: rgba(255, 255, 255, 0.82);
 }
 
 .profile-subpage-row__badge {
@@ -1317,14 +1333,14 @@
   padding: 0.1rem 0.45rem;
   font-size: 0.625rem;
   font-weight: 600;
-  background: var(--ts-surface-muted, #f4f6f5);
-  color: var(--ts-text-muted, #475569);
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
 }
 
 .profile-subpage-row__chevron {
   flex-shrink: 0;
-  color: var(--ts-text-muted, #475569);
-  opacity: 0.75;
+  color: rgba(255, 255, 255, 0.85);
+  opacity: 1;
 }
 
 .profile-subpage-lang__item {

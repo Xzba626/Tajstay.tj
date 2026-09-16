@@ -7,6 +7,9 @@
 :root {
   --workspace-header-height: 4.5rem;
   --workspace-bottom-nav-height: 3.75rem;
+  /* Consumer app tab bar clearance (premium-shell.css). One token — no scattered 76/88/92px. */
+  --mobile-bottom-nav-height: 4.5rem;
+  --app-tab-bar-height: var(--mobile-bottom-nav-height);
 
   /* Brand — single TajStay green via semantic foundation */
   --ts-brand-primary: var(--brand-primary, #0f7a4d);
@@ -152,14 +155,14 @@
     --ts-border-default: #24352c;
     --ts-border-strong: #33473b;
 
-    /* Brand green itself does not change between themes — only the neutrals around it do. */
-    --ts-brand-primary: #14a874;
-    --ts-brand-primary-hover: #12c184;
+    /* Brand green is invariant — only page/card neutrals flip in Dark Mode. */
+    --ts-brand-primary: #0f7a4d;
+    --ts-brand-primary-hover: #0f7a4d;
     --ts-brand-primary-pressed: #0f7a4d;
-    --ts-brand-primary-soft: #16332570;
-    --ts-brand-primary-border: #1f7d55;
+    --ts-brand-primary-soft: rgba(15, 122, 77, 0.22);
+    --ts-brand-primary-border: #0f7a4d;
 
-    --ts-semantic-success: #22c55e;
+    --ts-semantic-success: #0f7a4d;
     --ts-semantic-warning: #f59e0b;
     --ts-semantic-danger: #f87171;
     --ts-semantic-info: #38bdf8;
@@ -210,13 +213,13 @@
   --ts-border-default: #24352c;
   --ts-border-strong: #33473b;
 
-  --ts-brand-primary: #14a874;
-  --ts-brand-primary-hover: #12c184;
+  --ts-brand-primary: #0f7a4d;
+  --ts-brand-primary-hover: #0f7a4d;
   --ts-brand-primary-pressed: #0f7a4d;
-  --ts-brand-primary-soft: #16332570;
-  --ts-brand-primary-border: #1f7d55;
+  --ts-brand-primary-soft: rgba(15, 122, 77, 0.22);
+  --ts-brand-primary-border: #0f7a4d;
 
-  --ts-semantic-success: #22c55e;
+  --ts-semantic-success: #0f7a4d;
   --ts-semantic-warning: #f59e0b;
   --ts-semantic-danger: #f87171;
   --ts-semantic-info: #38bdf8;
@@ -326,12 +329,11 @@
    pattern as the .profile-page-light/.profile-hub__compact-title overrides above. */
 :root[data-theme="dark"] .profile-page-light .profile-subpage-row,
 :root[data-theme="dark"] .ts-workspace-light .profile-subpage-row {
-  color: var(--ts-text-body) !important;
+  color: #ffffff !important;
 }
 
 :root[data-theme="dark"] .profile-page-light .profile-subpage-row__label,
 :root[data-theme="dark"] .profile-page-light .profile-subpage-row__value,
-:root[data-theme="dark"] .profile-page-light .profile-subpage-group__title,
 :root[data-theme="dark"] .profile-page-light .profile-info-row__label,
 :root[data-theme="dark"] .profile-page-light .profile-info-row__value,
 :root[data-theme="dark"] .profile-page-light .profile-info-row__hint,
@@ -344,7 +346,7 @@
 :root[data-theme="dark"] .ts-workspace-light .profile-subpage-row__value,
 :root[data-theme="dark"] .ts-workspace-light .profile-info-row__label,
 :root[data-theme="dark"] .ts-workspace-light .profile-info-row__value {
-  color: var(--ts-text-body) !important;
+  color: #ffffff !important;
 }
 
 :root[data-theme="dark"] .profile-page-light .profile-subpage-row__value,
@@ -357,17 +359,17 @@
 :root[data-theme="dark"] .ts-workspace-light .profile-subpage-group__title,
 :root[data-theme="dark"] .ts-workspace-light .profile-info-row__label,
 :root[data-theme="dark"] .ts-workspace-light .profile-info-row__hint {
-  color: var(--ts-text-muted) !important;
+  color: rgba(255, 255, 255, 0.82) !important;
 }
 
 :root[data-theme="dark"] .profile-page-light .profile-subpage-row__badge,
 :root[data-theme="dark"] .ts-workspace-light .profile-subpage-row__badge {
-  background: var(--ts-surface-muted) !important;
+  background: rgba(255, 255, 255, 0.16) !important;
 }
 
 :root[data-theme="dark"] .profile-page-light a.profile-subpage-row,
 :root[data-theme="dark"] .ts-workspace-light a.profile-subpage-row {
-  color: var(--ts-text-title) !important;
+  color: #ffffff !important;
 }
 
 :root[data-theme="dark"] .profile-page-light .profile-subpage__back,
@@ -404,10 +406,23 @@
 }
 
 :root[data-theme="dark"] .profile-page-light .profile-subpage-group__body,
-:root[data-theme="dark"] .ts-workspace-light .profile-subpage-group__body,
+:root[data-theme="dark"] .ts-workspace-light .profile-subpage-group__body {
+  background: #0f7a4d !important;
+  border-color: #0f7a4d !important;
+}
+
 :root[data-theme="dark"] .profile-page-light .profile-subpage-lang {
   background: var(--ts-surface-primary) !important;
   border-color: var(--ts-border-subtle) !important;
+}
+
+:root[data-theme="dark"] .profile-page-light .profile-hub__nav-block,
+:root[data-theme="dark"] .ts-workspace-light .profile-hub__nav-block,
+:root[data-theme="dark"] .profile-page-light .profile-panel,
+:root[data-theme="dark"] .ts-workspace-light .profile-panel {
+  background: #0f7a4d !important;
+  border-color: #0f7a4d !important;
+  color: #ffffff !important;
 }
 
 :root[data-theme="dark"] .profile-page-light h1,
@@ -560,10 +575,23 @@
   }
 
   :root:not([data-theme="light"]) .profile-page-light .profile-subpage-group__body,
-  :root:not([data-theme="light"]) .ts-workspace-light .profile-subpage-group__body,
+  :root:not([data-theme="light"]) .ts-workspace-light .profile-subpage-group__body {
+    background: #0f7a4d !important;
+    border-color: #0f7a4d !important;
+  }
+
   :root:not([data-theme="light"]) .profile-page-light .profile-subpage-lang {
     background: var(--ts-surface-primary) !important;
     border-color: var(--ts-border-subtle) !important;
+  }
+
+  :root:not([data-theme="light"]) .profile-page-light .profile-hub__nav-block,
+  :root:not([data-theme="light"]) .ts-workspace-light .profile-hub__nav-block,
+  :root:not([data-theme="light"]) .profile-page-light .profile-panel,
+  :root:not([data-theme="light"]) .ts-workspace-light .profile-panel {
+    background: #0f7a4d !important;
+    border-color: #0f7a4d !important;
+    color: #ffffff !important;
   }
 
   :root:not([data-theme="light"]) .profile-page-light h1,
@@ -819,9 +847,9 @@
   }
 
   body.app-shell--workspace .site-header {
-    background: rgba(255, 255, 255, 0.96);
-    border-bottom: 1px solid var(--ts-border-subtle, #e2e8f0);
-    backdrop-filter: blur(10px);
+    background: #0f7a4d !important;
+    border-bottom: 1px solid #0f7a4d !important;
+    backdrop-filter: none;
   }
 
   body.app-shell--workspace .site-header.site-header--scroll-hidden {
@@ -829,7 +857,7 @@
   }
 
   body.app-shell--workspace .site-header .brand-mark-name {
-    color: var(--ts-text-title, #0f172a);
+    color: #ffffff !important;
   }
 
   body.app-shell--workspace .workspace-shell__content,

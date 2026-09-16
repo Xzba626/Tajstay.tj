@@ -6,6 +6,7 @@ type BaseProps = {
   className?: string;
   priority?: boolean;
   sizes?: string;
+  onError?: () => void;
 };
 
 type FillProps = BaseProps & {
@@ -31,7 +32,7 @@ export function shouldUnoptimizeImage(src: string): boolean {
 }
 
 export function AppImage(props: AppImageProps) {
-  const { src, alt, className, priority, sizes } = props;
+  const { src, alt, className, priority, sizes, onError } = props;
   const unoptimized = shouldUnoptimizeImage(src);
 
   if (props.fill) {
@@ -44,6 +45,7 @@ export function AppImage(props: AppImageProps) {
         priority={priority}
         sizes={sizes ?? "100vw"}
         unoptimized={unoptimized}
+        onError={onError}
       />
     );
   }
@@ -58,6 +60,7 @@ export function AppImage(props: AppImageProps) {
       priority={priority}
       sizes={sizes}
       unoptimized={unoptimized}
+      onError={onError}
     />
   );
 }

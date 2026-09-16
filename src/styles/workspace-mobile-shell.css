@@ -12,18 +12,18 @@
   border: none;
   border-radius: 0.625rem;
   background: transparent;
-  color: #14231b !important;
+  color: #ffffff !important;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 
 .header-workspace-menu:active {
-  background: var(--ts-surface-muted, #f4f6f5);
+  background: rgba(255, 255, 255, 0.12);
   transform: scale(0.96);
 }
 
 body.app-shell--workspace .header-workspace-menu {
-  color: var(--ts-text-title, #0f172a);
+  color: #ffffff !important;
 }
 
 /* Fixed Mobile Bottom Navigation — Admin + Owner share identical chrome */
@@ -46,9 +46,9 @@ body.app-shell--workspace .header-workspace-menu {
   margin: 0;
   transform: none !important;
   translate: none !important;
-  border-top: 1px solid var(--ts-border-subtle, #e4e4e7);
-  background: #ffffff;
-  box-shadow: 0 -1px 8px rgba(15, 23, 42, 0.06);
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  background: #0f7a4d;
+  box-shadow: none;
   padding: 0.2rem 0 calc(0.3rem + env(safe-area-inset-bottom, 0px));
   pointer-events: auto;
   isolation: isolate;
@@ -79,7 +79,7 @@ body.app-shell--workspace .header-workspace-menu {
   line-height: 1.1;
   text-align: center;
   /* Beat global `button { emerald fill + white text }` — More is a <button> */
-  color: var(--ts-text-muted, #475569) !important;
+  color: rgba(255, 255, 255, 0.78) !important;
   text-decoration: none;
   border: none !important;
   border-radius: 0 !important;
@@ -91,7 +91,7 @@ body.app-shell--workspace .header-workspace-menu {
 .workspace-mobile-bottom-nav__link.is-active,
 .admin-mobile-bottom-nav__link.is-active,
 .owner-mobile-bottom-nav__link.is-active {
-  color: #0f7a4d !important;
+  color: #ffffff !important;
   background: transparent !important;
   position: relative;
 }
@@ -106,7 +106,7 @@ body.app-shell--workspace .header-workspace-menu {
   right: 20%;
   height: 2px;
   border-radius: 999px;
-  background: #0f7a4d;
+  background: #ffffff;
 }
 
 .workspace-mobile-bottom-nav__icon,
@@ -133,7 +133,7 @@ body.app-shell--workspace .header-workspace-menu {
 .workspace-mobile-bottom-nav__link:active,
 .admin-mobile-bottom-nav__link:active,
 .owner-mobile-bottom-nav__link:active {
-  background: var(--ts-surface-muted, #f4f6f5);
+  background: rgba(255, 255, 255, 0.12);
   transform: scale(0.97);
 }
 
@@ -288,8 +288,8 @@ body.app-shell--workspace .header-workspace-menu {
     transform: none !important;
     translate: none !important;
     will-change: auto;
-    background: #ffffff !important;
-    border-bottom: 1px solid #e4e4e7 !important;
+    background: #0f7a4d !important;
+    border-bottom: 1px solid #0f7a4d !important;
   }
 
   body.app-shell--workspace main {
@@ -303,9 +303,15 @@ body.app-shell--workspace .header-workspace-menu {
     padding-bottom: calc(var(--workspace-bottom-nav-height, 3.75rem) + env(safe-area-inset-bottom, 0px) + 0.75rem);
   }
 
-  /* Profile — global app tab bar (not workspace bottom nav) */
-  body.app-shell--workspace:not(.app-shell--hidden-nav) .profile-page-light.profile-workspace,
-  body.app-shell--workspace:not(.app-shell--hidden-nav) .profile-page-light.profile-workspace .profile-subpage__body {
-    padding-bottom: calc(4.25rem + env(safe-area-inset-bottom, 0px) + 0.5rem);
-  }
+  /* SECURITY CORRECTION BLOCK, Section 1/2: this used to also add its own
+     `padding-bottom: 4.75rem` to `.profile-page-light.profile-workspace` AND,
+     redundantly, to the nested `.profile-subpage__body` inside it — a second,
+     independent clearance for the exact same global app tab bar that
+     `body.app-shell main` (premium-shell.css) already reserves via
+     `--mobile-bottom-nav-height`. Live-measured on /profile/security at 390x844:
+     the stack (main's 72px + shell's 76px + subpage__body's own 76px again)
+     produced an 88px phantom scroll range with nothing real below the fold.
+     Removed rather than shrunk — one clearance source only.
+     Profile uses consumer `.app-tab-bar` (not workspace bottom nav), so
+     `body.app-shell main` padding-bottom is the sole clearance. */
 }
