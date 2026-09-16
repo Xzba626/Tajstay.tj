@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { OwnerMobileNav, OwnerSidebar, type OwnerSidebarLabels } from "@/components/dashboard/OwnerSidebar";
+import { OwnerHeader } from "@/components/owner/OwnerHeader";
 import { DashboardShell } from "@/components/ds";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
@@ -44,6 +45,7 @@ export default async function OwnerDashboardLayout({ children }: { children: Rea
       reviews: m(locale, "owner.navReviews"),
       finances: m(locale, "owner.navFinances"),
       statistics: m(locale, "owner.navStatistics"),
+      activity: m(locale, "owner.navActivity"),
       help: m(locale, "owner.navHelp"),
       notifications: m(locale, "owner.navNotifications")
     },
@@ -51,7 +53,7 @@ export default async function OwnerDashboardLayout({ children }: { children: Rea
       overview: m(locale, "owner.navOverviewShort"),
       properties: m(locale, "owner.navPropertiesShort"),
       bookings: m(locale, "owner.navBookingsShort"),
-      finances: m(locale, "owner.navFinancesShort")
+      calendar: m(locale, "owner.navCalendarShort")
     },
     switchProperty: m(locale, "owner.switchProperty"),
     allProperties: m(locale, "owner.allProperties"),
@@ -60,12 +62,22 @@ export default async function OwnerDashboardLayout({ children }: { children: Rea
   };
 
   return (
-    <DashboardShell
-      className="owner-command-center-shell ts-workspace-light"
-      sidebar={<OwnerSidebar labels={labels} hotels={hotels} />}
-      mobileNav={<OwnerMobileNav labels={labels} hotels={hotels} />}
-    >
-      {children}
-    </DashboardShell>
+    <>
+      <OwnerHeader
+        locale={locale}
+        brandPrimary={m(locale, "owner.headerBrandShort")}
+        brandSecondary={m(locale, "owner.headerBrandContext")}
+        brandFull={m(locale, "owner.headerBrand")}
+        hotels={hotels}
+        labels={labels}
+      />
+      <DashboardShell
+        className="owner-command-center-shell ts-workspace-light"
+        sidebar={<OwnerSidebar labels={labels} hotels={hotels} />}
+        mobileNav={<OwnerMobileNav labels={labels} hotels={hotels} />}
+      >
+        {children}
+      </DashboardShell>
+    </>
   );
 }

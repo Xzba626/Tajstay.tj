@@ -121,6 +121,9 @@ export async function confirmBookingPayment({ bookingId, actorId, actorRole, rea
   }
   await prisma.payment.update({ where: { id: payment.id }, data: { status: "CAPTURED" } });
 
+  const { markBookingRevenueRecognized } = await import("@/lib/owner/analytics/getHotelAnalytics");
+  await markBookingRevenueRecognized(bookingId);
+
   await prisma.transactionLog.create({
     data: {
       bookingId,

@@ -14,6 +14,7 @@ import {
   LayoutDashboard,
   Menu,
   MessageSquare,
+  ScrollText,
   Star,
   Wallet
 } from "lucide-react";
@@ -54,6 +55,7 @@ export type OwnerSidebarLabels = {
     reviews: string;
     finances: string;
     statistics: string;
+    activity: string;
     help: string;
     notifications: string;
   };
@@ -61,7 +63,7 @@ export type OwnerSidebarLabels = {
     overview: string;
     properties: string;
     bookings: string;
-    finances: string;
+    calendar: string;
   };
   switchProperty: string;
   allProperties: string;
@@ -87,17 +89,18 @@ function buildItems(labels: OwnerSidebarLabels): SidebarItem[] {
     { href: "/dashboard/messages", label: labels.items.messages, Icon: MessageSquare },
     { section: "reviews", label: labels.items.reviews, Icon: Star },
     { section: "finances", label: labels.items.finances, Icon: CreditCard },
-    { section: "statistics", label: labels.items.statistics, Icon: BarChart3 },
+    { section: "analytics", label: labels.items.statistics, Icon: BarChart3 },
+    { section: "activity", label: labels.items.activity, Icon: ScrollText },
     { section: "help", label: labels.items.help, Icon: CircleHelp },
     { section: "notifications", label: labels.items.notifications, Icon: Bell }
   ];
 }
 
-const MOBILE_PRIMARY = ["overview", "properties", "bookings", "finances"] as const;
+const MOBILE_PRIMARY = ["overview", "properties", "bookings", "calendar"] as const;
 
 const OWNER_DRAWER_GROUPS = [
-  { key: "operations" as const, sections: ["rooms", "offline-bookings", "calendar"] },
-  { key: "insights" as const, sections: ["reviews", "statistics", "notifications"] },
+  { key: "operations" as const, sections: ["rooms", "offline-bookings"] },
+  { key: "insights" as const, sections: ["finances", "analytics", "reviews", "notifications", "activity"] },
   { key: "support" as const, hrefs: ["/dashboard/messages"], sections: ["help"] as string[] }
 ];
 
@@ -105,7 +108,7 @@ const OWNER_SIDEBAR_GROUPS = [
   { key: "overview" as const, sections: ["overview"] },
   { key: "properties" as const, sections: ["properties", "rooms"] },
   { key: "operations" as const, sections: ["bookings", "offline-bookings", "calendar"] },
-  { key: "insights" as const, sections: ["finances", "statistics", "reviews", "notifications"] },
+  { key: "insights" as const, sections: ["finances", "analytics", "reviews", "notifications", "activity"] },
   { key: "support" as const, sections: ["help"], hrefs: ["/dashboard/messages"] as string[] }
 ];
 
@@ -120,58 +123,162 @@ function isActive(pathname: string, section: string, item: SidebarItem): boolean
   return section === (item.section ?? "overview");
 }
 
-function PropertySwitcher({
+export function PropertySwitcher({
   hotels,
   labels,
-  className
+  className,
+  variant = "sidebar"
 }: {
   hotels: OwnerSwitcherHotel[];
   labels: OwnerSidebarLabels;
   className?: string;
+  variant?: "sidebar" | "header" | "drawer";
 }) {
   const pathname = usePathname();
   const router = useRouter();
   const search = useSearchParams();
   const activeHotelId = Number(search.get("hotelId") ?? "") || 0;
-  // Hotel-agnostic pages (Properties/Notifications/Help) carry no hotelId in the URL at all - fall
-  // back to the first APPROVED hotel purely so the control shows *something* real, never a blank
-  // "all properties" state. There is no aggregate mode any more: every operational section always
-  // resolves to one concrete Hotel (see the canonical redirect in dashboard/owner/page.tsx).
-  const firstApprovedId = hotels.find((h) => h.status === "APPROVED")?.id ?? "";
-  const selectId = useId();
+  const firstApprovedId = hotels.find((h) => h.status === "APPROVED")?.id ?? hotels[0]?.id ?? 0;
+  const currentId = activeHotelId || firstApprovedId;
+  const current = hotels.find((h) => h.id === currentId) ?? hotels[0];
+  const listboxId = useId();
+  const [open, setOpen] = useState(false);
 
-  if (hotels.length <= 1) return null;
+  useEffect(() => {
+    if (!open) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open]);
 
-  function goToHotel(nextId: string) {
+  // Sync UX preference cookie from URL (server cannot write cookies in RSC).
+  useEffect(() => {
+    if (!activeHotelId) return;
+    try {
+      document.cookie = `tajstay_owner_hotel=${encodeURIComponent(String(activeHotelId))}; path=/; max-age=${60 * 60 * 24 * 400}; samesite=lax`;
+    } catch {
+      /* ignore */
+    }
+  }, [activeHotelId]);
+
+  if (!hotels.length || !current) return null;
+
+  function goToHotel(nextId: number) {
+    if (!hotels.some((h) => h.id === nextId && h.status === "APPROVED")) return;
     const params = new URLSearchParams(search.toString());
-    params.set("hotelId", nextId);
+    params.set("hotelId", String(nextId));
     params.delete("page");
+    // UX preference cookie — AuthZ still re-validates ownership on the server.
+    try {
+      document.cookie = `tajstay_owner_hotel=${encodeURIComponent(String(nextId))}; path=/; max-age=${60 * 60 * 24 * 400}; samesite=lax`;
+    } catch {
+      /* ignore */
+    }
+    setOpen(false);
     router.push(`${pathname}?${params.toString()}`);
   }
 
-  return (
-    <div className={cn("owner-sidebar__switcher", className)}>
-      <label className="owner-sidebar__switcher-label" htmlFor={selectId}>
-        {labels.switchProperty}
-      </label>
-      <select
-        id={selectId}
-        data-testid="owner-property-switcher"
-        className="owner-sidebar__switcher-select"
-        value={activeHotelId || firstApprovedId}
-        onChange={(e) => goToHotel(e.target.value)}
+  const statusSuffix =
+    current.status === "PENDING"
+      ? labels.pendingSuffix
+      : current.status === "REJECTED"
+        ? labels.rejectedSuffix
+        : null;
+
+  // Single hotel: identity chip only.
+  if (hotels.length === 1) {
+    return (
+      <div
+        className={cn(
+          "owner-sidebar__switcher owner-sidebar__switcher--single",
+          variant === "header" && "owner-sidebar__switcher--header",
+          className
+        )}
       >
-        {hotels.map((h) => {
-          const isApproved = h.status === "APPROVED";
-          const suffix = h.status === "PENDING" ? ` — ${labels.pendingSuffix}` : h.status === "REJECTED" ? ` — ${labels.rejectedSuffix}` : "";
-          return (
-            <option key={h.id} value={h.id} disabled={!isApproved}>
-              {h.name} — {h.city}
-              {suffix}
-            </option>
-          );
-        })}
-      </select>
+        {variant !== "header" ? <p className="owner-sidebar__switcher-label">{labels.switchProperty}</p> : null}
+        <p className="owner-sidebar__switcher-current" data-testid="owner-property-switcher">
+          {current.name}
+          {variant !== "header" && current.city ? (
+            <span className="owner-sidebar__switcher-city"> · {current.city}</span>
+          ) : null}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={cn(
+        "owner-sidebar__switcher owner-sidebar__switcher--listbox",
+        variant === "header" && "owner-sidebar__switcher--header",
+        className
+      )}
+    >
+      {variant !== "header" ? (
+        <p className="owner-sidebar__switcher-label" id={`${listboxId}-label`}>
+          {labels.switchProperty}
+        </p>
+      ) : null}
+      <button
+        type="button"
+        data-testid="owner-property-switcher"
+        className="owner-sidebar__switcher-trigger"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-labelledby={variant !== "header" ? `${listboxId}-label` : undefined}
+        aria-label={variant === "header" ? labels.switchProperty : undefined}
+        onClick={() => setOpen((v) => !v)}
+      >
+        <span className="owner-sidebar__switcher-trigger-text">
+          {current.name}
+          {statusSuffix ? <span className="owner-sidebar__switcher-city"> · {statusSuffix}</span> : null}
+        </span>
+        <span className="owner-sidebar__switcher-chevron" aria-hidden>
+          ▾
+        </span>
+      </button>
+      {open ? (
+        <>
+          <button
+            type="button"
+            className="owner-sidebar__switcher-backdrop"
+            aria-label="Close"
+            onClick={() => setOpen(false)}
+          />
+          <ul className="owner-sidebar__switcher-listbox" role="listbox" aria-labelledby={`${listboxId}-label`}>
+            {hotels.map((h) => {
+              const isApproved = h.status === "APPROVED";
+              const selected = h.id === currentId;
+              const suffix =
+                h.status === "PENDING"
+                  ? labels.pendingSuffix
+                  : h.status === "REJECTED"
+                    ? labels.rejectedSuffix
+                    : null;
+              return (
+                <li key={h.id} role="presentation">
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={selected}
+                    disabled={!isApproved}
+                    className={cn("owner-sidebar__switcher-option", selected && "is-selected")}
+                    onClick={() => goToHotel(h.id)}
+                  >
+                    <span className="owner-sidebar__switcher-option-name">{h.name}</span>
+                    <span className="owner-sidebar__switcher-option-meta">
+                      {h.city}
+                      {suffix ? ` · ${suffix}` : ""}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </>
+      ) : null}
     </div>
   );
 }
@@ -288,7 +395,12 @@ export function OwnerMobileNav({ labels, hotels }: { labels: OwnerSidebarLabels;
         ariaLabel={labels.mobileMore}
         onClose={() => setMoreOpen(false)}
       >
-        <PropertySwitcher hotels={hotels} labels={labels} className="owner-sidebar__switcher--mobile" />
+        <PropertySwitcher
+          hotels={hotels}
+          labels={labels}
+          variant="drawer"
+          className="owner-sidebar__switcher--mobile"
+        />
         {labels.drawerGroups
           ? OWNER_DRAWER_GROUPS.map((group) => {
               const groupItems = [

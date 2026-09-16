@@ -31,7 +31,7 @@ export function expandRoomNumbers(input: {
 export async function bulkCreatePhysicalRooms(spec: BulkRoomSpec) {
   const roomType = await prisma.roomType.findUnique({
     where: { id: spec.roomTypeId },
-    select: { id: true, hotelId: true, name: true, basePrice: true, maxGuests: true, amenities: true }
+    select: { id: true, hotelId: true, name: true, basePrice: true, maxGuests: true, amenities: true, weekendPrice: true, minNights: true, extraGuestPrice: true }
   });
   if (!roomType || roomType.hotelId !== spec.hotelId) throw new Error("invalid_room_type");
 
@@ -39,26 +39,28 @@ export async function bulkCreatePhysicalRooms(spec: BulkRoomSpec) {
   for (const roomNumber of spec.roomNumbers) {
     const num = roomNumber.trim();
     if (!num) continue;
-    const existing = await prisma.room.findFirst({
-      where: { hotelId: spec.hotelId, roomNumber: num }
-    });
-    if (existing) continue;
-
-    const room = await prisma.room.create({
-      data: {
-        hotelId: spec.hotelId,
-        roomTypeId: spec.roomTypeId,
-        roomNumber: num,
-        title: `${roomType.name} ${num}`,
-        price: spec.basePrice,
-        capacity: spec.capacity,
-        amenities: roomType.amenities,
-        availability: true,
-        status: "ACTIVE",
-        housekeepingStatus: "CLEAN"
-      }
-    });
-    created.push(room.id);
+    try {
+      const room = await prisma.room.create({
+        data: {
+          hotelId: spec.hotelId,
+          roomTypeId: spec.roomTypeId,
+          roomNumber: num,
+          title: `${roomType.name} ${num}`,
+          price: roomType.basePrice,
+          weekendPrice: roomType.weekendPrice,
+          minNights: roomType.minNights,
+          extraGuestPrice: roomType.extraGuestPrice,
+          capacity: roomType.maxGuests,
+          amenities: roomType.amenities,
+          availability: true,
+          status: "ACTIVE",
+          housekeepingStatus: "CLEAN"
+        }
+      });
+      created.push(room.id);
+    } catch {
+      // skip duplicates (unique hotelId+roomNumber)
+    }
   }
   return { createdCount: created.length, roomIds: created };
 }

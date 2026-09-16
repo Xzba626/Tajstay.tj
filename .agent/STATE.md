@@ -251,16 +251,21 @@ returning to earlier phases only if regression is found:
 
 ## NEXT
 
-**CURRENT AREA**: Admin Command Center — Overview section (`/dashboard/admin?section=dashboard`).
-**CURRENT ROUTE**: `/dashboard/admin`
-**CURRENT ROLE**: Admin (seeded `admin@tajstay.local`)
-**LAST VERIFIED CONTROL**: Overview KPI cards (Отели/Пользователи/Бронирования/Оборот) — visual +
-mobile pass done. Not yet clicked: "Требует внимания" panel actions, sidebar links to other 9 sections.
+**CURRENT AREA**: OWNER BLOCK 3 — Analytics / Revenue / Expenses / Net Profit / Audit (COMPLETE — STOP).
+**CURRENT ROUTE**: `/dashboard/owner?section=analytics` (+ overview, activity)
+**CURRENT ROLE**: Owner (`owner@tajstay.local`)
+**LAST VERIFIED CONTROL**: Period filter + Revenue drilldown + hotel switch (hotelId=1→2) + expense versioning DB proof + IDOR 403.
+**HEAD (dirty working tree, uncommitted BLOCK 2+3)**: `1f98276`
+**DO NOT START BLOCK 4** (Rooms/Categories/Manager) without explicit user authorization.
+**USER VISUAL ACCEPTANCE**: PENDING
 
 **Execution progress table** (per-area status — PASS only after full dimension check, not on sight):
 
 | Role | Route/Section | Desktop | Mobile | RU | TJ | EN | Visual | UX | Function | Data | Error | Perf | Security | Status |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Owner | Analytics (`?section=analytics`) | done | PARTIAL (runtime desktop browser; full viewport matrix NOT RUN) | done | keys present | keys present | financial KPIs | done | done | REAL getHotelAnalytics | loadError i18n | n/a | IDOR 403 PASS | **CODE/TEST/BUILD/RUNTIME API = PASS; USER VISUAL = PENDING** |
+| Owner | Overview financial KPIs | done | PARTIAL | done | — | — | done | done | shared formulas | REAL | — | — | hotel-scoped | **RUNTIME PASS (local)** |
+| Owner | Activity history | done | PARTIAL | done | keys present | keys present | done | done | done | OwnerHotelAuditLog | — | — | IDOR 403 PASS | **RUNTIME PASS (local)** |
 | Admin | Overview (`?section=dashboard`) | done (incl. 390/412) | done | done | done (bonus) | done | 6 fixed | done | done | FIXED (bookings, hotels, turnover, GMV definition documented) | empty-state verified clean; error path NOT exercised | not separately tested | n/a this screen | **PRODUCT/VISUAL/DATA/RESPONSIVE = PASS; ERROR PATH = NOT YET EXERCISED** |
 | Admin | Applications | — | — | — | — | — | — | — | — | — | — | — | — | OPEN |
 | Admin | Users | — | — | — | — | — | — | — | — | — | — | — | — | OPEN |
@@ -271,7 +276,7 @@ mobile pass done. Not yet clicked: "Требует внимания" panel actio
 | Admin | Complaints | — | — | — | — | — | — | — | — | — | — | — | — | OPEN |
 | Admin | Content | — | — | — | — | — | — | — | — | — | — | — | — | OPEN |
 | Admin | Notifications | — | — | — | — | — | — | — | — | — | — | — | — | OPEN |
-| Owner | (all 11 sections) | shell verified | — | — | — | — | — | — | — | — | — | — | — | OPEN, shell isolation confirmed, no section PASSed yet |
+| Owner | Rooms / Manager / Calendar redesign | — | — | — | — | — | — | — | — | — | — | — | — | **OUT OF SCOPE — next blocks** |
 | Anonymous/Guest/Public | (all routes) | — | — | — | — | — | — | — | — | — | — | — | — | OPEN, not started |
 
 **Status vocabulary from here on** (do not collapse these into "closed"/"fixed" loosely):

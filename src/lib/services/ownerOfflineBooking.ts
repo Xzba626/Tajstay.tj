@@ -5,6 +5,8 @@ import { BOOKING_SOURCE, BOOKING_STATUS, OFFLINE_STATUS, type OfflineStatus } fr
 import { createNotification } from "@/lib/notifications/create";
 import { generateBookingCode } from "@/lib/services/bookingCode";
 import { normalizePhone } from "@/lib/validation/phone";
+import { normalizeSettlementChannel, SETTLEMENT_CHANNEL } from "@/lib/owner/analytics/settlement";
+import { markBookingRevenueRecognized } from "@/lib/owner/analytics/getHotelAnalytics";
 
 const OFFLINE_STATUSES = new Set<string>(Object.values(OFFLINE_STATUS));
 
@@ -59,6 +61,10 @@ export async function createOwnerOfflineBooking(input: CreateOfflineBookingInput
 
   const publicCode = await generateBookingCode();
   const guestCount = Math.max(1, input.guestCount ?? 1);
+  const settlementRaw = normalizeSettlementChannel(input.offlinePaymentType);
+  const settlement =
+    settlementRaw === SETTLEMENT_CHANNEL.UNKNOWN ? SETTLEMENT_CHANNEL.CASH : settlementRaw;
+  const paidNow = prepayment >= totalPrice && totalPrice > 0;
 
   const createData = {
     source: BOOKING_SOURCE.OWNER_MANUAL,
@@ -78,7 +84,8 @@ export async function createOwnerOfflineBooking(input: CreateOfflineBookingInput
     offlineStatus,
     prepayment,
     remainingAmount,
-    offlinePaymentType: input.offlinePaymentType?.trim() || null,
+    offlinePaymentType: settlement,
+    settlementChannel: settlement,
     totalPrice,
     commission: 0,
     subtotal: totalPrice,
@@ -86,9 +93,10 @@ export async function createOwnerOfflineBooking(input: CreateOfflineBookingInput
     taxAmount: 0,
     publicCode,
     status: BOOKING_STATUS.CONFIRMED,
-    paymentStatus: prepayment >= totalPrice && totalPrice > 0 ? "PAID" : "PENDING",
+    paymentStatus: paidNow ? "PAID" : "PENDING",
+    revenueRecognizedAt: paidNow ? new Date() : null,
     payOnArrival: true,
-    paymentMethod: "ARRIVAL"
+    paymentMethod: settlement === SETTLEMENT_CHANNEL.CASH ? "ARRIVAL" : settlement
   } as const;
 
   // Check-then-create folded into one atomic operation - a new offline booking defaults straight
@@ -125,6 +133,10 @@ export async function createOwnerOfflineBooking(input: CreateOfflineBookingInput
     link: `/dashboard/owner?section=offline-bookings`,
     meta: { roomTypeId: input.roomTypeId, roomId: physicalRoomId, publicCode }
   });
+
+  if (paidNow) {
+    await markBookingRevenueRecognized(booking.id, { settlementChannel: settlement });
+  }
 
   return booking;
 }

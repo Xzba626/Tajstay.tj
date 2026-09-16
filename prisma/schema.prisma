@@ -133,6 +133,8 @@ model Hotel {
   amenities      HotelAmenity[]
   paymentMethods HotelPaymentMethod[]
   subscription   HotelSubscription?
+  expenses       HotelExpense[]
+  ownerAuditLogs OwnerHotelAuditLog[]
 }
 
 /// Per-Hotel TajStay subscription (canonical revenue: 0% booking commission, Hotel pays a
@@ -242,9 +244,14 @@ model RoomTypePhoto {
   roomType   RoomType @relation(fields: [roomTypeId], references: [id], onDelete: Cascade)
   url        String
   sortOrder  Int      @default(0)
+  /// PHOTO | PANO360
+  kind       String   @default("PHOTO")
+  /// Multi-scene 360 label (e.g. Bathroom) — null for ordinary photos
+  sceneLabel String?
   createdAt  DateTime @default(now())
 
   @@index([roomTypeId])
+  @@index([roomTypeId, kind])
 }
 
 /// Тариф (MVP: привязан к категории)
@@ -315,14 +322,18 @@ model HotelStaff {
 
 /// Фото номера (галерея / слайдер на карточке и странице отеля).
 model RoomPhoto {
-  id        Int      @id @default(autoincrement())
-  roomId    Int
-  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  url       String
-  sortOrder Int      @default(0)
-  createdAt DateTime @default(now())
+  id         Int      @id @default(autoincrement())
+  roomId     Int
+  room       Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  url        String
+  sortOrder  Int      @default(0)
+  /// PHOTO | PANO360
+  kind       String   @default("PHOTO")
+  sceneLabel String?
+  createdAt  DateTime @default(now())
 
   @@index([roomId])
+  @@index([roomId, kind])
 }
 
 model RoomDateOverride {
@@ -400,6 +411,10 @@ model Booking {
   /// Guest identity document (passport/ID) for verification by owner/admin
   guestDocumentUrl         String?
   guestDocumentSubmittedAt DateTime?
+  /// When payment became recognized revenue (PAID). Null while unpaid/pending.
+  revenueRecognizedAt      DateTime?
+  /// Settlement axis independent of booking source: CASH | CARD | WALLET | BANK | OTHER
+  settlementChannel        String?
   createdAt                DateTime            @default(now())
 
   review        Review?
@@ -422,6 +437,9 @@ model Booking {
   @@index([status])
   @@index([source])
   @@index([expiresAt])
+  @@index([paymentStatus])
+  @@index([revenueRecognizedAt])
+  @@index([settlementChannel])
   /// booking_room_no_overlap: a Postgres EXCLUDE (gist) constraint on
   /// COALESCE(assignedRoomId, roomId) + tsrange(checkIn, checkOut, '[)'), scoped to occupying
   /// statuses only (PLATFORM: CONFIRMED/CHECKED_IN/COMPLETED; OWNER_MANUAL: CONFIRMED/CHECKED_IN).
@@ -858,4 +876,66 @@ model HotelPaymentMethod {
 
   @@index([hotelId])
   @@index([hotelId, isActive])
+}
+
+/// Hotel-scoped operational expense (owner-entered). Amount history lives in versions —
+/// never mutate past version amounts; stop by closing effectiveUntil.
+model HotelExpense {
+  id              Int      @id @default(autoincrement())
+  hotelId         Int
+  hotel           Hotel    @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  title           String
+  /// ELECTRICITY | WATER | INTERNET | SALARY | CLEANING | LAUNDRY | REPAIR | SUPPLIES | FOOD | TRANSPORT | TAX | UTILITIES | OTHER
+  category        String
+  currency        String   @default("TJS")
+  /// ONE_TIME | MONTHLY
+  recurrence      String
+  /// ACTIVE | STOPPED | ARCHIVED
+  status          String   @default("ACTIVE")
+  createdByUserId Int
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  versions        HotelExpenseVersion[]
+
+  @@index([hotelId])
+  @@index([hotelId, status])
+  @@index([hotelId, category])
+}
+
+model HotelExpenseVersion {
+  id              Int       @id @default(autoincrement())
+  expenseId       Int
+  expense         HotelExpense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  amount          Decimal
+  /// Inclusive calendar-day start (UTC midnight of business day).
+  effectiveFrom   DateTime
+  /// Exclusive end; null = open-ended (still active).
+  effectiveUntil  DateTime?
+  createdByUserId Int
+  createdAt       DateTime  @default(now())
+  note            String?
+
+  @@index([expenseId])
+  @@index([expenseId, effectiveFrom])
+  @@index([effectiveFrom, effectiveUntil])
+}
+
+/// Append-only owner hotel activity log. Never store secrets / full card numbers.
+model OwnerHotelAuditLog {
+  id            Int      @id @default(autoincrement())
+  hotelId       Int
+  hotel         Hotel    @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  actorUserId   Int?
+  actorRole     String?
+  action        String
+  entityType    String?
+  entityId      String?
+  beforeState   String?
+  afterState    String?
+  metadata      String?
+  createdAt     DateTime @default(now())
+
+  @@index([hotelId, createdAt])
+  @@index([hotelId, action])
+  @@index([actorUserId])
 }

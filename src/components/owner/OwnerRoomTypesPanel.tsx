@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
 import { AMENITY_CATEGORIES } from "@/lib/pms/amenities";
@@ -23,11 +23,21 @@ export function OwnerRoomTypesPanel({
   hotels: HotelOption[];
 }) {
   const router = useRouter();
-  const [hotelId, setHotelId] = useState(hotels[0]?.id ?? 0);
+  const search = useSearchParams();
+  const urlHotelId = Number(search.get("hotelId") ?? "") || 0;
+  const initialHotelId =
+    (urlHotelId && hotels.some((h) => h.id === urlHotelId) ? urlHotelId : null) ?? hotels[0]?.id ?? 0;
+  const [hotelId, setHotelId] = useState(initialHotelId);
   const [types, setTypes] = useState<RoomTypeRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [amenities, setAmenities] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (urlHotelId && hotels.some((h) => h.id === urlHotelId) && urlHotelId !== hotelId) {
+      setHotelId(urlHotelId);
+    }
+  }, [urlHotelId, hotels, hotelId]);
 
   const load = useCallback(async () => {
     if (!hotelId) return;
@@ -115,7 +125,19 @@ export function OwnerRoomTypesPanel({
     <div className="owner-panel space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h3 className="owner-panel__title">{m(locale, "owner.pms.typesTitle")}</h3>
-        <select value={hotelId} onChange={(e) => setHotelId(Number(e.target.value))} className="owner-select max-w-xs">
+        <select
+          value={hotelId}
+          onChange={(e) => {
+            const next = Number(e.target.value);
+            setHotelId(next);
+            const params = new URLSearchParams(search.toString());
+            params.set("section", "rooms");
+            params.set("hotelId", String(next));
+            router.push(`/dashboard/owner?${params.toString()}`);
+          }}
+          className="owner-select max-w-xs"
+          aria-label={m(locale, "owner.switchProperty")}
+        >
           {hotels.map((h) => (
             <option key={h.id} value={h.id}>
               {h.name}

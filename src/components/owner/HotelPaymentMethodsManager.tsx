@@ -21,16 +21,7 @@ type PaymentMethod = {
 const TYPES = ["CARD", "WALLET", "BANK", "OTHER"] as const;
 const TYPE_ICONS = { CARD: CreditCard, WALLET: Wallet, BANK: Landmark, OTHER: MoreHorizontal } as const;
 
-/**
- * MOBILE PROFILE / OWNER PANEL / FINANCE CORRECTION BLOCK, PROBLEM 11+12: this field used to be a
- * plain `<select>` rendering the raw stored enum ("CARD", "WALLET", "BANK", "OTHER") as its visible
- * text, AND its native option list rendered as an OS-styled dark popup with zero TajStay styling
- * (confirmed exactly matching the screenshot). Backend/DB value is untouched (still the plain
- * string enum, per the explicit "don't change the enum just for UI" instruction) — only the
- * presentation layer changes: a localized label function plus a custom, accessible, light-themed
- * listbox replacing the native select entirely.
- */
-function paymentTypeLabel(locale: Locale, type: string): string {
+export function paymentTypeLabel(locale: Locale, type: string): string {
   switch (type) {
     case "CARD":
       return m(locale, "owner.paymentMethods.typeCard");
@@ -123,6 +114,25 @@ const emptyDraft = {
   paymentIdentifier: "",
   instructions: ""
 };
+
+function fieldPlaceholder(
+  locale: Locale,
+  type: (typeof TYPES)[number],
+  kind: "label" | "recipient" | "identifier"
+): string {
+  const suffix =
+    type === "CARD" ? "Card" : type === "WALLET" ? "Wallet" : type === "BANK" ? "Bank" : "Other";
+  const key = `owner.paymentMethods.${kind}Placeholder${suffix}` as const;
+  const specific = m(locale, key);
+  if (specific && specific !== key) return specific;
+  return m(locale, `owner.paymentMethods.${kind}Placeholder`);
+}
+
+function maskIdentifier(raw: string): string {
+  const digits = raw.replace(/\s+/g, "");
+  if (digits.length <= 4) return raw;
+  return `•••• ${digits.slice(-4)}`;
+}
 
 function HotelPaymentMethodsEditor({ locale, hotel }: { locale: Locale; hotel: Hotel }) {
   const [methods, setMethods] = useState<PaymentMethod[] | null>(null);
@@ -236,8 +246,8 @@ function HotelPaymentMethodsEditor({ locale, hotel }: { locale: Locale; hotel: H
           aria-checked={acceptsPayAtCheckIn ?? false}
           disabled={acceptsPayAtCheckIn === null || policyBusy}
           onClick={() => void togglePayAtCheckIn()}
-          className={`shrink-0 rounded-lg border px-3 py-1.5 text-xs font-semibold disabled:opacity-50 ${
-            acceptsPayAtCheckIn ? "border-[#0f7a4d] bg-[#0f7a4d] text-white" : "border-white/15 text-slate-200"
+          className={`owner-pay-checkin-toggle shrink-0 rounded-lg border px-3 py-1.5 text-xs font-semibold disabled:opacity-50 ${
+            acceptsPayAtCheckIn ? "is-on" : "is-off"
           }`}
         >
           {acceptsPayAtCheckIn ? m(locale, "owner.payAtCheckIn.enabled") : m(locale, "owner.payAtCheckIn.disabled")}
@@ -255,7 +265,8 @@ function HotelPaymentMethodsEditor({ locale, hotel }: { locale: Locale; hotel: H
               <div className="min-w-0">
                 <div className="owner-record-card__title">{method.displayLabel}</div>
                 <div className="owner-record-card__meta truncate">
-                  {method.recipientName} · {method.paymentIdentifier}
+                  {paymentTypeLabel(locale, method.type)} · {method.recipientName} ·{" "}
+                  {maskIdentifier(method.paymentIdentifier)}
                 </div>
                 {method.instructions ? <div className="owner-record-card__meta">{method.instructions}</div> : null}
               </div>
@@ -292,19 +303,19 @@ function HotelPaymentMethodsEditor({ locale, hotel }: { locale: Locale; hotel: H
           <input
             value={draft.displayLabel}
             onChange={(e) => setDraft((d) => ({ ...d, displayLabel: e.target.value }))}
-            placeholder={m(locale, "owner.paymentMethods.labelPlaceholder")}
+            placeholder={fieldPlaceholder(locale, draft.type, "label")}
             className="w-full rounded-lg border border-white/15 bg-black/20 px-3 py-2 text-sm text-white"
           />
           <input
             value={draft.recipientName}
             onChange={(e) => setDraft((d) => ({ ...d, recipientName: e.target.value }))}
-            placeholder={m(locale, "owner.paymentMethods.recipientPlaceholder")}
+            placeholder={fieldPlaceholder(locale, draft.type, "recipient")}
             className="w-full rounded-lg border border-white/15 bg-black/20 px-3 py-2 text-sm text-white"
           />
           <input
             value={draft.paymentIdentifier}
             onChange={(e) => setDraft((d) => ({ ...d, paymentIdentifier: e.target.value }))}
-            placeholder={m(locale, "owner.paymentMethods.identifierPlaceholder")}
+            placeholder={fieldPlaceholder(locale, draft.type, "identifier")}
             className="w-full rounded-lg border border-white/15 bg-black/20 px-3 py-2 text-sm text-white"
           />
           <textarea

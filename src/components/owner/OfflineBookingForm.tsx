@@ -133,11 +133,10 @@ export function OfflineBookingForm({
 
       <div>
         <label className="owner-field__label">{m(locale, "owner.offline.paymentType")}</label>
-        <input
-          name="offlinePaymentType"
-          placeholder={m(locale, "owner.offline.paymentTypePh")}
-          className="owner-input"
-        />
+        <select name="offlinePaymentType" required className="owner-select" defaultValue="CASH">
+          <option value="CASH">{m(locale, "owner.analytics.settlement.cash")}</option>
+          <option value="CARD">{m(locale, "owner.analytics.settlement.card")}</option>
+        </select>
       </div>
       <div>
         <label className="owner-field__label">{m(locale, "owner.offline.statusLabel")}</label>

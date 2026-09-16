@@ -77,6 +77,9 @@ export async function POST(_req: NextRequest, { params }: { params: { id: string
     }
   });
 
+  const { markBookingRevenueRecognized } = await import("@/lib/owner/analytics/getHotelAnalytics");
+  await markBookingRevenueRecognized(id, { settlementChannel: "CASH" });
+
   await addBookingSystemEvent({
     bookingId: id,
     eventType: "arrival_payment.confirmed",

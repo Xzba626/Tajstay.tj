@@ -1,4 +1,6 @@
-﻿import { addDays, subDays } from "date-fns";
+﻿import { cookies } from "next/headers";
+import { OWNER_ACTIVE_HOTEL_COOKIE, parseOwnerHotelId, resolveActiveHotelId } from "@/lib/owner/activeHotel";
+import { addDays, subDays } from "date-fns";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireOwner } from "@/lib/auth/requireOwner";
@@ -22,20 +24,22 @@ import { Card } from "@/shared/ui";
 import { buildOwnerPricingInsights } from "@/lib/services/ownerInsights";
 import { BookingChatLauncher } from "@/components/chat/BookingChatPanel";
 import { RoomPhotoCarousel } from "@/components/RoomPhotoCarousel";
-import { OwnerDashboardKpis } from "@/components/owner/OwnerDashboardKpis";
 import { OfflineBookingForm } from "@/components/owner/OfflineBookingForm";
 import { OfflineBookingsList } from "@/components/owner/OfflineBookingsList";
+import { OwnerAnalyticsPanel } from "@/components/owner/OwnerAnalyticsPanel";
+import { OwnerActivityLogPanel } from "@/components/owner/OwnerActivityLogPanel";
+import { getHotelAnalytics } from "@/lib/owner/analytics/getHotelAnalytics";
+import type { HotelAnalyticsDto } from "@/lib/owner/analytics/getHotelAnalytics";
 import { OwnerCalendar } from "@/components/owner/OwnerCalendar";
 import { OwnerBookingConfirmButton } from "@/components/owner/OwnerBookingConfirmButton";
 import { OwnerHelpTips } from "@/components/owner/OwnerHelpTips";
 import ReviewReplyForm from "@/components/ReviewReplyForm";
-import { getOwnerDashboardKpis } from "@/lib/services/ownerDashboardKpis";
 import { getOwnerCalendarData } from "@/lib/services/ownerCalendar";
 import { getOwnerOnboardingSteps } from "@/lib/services/ownerOnboarding";
 import { OwnerOnboardingPanel } from "@/components/owner/OwnerOnboardingPanel";
 import { BOOKING_SOURCE, getBookingGuestLabel } from "@/lib/domain/booking";
 import { AppImage } from "@/components/ui/AppImage";
-import { OwnerRoomTypesPanel } from "@/components/owner/OwnerRoomTypesPanel";
+import { OwnerRoomsInventoryPanel } from "@/components/owner/OwnerRoomsInventoryPanel";
 import { HotelLocationPicker } from "@/components/owner/HotelLocationPicker";
 import { PhotoPlaceholder } from "@/components/ui/PhotoPlaceholder";
 import { isBrandAssetUrl } from "@/lib/brand";
@@ -60,7 +64,8 @@ type OwnerSection =
   | "notifications"
   | "reviews"
   | "finances"
-  | "statistics"
+  | "analytics"
+  | "activity"
   | "help";
 
 const VALID_OWNER_SECTIONS = new Set<OwnerSection>([
@@ -73,7 +78,8 @@ const VALID_OWNER_SECTIONS = new Set<OwnerSection>([
   "notifications",
   "reviews",
   "finances",
-  "statistics",
+  "analytics",
+  "activity",
   "help"
 ]);
 
@@ -92,7 +98,8 @@ const HOTEL_SCOPED_SECTIONS = new Set<OwnerSection>([
   "calendar",
   "reviews",
   "finances",
-  "statistics"
+  "analytics",
+  "activity"
 ]);
 
 function looksLikeTestValue(v: unknown) {
@@ -167,9 +174,11 @@ export default async function OwnerDashboardPage({
   const params = searchParams ? await searchParams : undefined;
   const onboardingSteps = await getOwnerOnboardingSteps(user.id);
   const showOnboardingWelcome = (params?.onboarding ?? "") === "1";
-  const raw = params?.section;
+  const rawSection = params?.section === "statistics" ? "analytics" : params?.section;
   const activeSection: OwnerSection =
-    raw && VALID_OWNER_SECTIONS.has(raw as OwnerSection) ? (raw as OwnerSection) : "overview";
+    rawSection && VALID_OWNER_SECTIONS.has(rawSection as OwnerSection)
+      ? (rawSection as OwnerSection)
+      : "overview";
 
   const pageSize = 20;
   const page = Math.max(1, Number(params?.page ?? "1") || 1);
@@ -182,7 +191,6 @@ export default async function OwnerDashboardPage({
   const offlineCreated = (params?.created ?? "").trim() === "1";
   const offlineUpdated = (params?.updated ?? "").trim() === "1";
 
-  const since30 = subDays(new Date(), 30);
   const content = await getSiteContent();
 
   // Global active-hotel scope: never trust the client-supplied hotelId directly — verify it's
@@ -197,21 +205,23 @@ export default async function OwnerDashboardPage({
     select: { id: true, name: true, city: true, status: true }
   });
   const approvedOwnerHotels = ownerHotelsForSwitcher.filter((h) => h.status === "APPROVED");
-  const approvedOwnerHotelIds = new Set(approvedOwnerHotels.map((h) => h.id));
 
-  // Fail-closed canonical resolution, not a silent aggregate fallback: a hotel-scoped section
-  // always resolves to exactly one concrete active Hotel, and the URL is made to say so
-  // explicitly — never "the request said Hotel X but the page quietly rendered something else".
-  // - foreign/pending/rejected/nonexistent hotelId -> redirect to a hotel the owner actually has
-  // - no hotelId given but 2+ approved hotels exist -> redirect to make the choice explicit
-  // - no hotelId given and exactly 1 approved hotel -> use it directly, nothing ambiguous to state
+  // Fail-closed canonical resolution via URL hotelId + optional UX cookie preference.
+  // Cookie never grants access — only approved owner hotels are considered.
   let hotelId = 0;
   if (HOTEL_SCOPED_SECTIONS.has(activeSection) && approvedOwnerHotels.length > 0) {
-    const requestedIsInvalid = requestedHotelId !== 0 && !approvedOwnerHotelIds.has(requestedHotelId);
-    if (requestedIsInvalid || (requestedHotelId === 0 && approvedOwnerHotels.length > 1)) {
-      redirect(`/dashboard/owner?section=${activeSection}&hotelId=${approvedOwnerHotels[0].id}`);
+    const preferredId = parseOwnerHotelId((await cookies()).get(OWNER_ACTIVE_HOTEL_COOKIE)?.value);
+    const resolved = resolveActiveHotelId({
+      requestedId: requestedHotelId,
+      preferredId,
+      approvedIds: approvedOwnerHotels.map((h) => h.id)
+    });
+    if (resolved.shouldRedirect && resolved.redirectToId) {
+      redirect(`/dashboard/owner?section=${activeSection}&hotelId=${resolved.redirectToId}`);
     }
-    hotelId = requestedHotelId !== 0 ? requestedHotelId : approvedOwnerHotels[0].id;
+    hotelId = resolved.hotelId;
+    // Cookie persistence is client-only (PropertySwitcher). Server Components cannot
+    // call cookies().set — URL hotelId remains the canonical request scope.
   }
 
   let hotels: any[] = [];
@@ -230,11 +240,10 @@ export default async function OwnerDashboardPage({
   let calendarDaysFromService: { key: string; day: number; month: number }[] = [];
   let ownerReviews: any[] = [];
   let ownerPayouts: any[] = [];
-  let dashboardKpis: Awaited<ReturnType<typeof getOwnerDashboardKpis>> | null = null;
+  let hotelAnalytics: HotelAnalyticsDto | null = null;
   let unreadCount = 0;
   let pendingCount = 0;
   let recentBookings: any[] = [];
-  let revenueAgg: any = { _sum: { totalPrice: 0 } };
 
   let totalRows = 0;
   let totalPages = 1;
@@ -244,28 +253,28 @@ export default async function OwnerDashboardPage({
     : { ownerId: user.id, status: "APPROVED" };
 
   if (activeSection === "overview") {
-    [hotels, pendingCount, revenueAgg, recentBookings, dashboardKpis] = await Promise.all([
+    [hotels, pendingCount, recentBookings] = await Promise.all([
       prisma.hotel.findMany({ where: hotelRoomFilter, include: { rooms: true } }),
       prisma.booking.count({ where: { room: { hotel: hotelRoomFilter }, status: "PENDING_OWNER" } }),
-      prisma.booking.aggregate({
-        where: {
-          room: { hotel: hotelRoomFilter },
-          status: "CONFIRMED",
-          paymentStatus: "PAID",
-          createdAt: { gte: since30 }
-        },
-        _sum: { totalPrice: true }
-      }),
       prisma.booking.findMany({
         where: { room: { hotel: hotelRoomFilter } },
         select: { roomId: true, status: true, createdAt: true },
         orderBy: { createdAt: "desc" },
         take: 200
-      }),
-      getOwnerDashboardKpis(user.id, hotelId || undefined)
+      })
     ]);
     if (hotelId) {
       hotelSubscription = await getHotelSubscription(hotelId);
+      try {
+        hotelAnalytics = await getHotelAnalytics({
+          ownerId: user.id,
+          hotelId,
+          periodKey: "today",
+          includeContributing: false
+        });
+      } catch {
+        hotelAnalytics = null;
+      }
     }
   } else if (activeSection === "properties") {
     hotels = await prisma.hotel.findMany({ where: { ownerId: user.id }, include: { rooms: true }, orderBy: { createdAt: "desc" } });
@@ -387,39 +396,23 @@ export default async function OwnerDashboardPage({
       take: 50
     });
   } else if (activeSection === "finances") {
-    [ownerPayouts, revenueAgg, dashboardKpis, hotels] = await Promise.all([
-      prisma.payout.findMany({
-        where: { ownerId: user.id, booking: ownerBookingWhere(user.id, hotelId || undefined) },
-        include: { booking: { include: bookingWithHotelInclude } },
-        orderBy: { createdAt: "desc" },
-        take: 50
-      }),
-      prisma.booking.aggregate({
-        where: {
-          room: { hotel: hotelRoomFilter },
-          status: "CONFIRMED",
-          paymentStatus: "PAID",
-          createdAt: { gte: since30 }
-        },
-        _sum: { totalPrice: true, commission: true }
-      }),
-      getOwnerDashboardKpis(user.id, hotelId || undefined),
-      prisma.hotel.findMany({ where: { ownerId: user.id }, orderBy: { createdAt: "desc" }, select: { id: true, name: true } })
-    ]);
-  } else if (activeSection === "statistics" || activeSection === "help") {
-    [hotels, dashboardKpis, pendingCount, recentBookings] = await Promise.all([
-      prisma.hotel.findMany({ where: hotelRoomFilter, include: { rooms: true } }),
-      getOwnerDashboardKpis(user.id, hotelId || undefined),
-      prisma.booking.count({
-        where: { AND: [ownerBookingWhere(user.id, hotelId || undefined), { status: "PENDING_OWNER" }] }
-      }),
-      prisma.booking.findMany({
-        where: ownerBookingWhere(user.id, hotelId || undefined),
-        select: { roomId: true, status: true, createdAt: true },
-        orderBy: { createdAt: "desc" },
-        take: 200
-      })
-    ]);
+    // Payment details / Реквизиты only — revenue/payout analytics stay for Analytics BLOCK.
+    hotels = hotelId
+      ? await prisma.hotel.findMany({
+          where: { id: hotelId, ownerId: user.id },
+          orderBy: { createdAt: "desc" },
+          select: { id: true, name: true }
+        })
+      : [];
+  } else if (activeSection === "analytics" || activeSection === "activity") {
+    hotels = hotelId
+      ? await prisma.hotel.findMany({
+          where: { id: hotelId, ownerId: user.id },
+          select: { id: true, name: true }
+        })
+      : [];
+  } else if (activeSection === "help") {
+    hotels = await prisma.hotel.findMany({ where: hotelRoomFilter, include: { rooms: true } });
   } else if (activeSection === "calendar") {
     const cal = await getOwnerCalendarData(user.id, 30, hotelId || undefined);
     hotels = await prisma.hotel.findMany({ where: { ownerId: user.id }, orderBy: { createdAt: "desc" } });
@@ -446,7 +439,7 @@ export default async function OwnerDashboardPage({
 
   const hasHotels = hotels.length > 0;
   const totalRooms = hotels.reduce((acc, hotel) => acc + (hotel.rooms?.length ?? 0), 0);
-  const bookingConversion = totalRooms ? Math.round((pendingCount / Math.max(totalRooms, 1)) * 100) : 0;
+  void totalRooms;
   const aiPriceRecommendation =
     pendingCount >= 5
       ? m(locale, "owner.aiPricingHighDemand")
@@ -573,7 +566,9 @@ export default async function OwnerDashboardPage({
 
       {activeSection === "overview" && (
         <>
-          <OwnerOnboardingPanel locale={locale} initialSteps={onboardingSteps} showWelcome={showOnboardingWelcome} />
+          {(!hasHotels || showOnboardingWelcome) && (
+            <OwnerOnboardingPanel locale={locale} initialSteps={onboardingSteps} showWelcome={showOnboardingWelcome} />
+          )}
           {!hasHotels && (
             <div className="scroll-mt-28">
               <OwnerEmptyState />
@@ -587,19 +582,64 @@ export default async function OwnerDashboardPage({
             </div>
             {hotelId ? <OwnerSubscriptionCard locale={locale} subscription={hotelSubscription} /> : null}
             <div className="owner-panel space-y-4">
-              {dashboardKpis ? <OwnerDashboardKpis locale={locale} kpis={dashboardKpis} /> : null}
+              {hotelAnalytics ? (
+                <div className="owner-analytics__kpi-grid">
+                  <div className="owner-analytics__kpi owner-analytics__kpi--brand">
+                    <span className="owner-analytics__kpi-label">{m(locale, "owner.analytics.revenue")}</span>
+                    <span className="owner-analytics__kpi-value">
+                      {Math.round(hotelAnalytics.revenue.total).toLocaleString()} TJS
+                    </span>
+                    <span className="owner-analytics__kpi-meta">
+                      {m(locale, "owner.analytics.period.today")} · {m(locale, "owner.analytics.settlement.card")}{" "}
+                      {Math.round(hotelAnalytics.revenue.card)} · {m(locale, "owner.analytics.settlement.cash")}{" "}
+                      {Math.round(hotelAnalytics.revenue.cash)}
+                    </span>
+                  </div>
+                  <div className="owner-analytics__kpi">
+                    <span className="owner-analytics__kpi-label">{m(locale, "owner.analytics.bookings")}</span>
+                    <span className="owner-analytics__kpi-value">
+                      {hotelAnalytics.bookings.onlineCount + hotelAnalytics.bookings.offlineCount}
+                    </span>
+                    <span className="owner-analytics__kpi-meta">
+                      {m(locale, "owner.analytics.online")}: {hotelAnalytics.bookings.onlineCount} ·{" "}
+                      {m(locale, "owner.analytics.offline")}: {hotelAnalytics.bookings.offlineCount}
+                    </span>
+                  </div>
+                  <div className="owner-analytics__kpi">
+                    <span className="owner-analytics__kpi-label">{m(locale, "owner.analytics.expenses")}</span>
+                    <span className="owner-analytics__kpi-value">
+                      {Math.round(hotelAnalytics.expenses.total).toLocaleString()} TJS
+                    </span>
+                  </div>
+                  <div className="owner-analytics__kpi">
+                    <span className="owner-analytics__kpi-label">{m(locale, "owner.analytics.netProfit")}</span>
+                    <span className="owner-analytics__kpi-value">
+                      {Math.round(hotelAnalytics.netProfit).toLocaleString()} TJS
+                    </span>
+                  </div>
+                </div>
+              ) : null}
               <div className="owner-quick-actions">
-                <a href="/dashboard/owner?section=offline-bookings" className="owner-btn owner-btn--primary">
+                <a
+                  href={`/dashboard/owner?section=offline-bookings${hotelId ? `&hotelId=${hotelId}` : ""}`}
+                  className="owner-btn owner-btn--primary"
+                >
                   {m(locale, "owner.quick.offlineBooking")}
                 </a>
-                <a href="/dashboard/owner?section=calendar" className="owner-btn owner-btn--secondary">
+                <a
+                  href={`/dashboard/owner?section=calendar${hotelId ? `&hotelId=${hotelId}` : ""}`}
+                  className="owner-btn owner-btn--secondary"
+                >
                   {m(locale, "owner.quick.calendar")}
                 </a>
                 <a href="/dashboard/messages" className="owner-btn owner-btn--secondary">
                   {m(locale, "owner.quick.messages")}
                 </a>
-                <a href="/dashboard/owner?section=finances" className="owner-btn owner-btn--secondary">
-                  {m(locale, "owner.quick.payouts")}
+                <a
+                  href={`/dashboard/owner?section=analytics${hotelId ? `&hotelId=${hotelId}` : ""}`}
+                  className="owner-btn owner-btn--secondary"
+                >
+                  {m(locale, "owner.navStatistics")}
                 </a>
               </div>
             </div>
@@ -1544,60 +1584,40 @@ export default async function OwnerDashboardPage({
             <span className="owner-section-head__bar" aria-hidden />
             <h2 className="owner-section-head__title">{m(locale, "owner.finances.title")}</h2>
           </div>
-          <p className="owner-section-lead">{m(locale, "owner.finances.hint")}</p>
+          <p className="owner-section-lead">
+            {hotels[0]
+              ? m(locale, "owner.finances.hintFor", { hotel: hotels[0].name })
+              : m(locale, "owner.finances.hint")}
+          </p>
           <HotelPaymentMethodsManager locale={locale} hotels={hotels} />
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="owner-kpi-card">
-              <div className="owner-kpi-card__label">{m(locale, "owner.finances.revenueMonth")}</div>
-              <div className="owner-kpi-card__value">
-                {dashboardKpis?.revenueMonth ?? Number(revenueAgg._sum?.totalPrice ?? 0)} TJS
-              </div>
-            </div>
-            <div className="owner-panel owner-section-lead">
-              {m(locale, "owner.finances.commissionNote")}
-              {revenueAgg._sum?.commission != null ? (
-                <p className="owner-record-card__title mt-2">
-                  {m(locale, "owner.finances.commissionTotal")}: {Number(revenueAgg._sum.commission)} TJS
-                </p>
-              ) : null}
-            </div>
-          </div>
-          <div className="owner-panel">
-            <h3 className="owner-panel__title">{m(locale, "owner.finances.payoutsTitle")}</h3>
-            <div className="mt-3 space-y-2">
-              {ownerPayouts.map((po) => (
-                <div key={po.id} className="owner-record-card flex flex-wrap items-center justify-between gap-2 text-sm">
-                  <div>
-                    <div className="owner-record-card__title">{bookingHotel(po.booking).name}</div>
-                    <div className="owner-record-card__meta">{bookingRoomTitle(po.booking)}</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="owner-record-card__title">{Number(po.amount)} {po.currency}</div>
-                    <div className="owner-record-card__meta">{po.status}</div>
-                  </div>
-                </div>
-              ))}
-              {!ownerPayouts.length && <p className="owner-section-lead">{m(locale, "owner.finances.payoutsEmpty")}</p>}
-            </div>
-          </div>
         </section>
       )}
 
-      {activeSection === "statistics" && (
-        <section id="statistics" className="scroll-mt-28 space-y-4">
+      {activeSection === "analytics" && (
+        <section id="analytics" className="scroll-mt-28 space-y-4">
           <div className="owner-section-head">
             <span className="owner-section-head__bar" aria-hidden />
-            <h2 className="owner-section-head__title">{m(locale, "owner.statisticsSection.title")}</h2>
+            <h2 className="owner-section-head__title">{m(locale, "owner.analytics.title")}</h2>
           </div>
-          <p className="owner-section-lead">{m(locale, "owner.statisticsSection.hint")}</p>
-          {dashboardKpis ? <OwnerDashboardKpis locale={locale} kpis={dashboardKpis} /> : null}
-          <Card className="space-y-2">
-            <h3 className="owner-panel__title">{m(locale, "owner.conversionTitle")}</h3>
-            <ul className="space-y-1 owner-section-lead">
-              <li>{m(locale, "owner.pendingBookings")}: {pendingCount}</li>
-              <li>{m(locale, "owner.conversionProxy")}: {bookingConversion}%</li>
-            </ul>
-          </Card>
+          {hotels[0] ? (
+            <OwnerAnalyticsPanel locale={locale} hotelId={hotels[0].id} hotelName={hotels[0].name} />
+          ) : (
+            <EmptyState title={m(locale, "owner.analytics.noHotel")} />
+          )}
+        </section>
+      )}
+
+      {activeSection === "activity" && (
+        <section id="activity" className="scroll-mt-28 space-y-4">
+          <div className="owner-section-head">
+            <span className="owner-section-head__bar" aria-hidden />
+            <h2 className="owner-section-head__title">{m(locale, "owner.activity.title")}</h2>
+          </div>
+          {hotelId ? (
+            <OwnerActivityLogPanel locale={locale} hotelId={hotelId} />
+          ) : (
+            <EmptyState title={m(locale, "owner.analytics.noHotel")} />
+          )}
         </section>
       )}
 
