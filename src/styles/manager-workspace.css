@@ -7,7 +7,7 @@
   padding: 1rem 1rem 1.5rem;
   max-width: 40rem;
   margin: 0 auto;
-  color: var(--text-primary-semantic, #14231b);
+  color: var(--ts-text-body, var(--text-primary-semantic, #14231b));
   box-sizing: border-box;
   width: 100%;
   overflow-x: clip;
@@ -53,10 +53,10 @@
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
-  border: 1px solid var(--border-subtle, #d8e4dc);
+  border: 1px solid var(--ts-border-default, var(--border-subtle, #d8e4dc));
   border-radius: 0.75rem;
   padding: 0.5rem 0.75rem;
-  background: #fff;
+  background: var(--ts-surface-primary, #fff);
   color: inherit;
 }
 
@@ -89,11 +89,13 @@
 }
 
 .manager-chips button {
-  min-height: 40px;
+  min-height: 44px;
+  min-width: 44px;
   padding: 0.35rem 0.75rem;
   border-radius: 999px;
-  border: 1px solid var(--border-subtle, #d8e4dc);
-  background: #fff;
+  border: 1px solid var(--ts-border-default, var(--border-subtle, #d8e4dc));
+  background: var(--ts-surface-primary, #fff);
+  color: inherit;
   font-size: 0.8125rem;
 }
 
@@ -112,10 +114,10 @@
 }
 
 .manager-booking-card {
-  border: 1px solid var(--border-subtle, #d8e4dc);
+  border: 1px solid var(--ts-border-subtle, var(--border-subtle, #d8e4dc));
   border-radius: 0.875rem;
   padding: 0.875rem;
-  background: #fff;
+  background: var(--ts-surface-primary, #fff);
 }
 
 .manager-booking-card__top {
@@ -127,7 +129,7 @@
 
 .manager-booking-card__meta {
   font-size: 0.8125rem;
-  color: var(--text-secondary-semantic, #4a6356);
+  color: var(--ts-text-secondary, var(--text-secondary-semantic, #4a6356));
 }
 
 .manager-booking-card__actions {
@@ -139,7 +141,8 @@
 
 .manager-booking-card__actions button,
 .manager-booking-card > button {
-  min-height: 40px;
+  min-height: 44px;
+  min-width: 44px;
   padding: 0.35rem 0.75rem;
   border-radius: 0.625rem;
   border: 1px solid #0f7a4d;
@@ -158,10 +161,10 @@
 }
 
 .manager-profile-card {
-  border: 1px solid var(--border-subtle, #d8e4dc);
+  border: 1px solid var(--ts-border-subtle, var(--border-subtle, #d8e4dc));
   border-radius: 0.875rem;
   padding: 1rem;
-  background: #fff;
+  background: var(--ts-surface-primary, #fff);
   margin-bottom: 1rem;
 }
 
@@ -183,7 +186,74 @@
 
 .manager-workspace-shell .owner-workspace-header__brand {
   min-width: 0;
-  max-width: calc(100% - 3rem);
+  max-width: calc(100% - 3.5rem);
+}
+
+/* Manager header chrome — sticky bar + 44×44 profile/menu hit target (icon stays ~18px) */
+.owner-workspace-header.manager-workspace-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  min-height: 3.5rem;
+  display: flex;
+  align-items: center;
+  background: var(--ts-surface-nav, var(--ts-surface-primary, #ffffff));
+  border-bottom: 1px solid var(--ts-border-subtle, #e2e8f0);
+  color: var(--ts-text-body, #14231b);
+}
+
+.owner-workspace-header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0 0.5rem 0 0.75rem;
+  box-sizing: border-box;
+}
+
+.owner-workspace-header__brand {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  text-decoration: none;
+  color: inherit;
+}
+
+.owner-workspace-header__brand-primary {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--ts-text-title, #14231b);
+}
+
+.owner-workspace-header__action {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0.625rem;
+  background: transparent;
+  color: var(--ts-text-title, #14231b);
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.owner-workspace-header__action:focus-visible {
+  outline: 2px solid #0f7a4d;
+  outline-offset: 2px;
+}
+
+.owner-workspace-header__action-icon {
+  font-size: 1.125rem;
+  line-height: 1;
+  pointer-events: none;
 }
 
 @media (prefers-color-scheme: dark) {

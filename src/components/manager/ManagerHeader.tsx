@@ -4,10 +4,12 @@ import { BRAND } from "@/lib/brand";
 export function ManagerHeader({
   hotelName,
   brandLabel,
+  profileLabel,
   profileHref = "/dashboard/manager/profile"
 }: {
   hotelName: string;
   brandLabel: string;
+  profileLabel: string;
   profileHref?: string;
 }) {
   return (
@@ -17,8 +19,15 @@ export function ManagerHeader({
           <span className="owner-workspace-header__brand-primary">{brandLabel || BRAND.name}</span>
           <span className="owner-workspace-header__brand-secondary">{hotelName}</span>
         </Link>
-        <Link href={profileHref} className="owner-workspace-header__action">
-          ☰
+        <Link
+          href={profileHref}
+          className="owner-workspace-header__action"
+          aria-label={profileLabel}
+          title={profileLabel}
+        >
+          <span className="owner-workspace-header__action-icon" aria-hidden>
+            ☰
+          </span>
         </Link>
       </div>
     </header>

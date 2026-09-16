@@ -42,6 +42,7 @@ export default async function ManagerDashboardLayout({ children }: { children: R
       <ManagerHeader
         brandLabel={m(locale, "manager.brand")}
         hotelName={activeHotel.name}
+        profileLabel={m(locale, "manager.navProfile")}
       />
       <DashboardShell
         className="manager-workspace-shell ts-workspace-light"

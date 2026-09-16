@@ -134,7 +134,10 @@
   :root:not([data-theme="light"]) .profile-page-light,
   :root:not([data-theme="light"]) .profile-center,
   :root:not([data-theme="light"]) .admin-command-center-shell,
-  :root:not([data-theme="light"]) .owner-command-center-shell {
+  :root:not([data-theme="light"]) .owner-command-center-shell,
+  :root:not([data-theme="light"]) .manager-workspace-shell,
+  :root:not([data-theme="light"]) .owner-header,
+  :root:not([data-theme="light"]) .manager-workspace-header {
     --ts-surface-page: #0f1713;
     --ts-surface-primary: #16211c;
     --ts-surface-secondary: #16211c;
@@ -192,7 +195,10 @@
 :root[data-theme="dark"] .profile-page-light,
 :root[data-theme="dark"] .profile-center,
 :root[data-theme="dark"] .admin-command-center-shell,
-:root[data-theme="dark"] .owner-command-center-shell {
+:root[data-theme="dark"] .owner-command-center-shell,
+:root[data-theme="dark"] .manager-workspace-shell,
+:root[data-theme="dark"] .owner-header,
+:root[data-theme="dark"] .manager-workspace-header {
   --ts-surface-page: #0f1713;
   --ts-surface-primary: #16211c;
   --ts-surface-secondary: #16211c;
@@ -254,19 +260,30 @@
   --taj-dropdown-bg: var(--ts-surface-elevated) !important;
 }
 
-/* Direct background/color assertion for the two Profile wrapper classes specifically — found
-   live that `--ts-surface-page` correctly resolved to the dark value on `.profile-page-light`
-   (confirmed via getComputedStyle) yet the element's rendered `background-color` stayed white,
-   meaning some other rule sets `background-color` on it directly rather than through this
-   variable. Also counters `src/styles/tajstay-brand-tokens.css`'s deliberate
-   ".profile-center, .profile-page-light { color: var(--text-primary-semantic, #14231b); ... }"
-   rule — an intentional historical "keep Profile light even on a dark app shell" guard from an
-   earlier phase, left in place rather than deleted (it may still matter for a context this pass
-   didn't audit), but explicitly overridden here now that Profile dark mode is a real requirement. */
+/* Direct background/color assertion — found live that `--ts-surface-page` can resolve to the
+   dark value while rendered `background-color` stayed white (brand palette lock / body white
+   canvas). Profile first; Owner/Manager shells + Owner header must flip together so headings
+   (`--ts-text-title` / `--owner-text`) never sit light-on-white. */
 :root[data-theme="dark"] .profile-page-light,
-:root[data-theme="dark"] .profile-center {
+:root[data-theme="dark"] .profile-center,
+:root[data-theme="dark"] .owner-command-center-shell,
+:root[data-theme="dark"] .manager-workspace-shell,
+:root[data-theme="dark"] .owner-header,
+:root[data-theme="dark"] .manager-workspace-header {
   background-color: var(--ts-surface-page) !important;
   color: var(--ts-text-body) !important;
+}
+
+:root[data-theme="dark"] .owner-command-center-shell .owner-section-head__title,
+:root[data-theme="dark"] .owner-command-center-shell h1,
+:root[data-theme="dark"] .owner-command-center-shell h2,
+:root[data-theme="dark"] .owner-command-center-shell h3,
+:root[data-theme="dark"] .manager-workspace-shell .manager-page__title,
+:root[data-theme="dark"] .manager-workspace-shell h1,
+:root[data-theme="dark"] .owner-header__brand-text,
+:root[data-theme="dark"] .owner-workspace-header__brand-primary,
+:root[data-theme="dark"] .manager-workspace-header {
+  color: var(--ts-text-title) !important;
 }
 
 :root[data-theme="dark"] .profile-hub__compact-title {
@@ -279,7 +296,11 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .profile-page-light,
-  :root:not([data-theme="light"]) .profile-center {
+  :root:not([data-theme="light"]) .profile-center,
+  :root:not([data-theme="light"]) .owner-command-center-shell,
+  :root:not([data-theme="light"]) .manager-workspace-shell,
+  :root:not([data-theme="light"]) .owner-header,
+  :root:not([data-theme="light"]) .manager-workspace-header {
     background-color: var(--ts-surface-page) !important;
     color: var(--ts-text-body) !important;
   }
@@ -291,6 +312,16 @@
   :root:not([data-theme="light"]) .profile-hub__compact-subtitle {
     color: var(--ts-text-secondary) !important;
   }
+
+  :root:not([data-theme="light"]) .owner-command-center-shell .owner-section-head__title,
+  :root:not([data-theme="light"]) .owner-command-center-shell h1,
+  :root:not([data-theme="light"]) .owner-command-center-shell h2,
+  :root:not([data-theme="light"]) .owner-command-center-shell h3,
+  :root:not([data-theme="light"]) .manager-workspace-shell .manager-page__title,
+  :root:not([data-theme="light"]) .manager-workspace-shell h1,
+  :root:not([data-theme="light"]) .owner-header__brand-text {
+    color: var(--ts-text-title) !important;
+  }
 }
 
 /* Explicit light choice must win over the OS being in dark mode too (the ":not([data-theme=
@@ -301,7 +332,10 @@
 :root[data-theme="light"] .profile-page-light,
 :root[data-theme="light"] .profile-center,
 :root[data-theme="light"] .admin-command-center-shell,
-:root[data-theme="light"] .owner-command-center-shell {
+:root[data-theme="light"] .owner-command-center-shell,
+:root[data-theme="light"] .manager-workspace-shell,
+:root[data-theme="light"] .owner-header,
+:root[data-theme="light"] .manager-workspace-header {
   --ts-surface-page: #ffffff;
   --ts-surface-primary: #ffffff;
   --ts-surface-secondary: #ffffff;

@@ -7,14 +7,21 @@
 .header-workspace-menu {
   display: grid;
   place-items: center;
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   border: none;
   border-radius: 0.625rem;
   background: transparent;
   color: #ffffff !important;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+}
+
+.header-workspace-menu:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
 }
 
 .header-workspace-menu:active {
