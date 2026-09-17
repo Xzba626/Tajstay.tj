@@ -4,22 +4,22 @@ Read this before anything else. Load only the skill matching NEXT (see `CLAUDE.m
 Do not re-read old audit reports unless the task needs them. Keep this file short — DONE/OPEN/BLOCKED/
 NEXT, not a diary. Detailed rationale for a fix belongs in its commit message, not here.
 
-## CURRENT — BLOCK 8 TECHNICALLY COMPLETE (LOCAL — core account gates)
+## CURRENT — BLOCK 8C CLOSURE (LOCAL)
 
-- **BLOCK 6 FINAL SHA:** `3404a4f`
-- **BLOCK 7 FINAL SHA:** `4f35b7a`
-- **BLOCK 8 IMPLEMENTATION / CLOSURE SHA:** `94531f4`
-- **MIGRATIONS:** 28 up to date
-- **BLOCK 8 DONE (CODE + tests):**
-  1. Profile password change: `/profile/password` + `POST /api/profile/password` (current hash verify, revoke other sessions)
-  2. Active sessions: `/profile/sessions` + `GET/DELETE /api/profile/sessions`
-  3. Security hub links: password · email · telegram · phone · sessions
-  4. Phone: honest blocked state (no fake SMS) — `profile.phoneChangeBlocked`
-  5. Email change chain proven in DB (`scripts/owner-block8-account-tests.ts` 8/8)
-  6. Email/Telegram UI from `86a4f57` retained; delivery still `BLOCKED_EXTERNAL` without Resend
-- **BLOCK 8 NOT matrix-closed:** full 320–1440 × Light/Dark × RU/TJ/EN walkthrough; Telegram real-bot E2E; production
-- **NEXT:** USER visual acceptance · MASTER FINAL only after explicit authorization
-- **DO NOT START:** MASTER FINAL crash test without user go-ahead
+- **BASE:** BLOCK 7 `4f35b7a` · BLOCK 8 `94531f4` · prior HEAD `395f9f4`
+- **BLOCK 8C SHA:** pending this commit
+- **TESTS:** `scripts/block8c-closure-tests.ts` **36/36 PASS**
+  - Notifications prefs persist + list/mark IDOR
+  - Owner Application pending → approve → OWNER; reject → reapply; admin-only approve gate
+  - Booking/chat Guest/Owner/Manager hotel-scoped IDOR
+  - Theme Light/Dark/System + i18n keys RU/TJ/EN static
+- **RUNTIME:** `http://localhost:3001` @ working tree / next SHA
+  - Profile Light→Dark→System; RU→TJ→EN; Security; Notification settings; Inbox; Phone blocked honest
+- **BUILD:** `npm run build` **EXIT 0** (483561 ms)
+- **next start:** correctly **FAILS** without non-default `SEED_SECRET` (`envGuard`) — local prod-like blocked by design
+- **NOT DONE:** full 1280 desktop viewport screenshot matrix; production deploy; MASTER FINAL
+- **NEXT:** user review of 8C evidence → 8D only if gaps → else authorize MASTER FINAL
+- **DO NOT START:** MASTER FINAL without user go-ahead
 
 ## Governing instruction
 
