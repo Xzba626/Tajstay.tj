@@ -8,8 +8,7 @@ NEXT, not a diary. Detailed rationale for a fix belongs in its commit message, n
 
 - **BLOCK 6 FINAL SHA:** `3404a4f`
 - **BLOCK 7 FINAL SHA:** `4f35b7a`
-- **BLOCK 8 IMPLEMENTATION / CLOSURE:** pending this commit
-- **PRIOR HEAD:** `4f35b7a`
+- **BLOCK 8 IMPLEMENTATION / CLOSURE SHA:** `94531f4`
 - **MIGRATIONS:** 28 up to date
 - **BLOCK 8 DONE (CODE + tests):**
   1. Profile password change: `/profile/password` + `POST /api/profile/password` (current hash verify, revoke other sessions)
