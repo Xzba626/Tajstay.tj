@@ -177,17 +177,15 @@ export function groupHotelRooms(input: {
     if (group && (group.count > 0 || Number(roomType.basePrice) > 0)) {
       group.panoScenes = panos;
       if (!group.count) {
+        // Zero physical inventory: show category commercially, but never offer a book CTA.
+        // Inventory assert would reject anyway (availableCount = 0); UI must match.
         group.minPrice = Number(roomType.basePrice);
         group.maxPrice = Number(roomType.basePrice);
         group.capacity = roomType.maxGuests;
         group.amenities = parseAmenitiesJson(roomType.amenities);
         group.count = roomType._count?.rooms ?? 0;
-        group.bookHref = bookingHref({
-          roomTypeId: roomType.id,
-          checkIn: input.checkIn,
-          checkOut: input.checkOut,
-          guests: input.guests
-        });
+        group.bookHref = null;
+        group.soldOut = Boolean(input.checkIn && input.checkOut);
         group.identical = true;
       }
       // RoomType-level real availability (from getRoomTypeAvailability, the same invariant the

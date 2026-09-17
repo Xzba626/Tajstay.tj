@@ -33,7 +33,7 @@ type Props = {
   hotelName: string;
 };
 
-type Mode = null | "menu" | "category" | "room";
+type Mode = null | "menu" | "category" | "room" | "edit";
 
 function parseAmenities(raw: string): string[] {
   try {
@@ -59,6 +59,8 @@ export function OwnerRoomsInventoryPanel({ locale, hotelId, hotelName }: Props) 
   const [catAmenities, setCatAmenities] = useState<string[]>([]);
   const [catPhotos, setCatPhotos] = useState<FileList | null>(null);
   const [catPano, setCatPano] = useState<FileList | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [mediaTargetId, setMediaTargetId] = useState<number | null>(null);
 
   const [roomTypeId, setRoomTypeId] = useState<number | "">("");
   const [roomNumber, setRoomNumber] = useState("");
@@ -154,6 +156,90 @@ export function OwnerRoomsInventoryPanel({ locale, hotelId, hotelName }: Props) 
     }
   }
 
+  function startEdit(t: CategoryRow) {
+    setEditingId(t.id);
+    setCatName(t.name);
+    setCatPrice(String(Number(t.basePrice)));
+    setCatGuests(String(t.maxGuests));
+    setCatAmenities(parseAmenities(t.amenities));
+    setCatPhotos(null);
+    setCatPano(null);
+    setMode("edit");
+  }
+
+  async function saveEdit(e: React.FormEvent) {
+    e.preventDefault();
+    if (busy || !editingId) return;
+    setBusy(true);
+    setMsg(null);
+    setError(null);
+    try {
+      const res = await fetch("/api/owner/room-types", {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          hotelId,
+          roomTypeId: editingId,
+          action: "update",
+          name: catName.trim(),
+          basePrice: Number(catPrice),
+          maxGuests: Number(catGuests),
+          amenities: catAmenities
+        })
+      });
+      if (res.status === 409) {
+        setError(m(locale, "owner.roomsInv.capacityConflict"));
+        return;
+      }
+      if (!res.ok) throw new Error("fail");
+
+      if (catPhotos?.length || catPano?.length) {
+        const fd = new FormData();
+        fd.set("hotelId", String(hotelId));
+        fd.set("roomTypeId", String(editingId));
+        if (catPhotos) Array.from(catPhotos).forEach((f) => fd.append("photos", f));
+        if (catPano) Array.from(catPano).forEach((f) => fd.append("panorama", f));
+        const mediaRes = await fetch("/api/owner/room-types", {
+          method: "PUT",
+          credentials: "include",
+          body: fd
+        });
+        if (!mediaRes.ok) throw new Error("media");
+      }
+
+      setMode(null);
+      setEditingId(null);
+      setMsg(m(locale, "owner.roomsInv.categoryUpdated"));
+      await load();
+    } catch {
+      setError(m(locale, "owner.roomsInv.saveError"));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function attachMedia(categoryId: number, files: FileList | null, kind: "PHOTO" | "PANO360") {
+    if (!files?.length || busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const fd = new FormData();
+      fd.set("hotelId", String(hotelId));
+      fd.set("roomTypeId", String(categoryId));
+      Array.from(files).forEach((f) => fd.append(kind === "PANO360" ? "panorama" : "photos", f));
+      const res = await fetch("/api/owner/room-types", { method: "PUT", credentials: "include", body: fd });
+      if (!res.ok) throw new Error("fail");
+      setMsg(m(locale, "owner.roomsInv.mediaAdded"));
+      setMediaTargetId(null);
+      await load();
+    } catch {
+      setError(m(locale, "owner.roomsInv.saveError"));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function archiveCategory(id: number) {
     if (busy) return;
     setBusy(true);
@@ -165,6 +251,27 @@ export function OwnerRoomsInventoryPanel({ locale, hotelId, hotelName }: Props) 
         body: JSON.stringify({ hotelId, roomTypeId: id, action: "archive" })
       });
       await load();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function archiveRoom(roomId: number) {
+    if (busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/owner/rooms/${roomId}`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "archive" })
+      });
+      if (!res.ok) throw new Error("fail");
+      setMsg(m(locale, "owner.roomsInv.roomArchived"));
+      await load();
+    } catch {
+      setError(m(locale, "owner.roomsInv.saveError"));
     } finally {
       setBusy(false);
     }
@@ -304,6 +411,106 @@ export function OwnerRoomsInventoryPanel({ locale, hotelId, hotelName }: Props) 
         </form>
       ) : null}
 
+      {mode === "edit" ? (
+        <form onSubmit={saveEdit} className="owner-panel owner-rooms-inv__form space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <h3 className="owner-panel__title">{m(locale, "owner.roomsInv.editCategory")}</h3>
+            <button
+              type="button"
+              className="owner-btn owner-btn--secondary"
+              onClick={() => {
+                setMode(null);
+                setEditingId(null);
+              }}
+            >
+              {m(locale, "owner.paymentMethods.cancel")}
+            </button>
+          </div>
+          <div>
+            <label className="owner-field__label">{m(locale, "owner.roomsInv.categoryName")}</label>
+            <input
+              className="owner-input"
+              value={catName}
+              onChange={(e) => setCatName(e.target.value)}
+              required
+            />
+          </div>
+          <div className="owner-rooms-inv__row2">
+            <div>
+              <label className="owner-field__label">{m(locale, "owner.priceNight")}</label>
+              <input
+                className="owner-input"
+                type="number"
+                min={0}
+                step={1}
+                required
+                value={catPrice}
+                onChange={(e) => setCatPrice(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="owner-field__label">{m(locale, "owner.capacity")}</label>
+              <input
+                className="owner-input"
+                type="number"
+                min={1}
+                max={30}
+                required
+                value={catGuests}
+                onChange={(e) => setCatGuests(e.target.value)}
+              />
+            </div>
+          </div>
+          <div>
+            <p className="owner-field__label">{m(locale, "owner.amenities")}</p>
+            {Object.entries(AMENITY_CATEGORIES).map(([key, cat]) => (
+              <div key={key} className="mt-2">
+                <p className="owner-field__hint">{cat.label[locale] ?? cat.label.ru}</p>
+                <div className="owner-rooms-inv__chips">
+                  {cat.items.map((id) => {
+                    const on = catAmenities.includes(id);
+                    return (
+                      <button
+                        key={id}
+                        type="button"
+                        className={`owner-rooms-inv__chip${on ? " is-on" : ""}`}
+                        aria-pressed={on}
+                        onClick={() => toggleAmenity(id)}
+                      >
+                        {amenityLabel(locale, id)}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div>
+            <label className="owner-field__label">{m(locale, "owner.roomsInv.addPhotos")}</label>
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              multiple
+              className="owner-input"
+              onChange={(e) => setCatPhotos(e.target.files)}
+            />
+          </div>
+          <div>
+            <label className="owner-field__label">{m(locale, "owner.roomsInv.panoUpload")}</label>
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              multiple
+              className="owner-input"
+              onChange={(e) => setCatPano(e.target.files)}
+            />
+          </div>
+          <button type="submit" className="owner-btn owner-btn--primary" disabled={busy}>
+            {busy ? m(locale, "owner.roomsInv.saving") : m(locale, "owner.roomsInv.saveEdit")}
+          </button>
+        </form>
+      ) : null}
+
       {mode === "room" ? (
         <form onSubmit={saveRoom} className="owner-panel owner-rooms-inv__form space-y-3">
           <div className="flex items-center justify-between gap-2">
@@ -404,6 +611,16 @@ export function OwnerRoomsInventoryPanel({ locale, hotelId, hotelName }: Props) 
                     >
                       {m(locale, "owner.roomsInv.addRoom")}
                     </button>
+                    <button type="button" className="owner-btn owner-btn--secondary" onClick={() => startEdit(t)}>
+                      {m(locale, "owner.roomsInv.editCategory")}
+                    </button>
+                    <button
+                      type="button"
+                      className="owner-btn owner-btn--secondary"
+                      onClick={() => setMediaTargetId(mediaTargetId === t.id ? null : t.id)}
+                    >
+                      {m(locale, "owner.roomsInv.addPhotos")}
+                    </button>
                     <button type="button" className="owner-btn owner-btn--secondary" onClick={() => void archiveCategory(t.id)}>
                       {m(locale, "owner.roomsInv.archiveCategory")}
                     </button>
@@ -413,6 +630,26 @@ export function OwnerRoomsInventoryPanel({ locale, hotelId, hotelName }: Props) 
                       </button>
                     ) : null}
                   </div>
+                  {mediaTargetId === t.id ? (
+                    <div className="owner-rooms-inv__media-attach space-y-2">
+                      <label className="owner-field__label">{m(locale, "owner.roomsInv.photos")}</label>
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        multiple
+                        className="owner-input"
+                        onChange={(e) => void attachMedia(t.id, e.target.files, "PHOTO")}
+                      />
+                      <label className="owner-field__label">{m(locale, "owner.roomsInv.panoUpload")}</label>
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        multiple
+                        className="owner-input"
+                        onChange={(e) => void attachMedia(t.id, e.target.files, "PANO360")}
+                      />
+                    </div>
+                  ) : null}
                   {t._count.rooms === 0 ? (
                     <p className="owner-section-lead">{m(locale, "owner.roomsInv.zeroRooms")}</p>
                   ) : (
@@ -423,6 +660,13 @@ export function OwnerRoomsInventoryPanel({ locale, hotelId, hotelName }: Props) 
                           <span className="owner-record-card__meta">
                             {r.availability ? m(locale, "owner.availableYes") : m(locale, "owner.availableNo")}
                           </span>
+                          <button
+                            type="button"
+                            className="owner-btn owner-btn--secondary owner-rooms-inv__room-archive"
+                            onClick={() => void archiveRoom(r.id)}
+                          >
+                            {m(locale, "owner.roomsInv.archiveRoom")}
+                          </button>
                         </li>
                       ))}
                     </ul>

@@ -224,3 +224,58 @@ export async function PATCH(req: NextRequest) {
   await syncRoomsFromCategory(updated.id);
   return NextResponse.json({ ok: true, roomType: updated });
 }
+
+/** Attach photos / 360° panoramas to an existing category (BLOCK 7 media). */
+export async function PUT(req: NextRequest) {
+  const owner = await getOwnerUser();
+  if (!owner) return forbiddenJson();
+
+  const form = await req.formData();
+  const hotelId = Number(form.get("hotelId"));
+  const roomTypeId = Number(form.get("roomTypeId"));
+  if (!hotelId || !roomTypeId) {
+    return NextResponse.json({ error: "invalid_body" }, { status: 400 });
+  }
+
+  const hotel = await prisma.hotel.findFirst({ where: { id: hotelId, ownerId: owner.id }, select: { id: true } });
+  if (!hotel) return forbiddenJson();
+
+  const existing = await prisma.roomType.findFirst({
+    where: { id: roomTypeId, hotelId },
+    select: { id: true, photos: { select: { sortOrder: true }, orderBy: { sortOrder: "desc" }, take: 1 } }
+  });
+  if (!existing) return NextResponse.json({ error: "not_found" }, { status: 404 });
+
+  const photos = form.getAll("photos").filter((f): f is File => f instanceof File && f.size > 0);
+  const panos = form.getAll("panorama").filter((f): f is File => f instanceof File && f.size > 0);
+  if (!photos.length && !panos.length) {
+    return NextResponse.json({ error: "no_files" }, { status: 400 });
+  }
+
+  let order = (existing.photos[0]?.sortOrder ?? -1) + 1;
+  const created: { id: number; url: string; kind: string }[] = [];
+  try {
+    for (const file of photos) {
+      const url = await savePublicImageFile(file, "room-photos");
+      const row = await prisma.roomTypePhoto.create({
+        data: { roomTypeId: existing.id, url, sortOrder: order++, kind: "PHOTO" }
+      });
+      created.push({ id: row.id, url: row.url, kind: "PHOTO" });
+    }
+    for (const file of panos) {
+      const url = await savePublicImageFile(file, "room-photos");
+      const sceneLabel = String(form.get("sceneLabel") ?? "").trim() || null;
+      const row = await prisma.roomTypePhoto.create({
+        data: { roomTypeId: existing.id, url, sortOrder: order++, kind: "PANO360", sceneLabel }
+      });
+      created.push({ id: row.id, url: row.url, kind: "PANO360" });
+    }
+  } catch (e) {
+    if (e instanceof ImageUploadError) {
+      return NextResponse.json({ error: e.code, message: e.message }, { status: 400 });
+    }
+    throw e;
+  }
+
+  return NextResponse.json({ ok: true, photos: created });
+}

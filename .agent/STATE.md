@@ -4,18 +4,25 @@ Read this before anything else. Load only the skill matching NEXT (see `CLAUDE.m
 Do not re-read old audit reports unless the task needs them. Keep this file short — DONE/OPEN/BLOCKED/
 NEXT, not a diary. Detailed rationale for a fix belongs in its commit message, not here.
 
-## CURRENT — MASTER FINAL BLOCK (PARTIAL — critical delivery/account paths)
+## CURRENT — BLOCK 7 TECHNICALLY COMPLETE (LOCAL)
 
-- **BASE HEAD:** `8074d17` · **BLOCK 5:** `ac90ff3` · **BLOCK 6:** `3404a4f` · **BLOCK 7:** **MISSING** · **BLOCK 8:** **MISSING**
-- **MIGRATIONS:** 28 up to date · no new migration this pass
-- **FIXED (CODE + local tests):**
-  1. Booking confirm → `queueBookingConfirmationDelivery` (Resend email + Telegram Bot) + idempotent `TransactionLog`
-  2. Profile email change: challenge/verify APIs + UI (was «Скоро» mock)
-  3. Profile Telegram link/relink: `link_` deep-link + cookie-bound complete (was mock)
-- **EXTERNAL:** `RESEND_API_KEY` **absent** in local `.env` → EMAIL provider send = `BLOCKED_EXTERNAL` / fail-closed; Telegram bot token **present**
-- **NOT DONE this pass:** full screen×viewport×theme matrices; BLOCK 7 Rooms deep; full Admin crawl; production E2E inbox receipt
-- **NEXT:** continue MASTER crash matrices OR ship BLOCK 7 if product priority — do not claim FULL COMPLETE
-- SMS OTP = OUT OF SCOPE · no monetization / Admin redesign
+- **BLOCK 6 FINAL SHA:** `3404a4f` (docs gate `8074d17`)
+- **BLOCK 7 IMPLEMENTATION / CLOSURE:** pending this commit (Rooms gaps closed on top of Owner BLOCK 4 foundation)
+- **BLOCK 8:** **MISSING** (partial account/receipt work at `86a4f57` is MASTER FINAL partial — not full BLOCK 8)
+- **BASE HEAD before this pass:** `86a4f57`
+- **MIGRATIONS:** 28 up to date · no new migration
+- **BLOCK 7 DONE (CODE + tests + local runtime):**
+  1. Category edit UI + PATCH (price/capacity/amenities) with sync to physical rooms
+  2. Media/360 attach to existing category (`PUT /api/owner/room-types`)
+  3. Physical room archive → `status=ARCHIVED` (excluded from inventory lists)
+  4. Category SoT hardened: typed room POST no longer accepts commercial field overrides
+  5. Zero-room guest CTA: no `bookHref`; soldOut when dates selected
+  6. Booking `totalPrice` immutability proven when category price changes
+  7. Tests: `scripts/owner-block7-rooms-tests.ts` 15/15 + `owner-block4-tests.ts` 18/18
+  8. Runtime: `/dashboard/owner?section=rooms&hotelId=1` — add sheet, edit form, archive room, Owner nav OK
+- **360°:** honest equirectangular viewer only (not mesh 3D)
+- **NEXT:** BLOCK 8 Profile/Security/Become Owner/cross-role — MASTER FINAL NOT started
+- SMS OTP = OUT OF SCOPE · no Admin redesign
 
 ## Governing instruction
 
