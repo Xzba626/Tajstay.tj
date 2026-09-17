@@ -6,8 +6,8 @@ NEXT, not a diary. Detailed rationale for a fix belongs in its commit message, n
 
 ## CURRENT — OWNER BLOCK 6 = TECHNICALLY COMPLETE (LOCAL) · BLOCK 7 GATED STOP
 
-- **BASE:** `ac90ff3` · **IMPL:** `6fb0595` · **FINAL SHA:** `3404a4f` (closure)
-- **BLOCK 7:** **STOP** at gate — attempted while BLOCK 6 was PARTIAL; no Rooms/Categories/Media/360 mutations. Re-authorize BLOCK 7 from clean `3404a4f`.
+- **BASE:** `ac90ff3` · **IMPL:** `6fb0595` · **CLOSURE:** `3404a4f` · **HEAD:** `618a5a0`
+- **BLOCK 7:** **STOP** at gate — attempted while BLOCK 6 was PARTIAL; no Rooms/Categories/Media/360 mutations. Re-authorize BLOCK 7 from this HEAD.
 - **Closure:** `pms.viewByType/Room` tg/en; `section=object`→`properties`; matrix QA after DB restore; build EXIT=0.
 - Do not start Admin 6.2.
 
