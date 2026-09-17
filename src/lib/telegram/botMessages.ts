@@ -20,6 +20,7 @@ const MESSAGES: Record<
     cooldown: string;
     phoneRequired: string;
     openSiteToSignIn: string;
+    linkReturnToSite: string;
   }
 > = {
   ru: {
@@ -34,7 +35,9 @@ const MESSAGES: Record<
     cooldown: "Подождите минуту перед повторной отправкой кода.",
     phoneRequired: "Пожалуйста, нажмите кнопку «Отправить номер телефона».",
     openSiteToSignIn:
-      "Откройте <b>TajStay</b> и нажмите «Войти через Telegram».\n\n<a href=\"https://www.tajstay.site/auth/sign-in\">tajstay.site/auth/sign-in</a>"
+      "Откройте <b>TajStay</b> и нажмите «Войти через Telegram».\n\n<a href=\"https://www.tajstay.site/auth/sign-in\">tajstay.site/auth/sign-in</a>",
+    linkReturnToSite:
+      "Telegram привязан к запросу TajStay. Вернитесь на сайт и дождитесь подтверждения — номер телефона не нужен."
   },
   tg: {
     startWelcome:
@@ -48,7 +51,9 @@ const MESSAGES: Record<
     cooldown: "Пеш аз фиристодани дубораи рамз 1 дақиқа интизор шавед.",
     phoneRequired: "Лутфан тугмаи «Фиристодани рақами телефон»-ро пахш кунед.",
     openSiteToSignIn:
-      "<b>TajStay</b>-ро кушоед ва «Ворид шудан бо Telegram»-ро пахш кунед.\n\n<a href=\"https://www.tajstay.site/auth/sign-in\">tajstay.site/auth/sign-in</a>"
+      "<b>TajStay</b>-ро кушоед ва «Ворид шудан бо Telegram»-ро пахш кунед.\n\n<a href=\"https://www.tajstay.site/auth/sign-in\">tajstay.site/auth/sign-in</a>",
+    linkReturnToSite:
+      "Telegram ба дархости TajStay пайваст шуд. Ба сомона баргардед — рақами телефон лозим нест."
   },
   en: {
     startWelcome:
@@ -62,7 +67,9 @@ const MESSAGES: Record<
     cooldown: "Please wait 60 seconds before requesting a new code.",
     phoneRequired: "Please tap “Share phone number”.",
     openSiteToSignIn:
-      "Open <b>TajStay</b> and tap “Sign in with Telegram”.\n\n<a href=\"https://www.tajstay.site/auth/sign-in\">tajstay.site/auth/sign-in</a>"
+      "Open <b>TajStay</b> and tap “Sign in with Telegram”.\n\n<a href=\"https://www.tajstay.site/auth/sign-in\">tajstay.site/auth/sign-in</a>",
+    linkReturnToSite:
+      "Telegram is linked to your TajStay request. Return to the site to finish — no phone number needed."
   }
 };
 

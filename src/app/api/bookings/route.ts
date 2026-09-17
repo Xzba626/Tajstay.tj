@@ -467,6 +467,19 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    if (isPayAtCheckIn) {
+      await prisma.notification.create({
+        data: {
+          userId,
+          bookingId: booking.id,
+          type: "BOOKING_CONFIRMED",
+          isRead: false
+        }
+      });
+      const { queueBookingConfirmationDelivery } = await import("@/lib/bookings/bookingConfirmationDelivery");
+      queueBookingConfirmationDelivery(booking.id, "booking.confirmed.pay_on_arrival");
+    }
+
     try {
       const chatInit = await initializeBookingChatRoom(booking.id);
       if (!chatInit.ok && chatInit.reason !== "no_admin") {

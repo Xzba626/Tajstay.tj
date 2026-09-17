@@ -88,6 +88,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     });
   }
 
+  const { queueBookingConfirmationDelivery } = await import("@/lib/bookings/bookingConfirmationDelivery");
+  queueBookingConfirmationDelivery(id, "booking.confirmed.pay_on_arrival");
+
   if (wantsJson(req)) {
     return NextResponse.json({
       ok: true,

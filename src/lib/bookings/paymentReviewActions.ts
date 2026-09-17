@@ -154,6 +154,10 @@ export async function confirmBookingPayment({ bookingId, actorId, actorRole, rea
   await prisma.notification.create({
     data: { userId: hotel.ownerId, bookingId, type: "PAYMENT_APPROVED", isRead: false }
   });
+
+  // Outbound receipt (Email/Telegram) — after commit; never rolls back confirmation.
+  const { queueBookingConfirmationDelivery } = await import("@/lib/bookings/bookingConfirmationDelivery");
+  queueBookingConfirmationDelivery(bookingId, "booking.confirmed.payment_captured");
 }
 
 export async function rejectBookingPayment({ bookingId, actorId, actorRole, reason }: ReviewActorParams): Promise<void> {

@@ -4,12 +4,18 @@ Read this before anything else. Load only the skill matching NEXT (see `CLAUDE.m
 Do not re-read old audit reports unless the task needs them. Keep this file short — DONE/OPEN/BLOCKED/
 NEXT, not a diary. Detailed rationale for a fix belongs in its commit message, not here.
 
-## CURRENT — OWNER BLOCK 6 = TECHNICALLY COMPLETE (LOCAL) · BLOCK 7 GATED STOP
+## CURRENT — MASTER FINAL BLOCK (PARTIAL — critical delivery/account paths)
 
-- **BASE:** `ac90ff3` · **IMPL:** `6fb0595` · **CLOSURE:** `3404a4f` · **HEAD:** `618a5a0`
-- **BLOCK 7:** **STOP** at gate — attempted while BLOCK 6 was PARTIAL; no Rooms/Categories/Media/360 mutations. Re-authorize BLOCK 7 from this HEAD.
-- **Closure:** `pms.viewByType/Room` tg/en; `section=object`→`properties`; matrix QA after DB restore; build EXIT=0.
-- Do not start Admin 6.2.
+- **BASE HEAD:** `8074d17` · **BLOCK 5:** `ac90ff3` · **BLOCK 6:** `3404a4f` · **BLOCK 7:** **MISSING** · **BLOCK 8:** **MISSING**
+- **MIGRATIONS:** 28 up to date · no new migration this pass
+- **FIXED (CODE + local tests):**
+  1. Booking confirm → `queueBookingConfirmationDelivery` (Resend email + Telegram Bot) + idempotent `TransactionLog`
+  2. Profile email change: challenge/verify APIs + UI (was «Скоро» mock)
+  3. Profile Telegram link/relink: `link_` deep-link + cookie-bound complete (was mock)
+- **EXTERNAL:** `RESEND_API_KEY` **absent** in local `.env` → EMAIL provider send = `BLOCKED_EXTERNAL` / fail-closed; Telegram bot token **present**
+- **NOT DONE this pass:** full screen×viewport×theme matrices; BLOCK 7 Rooms deep; full Admin crawl; production E2E inbox receipt
+- **NEXT:** continue MASTER crash matrices OR ship BLOCK 7 if product priority — do not claim FULL COMPLETE
+- SMS OTP = OUT OF SCOPE · no monetization / Admin redesign
 
 ## Governing instruction
 
