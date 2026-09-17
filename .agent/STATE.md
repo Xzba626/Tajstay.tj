@@ -7,7 +7,7 @@ NEXT, not a diary. Detailed rationale for a fix belongs in its commit message, n
 ## CURRENT — BLOCK 8C CLOSURE (LOCAL)
 
 - **BASE:** BLOCK 7 `4f35b7a` · BLOCK 8 `94531f4` · prior HEAD `395f9f4`
-- **BLOCK 8C SHA:** pending this commit
+- **BLOCK 8C SHA:** `677006b`
 - **TESTS:** `scripts/block8c-closure-tests.ts` **36/36 PASS**
   - Notifications prefs persist + list/mark IDOR
   - Owner Application pending → approve → OWNER; reject → reapply; admin-only approve gate
