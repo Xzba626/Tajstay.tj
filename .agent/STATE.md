@@ -4,25 +4,23 @@ Read this before anything else. Load only the skill matching NEXT (see `CLAUDE.m
 Do not re-read old audit reports unless the task needs them. Keep this file short — DONE/OPEN/BLOCKED/
 NEXT, not a diary. Detailed rationale for a fix belongs in its commit message, not here.
 
-## CURRENT — BLOCK 7 TECHNICALLY COMPLETE (LOCAL)
+## CURRENT — BLOCK 8 TECHNICALLY COMPLETE (LOCAL — core account gates)
 
-- **BLOCK 6 FINAL SHA:** `3404a4f` (docs gate `8074d17`)
-- **BLOCK 7 IMPLEMENTATION / CLOSURE:** pending this commit (Rooms gaps closed on top of Owner BLOCK 4 foundation)
-- **BLOCK 8:** **MISSING** (partial account/receipt work at `86a4f57` is MASTER FINAL partial — not full BLOCK 8)
-- **BASE HEAD before this pass:** `86a4f57`
-- **MIGRATIONS:** 28 up to date · no new migration
-- **BLOCK 7 DONE (CODE + tests + local runtime):**
-  1. Category edit UI + PATCH (price/capacity/amenities) with sync to physical rooms
-  2. Media/360 attach to existing category (`PUT /api/owner/room-types`)
-  3. Physical room archive → `status=ARCHIVED` (excluded from inventory lists)
-  4. Category SoT hardened: typed room POST no longer accepts commercial field overrides
-  5. Zero-room guest CTA: no `bookHref`; soldOut when dates selected
-  6. Booking `totalPrice` immutability proven when category price changes
-  7. Tests: `scripts/owner-block7-rooms-tests.ts` 15/15 + `owner-block4-tests.ts` 18/18
-  8. Runtime: `/dashboard/owner?section=rooms&hotelId=1` — add sheet, edit form, archive room, Owner nav OK
-- **360°:** honest equirectangular viewer only (not mesh 3D)
-- **NEXT:** BLOCK 8 Profile/Security/Become Owner/cross-role — MASTER FINAL NOT started
-- SMS OTP = OUT OF SCOPE · no Admin redesign
+- **BLOCK 6 FINAL SHA:** `3404a4f`
+- **BLOCK 7 FINAL SHA:** `4f35b7a`
+- **BLOCK 8 IMPLEMENTATION / CLOSURE:** pending this commit
+- **PRIOR HEAD:** `4f35b7a`
+- **MIGRATIONS:** 28 up to date
+- **BLOCK 8 DONE (CODE + tests):**
+  1. Profile password change: `/profile/password` + `POST /api/profile/password` (current hash verify, revoke other sessions)
+  2. Active sessions: `/profile/sessions` + `GET/DELETE /api/profile/sessions`
+  3. Security hub links: password · email · telegram · phone · sessions
+  4. Phone: honest blocked state (no fake SMS) — `profile.phoneChangeBlocked`
+  5. Email change chain proven in DB (`scripts/owner-block8-account-tests.ts` 8/8)
+  6. Email/Telegram UI from `86a4f57` retained; delivery still `BLOCKED_EXTERNAL` without Resend
+- **BLOCK 8 NOT matrix-closed:** full 320–1440 × Light/Dark × RU/TJ/EN walkthrough; Telegram real-bot E2E; production
+- **NEXT:** USER visual acceptance · MASTER FINAL only after explicit authorization
+- **DO NOT START:** MASTER FINAL crash test without user go-ahead
 
 ## Governing instruction
 

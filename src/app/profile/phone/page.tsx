@@ -32,7 +32,7 @@ export default async function ProfilePhonePage() {
       actionHref="/profile/phone"
       actionLabel={m(locale, "profile.changePhone")}
       blocked
-      blockedLabel={m(locale, "profile.comingSoon")}
+      blockedLabel={m(locale, "profile.phoneChangeBlocked")}
       verified={hasPhone && full.phoneVerified}
       verifiedLabel={m(locale, "profile.statusVerified")}
     />

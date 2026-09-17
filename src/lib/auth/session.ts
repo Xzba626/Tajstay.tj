@@ -10,6 +10,42 @@ export function generateSessionToken(): string {
   return crypto.randomBytes(32).toString("hex");
 }
 
+/** Resolve the DB session row for the current request cookie (legacy or Auth.js). */
+export async function getCurrentSessionRow(): Promise<{ id: number; userId: number } | null> {
+  try {
+    const cookieStore = cookies();
+    const legacyToken = cookieStore.get(SESSION_COOKIE)?.value;
+    const authjsToken =
+      cookieStore.get("authjs.session-token")?.value ??
+      cookieStore.get("__Secure-authjs.session-token")?.value ??
+      cookieStore.get("next-auth.session-token")?.value ??
+      cookieStore.get("__Secure-next-auth.session-token")?.value;
+
+    if (!legacyToken && !authjsToken) return null;
+
+    let session = legacyToken
+      ? await prisma.session.findUnique({
+          where: { token: legacyToken },
+          select: { id: true, userId: true, expiresAt: true, expires: true }
+        })
+      : null;
+
+    if (!session && authjsToken) {
+      session = await prisma.session.findUnique({
+        where: { sessionToken: authjsToken },
+        select: { id: true, userId: true, expiresAt: true, expires: true }
+      });
+    }
+
+    if (!session) return null;
+    const sessionExpiry = session.expiresAt ?? session.expires;
+    if (!sessionExpiry || sessionExpiry.getTime() < Date.now()) return null;
+    return { id: session.id, userId: session.userId };
+  } catch {
+    return null;
+  }
+}
+
 export async function getSessionUser(): Promise<User | null> {
   try {
     const cookieStore = cookies();
