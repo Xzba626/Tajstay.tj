@@ -52,8 +52,8 @@ export async function DELETE(req: NextRequest) {
     if (!id || id === current.id) {
       return NextResponse.json({ error: "invalid_session" }, { status: 400 });
     }
-    await prisma.session.deleteMany({ where: { id, userId: user.id } });
-    return NextResponse.json({ ok: true, revoked: 1 });
+    const result = await prisma.session.deleteMany({ where: { id, userId: user.id } });
+    return NextResponse.json({ ok: true, revoked: result.count });
   }
 
   const result = await prisma.session.deleteMany({

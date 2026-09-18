@@ -1902,7 +1902,12 @@ textarea {
 [class*="badge"],
 [class*="tag"],
 [class*="chip"],
-[class*="status"] {
+/* Do NOT match `.owner-status-card` / `.owner-status-*` — `[class*="status"]` was forcing
+   `white-space:nowrap` + `inline-flex` on the Become Owner status panel and caused mobile
+   horizontal document overflow (scrollWidth ~800 on 320px). */
+[class*="status-badge"],
+[class*="StatusBadge"],
+[class*="status-chip"] {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
@@ -2954,7 +2959,11 @@ body.app-shell--hidden-nav .cookie-consent {
 .owner-onboarding-page {
   margin-inline: auto;
   width: min(100%, var(--taj-page-max));
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 2rem var(--taj-page-px) 5rem;
+  /* Prevent desktop SSR / wide children from forcing horizontal document scroll on mobile. */
+  min-width: 0;
 }
 
 @media (min-width: 640px) {
@@ -2972,6 +2981,14 @@ body.app-shell--hidden-nav .cookie-consent {
 .owner-onboarding-grid {
   display: grid;
   gap: 2rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.owner-onboarding-sidebar,
+.owner-form-card {
+  min-width: 0;
+  max-width: 100%;
 }
 
 @media (min-width: 1024px) {
@@ -3167,13 +3184,18 @@ body.app-shell--hidden-nav .cookie-consent {
 
 .owner-status-card {
   margin-inline: auto;
-  max-width: 32rem;
+  width: 100%;
+  max-width: min(32rem, 100%);
+  box-sizing: border-box;
   border-radius: 1.5rem;
   border: 1px solid var(--taj-border, #e4e4e7);
   background: #ffffff;
   padding: 2rem 1.5rem;
   text-align: center;
   box-shadow: 0 12px 32px rgba(15, 35, 27, 0.08);
+  overflow-wrap: anywhere;
+  white-space: normal;
+  display: block;
 }
 
 .owner-status-icon {
