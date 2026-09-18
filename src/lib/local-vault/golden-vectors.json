@@ -1,0 +1,41 @@
+{
+  "keys": {
+    "pkcs8Der_b64": "MC4CAQAwBQYDK2VwBCIEIONxYgAyBmYlAke/b5RpZlUC6l9zgwPJ05Imhun16Sgz",
+    "spkiDer_b64": "MCowBQYDK2VwAyEA19wGjpWd+W8cUhz5rokD1eSRJ1aodkrAG9GsFUMSBak=",
+    "publicKey_b64url": "19wGjpWd-W8cUhz5rokD1eSRJ1aodkrAG9GsFUMSBak",
+    "publicKeyFp": "8bdfb9cbc7975341bc2493cb80c5433a4bf5048c6224bbf31e287825c9410e6c"
+  },
+  "activationPoP": {
+    "method": "POST",
+    "canonicalPath": "/api/local-vault/devices/activate",
+    "timestamp": "1700000000",
+    "nonce": "ABEiM0RVZneImaq7zN3u_w",
+    "bodyUtf8": "{\"activationCode\":\"48273194\",\"installationId\":\"inst_01HZXEXAMPLEINSTALL01\",\"deviceId\":\"dev_01HZXEXAMPLEDEVICE0001\",\"publicKey\":\"19wGjpWd-W8cUhz5rokD1eSRJ1aodkrAG9GsFUMSBak\",\"appVersion\":\"0.1.0\",\"platform\":\"windows\",\"architecture\":\"x64\"}",
+    "bodyHash": "73b05764c90d17a7c52e6e7f97e4861a70f9bd24ade027d81c0ddcf12a44f845",
+    "canonicalString": "POST\n/api/local-vault/devices/activate\n1700000000\nABEiM0RVZneImaq7zN3u_w\n19wGjpWd-W8cUhz5rokD1eSRJ1aodkrAG9GsFUMSBak\n73b05764c90d17a7c52e6e7f97e4861a70f9bd24ade027d81c0ddcf12a44f845",
+    "signature_b64url": "oybDETbVRgIOwSaB9XWQW5W9VfASHVIIJ2w7PVnez-c0LTS5DwQHSLDc0JDW8SDVLbKkHhDhVYEES664iz6QDw",
+    "subjectKey": "activate:8bdfb9cbc7975341bc2493cb80c5433a4bf5048c6224bbf31e287825c9410e6c"
+  },
+  "deviceHeartbeat": {
+    "method": "POST",
+    "canonicalPath": "/api/local-vault/devices/heartbeat",
+    "timestamp": "1700000000",
+    "nonce": "ABEiM0RVZneImaq7zN3u_w",
+    "deviceId": "dev_01HZXEXAMPLEDEVICE0001",
+    "bodyUtf8": "{\"ok\":true}",
+    "bodyHash": "4062edaf750fb8074e7e83e0c9028c94e32468a8b6f1614774328ef045150f93",
+    "canonicalString": "POST\n/api/local-vault/devices/heartbeat\n1700000000\nABEiM0RVZneImaq7zN3u_w\ndev_01HZXEXAMPLEDEVICE0001\n4062edaf750fb8074e7e83e0c9028c94e32468a8b6f1614774328ef045150f93",
+    "signature_b64url": "e6_3ttBtfo9sOglSmXSvGRLcUeNBaz-MpSPP8PfEd1cIph16NtBCW0k9P_67_fFeV4JneoQRxn6G-PVmQU_fAw",
+    "subjectKey": "device:dev_01HZXEXAMPLEDEVICE0001"
+  },
+  "codeDigestExample": {
+    "pepper": "test-pepper-do-not-use-in-prodXX",
+    "normalizedCode": "48273194",
+    "codeDigest": "372c96daba4e79c3f84d52ed41cc77f3731458bf8ae7913476c48acf871335d1"
+  },
+  "verify": {
+    "activationPoP": true,
+    "deviceHeartbeat": true,
+    "actSigRoundtrip": true
+  }
+}

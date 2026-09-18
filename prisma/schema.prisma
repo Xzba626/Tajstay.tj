@@ -55,6 +55,11 @@ model User {
   pushSubscriptions   PushSubscription[]
   notificationPreference NotificationPreference?
   hotelStaffMemberships HotelStaff[]
+
+  // Local Vault (Phase 2B.1)
+  localVaultCodesCreated     LocalVaultActivationCode[] @relation("LocalVaultCodeCreatedBy")
+  localVaultDevicesActivated LocalVaultDeviceBinding[]  @relation("LocalVaultDeviceActivatedBy")
+  localVaultDevicesRevoked   LocalVaultDeviceBinding[]  @relation("LocalVaultDeviceRevokedBy")
 }
 
 model Account {
@@ -136,6 +141,10 @@ model Hotel {
   subscription   HotelSubscription?
   expenses       HotelExpense[]
   ownerAuditLogs OwnerHotelAuditLog[]
+
+  // Local Vault (Phase 2B.1)
+  localVaultActivationCodes LocalVaultActivationCode[]
+  localVaultDevices         LocalVaultDeviceBinding[]
 }
 
 /// Per-Hotel TajStay subscription (canonical revenue: 0% booking commission, Hotel pays a
@@ -951,3 +960,102 @@ model OwnerHotelAuditLog {
   @@index([hotelId, action])
   @@index([actorUserId])
 }
+
+// =============================================================================
+// Local Vault — Phase 2B.1 (activation / device binding / PoP / durable RL)
+// Additive only. Isolated domain under /api/local-vault/**
+// =============================================================================
+
+enum LocalVaultDeviceStatus {
+  ACTIVE
+  REVOKED
+}
+
+/// One-time hotel activation code. Plaintext returned to Owner once at creation.
+/// Lookup: HMAC-SHA256(LOCAL_VAULT_CODE_PEPPER, normalizedCode) → codeDigest (hex).
+model LocalVaultActivationCode {
+  id              String    @id @default(cuid())
+  /// Hex-encoded HMAC-SHA256 digest (64 chars). Never store plaintext code.
+  codeDigest      String    @unique
+  hotelId         Int
+  hotel           Hotel     @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  createdByUserId Int?
+  createdByUser   User?     @relation("LocalVaultCodeCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  expiresAt       DateTime
+  usedAt          DateTime?
+  usedByDeviceId  String?
+  createdAt       DateTime  @default(now())
+
+  @@index([hotelId])
+  @@index([expiresAt])
+}
+
+/// Bound Local Vault desktop installation for exactly one Hotel.
+/// Invariant: one installationId ↔ one deviceId ↔ one Ed25519 publicKey (all UNIQUE).
+/// REVOKED + same identity + fresh code + valid PoP → reactivate same row (no new keypair).
+model LocalVaultDeviceBinding {
+  id                String                 @id @default(cuid())
+  deviceId          String                 @unique
+  installationId    String                 @unique
+  /// Ed25519 public key, base64url without padding.
+  publicKey         String                 @unique
+  /// SHA-256(raw 32-byte public key) as lowercase hex.
+  publicKeyFp       String                 @unique
+  hotelId           Int
+  hotel             Hotel                  @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  status            LocalVaultDeviceStatus @default(ACTIVE)
+  platform          String
+  architecture      String
+  appVersion        String?
+  activatedAt       DateTime               @default(now())
+  activatedByUserId Int?
+  activatedByUser   User?                  @relation("LocalVaultDeviceActivatedBy", fields: [activatedByUserId], references: [id], onDelete: SetNull)
+  lastSeenAt        DateTime?
+  revokedAt         DateTime?
+  revokedByUserId   Int?
+  revokedByUser     User?                  @relation("LocalVaultDeviceRevokedBy", fields: [revokedByUserId], references: [id], onDelete: SetNull)
+  revokeReason      String?
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+
+  @@index([hotelId, status])
+  @@index([lastSeenAt])
+}
+
+/// Replay protection. subjectKey: activate:<publicKeyFp> | device:<deviceId>
+model LocalVaultUsedNonce {
+  id         String   @id @default(cuid())
+  subjectKey String
+  nonce      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  @@unique([subjectKey, nonce])
+  @@index([expiresAt])
+}
+
+/// Durable multi-instance rate limiter (PostgreSQL).
+model LocalVaultRateBucket {
+  id        String   @id
+  count     Int      @default(0)
+  resetAt   DateTime
+  updatedAt DateTime @updatedAt
+
+  @@index([resetAt])
+}
+
+/// Append-only Local Vault security/ops events. No secrets / no plaintext codes.
+model LocalVaultAuditEvent {
+  id          String   @id @default(cuid())
+  hotelId     Int?
+  deviceId    String?
+  actorUserId Int?
+  action      String
+  metadata    String?
+  createdAt   DateTime @default(now())
+
+  @@index([hotelId, createdAt])
+  @@index([deviceId, createdAt])
+  @@index([action, createdAt])
+}
+
