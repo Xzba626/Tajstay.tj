@@ -6,6 +6,7 @@ NEXT, not a diary. Detailed rationale for a fix belongs in its commit message, n
 
 ## CURRENT — LOCAL VAULT PHASE 2B.2A OWNER ACTIVATION UI (LOCAL)
 
+- **FINAL SHA:** `eb846e73b3ea54bde03c7c054c7537083de05589`
 - **BASE:** `6c23c8abf6a20500275d6cc92de40ec8b74654ef` (2B.1A)
 - **DONE:** Owner `?section=local-vault` nav + panel; POST activation-codes UI; TTL UX; device list; revoke UI; RU/TJ/EN; AuthZ smoke
 - **PROD:** API origin `https://www.tajstay.site` routes present; **LOCAL_VAULT_CODE_PEPPER = MISSING** → production activation **BLOCKED**; prod DB migration **NOT PROVEN**
