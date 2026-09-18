@@ -367,6 +367,31 @@ async function main() {
       act1.reactivated === false && act1.device.status === "ACTIVE",
       act1.device.deviceId
     );
+    check(
+      "activate.context_hotel",
+      act1.hotel?.id === hotel.id &&
+        act1.hotel?.name === hotel.name &&
+        act1.device.hotelId === act1.hotel.id,
+      JSON.stringify(act1.hotel)
+    );
+    check(
+      "activate.context_owner",
+      act1.owner?.id === owner.id &&
+        act1.owner?.displayName === owner.name &&
+        typeof act1.owner?.displayName === "string" &&
+        act1.owner.displayName.length > 0,
+      JSON.stringify(act1.owner)
+    );
+    const act1Json = JSON.stringify(act1);
+    check(
+      "activate.minimal_exposure",
+      !act1Json.includes(owner.phone) &&
+        !(owner.email && act1Json.includes(owner.email)) &&
+        !act1Json.includes("password") &&
+        !("email" in (act1.owner as object)) &&
+        !("phone" in (act1.owner as object)),
+      "no PII beyond displayName"
+    );
 
     // ACTIVE same identity → DEVICE_ALREADY_BOUND
     const code2 = await createActivationCodeAs(ownerActor, { hotelId: hotel.id });
@@ -529,8 +554,9 @@ async function main() {
       );
     }
 
-    // REVOKED + fresh code + same identity → reactivate same binding
-    const codeRe = await createActivationCodeAs(ownerActor, { hotelId: hotel.id });
+    // REVOKED + fresh code created by ADMIN (activatedByUserId ≠ Hotel.ownerId)
+    // → response owner must still be current Hotel.ownerId
+    const codeRe = await createActivationCodeAs(adminActor, { hotelId: hotel.id });
     ids.codeIds.push(codeRe.id);
     const re = await signedActivate({
       activationCode: codeRe.activationCode,
@@ -547,6 +573,21 @@ async function main() {
       "reactivate.same_row",
       !!rowAfter && rowAfter.id === bindingId && rowAfter.status === LocalVaultDeviceStatus.ACTIVE,
       rowAfter?.id ?? "missing"
+    );
+    check(
+      "reactivate.context_hotel_owner",
+      re.hotel?.id === hotel.id &&
+        re.owner?.id === owner.id &&
+        re.owner?.displayName === owner.name,
+      JSON.stringify({ hotel: re.hotel, owner: re.owner })
+    );
+    check(
+      "reactivate.owner_not_activatedBy",
+      !!rowAfter &&
+        rowAfter.activatedByUserId === admin.id &&
+        re.owner?.id === owner.id &&
+        re.owner?.id !== admin.id,
+      `activatedBy=${rowAfter?.activatedByUserId} owner=${re.owner?.id}`
     );
 
     // Concurrent same activation code → exactly one succeeds

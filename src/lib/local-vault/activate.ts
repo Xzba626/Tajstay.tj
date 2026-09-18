@@ -19,6 +19,7 @@ import { consumeNonce, subjectActivate } from "@/lib/local-vault/nonce";
 import { assertLvRateLimits, lvClientIp, LV_RL } from "@/lib/local-vault/rateLimit";
 import { assertPlatformArch, assertHotelAvailableForActivation } from "@/lib/local-vault/authz";
 import { writeLvAudit, LV_AUDIT } from "@/lib/local-vault/audit";
+import { loadActivationAuthorityContext } from "@/lib/local-vault/activationContext";
 
 export type ActivateBody = {
   activationCode: string;
@@ -162,9 +163,12 @@ export async function activateDevice(req: Request, rawBody: Buffer, body: Activa
         metadata: { bindingId: updated.id, codeId: codeRow.id },
       });
 
+      const context = await loadActivationAuthorityContext(updated.hotelId);
       return {
         device: serializeDevice(updated),
         reactivated: true,
+        hotel: context.hotel,
+        owner: context.owner,
       };
     }
   }
@@ -204,7 +208,13 @@ export async function activateDevice(req: Request, rawBody: Buffer, body: Activa
       metadata: { bindingId: created.id, codeId: codeRow.id },
     });
 
-    return { device: serializeDevice(created), reactivated: false };
+    const context = await loadActivationAuthorityContext(created.hotelId);
+    return {
+      device: serializeDevice(created),
+      reactivated: false,
+      hotel: context.hotel,
+      owner: context.owner,
+    };
   } catch (e: unknown) {
     if (e instanceof LvError) throw e;
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {

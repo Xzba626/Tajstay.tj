@@ -4,7 +4,25 @@ Read this before anything else. Load only the skill matching NEXT (see `CLAUDE.m
 Do not re-read old audit reports unless the task needs them. Keep this file short — DONE/OPEN/BLOCKED/
 NEXT, not a diary. Detailed rationale for a fix belongs in its commit message, not here.
 
-## CURRENT — BLOCK 8C CLOSURE (LOCAL)
+## CURRENT — LOCAL VAULT PHASE 2B.1A ACTIVATION CONTEXT (LOCAL)
+
+- **BASE 2B.1 SHA:** `11ddd34c26157fa60e4be2e60e4a7dd58cac9fb2`
+- **PATCH:** activate success adds authoritative `hotel{id,name}` + `owner{id,displayName}` from `Hotel.ownerId` (not `activatedByUserId`)
+- **NO schema/migration**
+- **NEXT:** Claude Desktop 2A.2 consume hotel/owner context → then real Windows↔TajStay E2E
+- **DO NOT START on Cursor:** 2B.2 Admin/Owner LV UI
+
+## PRIOR — LOCAL VAULT PHASE 2B.1 CLOSED (LOCAL)
+
+- **FINAL SHA:** `11ddd34c26157fa60e4be2e60e4a7dd58cac9fb2`
+- **LV tests:** `scripts/local-vault-2b1-tests.ts` **31/31 PASS** (extended in 2B.1A)
+- **Non-regression:** block8c **36/36** · owner-block8 **8/8** · owner-block5c **60/60** (valid SEED; insecure SEED+`next start` → HTTP 500 is baseline `envGuard`, not LV)
+- **Golden vectors (versioned):** `src/lib/local-vault/golden-vectors.json`
+- **Production migrate:** NOT DONE
+- **Windows↔Backend E2E:** NOT PROVEN
+- **DO NOT START on Cursor:** 2B.2 Admin/Owner LV UI · 2B.3 Releases · Booking Delivery · Passport/Scanner/OCR
+
+## PRIOR — BLOCK 8C CLOSURE (LOCAL)
 
 - **BASE:** BLOCK 7 `4f35b7a` · BLOCK 8 `94531f4` · prior HEAD `395f9f4`
 - **BLOCK 8C SHA:** `677006b`
@@ -18,7 +36,6 @@ NEXT, not a diary. Detailed rationale for a fix belongs in its commit message, n
 - **BUILD:** `npm run build` **EXIT 0** (483561 ms)
 - **next start:** correctly **FAILS** without non-default `SEED_SECRET` (`envGuard`) — local prod-like blocked by design
 - **NOT DONE:** full 1280 desktop viewport screenshot matrix; production deploy; MASTER FINAL
-- **NEXT:** user review of 8C evidence → 8D only if gaps → else authorize MASTER FINAL
 - **DO NOT START:** MASTER FINAL without user go-ahead
 
 ## Governing instruction
