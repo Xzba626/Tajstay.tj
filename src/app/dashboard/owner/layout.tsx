@@ -48,6 +48,7 @@ export default async function OwnerDashboardLayout({ children }: { children: Rea
       statistics: m(locale, "owner.navStatistics"),
       activity: m(locale, "owner.navActivity"),
       staff: m(locale, "owner.navStaff"),
+      localVault: m(locale, "owner.navLocalVault"),
       help: m(locale, "owner.navHelp"),
       notifications: m(locale, "owner.navNotifications")
     },

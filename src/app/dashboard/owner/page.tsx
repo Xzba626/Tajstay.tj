@@ -29,6 +29,7 @@ import { OfflineBookingsList } from "@/components/owner/OfflineBookingsList";
 import { OwnerAnalyticsPanel } from "@/components/owner/OwnerAnalyticsPanel";
 import { OwnerActivityLogPanel } from "@/components/owner/OwnerActivityLogPanel";
 import { OwnerStaffPanel } from "@/components/owner/OwnerStaffPanel";
+import { OwnerLocalVaultPanel } from "@/components/owner/OwnerLocalVaultPanel";
 import { getHotelAnalytics } from "@/lib/owner/analytics/getHotelAnalytics";
 import type { HotelAnalyticsDto } from "@/lib/owner/analytics/getHotelAnalytics";
 import { OwnerCalendar } from "@/components/owner/OwnerCalendar";
@@ -70,6 +71,7 @@ type OwnerSection =
   | "analytics"
   | "activity"
   | "staff"
+  | "local-vault"
   | "help";
 
 const VALID_OWNER_SECTIONS = new Set<OwnerSection>([
@@ -87,6 +89,7 @@ const VALID_OWNER_SECTIONS = new Set<OwnerSection>([
   "analytics",
   "activity",
   "staff",
+  "local-vault",
   "help"
 ]);
 
@@ -109,7 +112,8 @@ const HOTEL_SCOPED_SECTIONS = new Set<OwnerSection>([
   "expenses",
   "analytics",
   "activity",
-  "staff"
+  "staff",
+  "local-vault"
 ]);
 
 function looksLikeTestValue(v: unknown) {
@@ -421,7 +425,13 @@ export default async function OwnerDashboardPage({
           select: { id: true, name: true }
         })
       : [];
-  } else if (activeSection === "analytics" || activeSection === "activity" || activeSection === "expenses" || activeSection === "staff") {
+  } else if (
+    activeSection === "analytics" ||
+    activeSection === "activity" ||
+    activeSection === "expenses" ||
+    activeSection === "staff" ||
+    activeSection === "local-vault"
+  ) {
     hotels = hotelId
       ? await prisma.hotel.findMany({
           where: { id: hotelId, ownerId: user.id },
@@ -1405,6 +1415,20 @@ export default async function OwnerDashboardPage({
           </div>
           {hotelId ? (
             <OwnerStaffPanel locale={locale} hotelId={hotelId} />
+          ) : (
+            <EmptyState title={m(locale, "owner.analytics.noHotel")} />
+          )}
+        </section>
+      )}
+
+      {activeSection === "local-vault" && (
+        <section id="local-vault" className="scroll-mt-28 space-y-4">
+          <div className="owner-section-head">
+            <span className="owner-section-head__bar" aria-hidden />
+            <h2 className="owner-section-head__title">{m(locale, "owner.localVault.title")}</h2>
+          </div>
+          {hotelId ? (
+            <OwnerLocalVaultPanel locale={locale} hotelId={hotelId} />
           ) : (
             <EmptyState title={m(locale, "owner.analytics.noHotel")} />
           )}

@@ -4,13 +4,20 @@ Read this before anything else. Load only the skill matching NEXT (see `CLAUDE.m
 Do not re-read old audit reports unless the task needs them. Keep this file short — DONE/OPEN/BLOCKED/
 NEXT, not a diary. Detailed rationale for a fix belongs in its commit message, not here.
 
-## CURRENT — LOCAL VAULT PHASE 2B.1A ACTIVATION CONTEXT (LOCAL)
+## CURRENT — LOCAL VAULT PHASE 2B.2A OWNER ACTIVATION UI (LOCAL)
+
+- **BASE:** `6c23c8abf6a20500275d6cc92de40ec8b74654ef` (2B.1A)
+- **DONE:** Owner `?section=local-vault` nav + panel; POST activation-codes UI; TTL UX; device list; revoke UI; RU/TJ/EN; AuthZ smoke
+- **PROD:** API origin `https://www.tajstay.site` routes present; **LOCAL_VAULT_CODE_PEPPER = MISSING** → production activation **BLOCKED**; prod DB migration **NOT PROVEN**
+- **DO NOT START:** Admin LV analytics · Releases · Booking Delivery · Passport/OCR/Scanner · Windows client changes
+- **NEXT (ops):** set Vercel `LOCAL_VAULT_CODE_PEPPER` (≥16 chars) + confirm `prisma migrate deploy` applied `20260918170000_local_vault_2b1` on prod → then Windows↔Owner E2E
+
+## PRIOR — LOCAL VAULT PHASE 2B.1A ACTIVATION CONTEXT (LOCAL)
 
 - **BASE 2B.1 SHA:** `11ddd34c26157fa60e4be2e60e4a7dd58cac9fb2`
 - **PATCH:** activate success adds authoritative `hotel{id,name}` + `owner{id,displayName}` from `Hotel.ownerId` (not `activatedByUserId`)
 - **NO schema/migration**
 - **NEXT:** Claude Desktop 2A.2 consume hotel/owner context → then real Windows↔TajStay E2E
-- **DO NOT START on Cursor:** 2B.2 Admin/Owner LV UI
 
 ## PRIOR — LOCAL VAULT PHASE 2B.1 CLOSED (LOCAL)
 

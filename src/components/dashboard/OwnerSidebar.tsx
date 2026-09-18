@@ -16,6 +16,7 @@ import {
   MessageSquare,
   ScrollText,
   Star,
+  MonitorSmartphone,
   UsersRound,
   Wallet
 } from "lucide-react";
@@ -59,6 +60,7 @@ export type OwnerSidebarLabels = {
     statistics: string;
     activity: string;
     staff: string;
+    localVault: string;
     help: string;
     notifications: string;
   };
@@ -96,6 +98,7 @@ function buildItems(labels: OwnerSidebarLabels): SidebarItem[] {
     { section: "requisites", label: labels.items.finances, Icon: CreditCard },
     { section: "activity", label: labels.items.activity, Icon: ScrollText },
     { section: "staff", label: labels.items.staff, Icon: UsersRound },
+    { section: "local-vault", label: labels.items.localVault, Icon: MonitorSmartphone },
     { section: "help", label: labels.items.help, Icon: CircleHelp },
     { section: "notifications", label: labels.items.notifications, Icon: Bell }
   ];
@@ -104,7 +107,7 @@ function buildItems(labels: OwnerSidebarLabels): SidebarItem[] {
 const MOBILE_PRIMARY = ["overview", "properties", "bookings", "calendar"] as const;
 
 const OWNER_DRAWER_GROUPS = [
-  { key: "operations" as const, sections: ["rooms", "offline-bookings", "staff"] },
+  { key: "operations" as const, sections: ["rooms", "offline-bookings", "staff", "local-vault"] },
   { key: "insights" as const, sections: ["analytics", "expenses", "requisites", "activity", "notifications"] },
   { key: "support" as const, hrefs: ["/dashboard/messages"], sections: ["help", "reviews"] as string[] }
 ];
@@ -112,7 +115,7 @@ const OWNER_DRAWER_GROUPS = [
 const OWNER_SIDEBAR_GROUPS = [
   { key: "overview" as const, sections: ["overview"] },
   { key: "properties" as const, sections: ["properties", "rooms"] },
-  { key: "operations" as const, sections: ["bookings", "calendar", "offline-bookings", "staff"] },
+  { key: "operations" as const, sections: ["bookings", "calendar", "offline-bookings", "staff", "local-vault"] },
   { key: "insights" as const, sections: ["analytics", "expenses", "requisites", "activity", "notifications"] },
   { key: "support" as const, sections: ["help", "reviews"], hrefs: ["/dashboard/messages"] as string[] }
 ];
