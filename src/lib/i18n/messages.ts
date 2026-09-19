@@ -1688,7 +1688,6 @@ const ru: Tree = {
     guideContentText: "В \"Контент\" обновляй баннер, в \"Уведомления\" очищай старые системные записи.",
     headerBrand: "TajStay Admin",
     headerBrandShort: "TajStay",
-    headerBrandContext: "Admin",
     headerNotificationsAria: "Уведомления",
     headerProfileAria: "Аккаунт администратора",
     headerAccountSecurity: "Безопасность аккаунта",
@@ -2043,7 +2042,6 @@ const ru: Tree = {
     },
     headerBrand: "TajStay Owner",
     headerBrandShort: "TajStay",
-    headerBrandContext: "Owner",
     finances: {
       title: "Реквизиты",
       hint: "Способы получения оплаты для выбранного объекта.",
@@ -4072,7 +4070,6 @@ const tg: Tree = {
     guideContentText: "Дар \"Контент\" баннерро нав кунед, дар \"Огоҳиҳо\" сабтҳои куҳнаро тоза кунед.",
     headerBrand: "TajStay Admin",
     headerBrandShort: "TajStay",
-    headerBrandContext: "Admin",
     headerNotificationsAria: "Огоҳиҳо",
     headerProfileAria: "Ҳисоби админ",
     headerAccountSecurity: "Амнияти ҳисоб",
@@ -4401,7 +4398,6 @@ const tg: Tree = {
     },
     headerBrand: "TajStay Owner",
     headerBrandShort: "TajStay",
-    headerBrandContext: "Owner",
     finances: {
       title: "Реквизитҳо",
       hint: "Усулҳои гирифтани пардохт барои объекти интихобшуда.",
@@ -6422,7 +6418,6 @@ const en: Tree = {
     guideContentText: "Update the banner in \"Content\" and clean old system records in \"Notifications\".",
     headerBrand: "TajStay Admin",
     headerBrandShort: "TajStay",
-    headerBrandContext: "Admin",
     headerNotificationsAria: "Notifications",
     headerProfileAria: "Admin account",
     headerAccountSecurity: "Account security",
@@ -6751,7 +6746,6 @@ const en: Tree = {
     },
     headerBrand: "TajStay Owner",
     headerBrandShort: "TajStay",
-    headerBrandContext: "Owner",
     finances: {
       title: "Payment details",
       hint: "How guests can pay for the selected property.",

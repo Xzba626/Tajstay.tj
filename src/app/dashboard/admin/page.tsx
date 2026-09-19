@@ -26,6 +26,7 @@ import { deriveEscrowState, getBookingGuestLabel } from "@/lib/domain/booking";
 import { bookingHotel } from "@/lib/pms/bookingContext";
 import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
 import { notificationText } from "@/lib/notifications/text";
+import { getAdminUnreadNotificationsCount } from "@/lib/notifications/unread";
 import { AdminDashboardOverview } from "@/components/admin/AdminDashboardOverview";
 import { AdminFinanceSection } from "@/components/admin/AdminFinanceSection";
 import { AdminSectionHead } from "@/components/admin/AdminSectionHead";
@@ -220,13 +221,7 @@ export default async function AdminDashboardPage({
       prisma.ownerApplication.count({ where: { status: OWNER_APPLICATION_STATUS.PENDING } }),
       prisma.hotel.count({ where: { status: "PENDING" } }),
       prisma.complaint.count({ where: { status: { not: "RESOLVED" } } }),
-      prisma.notification.count({
-        where: {
-          userId: admin.id,
-          isRead: false,
-          createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
-        }
-      }),
+      getAdminUnreadNotificationsCount(admin.id),
       prisma.booking.count({ where: { paymentStatus: "ON_REVIEW" } }),
       prisma.user.groupBy({ by: ["role"], _count: { _all: true } }),
       prisma.booking.groupBy({ by: ["status"], _count: { _all: true } })
@@ -369,13 +364,7 @@ export default async function AdminDashboardPage({
       })
     ]);
   } else if (activeSection === "notifications") {
-    unreadCount = await prisma.notification.count({
-      where: {
-        userId: admin.id,
-        isRead: false,
-        createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
-      }
-    });
+    unreadCount = await getAdminUnreadNotificationsCount(admin.id);
     totalRows = await prisma.notification.count();
     totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
     notes = await prisma.notification.findMany({

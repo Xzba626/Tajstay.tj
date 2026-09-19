@@ -5,16 +5,14 @@ import { AdminHeader } from "@/components/admin/AdminHeader";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
-import { prisma } from "@/lib/prisma";
+import { getAdminUnreadNotificationsCount } from "@/lib/notifications/unread";
 
 export default async function AdminDashboardLayout({ children }: { children: ReactNode }) {
   const admin = await requireAdmin();
   const locale = getLocale();
-  // Same 7-day unread window already used for the Dashboard's own notifications KPI
-  // (src/app/dashboard/admin/page.tsx) — the header bell reuses that definition, not a new one.
-  const unreadCount = await prisma.notification.count({
-    where: { userId: admin.id, isRead: false, createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } }
-  });
+  // Same 7-day admin-operational-only window used by the Dashboard's own notifications KPI
+  // (src/app/dashboard/admin/page.tsx) — both now share this one type-scoped query.
+  const unreadCount = await getAdminUnreadNotificationsCount(admin.id);
   const labels: AdminSidebarLabels = {
     sectionTitle: m(locale, "admin.navAdmin"),
     navLabel: m(locale, "admin.mobileNav"),
@@ -62,7 +60,6 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
       <AdminHeader
         locale={locale}
         brandPrimary={m(locale, "admin.headerBrandShort")}
-        brandSecondary={m(locale, "admin.headerBrandContext")}
         brandFull={m(locale, "admin.headerBrand")}
         adminName={admin.name || admin.phone}
         adminRoleLabel={m(locale, "roles.ADMIN")}

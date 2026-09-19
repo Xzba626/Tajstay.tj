@@ -197,6 +197,11 @@ body.app-shell--workspace .header-workspace-menu {
   pointer-events: auto;
 }
 
+/* Reclassified: this is the mobile equivalent of the persistent Admin/Owner sidebar (its "Ещё"
+   overflow), not a contextual dialog/popover — it IS primary navigation, just collapsed behind a
+   trigger on narrow viewports. Given the same brand-invariant green treatment as
+   .admin-sidebar/.owner-sidebar rather than the neutral-surface exception reserved for real
+   contextual popovers/tooltips/confirmation dialogs. */
 .workspace-mobile-drawer {
   position: fixed;
   top: calc(var(--workspace-header-height, 4.5rem) + env(safe-area-inset-top, 0px));
@@ -207,9 +212,9 @@ body.app-shell--workspace .header-workspace-menu {
   max-width: 92vw;
   display: flex;
   flex-direction: column;
-  border-left: 1px solid var(--ts-border-subtle, #e4e4e7);
-  background: #ffffff;
-  box-shadow: -8px 0 24px rgba(15, 23, 42, 0.12);
+  border-left: 1px solid var(--admin-accent, #0f7a4d);
+  background: #0f7a4d;
+  box-shadow: -8px 0 24px rgba(15, 23, 42, 0.24);
   animation: workspace-drawer-in 220ms ease-out;
   overscroll-behavior: contain;
   pointer-events: auto;
@@ -233,14 +238,14 @@ body.app-shell--workspace .header-workspace-menu {
   gap: 0.5rem;
   flex-shrink: 0;
   padding: 0.75rem 0.85rem;
-  border-bottom: 1px solid var(--ts-border-subtle, #e2e8f0);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.22);
 }
 
 .workspace-mobile-drawer__title {
   margin: 0;
   font-size: 0.875rem;
   font-weight: 700;
-  color: var(--ts-text-title, #0f172a);
+  color: #ffffff;
 }
 
 .workspace-mobile-drawer__close {
@@ -251,12 +256,17 @@ body.app-shell--workspace .header-workspace-menu {
   border: none;
   border-radius: 0.5rem;
   background: transparent;
-  color: var(--ts-text-muted, #475569);
+  color: #ffffff;
   cursor: pointer;
 }
 
 .workspace-mobile-drawer__close:hover {
-  background: var(--ts-surface-muted, #f1f5f3);
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.workspace-mobile-drawer__close:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
 }
 
 .workspace-mobile-drawer__body {
@@ -277,7 +287,7 @@ body.app-shell--workspace .header-workspace-menu {
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--ts-text-muted, #475569);
+  color: rgba(255, 255, 255, 0.78);
 }
 
 .workspace-mobile-drawer__link {
@@ -289,19 +299,25 @@ body.app-shell--workspace .header-workspace-menu {
   border-radius: 0.625rem;
   font-size: 0.8125rem;
   font-weight: 500;
-  color: var(--ts-text-secondary, #334155);
+  color: rgba(255, 255, 255, 0.85);
   text-decoration: none;
 }
 
 .workspace-mobile-drawer__link:hover {
-  background: var(--ts-surface-muted, #f1f5f3);
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+.workspace-mobile-drawer__link:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
 }
 
 .workspace-mobile-drawer__link.is-active {
-  background: #f4f4f5;
+  background: #ffffff;
   color: #0f7a4d;
   font-weight: 600;
-  box-shadow: inset 3px 0 0 #0f7a4d;
+  box-shadow: none;
 }
 
 .workspace-mobile-drawer__link-icon {

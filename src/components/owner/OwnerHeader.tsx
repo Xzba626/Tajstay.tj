@@ -10,7 +10,6 @@ import type { Locale } from "@/lib/i18n/locale";
 type Props = {
   locale: Locale;
   brandPrimary: string;
-  brandSecondary: string;
   brandFull: string;
   hotels: OwnerSwitcherHotel[];
   labels: OwnerSidebarLabels;
@@ -20,10 +19,11 @@ type Props = {
  * Canonical Owner mobile header: green brand surface + TajStay mark/wordmark only.
  * Hotel switcher lives in OwnerHotelToolbar (content), not the global header.
  * Language stays in Profile — not Owner chrome.
+ * Visible brand text is plain "TajStay" (role context comes from the panel itself, not a header
+ * suffix) — `brandFull` ("TajStay Owner") is kept for the link's accessible name/title only.
  */
 export function OwnerHeader({
   brandPrimary,
-  brandSecondary,
   brandFull,
   hotels,
   labels
@@ -33,10 +33,7 @@ export function OwnerHeader({
       <div className="owner-header__inner">
         <Link href="/dashboard/owner" className="owner-header__brand" title={brandFull} aria-label={brandFull}>
           <BrandMark showName={false} size="sm" />
-          <span className="owner-header__brand-text">
-            {brandPrimary}
-            <span className="owner-header__brand-context"> {brandSecondary}</span>
-          </span>
+          <span className="owner-header__brand-text">{brandPrimary}</span>
         </Link>
 
         {/* Desktop only — CSS hides on mobile */}

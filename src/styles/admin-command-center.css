@@ -183,6 +183,42 @@
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35);
 }
 
+/* Real defect found while auditing the reported screenshot: `AnalyticsDonut` renders its own
+   `.analytics-donut__center` / `.analytics-legend` classes (ds-components.css) — completely
+   different from `.workspace-kpi-legend` above, which belongs to a *different* component
+   (WorkspaceKpiBar) and never matches here. On a `--brand` (green) card, the donut's own center
+   value/label and legend text were left on their default dark-on-transparent colors — invisible
+   on green. Additionally the "success" segment stroke (#0f7a4d) is IDENTICAL to the card's own
+   green background, so a confirmed/approved arc visually disappears into the card. Both fixed
+   here, scoped to brand cards only — default (non-green) KPI cards are unaffected. */
+.admin-kpi-card--brand .analytics-donut__center strong,
+.admin-kpi-card--brand .analytics-donut__center span,
+.admin-kpi-card--brand .analytics-legend__label,
+.admin-kpi-card--brand .analytics-legend__value,
+.admin-kpi-card--brand .analytics-legend__value em {
+  color: var(--ts-text-on-brand, #ffffff);
+}
+
+.admin-kpi-card--brand .analytics-donut__track {
+  stroke: rgba(255, 255, 255, 0.25);
+}
+
+.admin-kpi-card--brand .analytics-donut__seg--success {
+  /* Was #0f7a4d — identical to this card's own background, making a "success" arc invisible.
+     NOT recolored to gold/amber: #d97706 is this app's canonical warning/pending color
+     (used throughout admin-command-center.css), and an earlier attempt at a lighter gold
+     (#facc15) was still close enough to that family to risk reading "success" as "pending" —
+     a real semantic-meaning regression, not just an aesthetic one. Solid white has no existing
+     semantic meaning in this chart's warning(amber)/danger(red)/info(blue)/neutral(gray) palette,
+     reads as the strongest/cleanest mark against the green fill, and doesn't collide with any
+     other segment's tone. */
+  stroke: #ffffff;
+}
+
+.admin-kpi-card--brand .analytics-legend__dot--success {
+  background: #ffffff;
+}
+
 .admin-kpi-visual {
   margin-top: 0.45rem;
 }
@@ -270,11 +306,15 @@
   background: #64748b;
 }
 
-/* Attention queue */
+/* Attention queue — real defect: used the neutral `--admin-surface` token, which is `#16211c`
+   (near-black) in dark mode — not an intentional dark-theme surface, just the generic neutral
+   card token flipping with the page. Reported screenshot showed this as an unwanted "almost
+   black" standalone block. Converted to the same brand-invariant green surface as the KPI cards
+   — green stays green in both Light and Dark, matching the rest of this pass's brand-surface rule. */
 .admin-attention-panel {
-  border: 1px solid var(--admin-border);
+  border: 1px solid var(--admin-accent);
   border-radius: 0.75rem;
-  background: var(--admin-surface);
+  background: var(--admin-accent);
   overflow: hidden;
 }
 
@@ -284,15 +324,14 @@
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.75rem 0.9rem;
-  border-bottom: 1px solid var(--admin-border);
-  background: var(--admin-surface-muted);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.22);
 }
 
 .admin-attention-panel__title {
   margin: 0;
   font-size: 0.875rem;
   font-weight: 700;
-  color: var(--admin-text);
+  color: #ffffff;
 }
 
 .admin-attention-panel__count {
@@ -303,8 +342,8 @@
   height: 1.375rem;
   padding: 0 0.35rem;
   border-radius: 999px;
-  background: var(--admin-accent);
-  color: #fff;
+  background: #ffffff;
+  color: var(--admin-accent);
   font-size: 0.6875rem;
   font-weight: 700;
 }
@@ -331,7 +370,7 @@
 }
 
 .admin-attention-item:hover {
-  background: var(--admin-surface-muted);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .admin-attention-item__icon {
@@ -343,23 +382,26 @@
   flex-shrink: 0;
 }
 
+/* Warning/danger/info icon chips keep their semantic accent color but move to a translucent-white
+   soft background (was a light near-white soft tone meant for a neutral card, invisible/mismatched
+   on the new green surface). */
 .admin-attention-item__icon--warning {
-  background: var(--admin-warning-soft);
+  background: rgba(255, 255, 255, 0.9);
   color: #b45309;
 }
 
 .admin-attention-item__icon--danger {
-  background: var(--admin-danger-soft);
+  background: rgba(255, 255, 255, 0.9);
   color: #dc2626;
 }
 
 .admin-attention-item__icon--info {
-  background: var(--admin-info-soft);
+  background: rgba(255, 255, 255, 0.9);
   color: #0284c7;
 }
 
 .admin-attention-item__icon--accent {
-  background: var(--admin-accent-soft);
+  background: #ffffff;
   color: var(--admin-accent);
 }
 
@@ -371,13 +413,13 @@
 .admin-attention-item__label {
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--admin-text);
+  color: #ffffff;
 }
 
 .admin-attention-item__hint {
   margin-top: 0.1rem;
   font-size: 0.75rem;
-  color: var(--admin-text-muted);
+  color: rgba(255, 255, 255, 0.78);
 }
 
 .admin-attention-item__action {
@@ -385,21 +427,21 @@
   margin-top: 0.35rem;
   font-size: 0.6875rem;
   font-weight: 700;
-  color: var(--admin-accent);
+  color: #ffffff;
 }
 
 .admin-attention-item__badge {
   flex-shrink: 0;
   font-size: 0.8125rem;
   font-weight: 700;
-  color: var(--admin-text);
+  color: #ffffff;
   font-variant-numeric: tabular-nums;
 }
 
 .admin-attention-empty {
   padding: 1.25rem 0.9rem;
   font-size: 0.8125rem;
-  color: var(--admin-text-muted);
+  color: rgba(255, 255, 255, 0.78);
   text-align: center;
 }
 
@@ -436,7 +478,10 @@
   color: var(--admin-text-secondary);
 }
 
-/* Desktop sidebar */
+/* Desktop sidebar — real defect confirmed via runtime screenshot: background was `--admin-surface`
+   (near-white, same family as the page background it sits on), so the sidebar visually disappeared
+   against the page instead of reading as persistent brand navigation chrome. Converted to the same
+   brand-invariant green as the KPI/attention cards — green in both Light and Dark. */
 .admin-sidebar {
   position: sticky;
   top: 3.5rem;
@@ -447,8 +492,8 @@
   flex-shrink: 0;
   flex-direction: column;
   padding: 1rem 0.65rem 1rem 0.85rem;
-  border-right: 1px solid var(--admin-border);
-  background: var(--admin-surface);
+  border-right: 1px solid var(--admin-accent);
+  background: var(--admin-accent);
 }
 
 @media (min-width: 1024px) {
@@ -464,7 +509,7 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--admin-text-muted);
+  color: rgba(255, 255, 255, 0.78);
 }
 
 .admin-sidebar__nav {
@@ -485,7 +530,7 @@
 .admin-sidebar__group + .admin-sidebar__group {
   margin-top: 0.35rem;
   padding-top: 0.35rem;
-  border-top: 1px solid var(--admin-border);
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
 }
 
 .admin-sidebar__group-label {
@@ -495,7 +540,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--admin-text-muted);
+  color: rgba(255, 255, 255, 0.78);
 }
 
 .admin-sidebar__link {
@@ -506,18 +551,23 @@
   padding: 0.5rem 0.55rem;
   font-size: 0.8125rem;
   font-weight: 500;
-  color: var(--admin-text-secondary);
+  color: rgba(255, 255, 255, 0.85);
   text-decoration: none;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
 .admin-sidebar__link:hover {
-  background: var(--admin-surface-muted);
-  color: var(--admin-text);
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+.admin-sidebar__link:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
 }
 
 .admin-sidebar__link.is-active {
-  background: var(--admin-accent-soft);
+  background: #ffffff;
   color: var(--admin-accent);
   font-weight: 600;
 }
@@ -793,6 +843,11 @@
   color: var(--admin-text-secondary);
 }
 
+/* Real defect found in this closure's shared-primitive re-audit: background was a hardcoded
+   `#fff` while `color` used the theme-flipping `--admin-text` token — in Dark Mode `--admin-text`
+   resolves to a light color, giving light text on a permanently-white input across EVERY admin
+   form platform-wide (Applications, Content, every create/edit dialog). Paired with the matching
+   `--admin-surface` token instead, so background and text always flip together. */
 .admin-command-center .admin-field input,
 .admin-command-center .admin-field textarea,
 .admin-command-center .admin-field select,
@@ -804,7 +859,7 @@
   width: 100%;
   border: 1px solid var(--admin-border);
   border-radius: 0.625rem;
-  background: #fff;
+  background: var(--admin-surface);
   color: var(--admin-text);
   padding: 0.55rem 0.65rem;
   font-size: 0.8125rem;
@@ -1330,6 +1385,13 @@
    BLOCK ADMIN 6.1 — TajStay Admin authenticated header + shell foundation
    ================================================================ */
 
+/* Real miss from the first pass of this BLOCK: the sidebar/KPI-cards/attention-panel were
+   converted to the brand-invariant green surface, but the header itself — the most visible piece
+   of "operational chrome" — was left on its original hardcoded white background the whole time.
+   Caught only by re-reading this file end-to-end for this closure pass, not by the earlier
+   component-level edits. Converted here, along with every child element that assumed a white/near-
+   black-on-white context (brand text, icon buttons, badge stayed amber — that's a semantic
+   unread-count color, not a surface color, kept distinct from the header background either way). */
 .admin-header {
   position: sticky;
   top: 0;
@@ -1337,8 +1399,8 @@
   height: 3.5rem;
   display: flex;
   align-items: center;
-  background: #ffffff;
-  border-bottom: 1px solid var(--ts-border-subtle, #e2e8f0);
+  background: var(--admin-accent, #0f7a4d);
+  border-bottom: 1px solid var(--admin-accent, #0f7a4d);
 }
 
 .admin-header__inner {
@@ -1366,14 +1428,14 @@
 }
 
 .admin-header__brand:focus-visible {
-  outline: 2px solid var(--admin-accent, #0f7a4d);
+  outline: 2px solid #ffffff;
   outline-offset: 2px;
 }
 
 .admin-header__brand-text {
   font-weight: 700;
   font-size: 1rem;
-  color: var(--admin-text, #14231b);
+  color: #ffffff;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1425,13 +1487,18 @@
   width: 2.75rem;
   height: 2.75rem;
   border-radius: 0.625rem;
-  color: var(--admin-text-secondary, #334155);
+  color: rgba(255, 255, 255, 0.85);
   transition: background 0.15s ease, color 0.15s ease;
 }
 
 .admin-header__icon-btn:hover {
-  background: var(--admin-surface-muted, #f4f6f5);
-  color: var(--admin-text, #0f172a);
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+.admin-header__icon-btn:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
 }
 
 .admin-header__badge {
@@ -1445,8 +1512,11 @@
   align-items: center;
   justify-content: center;
   border-radius: 999px;
+  /* Amber is this app's canonical "unread/pending" semantic color, kept as-is — a white ring
+     separates it from the now-green header background so it doesn't blend in. */
   background: #d97706;
   color: #fff;
+  box-shadow: 0 0 0 1.5px var(--admin-accent, #0f7a4d);
   font-size: 0.5625rem;
   font-weight: 700;
   line-height: 1;
@@ -1468,14 +1538,18 @@
 }
 
 .admin-header__avatar {
+  /* Was green-on-transparent, matching the old white header. Now that the header itself is
+     green, a green avatar chip would blend into it — flipped to white-on-green (same "neutral
+     control on a brand surface" pattern used for the hotel-switcher pill and dropdown triggers
+     elsewhere in this pass) so it stays a distinct, readable chip. */
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 2rem;
   height: 2rem;
   border-radius: 999px;
-  background: var(--admin-accent, #0f7a4d);
-  color: #fff;
+  background: #ffffff;
+  color: var(--admin-accent, #0f7a4d);
   font-size: 0.75rem;
   font-weight: 700;
 }

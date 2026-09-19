@@ -142,7 +142,7 @@ export function AdminDashboardOverview({ locale, stats, riskNotes, basePath }: P
           />
         </article>
 
-        <article className="admin-kpi-card admin-kpi-card--visual">
+        <article className="admin-kpi-card admin-kpi-card--visual admin-kpi-card--brand">
           <div className="admin-kpi-card__label">{m(locale, "admin.users")}</div>
           <div className="admin-kpi-card__value">{stats.userTotal.toLocaleString()}</div>
           <AnalyticsDonut
@@ -217,7 +217,7 @@ export function AdminDashboardOverview({ locale, stats, riskNotes, basePath }: P
                     <span className="admin-attention-item__action">{m(locale, "admin.attentionOpen")}</span>
                   </span>
                   <span className="admin-attention-item__badge">{item.count}</span>
-                  <ChevronRight className="h-4 w-4 shrink-0 text-[var(--admin-text-muted)]" aria-hidden />
+                  <ChevronRight className="h-4 w-4 shrink-0 text-white/80" aria-hidden />
                 </Link>
               </li>
             ))}

@@ -69,7 +69,6 @@ export default async function OwnerDashboardLayout({ children }: { children: Rea
       <OwnerHeader
         locale={locale}
         brandPrimary={m(locale, "owner.headerBrandShort")}
-        brandSecondary={m(locale, "owner.headerBrandContext")}
         brandFull={m(locale, "owner.headerBrand")}
         hotels={hotels}
         labels={labels}

@@ -7,7 +7,6 @@ import type { Locale } from "@/lib/i18n/locale";
 type Props = {
   locale: Locale;
   brandPrimary: string;
-  brandSecondary: string;
   brandFull: string;
   adminName: string;
   adminRoleLabel: string;
@@ -25,7 +24,6 @@ type Props = {
 export function AdminHeader({
   locale: _locale,
   brandPrimary,
-  brandSecondary,
   brandFull,
   adminName,
   adminRoleLabel,
@@ -37,16 +35,13 @@ export function AdminHeader({
   return (
     <header className="admin-header">
       <div className="admin-header__inner">
-        {/* 6.1A closure: at 320px "TajStay Admin" previously ellipsized to "TajStay A…" — a
-         * truncated brand/context reads worse than a deliberately short one. The "Admin" word
-         * is now a separate span, hidden below 380px via CSS instead of being cut mid-word;
-         * `brandFull` carries the complete name for the link's accessible name/title. */}
+        {/* Per explicit product direction: the visible header brand is plain "TajStay" — role
+         * context ("Admin") is already established by the panel itself (sidebar, page content),
+         * not by suffixing the brand name. `brandFull` (still "TajStay Admin") is kept for the
+         * link's accessible name/title only, so screen readers retain that context. */}
         <Link href="/" className="admin-header__brand" title={brandFull} aria-label={brandFull}>
           <BrandMark showName={false} size="sm" />
-          <span className="admin-header__brand-text">
-            {brandPrimary}
-            <span className="admin-header__brand-context"> {brandSecondary}</span>
-          </span>
+          <span className="admin-header__brand-text">{brandPrimary}</span>
         </Link>
 
         <div className="admin-header__actions">

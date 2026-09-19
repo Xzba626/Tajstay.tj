@@ -44,6 +44,8 @@
   }
 }
 
+/* Same defect and fix as .admin-sidebar (admin-command-center.css): background was
+   `--owner-surface` (near-white), visually disappearing against the page. Brand-invariant green. */
 .owner-sidebar {
   position: sticky;
   top: 3.5rem;
@@ -54,8 +56,8 @@
   flex-shrink: 0;
   flex-direction: column;
   padding: 1rem 0.65rem 1rem 0.85rem;
-  border-right: 1px solid var(--owner-border);
-  background: var(--owner-surface);
+  border-right: 1px solid var(--owner-accent);
+  background: var(--owner-accent);
 }
 
 @media (min-width: 1024px) {
@@ -71,7 +73,7 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--owner-text-muted);
+  color: rgba(255, 255, 255, 0.78);
 }
 
 .owner-sidebar__switcher {
@@ -88,15 +90,17 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--owner-text-muted);
+  color: rgba(255, 255, 255, 0.78);
 }
 
+/* The hotel switcher <select> stays a neutral white control (per the "inputs/selects remain
+   readable neutral surfaces inside a green container" rule) rather than green-on-green. */
 .owner-sidebar__switcher-select {
   width: 100%;
-  border: 1px solid var(--owner-border);
+  border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: 0.625rem;
-  background: var(--owner-surface-muted);
-  color: var(--owner-text);
+  background: #ffffff;
+  color: #14231b;
   font-size: 0.8125rem;
   font-weight: 600;
   padding: 0.5rem 0.6rem;
@@ -124,7 +128,7 @@
 .owner-sidebar__group + .owner-sidebar__group {
   margin-top: 0.35rem;
   padding-top: 0.35rem;
-  border-top: 1px solid var(--owner-border);
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
 }
 
 .owner-sidebar__group-label {
@@ -134,7 +138,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--owner-text-muted);
+  color: rgba(255, 255, 255, 0.78);
 }
 
 .owner-sidebar__link {
@@ -145,18 +149,23 @@
   padding: 0.5rem 0.55rem;
   font-size: 0.8125rem;
   font-weight: 500;
-  color: var(--owner-text-secondary);
+  color: rgba(255, 255, 255, 0.85);
   text-decoration: none;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
 .owner-sidebar__link:hover {
-  background: var(--owner-surface-muted);
-  color: var(--owner-text);
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+.owner-sidebar__link:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
 }
 
 .owner-sidebar__link.is-active {
-  background: var(--owner-accent-soft);
+  background: #ffffff;
   color: var(--owner-accent);
   font-weight: 600;
 }
@@ -675,12 +684,16 @@
   color: var(--owner-text);
 }
 
+/* Same defect and fix as admin-command-center.css's shared field rule: background was hardcoded
+   `#ffffff` while `color` uses the theme-flipping `--owner-text` token — invisible text on a
+   permanently-white field in Dark Mode, across every Owner form (Rooms, Categories, Staff, Offline
+   Booking, ...). Paired with `--owner-surface` so both flip together. */
 .owner-input {
   width: 100%;
   height: 2.75rem;
   border: 1px solid var(--owner-border);
   border-radius: 0.625rem;
-  background: #ffffff;
+  background: var(--owner-surface);
   padding: 0 0.85rem;
   font-size: 0.875rem;
   color: var(--owner-text);
@@ -705,7 +718,7 @@
   min-height: 5rem;
   border: 1px solid var(--owner-border);
   border-radius: 0.75rem;
-  background: #ffffff;
+  background: var(--owner-surface);
   padding: 0.65rem 0.85rem;
   font-size: 0.875rem;
   color: var(--owner-text);
@@ -717,7 +730,7 @@
   height: 2.75rem;
   border: 1px solid var(--owner-border);
   border-radius: 0.625rem;
-  background: #ffffff;
+  background: var(--owner-surface);
   padding: 0 0.65rem;
   font-size: 0.875rem;
   color: var(--owner-text);
