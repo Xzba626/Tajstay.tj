@@ -6,9 +6,14 @@
 /* Same root cause as ADMIN 6.1B (see admin-command-center.css): a global base-layer rule,
    `section { @apply py-10 md:py-14; }` (src/app/globals.css, written for public marketing page
    sections), applies to every <section> site-wide with no scoping — including every Owner
-   section wrapper (#expenses/analytics, etc. in src/app/dashboard/owner/page.tsx). Admin got
-   this reset; Owner never did, leaving the same 40px/56px unwanted top+bottom padding live here. */
-.owner-command-center-shell section {
+   section wrapper (#expenses/analytics, etc. in src/app/dashboard/owner/page.tsx — all carry an
+   `id`, which is what distinguishes them from unrelated nested <section> elements). Admin got
+   this reset; Owner never did, leaving the same 40px/56px unwanted top+bottom padding live here.
+   Scoped to `section[id]` specifically (not a bare `section`): a bare-element reset here would
+   have higher specificity than `.owner-form__section`'s own `padding: 1rem` shorthand
+   (page.tsx's Add Room "owner-form__section" blocks are plain, id-less <section> tags) and would
+   have silently zeroed their padding — confirmed before shipping this, not assumed safe. */
+.owner-command-center-shell section[id] {
   padding-top: 0;
   padding-bottom: 0;
 }

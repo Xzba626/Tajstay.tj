@@ -499,7 +499,6 @@ const ru: Tree = {
       openingCheckout: "Открываю оформление на странице отеля."
     },
     history: {
-      filterTitle: "Фильтры истории",
       quickAll: "Все",
       quickConfirmed: "Подтверждённые",
       quickUnconfirmed: "Неподтверждённые",
@@ -2889,7 +2888,6 @@ const tg: Tree = {
       openingCheckout: "Расмиёт дар саҳифаи меҳмонхона кушода мешавад."
     },
     history: {
-      filterTitle: "Филтрҳои таърих",
       quickAll: "Ҳама",
       quickConfirmed: "Тасдиқшуда",
       quickUnconfirmed: "Тасдиқнашуда",
@@ -5241,7 +5239,6 @@ const en: Tree = {
       openingCheckout: "Opening checkout on the hotel page."
     },
     history: {
-      filterTitle: "History filters",
       quickAll: "All",
       quickConfirmed: "Confirmed",
       quickUnconfirmed: "Unconfirmed",

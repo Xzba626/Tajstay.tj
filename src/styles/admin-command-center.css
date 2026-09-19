@@ -1495,7 +1495,11 @@
   width: 15.5rem;
   border: 1px solid var(--admin-border, #e2e8f0);
   border-radius: 0.75rem;
-  background: #ffffff;
+  /* Root cause of the dark-mode "text disappears" bug: surface was hardcoded white while
+     --admin-text/--admin-text-muted (used below) are theme-aware and flip to a LIGHT color in
+     dark mode — light text on a hardcoded white surface. Tying surface to the same token family
+     so both flip together. */
+  background: var(--admin-surface, #ffffff);
   box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
   padding: 0.5rem;
   opacity: 0;
