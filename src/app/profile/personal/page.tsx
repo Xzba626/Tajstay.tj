@@ -54,7 +54,7 @@ export default async function ProfilePersonalPage() {
   const emailVerified = Boolean(full.emailVerified || (full.email?.trim() && full.verified));
 
   return (
-    <ProfileSubpageShell locale={locale} title={m(locale, "profile.personalInfo")} subtitle={m(locale, "profile.personalSubtitle")}>
+    <ProfileSubpageShell locale={locale} title={m(locale, "profile.personalInfo")} headerVariant="brandCompact">
       <div className="profile-panel flex items-center gap-4">
         <ProfileAvatar name={full.name} imageUrl={full.image ?? full.telegramPhotoUrl} />
         <div>
@@ -75,6 +75,7 @@ export default async function ProfilePersonalPage() {
             saving: m(locale, "profile.nameSaving"),
             cancel: m(locale, "profile.nameCancel"),
             error: m(locale, "profile.nameUpdateError"),
+            success: m(locale, "profile.nameUpdateSuccess"),
             notSet: m(locale, "profile.notSet")
           }}
         />

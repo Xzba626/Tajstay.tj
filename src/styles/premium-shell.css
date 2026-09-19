@@ -57,6 +57,46 @@
   max-width: 36ch;
 }
 
+/* Compact brand header (opt-in, ScreenHeader variant="brandCompact"): back-left on an
+   always-green surface, invariant across Light/Dark per the brand-surface rule — page surfaces
+   flip with theme, intentional brand chrome does not. Currently used by Personal Information
+   only; every other ProfileSubpageShell caller keeps the default (unchanged) header above. */
+.app-screen-header--brand-compact {
+  align-items: center;
+  gap: 0.6rem;
+  margin: -0.25rem -1px 1rem;
+  padding: 0.65rem 0.9rem;
+  border-radius: 0.85rem;
+  background: #0f7a4d;
+}
+
+.app-screen-header--brand-compact .app-screen-header__title {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+}
+
+.app-screen-header--brand-compact .profile-back-button {
+  flex-shrink: 0;
+  color: #ffffff;
+}
+
+.app-screen-header--brand-compact .profile-back-button:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.app-screen-header--brand-compact .profile-back-button:focus-visible {
+  outline-color: #ffffff;
+}
+
+.app-screen-header--brand-compact .profile-back-button span {
+  /* Icon-only affordance is enough once the button sits inline before a visible page title —
+     keeps the compact header from crowding on narrow (320px) viewports. */
+  display: none;
+}
+
 /* ---- Hub link cards (profile, settings) ---- */
 .app-hub-grid {
   display: flex;

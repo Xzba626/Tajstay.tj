@@ -14,6 +14,7 @@ type Props = {
     saving: string;
     cancel: string;
     error: string;
+    success: string;
     notSet: string;
   };
 };
@@ -25,6 +26,7 @@ export function PersonalNameEditor({ firstName: initialFirst, lastName: initialL
   const [lastName, setLastName] = useState(initialLast);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
 
   async function save() {
     if (!firstName.trim()) return;
@@ -39,6 +41,7 @@ export function PersonalNameEditor({ firstName: initialFirst, lastName: initialL
       });
       if (!res.ok) throw new Error("failed");
       setEditing(false);
+      setJustSaved(true);
       router.refresh();
     } catch {
       setError(true);
@@ -60,9 +63,21 @@ export function PersonalNameEditor({ firstName: initialFirst, lastName: initialL
       <div className="profile-info-row">
         <span className="profile-info-row__label">{labels.firstName} / {labels.lastName}</span>
         <span className="profile-info-row__value">{fullName}</span>
-        <button type="button" onClick={() => setEditing(true)} className="profile-info-row__edit-trigger">
+        <button
+          type="button"
+          onClick={() => {
+            setJustSaved(false);
+            setEditing(true);
+          }}
+          className="profile-info-row__edit-trigger"
+        >
           {labels.edit}
         </button>
+        {justSaved ? (
+          <p className="profile-edit-field__success" role="status">
+            {labels.success}
+          </p>
+        ) : null}
       </div>
     );
   }

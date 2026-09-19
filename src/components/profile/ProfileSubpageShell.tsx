@@ -9,12 +9,16 @@ export function ProfileSubpageShell({
   title,
   subtitle,
   backHref = "/profile",
+  headerVariant = "default",
   children
 }: {
   locale: Locale;
   title: string;
   subtitle?: string;
   backHref?: string;
+  /** "brandCompact": back-left on a green brand surface — opt-in per page (see ScreenHeader).
+   * Default is unchanged for every existing caller (Support, Legal, Sessions, Notifications, …). */
+  headerVariant?: "default" | "brandCompact";
   children: React.ReactNode;
 }) {
   return (
@@ -26,11 +30,19 @@ export function ProfileSubpageShell({
           pure extra padding on top of content that already fit — confirmed live: it alone produced
           a 42px phantom scroll range at 320x568 even after the other two redundant paddings were
           removed. Deleted rather than shrunk, matching the "one clearance mechanism" fix. */}
-      <ScreenHeader
-        title={title}
-        subtitle={subtitle}
-        action={<ProfileBackButton href={backHref} label={m(locale, "common.back")} />}
-      />
+      {headerVariant === "brandCompact" ? (
+        <ScreenHeader
+          title={title}
+          variant="brandCompact"
+          back={<ProfileBackButton href={backHref} label={m(locale, "common.back")} />}
+        />
+      ) : (
+        <ScreenHeader
+          title={title}
+          subtitle={subtitle}
+          action={<ProfileBackButton href={backHref} label={m(locale, "common.back")} />}
+        />
+      )}
       <div className="profile-subpage__body">{children}</div>
     </PageContainer>
   );
