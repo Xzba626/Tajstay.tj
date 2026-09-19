@@ -52,18 +52,9 @@ export default async function HistoryPage({ searchParams }: Props) {
   const user = await requireUser();
   if (!user) redirect("/auth/sign-in?next=/history");
 
-  if (user.role === "OWNER") {
-    return (
-      <div className="mx-auto max-w-lg px-4 py-16 text-center text-slate-300">
-        <p className="text-lg">{m(locale, "tripsHub.ownerRedirect")}</p>
-        <Link href="/dashboard/owner" className="mt-4 inline-block font-semibold text-[#0f7a4d] underline">
-          {m(locale, "profile.navOwner")}
-        </Link>
-      </div>
-    );
-  }
-
-  if (user.role !== "GUEST" && user.role !== "ADMIN") {
+  // Owner/Admin keep normal guest History for their own bookings.
+  // Role dashboards live in Profile — they do not replace History.
+  if (user.role !== "GUEST" && user.role !== "ADMIN" && user.role !== "OWNER") {
     redirect(tripsHubPath("confirmed"));
   }
 

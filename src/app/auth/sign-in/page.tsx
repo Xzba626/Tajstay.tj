@@ -107,7 +107,6 @@ export default async function SignInPage({
     welcomeTitleRegister: m(locale, "auth.welcomeTitleRegister"),
     welcomeSubtitleLogin: m(locale, "auth.welcomeSubtitleLogin"),
     welcomeSubtitleRegister: m(locale, "auth.welcomeSubtitleRegister"),
-    rememberMe: m(locale, "auth.rememberMe"),
     noAccount: m(locale, "auth.noAccount"),
     switchToRegister: m(locale, "auth.switchToRegister"),
     hasAccount: m(locale, "auth.hasAccount"),

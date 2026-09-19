@@ -1570,3 +1570,95 @@ body:has(.taj-auth-page) .taj-auth-page {
     animation: none;
   }
 }
+
+/* VISUAL V1 — brand-invariant auth card (Light/Dark/System). Theme must not recolor this surface. */
+.taj-auth-card {
+  background: #0f7a4d !important;
+  border: 1px solid #0c6a42 !important;
+  color: #ffffff !important;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.18);
+}
+
+.taj-auth-card .taj-auth-welcome h1,
+.taj-auth-card .taj-auth-welcome p,
+.taj-auth-card .taj-field label,
+.taj-auth-card .taj-label-row label,
+.taj-auth-card .taj-check-row,
+.taj-auth-card .taj-check-row span,
+.taj-auth-card .taj-bottom-text,
+.taj-auth-card .taj-divider p {
+  color: #ffffff !important;
+}
+
+.taj-auth-card .taj-auth-welcome p,
+.taj-auth-card .taj-divider p,
+.taj-auth-card .taj-bottom-text {
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+.taj-auth-card .taj-link-button {
+  color: #ffffff !important;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.taj-auth-card .taj-divider span {
+  background: rgba(255, 255, 255, 0.35) !important;
+}
+
+.taj-auth-card .taj-auth-logo {
+  background: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
+}
+
+/* Neutral inputs stay light inside green card — including dark theme + autofill */
+.taj-auth-card .taj-field input,
+.taj-auth-card .taj-field textarea,
+.taj-auth-card input[type="text"],
+.taj-auth-card input[type="email"],
+.taj-auth-card input[type="password"],
+.taj-auth-card input[type="tel"] {
+  background: #ffffff !important;
+  color: #14231b !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  caret-color: #14231b;
+}
+
+.taj-auth-card .taj-field input:-webkit-autofill,
+.taj-auth-card .taj-field input:-webkit-autofill:hover,
+.taj-auth-card .taj-field input:-webkit-autofill:focus,
+.taj-auth-card input:-webkit-autofill {
+  -webkit-text-fill-color: #14231b !important;
+  box-shadow: 0 0 0 1000px #ffffff inset !important;
+  transition: background-color 99999s ease-out 0s;
+}
+
+.taj-auth-card .taj-field-after {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.35rem;
+}
+
+.taj-auth-card .taj-social-button {
+  background: #ffffff !important;
+  color: #14231b !important;
+  border: 1px solid rgba(15, 23, 42, 0.12) !important;
+}
+
+.taj-auth-card .taj-social-button:disabled,
+.taj-auth-card .taj-social-button[aria-disabled="true"] {
+  opacity: 0.55;
+  background: rgba(255, 255, 255, 0.72) !important;
+}
+
+.taj-auth-card .taj-primary-button {
+  background: #ffffff !important;
+  color: #0f7a4d !important;
+}
+
+:root[data-theme="dark"] .taj-auth-card,
+:root:not([data-theme="light"]) .taj-auth-card {
+  background: #0f7a4d !important;
+  border-color: #0c6a42 !important;
+  color: #ffffff !important;
+}

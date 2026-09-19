@@ -34,8 +34,17 @@
     margin-inline: auto;
   }
 
+  .home-page .home-section--hero.home-chapter {
+    padding-top: 0.65rem !important;
+  }
+
+  .home-hero-mobile {
+    padding-top: 0.55rem;
+  }
+
   .home-page .home-hero-search-overlap {
-    margin-top: 1.25rem;
+    /* ~30% less gap between title and search vs prior 1.25rem */
+    margin-top: 0.85rem;
     padding-bottom: 0.5rem;
   }
 

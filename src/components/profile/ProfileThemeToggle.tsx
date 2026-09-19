@@ -2,31 +2,45 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
-import { Sun, Moon, Monitor } from "lucide-react";
+import { Sun, Moon } from "lucide-react";
 import { cn } from "@/lib/cn";
 import type { ThemePreference } from "@/lib/theme";
+import { m } from "@/lib/i18n/messages";
+import type { Locale } from "@/lib/i18n/locale";
 
 /**
- * Profile header theme control: Light / Dark / System.
- * System omits data-theme so prefers-color-scheme CSS decides (see themeAttrFor).
+ * Compact sun ↔ moon theme toggle.
+ * No third System icon. Default / reset via secondary "Автоматически".
  */
-export function ProfileThemeToggle({ current }: { current: ThemePreference }) {
+export function ProfileThemeToggle({
+  current,
+  locale = "ru"
+}: {
+  current: ThemePreference;
+  locale?: Locale;
+}) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [preference, setPreference] = useState<ThemePreference>(current);
+  const [osDark, setOsDark] = useState(false);
 
   useEffect(() => {
     setPreference(current);
   }, [current]);
 
-  // When preference is System, keep UI in sync if OS scheme flips mid-session.
   useEffect(() => {
-    if (preference !== "system" || typeof window === "undefined" || !window.matchMedia) return;
+    if (typeof window === "undefined" || !window.matchMedia) return;
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const onChange = () => startTransition(() => router.refresh());
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
-  }, [preference, router]);
+    const sync = () => setOsDark(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  useEffect(() => {
+    if (preference !== "system") return;
+    startTransition(() => router.refresh());
+  }, [osDark, preference, router]);
 
   async function setTheme(next: ThemePreference) {
     if (pending || next === preference) return;
@@ -45,38 +59,37 @@ export function ProfileThemeToggle({ current }: { current: ThemePreference }) {
     }
   }
 
+  const showingDark = preference === "dark" || (preference === "system" && osDark);
+
+  function togglePrimary() {
+    void setTheme(showingDark ? "light" : "dark");
+  }
+
   return (
-    <div className="profile-theme-toggle" role="group" aria-label="Light / Dark / System">
+    <div className="profile-theme-toggle profile-theme-toggle--compact" role="group">
       <button
         type="button"
-        aria-pressed={preference === "light"}
-        aria-label="Light"
-        className={cn("profile-theme-toggle__btn", preference === "light" && "is-active")}
-        onClick={() => void setTheme("light")}
+        aria-pressed={showingDark}
+        aria-label={showingDark ? "Dark" : "Light"}
+        className={cn("profile-theme-toggle__btn profile-theme-toggle__btn--animated", preference !== "system" && "is-active")}
+        onClick={togglePrimary}
         disabled={pending}
       >
-        <Sun size={16} aria-hidden />
+        <span className="profile-theme-toggle__icon-swap" data-dark={showingDark ? "1" : "0"}>
+          <Sun size={16} aria-hidden className="profile-theme-toggle__sun" />
+          <Moon size={16} aria-hidden className="profile-theme-toggle__moon" />
+        </span>
       </button>
-      <button
-        type="button"
-        aria-pressed={preference === "dark"}
-        aria-label="Dark"
-        className={cn("profile-theme-toggle__btn", preference === "dark" && "is-active")}
-        onClick={() => void setTheme("dark")}
-        disabled={pending}
-      >
-        <Moon size={16} aria-hidden />
-      </button>
-      <button
-        type="button"
-        aria-pressed={preference === "system"}
-        aria-label="System"
-        className={cn("profile-theme-toggle__btn", preference === "system" && "is-active")}
-        onClick={() => void setTheme("system")}
-        disabled={pending}
-      >
-        <Monitor size={16} aria-hidden />
-      </button>
+      {preference !== "system" ? (
+        <button
+          type="button"
+          className="profile-theme-toggle__auto"
+          onClick={() => void setTheme("system")}
+          disabled={pending}
+        >
+          {m(locale, "profile.themeAuto")}
+        </button>
+      ) : null}
     </div>
   );
 }

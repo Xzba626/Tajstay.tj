@@ -428,7 +428,7 @@ const ru: Tree = {
       hotel: "Я вижу этот отель — спросите о похожих или более выгодных вариантах.",
       search: "Учитываю текущие параметры поиска.",
       booking: "Помогу с выбором номера и бронированием. Оплата — через защищённый раздел платформы, не здесь.",
-      history: "Это раздел «История» — ваши бронирования. Спросите о предстоящих, неоплаченных или прошлых поездках."
+      history: "Спросите о предстоящих, неоплаченных или прошлых поездках."
     },
     followUp: {
       city: "В каком городе ищем?",
@@ -1071,6 +1071,7 @@ const ru: Tree = {
   },
   profile: {
     title: "Профиль",
+    themeAuto: "Автоматически",
     signInPrompt: "Войдите, чтобы открыть профиль.",
     signInCta: "Войти",
     memberRole: "Пользователь TajStay",
@@ -1954,10 +1955,13 @@ const ru: Tree = {
     rejectionReasonLabel: "Причина отказа",
     fixAndResubmit: "Исправить и отправить снова",
     resubmitForReview: "Отправить повторно",
-    aiPricing: "AI‑рекомендация по цене",
-    aiPricingHint: "Подсказка основана на текущих заявках и активности за последние 30 дней.",
-    aiPricingHighDemand: "Рекомендуем повысить цену на 12-15%: спрос выше среднего.",
-    aiPricingStableDemand: "Оставьте текущую цену: спрос стабильный, приоритет — увеличить видимость.",
+    aiPricing: "Рекомендация помощника TajStay",
+    aiPricingHint: "Основано на бронированиях и запросах за последние 30 дней.",
+    aiPricingHighDemand: "Можно повысить цену на 5–8%: спрос выше обычного.",
+    aiPricingStableDemand: "Спрос умеренный. Сначала имеет смысл усилить видимость объявления.",
+    aiPricingLowData: "Пока недостаточно данных для уверенной рекомендации. Соберём больше данных о бронированиях.",
+    aiPricingHold: "Сохранить цену",
+    aiPricingBasis: "Основание: {bookings} брон. · {rooms} ном.",
     conversionTitle: "Конверсия владельца",
     viewsProxy: "Просмотры (proxy)",
     clicksProxy: "Клики (proxy)",
@@ -1985,6 +1989,10 @@ const ru: Tree = {
       remove: "Убрать из отеля",
       tempPasswordOnce: "Временный пароль (показывается один раз):",
       inviteLink: "Ссылка-приглашение",
+      retry: "Повторить",
+      createError: "Не удалось создать сотрудника.",
+      loadError: "Не удалось загрузить сотрудников.",
+      createSuccess: "Сотрудник создан.",
       dismissSecret: "Я сохранил(а) — скрыть"
     },
     localVault: {
@@ -2194,7 +2202,11 @@ const ru: Tree = {
       saveError: "Не удалось сохранить",
       loadError: "Не удалось загрузить номера",
       duplicateRoom: "Такой номер уже есть в этом отеле",
-      needHotel: "Сначала выберите объект"
+      needHotel: "Сначала выберите объект",
+          mediaOnRoomHint: "Фото и 360° добавляются при создании физического номера.",
+      roomExtraAmenities: "Дополнительные удобства номера",
+          noPhoto: "Фото пока не добавлено",
+          blobMissing: "Хранилище фото недоступно. Номер можно сохранить без фото.",
     },
     help: {
       title: "Советы владельцу",
@@ -2806,7 +2818,7 @@ const tg: Tree = {
       hotel: "Ин меҳмонхонаро мебинам — дар бораи вариантҳои монанд ё арзонтар пурсед.",
       search: "Параметрҳои ҷорӣи ҷустуҷӯро дар назар мегирам.",
       booking: "Дар интихоби ҳуҷра ва брон кӯмак мекунам. Пардохт тавассути қисми ҳифзшудаи платформа, на инҷо.",
-      history: "Ин бахши «Таърих» — бронҳои шумо. Дар бораи сафари оянда, пардохтнашуда ё гузашта пурсед."
+      history: "Дар бораи сафари оянда, пардохтнашуда ё гузашта пурсед."
     },
     followUp: {
       city: "Дар кадом шаҳр меҷӯем?",
@@ -3449,6 +3461,7 @@ const tg: Tree = {
   },
   profile: {
     title: "Профил",
+    themeAuto: "Худкор",
     signInPrompt: "Барои профил ворид шавед.",
     signInCta: "Ворид шудан",
     memberRole: "Иштирокчии TajStay",
@@ -4300,10 +4313,13 @@ const tg: Tree = {
     rejectionReasonLabel: "Сабаби рад",
     fixAndResubmit: "Ислоҳ ва аз нав фиристодан",
     resubmitForReview: "Аз нав фиристодан",
-    aiPricing: "Тавсияи AI барои нарх",
-    aiPricingHint: "Ин маслиҳат бар асоси дархостҳои ҷорӣ ва фаъолият дар 30 рӯзи охир аст.",
-    aiPricingHighDemand: "Тавсия медиҳем нархро 12-15% боло баред: талабот аз миёна баландтар аст.",
-    aiPricingStableDemand: "Нархи ҷориро нигоҳ доред: талабот устувор аст, афзалият — зиёд кардани намоёнӣ.",
+    aiPricing: "Тавсияи ёвари TajStay",
+    aiPricingHint: "Дар асоси бронҳо ва дархостҳои 30 рӯзи охир.",
+    aiPricingHighDemand: "Нархро 5–8% боло бурдан мумкин: талабот аз муқаррарӣ баландтар аст.",
+    aiPricingStableDemand: "Талабот мӯътадил аст. Аввал намоишро зиёд кунед.",
+    aiPricingLowData: "Ҳанӯз маълумоти кофӣ барои тавсияи боэътимод нест. Маълумоти бештар ҷамъ мекунем.",
+    aiPricingHold: "Нархро нигоҳ доред",
+    aiPricingBasis: "Асос: {bookings} брон · {rooms} ҳуҷра",
     conversionTitle: "Конверсияи соҳиб",
     viewsProxy: "Боздидҳо (proxy)",
     clicksProxy: "Кликҳо (proxy)",
@@ -4332,6 +4348,10 @@ const tg: Tree = {
       remove: "Аз меҳмонхона хориҷ",
       tempPasswordOnce: "Пароли муваққатӣ (як маротиба):",
       inviteLink: "Пайванди даъват",
+      retry: "Такрор",
+      createError: "Корманд сохта нашуд.",
+      loadError: "Кормандон бор нашуданд.",
+      createSuccess: "Корманд сохта шуд.",
       dismissSecret: "Нигоҳ доштам — пинҳон"
     },
     localVault: {
@@ -4541,7 +4561,11 @@ const tg: Tree = {
       saveError: "Захира нашуд",
       loadError: "Хонаҳо бор нашуданд",
       duplicateRoom: "Чунин рақам дар ин меҳмонхона ҳаст",
-      needHotel: "Аввал объектро интихоб кунед"
+      needHotel: "Аввал объектро интихоб кунед",
+          mediaOnRoomHint: "Сурат ва 360° ҳангоми эҷоди ҳуҷраи ҷисмонӣ илова мешаванд.",
+      roomExtraAmenities: "Қулайиҳои иловагии ҳуҷра",
+          noPhoto: "Сурат ҳанӯз илова нашудааст",
+          blobMissing: "Захирагоҳи сурат дастнорас аст. Ҳуҷра бе сурат нигоҳ дошта мешавад.",
     },
     help: {
       title: "Маслиҳат ба соҳиб",
@@ -5146,7 +5170,7 @@ const en: Tree = {
       hotel: "I see this hotel — ask about similar or better-value options.",
       search: "Using your current search parameters.",
       booking: "I can help with room choice and booking. Payment goes through the platform’s secure flow, not here.",
-      history: "This is your booking history. Ask about upcoming, unpaid, or past stays."
+      history: "Ask about upcoming, unpaid, or past stays."
     },
     followUp: {
       city: "Which city should I search in?",
@@ -5796,6 +5820,7 @@ const en: Tree = {
     sectionMain: "Main",
     sectionPersonal: "Personal data",
     sectionAccount: "Account",
+    themeAuto: "Automatic",
     sectionSettings: "Settings",
     sectionApp: "App",
     emailVerifiedBadge: "Email verified",
@@ -6639,10 +6664,13 @@ const en: Tree = {
     rejectionReasonLabel: "Rejection reason",
     fixAndResubmit: "Fix and resubmit",
     resubmitForReview: "Resubmit for review",
-    aiPricing: "AI pricing insight",
-    aiPricingHint: "This tip is based on current requests and activity for the last 30 days.",
-    aiPricingHighDemand: "We recommend increasing price by 12-15%: demand is above average.",
-    aiPricingStableDemand: "Keep the current price: demand is stable, focus on visibility.",
+    aiPricing: "TajStay Assistant recommendation",
+    aiPricingHint: "Based on bookings and requests over the last 30 days.",
+    aiPricingHighDemand: "Consider raising price by 5–8%: demand is above usual.",
+    aiPricingStableDemand: "Demand is moderate. Improving listing visibility may help first.",
+    aiPricingLowData: "Not enough data yet for a confident recommendation. We will gather more booking signals.",
+    aiPricingHold: "Keep current price",
+    aiPricingBasis: "Basis: {bookings} bookings · {rooms} rooms",
     conversionTitle: "Owner conversion",
     viewsProxy: "Views (proxy)",
     clicksProxy: "Clicks (proxy)",
@@ -6671,6 +6699,10 @@ const en: Tree = {
       remove: "Remove from hotel",
       tempPasswordOnce: "Temporary password (shown once):",
       inviteLink: "Invite link",
+      retry: "Retry",
+      createError: "Could not create staff member.",
+      loadError: "Could not load staff.",
+      createSuccess: "Staff member created.",
       dismissSecret: "I've saved it — hide"
     },
     localVault: {
@@ -6880,7 +6912,11 @@ const en: Tree = {
       saveError: "Could not save",
       loadError: "Could not load rooms",
       duplicateRoom: "This room number already exists in this hotel",
-      needHotel: "Select a property first"
+      needHotel: "Select a property first",
+          mediaOnRoomHint: "Photos and 360° are added when creating a physical room.",
+      roomExtraAmenities: "Additional room amenities",
+          noPhoto: "Photo not added yet",
+          blobMissing: "Photo storage unavailable. Room can be saved without photos.",
     },
     help: {
       title: "Owner tips",

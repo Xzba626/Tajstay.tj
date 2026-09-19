@@ -64,6 +64,9 @@ export function OwnerRoomsInventoryPanel({ locale, hotelId, hotelName }: Props) 
 
   const [roomTypeId, setRoomTypeId] = useState<number | "">("");
   const [roomNumber, setRoomNumber] = useState("");
+  const [roomExtraAmenities, setRoomExtraAmenities] = useState<string[]>([]);
+  const [roomPhotos, setRoomPhotos] = useState<FileList | null>(null);
+  const [roomPano, setRoomPano] = useState<FileList | null>(null);
 
   const [panoUrl, setPanoUrl] = useState<string | null>(null);
 
@@ -96,21 +99,31 @@ export function OwnerRoomsInventoryPanel({ locale, hotelId, hotelName }: Props) 
     if (busy) return;
     setBusy(true);
     setMsg(null);
+    setError(null);
     try {
-      const fd = new FormData();
-      fd.set("hotelId", String(hotelId));
-      fd.set("name", catName.trim());
-      fd.set("basePrice", catPrice);
-      fd.set("maxGuests", catGuests);
-      fd.set("amenities", JSON.stringify(catAmenities));
-      if (catPhotos) {
-        Array.from(catPhotos).forEach((f) => fd.append("photos", f));
+      // Commercial defaults only — media belongs on physical rooms (avoids Vercel Blob dependency on create).
+      const res = await fetch("/api/owner/room-types", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          hotelId,
+          name: catName.trim(),
+          basePrice: Number(catPrice),
+          maxGuests: Number(catGuests),
+          amenities: catAmenities
+        })
+      });
+      const json = (await res.json().catch(() => ({}))) as { error?: string; message?: string };
+      if (!res.ok) {
+        setError(
+          json.message ||
+            (json.error === "blob_not_configured"
+              ? m(locale, "owner.roomsInv.blobMissing")
+              : m(locale, "owner.roomsInv.saveError"))
+        );
+        return;
       }
-      if (catPano) {
-        Array.from(catPano).forEach((f) => fd.append("panorama", f));
-      }
-      const res = await fetch("/api/owner/room-types", { method: "POST", credentials: "include", body: fd });
-      if (!res.ok) throw new Error("fail");
       setMode(null);
       setCatName("");
       setCatPrice("");
@@ -138,15 +151,49 @@ export function OwnerRoomsInventoryPanel({ locale, hotelId, hotelName }: Props) 
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ hotelId, roomTypeId, roomNumber: roomNumber.trim() })
+        body: JSON.stringify({
+          hotelId,
+          roomTypeId,
+          roomNumber: roomNumber.trim(),
+          customAmenities: roomExtraAmenities
+        })
       });
+      const json = (await res.json().catch(() => ({}))) as { room?: { id: number }; error?: string; message?: string };
       if (res.status === 409) {
         setError(m(locale, "owner.roomsInv.duplicateRoom"));
         return;
       }
-      if (!res.ok) throw new Error("fail");
+      if (!res.ok) {
+        setError(json.message || m(locale, "owner.roomsInv.saveError"));
+        return;
+      }
+
+      if (json.room?.id && (roomPhotos?.length || roomPano?.length)) {
+        const fd = new FormData();
+        fd.set("roomId", String(json.room.id));
+        if (roomPhotos) Array.from(roomPhotos).forEach((f) => fd.append("photos", f));
+        if (roomPano) {
+          fd.set("kind", "PANO360");
+          Array.from(roomPano).forEach((f) => fd.append("photos", f));
+        }
+        const mediaRes = await fetch("/api/owner/rooms", { method: "PUT", credentials: "include", body: fd });
+        if (!mediaRes.ok) {
+          const mj = (await mediaRes.json().catch(() => ({}))) as { message?: string; error?: string };
+          setError(
+            mj.error === "blob_not_configured"
+              ? m(locale, "owner.roomsInv.blobMissing")
+              : mj.message || m(locale, "owner.roomsInv.saveError")
+          );
+          await load();
+          return;
+        }
+      }
+
       setMode(null);
       setRoomNumber("");
+      setRoomExtraAmenities([]);
+      setRoomPhotos(null);
+      setRoomPano(null);
       setMsg(m(locale, "owner.roomsInv.roomCreated"));
       await load();
     } catch {
@@ -312,7 +359,7 @@ export function OwnerRoomsInventoryPanel({ locale, hotelId, hotelName }: Props) 
       {error ? <p className="owner-status-banner owner-status-banner--danger">{error}</p> : null}
 
       {mode === "category" ? (
-        <form onSubmit={saveCategory} className="owner-panel owner-rooms-inv__form space-y-3">
+        <form onSubmit={saveCategory} className="owner-panel owner-form-surface owner-rooms-inv__form space-y-3">
           <div className="flex items-center justify-between gap-2">
             <h3 className="owner-panel__title">{m(locale, "owner.roomsInv.addCategory")}</h3>
             <button type="button" className="owner-btn owner-btn--secondary" onClick={() => setMode(null)}>
@@ -384,27 +431,7 @@ export function OwnerRoomsInventoryPanel({ locale, hotelId, hotelName }: Props) 
               </div>
             ))}
           </div>
-          <div>
-            <label className="owner-field__label">{m(locale, "owner.roomsInv.photos")}</label>
-            <input
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              multiple
-              className="owner-input"
-              onChange={(e) => setCatPhotos(e.target.files)}
-            />
-          </div>
-          <div>
-            <label className="owner-field__label">{m(locale, "owner.roomsInv.panoUpload")}</label>
-            <input
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              multiple
-              className="owner-input"
-              onChange={(e) => setCatPano(e.target.files)}
-            />
-            <p className="owner-field__hint">{m(locale, "owner.roomsInv.panoHint")}</p>
-          </div>
+          <p className="owner-field__hint">{m(locale, "owner.roomsInv.mediaOnRoomHint")}</p>
           <button type="submit" className="owner-btn owner-btn--primary" disabled={busy}>
             {busy ? m(locale, "owner.roomsInv.saving") : m(locale, "owner.roomsInv.saveCategory")}
           </button>
@@ -512,7 +539,7 @@ export function OwnerRoomsInventoryPanel({ locale, hotelId, hotelName }: Props) 
       ) : null}
 
       {mode === "room" ? (
-        <form onSubmit={saveRoom} className="owner-panel owner-rooms-inv__form space-y-3">
+        <form onSubmit={saveRoom} className="owner-panel owner-form-surface owner-rooms-inv__form space-y-3">
           <div className="flex items-center justify-between gap-2">
             <h3 className="owner-panel__title">{m(locale, "owner.roomsInv.addRoom")}</h3>
             <button type="button" className="owner-btn owner-btn--secondary" onClick={() => setMode(null)}>
@@ -547,6 +574,51 @@ export function OwnerRoomsInventoryPanel({ locale, hotelId, hotelName }: Props) 
             />
           </div>
           <p className="owner-field__hint">{m(locale, "owner.roomsInv.inheritsHint")}</p>
+          <div>
+            <p className="owner-field__label">{m(locale, "owner.roomsInv.roomExtraAmenities")}</p>
+            <div className="owner-rooms-inv__chips">
+              {Object.values(AMENITY_CATEGORIES)
+                .flatMap((c) => c.items)
+                .map((id) => {
+                  const on = roomExtraAmenities.includes(id);
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      className={`owner-rooms-inv__chip${on ? " is-on" : ""}`}
+                      aria-pressed={on}
+                      onClick={() =>
+                        setRoomExtraAmenities((prev) =>
+                          prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+                        )
+                      }
+                    >
+                      {amenityLabel(locale, id)}
+                    </button>
+                  );
+                })}
+            </div>
+          </div>
+          <div>
+            <label className="owner-field__label">{m(locale, "owner.roomsInv.photos")}</label>
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              multiple
+              className="owner-input"
+              onChange={(e) => setRoomPhotos(e.target.files)}
+            />
+          </div>
+          <div>
+            <label className="owner-field__label">{m(locale, "owner.roomsInv.panoUpload")}</label>
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              multiple
+              className="owner-input"
+              onChange={(e) => setRoomPano(e.target.files)}
+            />
+          </div>
           <button type="submit" className="owner-btn owner-btn--primary" disabled={busy}>
             {busy ? m(locale, "owner.roomsInv.saving") : m(locale, "owner.roomsInv.saveRoom")}
           </button>
@@ -582,7 +654,7 @@ export function OwnerRoomsInventoryPanel({ locale, hotelId, hotelName }: Props) 
                   {cover ? (
                     <AppImage src={cover.url} alt="" fill className="object-cover" sizes="96px" />
                   ) : (
-                    <span className="owner-rooms-inv__cover-empty">—</span>
+                    <span className="owner-rooms-inv__cover-empty">{m(locale, "owner.roomsInv.noPhoto")}</span>
                   )}
                 </div>
                 <div className="min-w-0 flex-1 text-left">
@@ -656,10 +728,14 @@ export function OwnerRoomsInventoryPanel({ locale, hotelId, hotelName }: Props) 
                     <ul className="owner-rooms-inv__rooms">
                       {t.rooms.map((r) => (
                         <li key={r.id} className="owner-rooms-inv__room-row">
-                          <span className="font-semibold">{r.roomNumber || r.title}</span>
-                          <span className="owner-record-card__meta">
-                            {r.availability ? m(locale, "owner.availableYes") : m(locale, "owner.availableNo")}
-                          </span>
+                          <div className="min-w-0 flex-1">
+                            <div className="font-semibold">{r.roomNumber || r.title}</div>
+                            <div className="owner-record-card__meta">
+                              {t.name}
+                              {" · "}
+                              {r.availability ? m(locale, "owner.availableYes") : m(locale, "owner.availableNo")}
+                            </div>
+                          </div>
                           <button
                             type="button"
                             className="owner-btn owner-btn--secondary owner-rooms-inv__room-archive"

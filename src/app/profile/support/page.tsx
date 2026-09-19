@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { CircleHelp, FileText, MessageCircle, ScrollText, ChevronRight, type LucideIcon } from "lucide-react";
+import { CircleHelp, MessageCircle, ChevronRight, type LucideIcon } from "lucide-react";
 import { requireUser } from "@/lib/auth/requireAuth";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
@@ -27,11 +27,11 @@ export default async function ProfileSupportPage() {
 
   return (
     <ProfileSubpageShell locale={locale} title={m(locale, "profile.sectionSupport")}>
+      {/* Policy/Terms deliberately excluded — they duplicate Profile's own Legal section
+          (see ProfileMockupView.tsx's "profile.legal" card). Support is help/contact only. */}
       <div className="profile-hub__nav-group">
         <SupportRow href="/faq" icon={CircleHelp} title={m(locale, "footer.helpCenter")} />
         <SupportRow href="/contacts" icon={MessageCircle} title={m(locale, "footer.contactUs")} />
-        <SupportRow href="/policy" icon={FileText} title={m(locale, "footer.policy")} />
-        <SupportRow href="/terms" icon={ScrollText} title={m(locale, "footer.terms")} />
       </div>
     </ProfileSubpageShell>
   );

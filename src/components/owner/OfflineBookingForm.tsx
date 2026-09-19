@@ -48,7 +48,7 @@ export function OfflineBookingForm({
   if (!roomTypes.length) return null;
 
   return (
-    <form action="/api/owner/offline-bookings" method="post" className="owner-form owner-form--grid-2 owner-panel">
+    <form action="/api/owner/offline-bookings" method="post" className="owner-form owner-form--grid-2 owner-form-surface">
       {created ? (
         <div className="owner-status-banner owner-status-banner--success md:col-span-2" role="status">
           {m(locale, "owner.offline.created")}

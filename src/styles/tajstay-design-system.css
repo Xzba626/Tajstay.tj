@@ -137,7 +137,8 @@
   :root:not([data-theme="light"]) .owner-command-center-shell,
   :root:not([data-theme="light"]) .manager-workspace-shell,
   :root:not([data-theme="light"]) .owner-header,
-  :root:not([data-theme="light"]) .manager-workspace-header {
+  :root:not([data-theme="light"]) .manager-workspace-header,
+  :root:not([data-theme="light"]) .tst-assistant {
     --ts-surface-page: #0f1713;
     --ts-surface-primary: #16211c;
     --ts-surface-secondary: #16211c;
@@ -198,7 +199,8 @@
 :root[data-theme="dark"] .owner-command-center-shell,
 :root[data-theme="dark"] .manager-workspace-shell,
 :root[data-theme="dark"] .owner-header,
-:root[data-theme="dark"] .manager-workspace-header {
+:root[data-theme="dark"] .manager-workspace-header,
+:root[data-theme="dark"] .tst-assistant {
   --ts-surface-page: #0f1713;
   --ts-surface-primary: #16211c;
   --ts-surface-secondary: #16211c;
@@ -268,10 +270,16 @@
 :root[data-theme="dark"] .profile-center,
 :root[data-theme="dark"] .owner-command-center-shell,
 :root[data-theme="dark"] .manager-workspace-shell,
-:root[data-theme="dark"] .owner-header,
 :root[data-theme="dark"] .manager-workspace-header {
   background-color: var(--ts-surface-page) !important;
   color: var(--ts-text-body) !important;
+}
+
+/* Brand header stays green — never inherit dark page surface */
+:root[data-theme="dark"] .owner-header,
+:root[data-theme="dark"] .manager-workspace-header.owner-workspace-header {
+  background-color: #0f7a4d !important;
+  color: #ffffff !important;
 }
 
 :root[data-theme="dark"] .owner-command-center-shell .owner-section-head__title,
@@ -280,10 +288,13 @@
 :root[data-theme="dark"] .owner-command-center-shell h3,
 :root[data-theme="dark"] .manager-workspace-shell .manager-page__title,
 :root[data-theme="dark"] .manager-workspace-shell h1,
-:root[data-theme="dark"] .owner-header__brand-text,
-:root[data-theme="dark"] .owner-workspace-header__brand-primary,
-:root[data-theme="dark"] .manager-workspace-header {
+:root[data-theme="dark"] .owner-workspace-header__brand-primary {
   color: var(--ts-text-title) !important;
+}
+
+:root[data-theme="dark"] .owner-header__brand-text,
+:root[data-theme="dark"] .owner-header__brand-context {
+  color: #ffffff !important;
 }
 
 :root[data-theme="dark"] .profile-hub__compact-title {
@@ -299,10 +310,14 @@
   :root:not([data-theme="light"]) .profile-center,
   :root:not([data-theme="light"]) .owner-command-center-shell,
   :root:not([data-theme="light"]) .manager-workspace-shell,
-  :root:not([data-theme="light"]) .owner-header,
   :root:not([data-theme="light"]) .manager-workspace-header {
     background-color: var(--ts-surface-page) !important;
     color: var(--ts-text-body) !important;
+  }
+
+  :root:not([data-theme="light"]) .owner-header {
+    background-color: #0f7a4d !important;
+    color: #ffffff !important;
   }
 
   :root:not([data-theme="light"]) .profile-hub__compact-title {
@@ -318,9 +333,12 @@
   :root:not([data-theme="light"]) .owner-command-center-shell h2,
   :root:not([data-theme="light"]) .owner-command-center-shell h3,
   :root:not([data-theme="light"]) .manager-workspace-shell .manager-page__title,
-  :root:not([data-theme="light"]) .manager-workspace-shell h1,
-  :root:not([data-theme="light"]) .owner-header__brand-text {
+  :root:not([data-theme="light"]) .manager-workspace-shell h1 {
     color: var(--ts-text-title) !important;
+  }
+
+  :root:not([data-theme="light"]) .owner-header__brand-text {
+    color: #ffffff !important;
   }
 }
 

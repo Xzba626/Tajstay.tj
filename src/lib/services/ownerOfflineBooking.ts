@@ -166,7 +166,12 @@ export async function createManualOfflineBooking(input: CreateManualOfflineBooki
   let booking;
   try {
     if (physicalRoomId) {
-      await assertDatesAvailable({ roomId: physicalRoomId, checkIn: input.checkIn, checkOut: input.checkOut });
+      await assertDatesAvailable({
+        roomId: physicalRoomId,
+        checkIn: input.checkIn,
+        checkOut: input.checkOut,
+        includeActiveHolds: true
+      });
       booking = await withRoomOverlapGuard(() => prisma.booking.create({ data: createData }));
     } else {
       booking = await withRoomTypeCapacityGuard(input.roomTypeId, async (tx) => {
@@ -303,7 +308,13 @@ export async function updateOwnerOfflineBooking(input: UpdateOfflineBookingInput
   const physicalId = existing.assignedRoomId ?? existing.roomId;
   if ((input.checkIn || input.checkOut) && physicalId) {
     try {
-      await assertDatesAvailable({ roomId: physicalId, checkIn, checkOut, excludeBookingId: existing.id });
+      await assertDatesAvailable({
+        roomId: physicalId,
+        checkIn,
+        checkOut,
+        excludeBookingId: existing.id,
+        includeActiveHolds: true
+      });
     } catch (e) {
       if (e instanceof DatesUnavailableError) throw new Error("dates_unavailable");
       throw e;

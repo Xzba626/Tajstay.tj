@@ -74,7 +74,6 @@ export type SignInLabels = {
   welcomeTitleRegister: string;
   welcomeSubtitleLogin: string;
   welcomeSubtitleRegister: string;
-  rememberMe: string;
   noAccount: string;
   switchToRegister: string;
   hasAccount: string;
@@ -157,7 +156,6 @@ export function SignInClient({
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginShowPassword, setLoginShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
 
   const [regName, setRegName] = useState("");
   const [regEmail, setRegEmail] = useState("");
@@ -217,15 +215,6 @@ export function SignInClient({
 
   useEffect(() => {
     refreshMe().catch(() => undefined);
-    try {
-      const saved = localStorage.getItem("tajstay_remember_login");
-      if (saved) {
-        setLoginEmail(saved);
-        setRememberMe(true);
-      }
-    } catch {
-      /* ignore */
-    }
   }, []);
 
   useEffect(() => {
@@ -257,12 +246,6 @@ export function SignInClient({
         setFormError(L.resetLinkInPassword);
         window.location.href = resetLink;
         return;
-      }
-      try {
-        if (rememberMe) localStorage.setItem("tajstay_remember_login", identifier);
-        else localStorage.removeItem("tajstay_remember_login");
-      } catch {
-        /* ignore */
       }
       // Managers (and phone-first guests) sign in with phone; email accounts keep email payload.
       const looksLikePhone = /^[+0-9][\d\s()-]{6,}$/.test(identifier) || identifier.startsWith("+");
@@ -447,11 +430,6 @@ export function SignInClient({
                   <AuthField
                     id={loginPasswordId}
                     label={L.password}
-                    labelExtra={
-                      <Link href="/auth/forgot-password" className="taj-link-button">
-                        {L.forgotPassword}
-                      </Link>
-                    }
                     type={loginShowPassword ? "text" : "password"}
                     value={loginPassword}
                     onChange={setLoginPassword}
@@ -464,15 +442,14 @@ export function SignInClient({
                       hideLabel: L.hidePassword
                     }}
                     invalid={!!formError && !loginPassword}
+                    afterField={
+                      <div className="taj-field-after">
+                        <Link href="/auth/forgot-password" className="taj-link-button">
+                          {L.forgotPassword}
+                        </Link>
+                      </div>
+                    }
                   />
-                  <label className="taj-check-row">
-                    <input
-                      type="checkbox"
-                      checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)}
-                    />
-                    {L.rememberMe}
-                  </label>
                   <button
                     type="submit"
                     className="taj-primary-button"
@@ -545,6 +522,7 @@ function AuthField({
   id,
   label,
   labelExtra,
+  afterField,
   type = "text",
   value,
   onChange,
@@ -557,6 +535,7 @@ function AuthField({
   id: string;
   label: string;
   labelExtra?: React.ReactNode;
+  afterField?: React.ReactNode;
   type?: string;
   value: string;
   onChange: (v: string) => void;
@@ -600,6 +579,7 @@ function AuthField({
           </button>
         ) : null}
       </div>
+      {afterField}
       <p id={helperId} className="sr-only">
         {label}
       </p>

@@ -23,25 +23,38 @@ export function OwnerStaffPanel({ locale, hotelId }: { locale: Locale; hotelId: 
   const [phone, setPhone] = useState("");
   const [onceSecret, setOnceSecret] = useState<{ tempPassword: string; inviteToken: string } | null>(null);
   const [busy, setBusy] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  const mapError = useCallback(
+    (status: number, code?: string, kind: "load" | "mutate" = "mutate") => {
+      if (status === 403 || code === "FORBIDDEN") return m(locale, "owner.staff.loadError");
+      if (code === "INVALID_PHONE") return m(locale, "owner.staff.error");
+      if (code === "ALREADY_STAFF") return m(locale, "owner.staff.error");
+      if (code === "PHONE_HAS_PRIVILEGED_ROLE") return m(locale, "owner.staff.error");
+      return kind === "load" ? m(locale, "owner.staff.loadError") : m(locale, "owner.staff.createError");
+    },
+    [locale]
+  );
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const res = await fetch(`/api/owner/staff?hotelId=${hotelId}`, { credentials: "include" });
-      const json = await res.json();
+      const json = (await res.json().catch(() => ({}))) as { items?: StaffRow[]; error?: string };
       if (!res.ok) {
-        setError(json.error || "failed");
+        setError(mapError(res.status, json.error, "load"));
         setItems([]);
         return;
       }
       setItems(json.items ?? []);
     } catch {
-      setError("network");
+      setError(m(locale, "owner.staff.errorNetwork"));
+      setItems([]);
     } finally {
       setLoading(false);
     }
-  }, [hotelId]);
+  }, [hotelId, locale, mapError]);
 
   useEffect(() => {
     void load();
@@ -52,6 +65,7 @@ export function OwnerStaffPanel({ locale, hotelId }: { locale: Locale; hotelId: 
     setBusy(true);
     setOnceSecret(null);
     setError(null);
+    setSuccess(null);
     try {
       const res = await fetch("/api/owner/staff", {
         method: "POST",
@@ -59,16 +73,21 @@ export function OwnerStaffPanel({ locale, hotelId }: { locale: Locale; hotelId: 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ hotelId, firstName, lastName, phone })
       });
-      const json = await res.json();
+      const json = (await res.json().catch(() => ({}))) as {
+        tempPassword?: string;
+        inviteToken?: string;
+        error?: string;
+      };
       if (!res.ok) {
-        setError(json.error || "failed");
+        setError(mapError(res.status, json.error, "mutate"));
         return;
       }
-      setOnceSecret({ tempPassword: json.tempPassword, inviteToken: json.inviteToken });
+      setOnceSecret({ tempPassword: json.tempPassword!, inviteToken: json.inviteToken! });
       setFirstName("");
       setLastName("");
       setPhone("");
       setAdding(false);
+      setSuccess(m(locale, "owner.staff.createSuccess"));
       void load();
     } finally {
       setBusy(false);
@@ -78,6 +97,7 @@ export function OwnerStaffPanel({ locale, hotelId }: { locale: Locale; hotelId: 
   async function action(staffId: number, actionName: string) {
     setBusy(true);
     setOnceSecret(null);
+    setError(null);
     try {
       const res = await fetch("/api/owner/staff", {
         method: "PATCH",
@@ -85,13 +105,17 @@ export function OwnerStaffPanel({ locale, hotelId }: { locale: Locale; hotelId: 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ hotelId, staffId, action: actionName })
       });
-      const json = await res.json();
+      const json = (await res.json().catch(() => ({}))) as {
+        tempPassword?: string;
+        inviteToken?: string;
+        error?: string;
+      };
       if (!res.ok) {
-        setError(json.error || "failed");
+        setError(mapError(res.status, json.error, "mutate"));
         return;
       }
       if (json.tempPassword) {
-        setOnceSecret({ tempPassword: json.tempPassword, inviteToken: json.inviteToken });
+        setOnceSecret({ tempPassword: json.tempPassword, inviteToken: json.inviteToken! });
       }
       void load();
     } finally {
@@ -128,8 +152,14 @@ export function OwnerStaffPanel({ locale, hotelId }: { locale: Locale; hotelId: 
         </div>
       ) : null}
 
+      {success ? (
+        <p className="owner-status-banner owner-status-banner--success" role="status">
+          {success}
+        </p>
+      ) : null}
+
       {adding ? (
-        <form onSubmit={onCreate} className="owner-form owner-form--grid-2">
+        <form onSubmit={onCreate} className="owner-form owner-form--grid-2 owner-form-surface">
           <label className="owner-field">
             <span className="owner-field__label">{m(locale, "owner.staff.firstName")}</span>
             <input className="owner-input" required value={firstName} onChange={(e) => setFirstName(e.target.value)} />
@@ -142,53 +172,69 @@ export function OwnerStaffPanel({ locale, hotelId }: { locale: Locale; hotelId: 
             <span className="owner-field__label">{m(locale, "owner.staff.phone")}</span>
             <input className="owner-input" required value={phone} onChange={(e) => setPhone(e.target.value)} />
           </label>
-          <button type="submit" className="btn-primary md:col-span-2" disabled={busy}>
-            {m(locale, "owner.staff.create")}
-          </button>
+          <div className="md:col-span-2 flex flex-wrap gap-2">
+            <button type="submit" className="btn-primary" disabled={busy}>
+              {m(locale, "owner.staff.create")}
+            </button>
+            <button type="button" className="btn-secondary owner-btn--on-brand-secondary" disabled={busy} onClick={() => setAdding(false)}>
+              {m(locale, "owner.paymentMethods.cancel")}
+            </button>
+          </div>
         </form>
       ) : null}
 
       {loading ? <p>{m(locale, "owner.staff.loading")}</p> : null}
-      {error ? <p role="alert">{m(locale, "owner.staff.error")}</p> : null}
-      {!loading && !items.length ? <p>{m(locale, "owner.staff.empty")}</p> : null}
 
-      <ul className="space-y-3">
-        {items.map((s) => (
-          <li key={s.id} className="rounded-xl border border-[var(--border-subtle,#d8e4dc)] bg-white p-4">
-            <div className="flex flex-wrap items-start justify-between gap-2">
-              <div>
-                <div className="font-semibold">{s.name}</div>
-                <div className="text-sm text-[var(--text-secondary-semantic,#4a6356)]">
-                  {m(locale, "owner.staff.roleManager")} · {statusLabel(s.status)}
-                </div>
-                {s.lastActiveAt ? (
-                  <div className="text-xs text-[var(--text-tertiary-semantic,#6b7f74)]">
-                    {m(locale, "owner.staff.lastActive")}: {new Date(s.lastActiveAt).toLocaleString()}
+      {!loading && error ? (
+        <div role="alert" className="space-y-2">
+          <p className="text-sm text-red-700">{error}</p>
+          <button type="button" className="btn-secondary" onClick={() => void load()} disabled={busy}>
+            {m(locale, "owner.staff.retry")}
+          </button>
+        </div>
+      ) : null}
+
+      {!loading && !error && !items.length ? <p>{m(locale, "owner.staff.empty")}</p> : null}
+
+      {!loading && !error && items.length ? (
+        <ul className="space-y-3">
+          {items.map((s) => (
+            <li key={s.id} className="rounded-xl border border-[var(--border-subtle,#d8e4dc)] bg-white p-4">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <div className="font-semibold">{s.name}</div>
+                  <div className="text-sm text-[var(--text-secondary-semantic,#4a6356)]">
+                    {m(locale, "owner.staff.roleManager")} · {statusLabel(s.status)}
                   </div>
-                ) : null}
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {s.status === "ACTIVE" || s.status === "INVITED" ? (
-                  <button type="button" className="btn-secondary" disabled={busy} onClick={() => void action(s.id, "suspend")}>
-                    {m(locale, "owner.staff.suspend")}
+                  {s.lastActiveAt ? (
+                    <div className="text-xs text-[var(--text-tertiary-semantic,#6b7f74)]">
+                      {m(locale, "owner.staff.lastActive")}: {new Date(s.lastActiveAt).toLocaleString()}
+                    </div>
+                  ) : null}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {s.status === "ACTIVE" || s.status === "INVITED" ? (
+                    <button type="button" className="btn-secondary" disabled={busy} onClick={() => void action(s.id, "suspend")}>
+                      {m(locale, "owner.staff.suspend")}
+                    </button>
+                  ) : null}
+                  {s.status === "SUSPENDED" ? (
+                    <button type="button" className="btn-secondary" disabled={busy} onClick={() => void action(s.id, "reactivate")}>
+                      {m(locale, "owner.staff.reactivate")}
+                    </button>
+                  ) : null}
+                  <button type="button" className="btn-secondary" disabled={busy} onClick={() => void action(s.id, "reset")}>
+                    {m(locale, "owner.staff.reset")}
                   </button>
-                ) : null}
-                {s.status === "SUSPENDED" ? (
-                  <button type="button" className="btn-secondary" disabled={busy} onClick={() => void action(s.id, "reactivate")}>
-                    {m(locale, "owner.staff.reactivate")}
+                  <button type="button" className="btn-secondary" disabled={busy} onClick={() => void action(s.id, "remove")}>
+                    {m(locale, "owner.staff.remove")}
                   </button>
-                ) : null}
-                <button type="button" className="btn-secondary" disabled={busy} onClick={() => void action(s.id, "reset")}>
-                  {m(locale, "owner.staff.reset")}
-                </button>
-                <button type="button" className="btn-secondary" disabled={busy} onClick={() => void action(s.id, "remove")}>
-                  {m(locale, "owner.staff.remove")}
-                </button>
+                </div>
               </div>
-            </div>
-          </li>
-        ))}
-      </ul>
+            </li>
+          ))}
+        </ul>
+      ) : null}
     </section>
   );
 }

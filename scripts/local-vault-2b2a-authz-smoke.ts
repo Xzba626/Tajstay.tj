@@ -2,6 +2,8 @@
  * Phase 2B.2A AuthZ smoke — Owner create/list; Guest/Manager/foreign denied.
  * Run: npx tsx scripts/local-vault-2b2a-authz-smoke.ts
  */
+export {};
+
 const BASE = process.env.BASE_URL ?? "http://127.0.0.1:3000";
 
 async function login(emailOrPhone: string, password: string) {

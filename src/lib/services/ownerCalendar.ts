@@ -11,7 +11,7 @@ import {
 import { getBookingGuestLabel, isOfflineBookingSource } from "@/lib/domain/booking";
 import { getRoomTypeDaySummary } from "@/lib/pms/inventory";
 
-export type CalendarCellKind = "available" | "blocked" | "customPrice" | "online" | "offline" | "onlinePending";
+export type CalendarCellKind = "available" | "blocked" | "occupied" | "pending";
 
 export type RoomTypeCalendarRow = {
   id: number;
@@ -33,7 +33,6 @@ export type CalendarCellMeta = {
   totalPrice?: string;
   hotelName?: string;
   roomTitle?: string;
-  customPrice?: string | null;
 };
 
 export function toUtcDayStart(input: Date): Date {
@@ -44,20 +43,19 @@ export function dayKey(input: Date): string {
   return input.toISOString().slice(0, 10);
 }
 
-function classifyBooking(
-  b: {
-    source: string;
-    status: string;
-    offlineStatus: string | null;
-  }
-): "online" | "offline" | "onlinePending" | null {
+/** Occupancy status only — online/offline is source metadata, not a calendar status. */
+function classifyBooking(b: {
+  source: string;
+  status: string;
+  offlineStatus: string | null;
+}): "occupied" | "pending" | null {
   if (isOfflineBookingSource(b.source)) {
-    if (isOccupyingOfflineStatus(b.offlineStatus)) return "offline";
-    if (isPendingOfflineStatus(b.offlineStatus)) return "onlinePending";
+    if (isOccupyingOfflineStatus(b.offlineStatus)) return "occupied";
+    if (isPendingOfflineStatus(b.offlineStatus)) return "pending";
     return null;
   }
-  if (isOccupyingOnlineStatus(b.status)) return "online";
-  if (isPendingOnlineStatus(b.status)) return "onlinePending";
+  if (isOccupyingOnlineStatus(b.status)) return "occupied";
+  if (isPendingOnlineStatus(b.status)) return "pending";
   return null;
 }
 
@@ -161,13 +159,8 @@ export async function getOwnerCalendarData(ownerId: number, days = 30, hotelId?:
       const dayDate = new Date(`${key}T00:00:00.000Z`);
       const hits = roomBookings.filter((b) => bookingOccupiesDay(b.checkIn, b.checkOut, dayDate));
 
-      const occupying = hits.find((b) => {
-        const kind = classifyBooking(b);
-        return kind === "online" || kind === "offline";
-      });
-      const pending = !occupying
-        ? hits.find((b) => classifyBooking(b) === "onlinePending")
-        : null;
+      const occupying = hits.find((b) => classifyBooking(b) === "occupied");
+      const pending = !occupying ? hits.find((b) => classifyBooking(b) === "pending") : null;
       const hit = occupying ?? pending;
 
       if (hit) {
@@ -190,20 +183,12 @@ export async function getOwnerCalendarData(ownerId: number, days = 30, hotelId?:
         continue;
       }
 
-      if (ov?.customPrice != null) {
-        cells[cellKey] = "customPrice";
-        cellMeta[cellKey] = { customPrice: String(ov.customPrice) };
-        continue;
-      }
-
+      // customPrice overrides are pricing ops — not occupancy status
       cells[cellKey] = "available";
     }
   }
 
-  const bookings = bookingsRaw.filter((b) => {
-    const kind = classifyBooking(b);
-    return kind === "online" || kind === "offline";
-  });
+  const bookings = bookingsRaw.filter((b) => classifyBooking(b) === "occupied");
 
   const typeRows: RoomTypeCalendarRow[] = [];
   for (const rt of roomTypes) {

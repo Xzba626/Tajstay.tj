@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { BrandMark } from "@/components/brand/BrandMark";
-import { LocaleSwitcher } from "@/components/layout/LocaleSwitcher";
 import {
   PropertySwitcher,
   type OwnerSidebarLabels,
@@ -18,12 +17,11 @@ type Props = {
 };
 
 /**
- * Compact Owner workspace header — brand + active hotel switcher.
- * Mirrors AdminHeader density; hotel context lives here so every Owner section
- * keeps identity without a second consumer header.
+ * Canonical Owner mobile header: green brand surface + TajStay mark/wordmark only.
+ * Hotel switcher lives in OwnerHotelToolbar (content), not the global header.
+ * Language stays in Profile — not Owner chrome.
  */
 export function OwnerHeader({
-  locale,
   brandPrimary,
   brandSecondary,
   brandFull,
@@ -41,14 +39,27 @@ export function OwnerHeader({
           </span>
         </Link>
 
+        {/* Desktop only — CSS hides on mobile */}
         <div className="owner-header__switcher">
           <PropertySwitcher hotels={hotels} labels={labels} variant="header" />
         </div>
-
-        <div className="owner-header__actions">
-          <LocaleSwitcher current={locale} iconOnly className="owner-header__locale" />
-        </div>
       </div>
     </header>
+  );
+}
+
+/** Compact hotel switcher for Owner mobile content (not global header). */
+export function OwnerHotelToolbar({
+  hotels,
+  labels
+}: {
+  hotels: OwnerSwitcherHotel[];
+  labels: OwnerSidebarLabels;
+}) {
+  if (!hotels.length) return null;
+  return (
+    <div className="owner-hotel-toolbar" data-testid="owner-hotel-toolbar">
+      <PropertySwitcher hotels={hotels} labels={labels} variant="header" />
+    </div>
   );
 }

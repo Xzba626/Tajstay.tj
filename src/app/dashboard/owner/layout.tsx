@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { OwnerMobileNav, OwnerSidebar, type OwnerSidebarLabels } from "@/components/dashboard/OwnerSidebar";
-import { OwnerHeader } from "@/components/owner/OwnerHeader";
+import { OwnerHeader, OwnerHotelToolbar } from "@/components/owner/OwnerHeader";
 import { DashboardShell } from "@/components/ds";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
@@ -79,6 +79,7 @@ export default async function OwnerDashboardLayout({ children }: { children: Rea
         sidebar={<OwnerSidebar labels={labels} hotels={hotels} />}
         mobileNav={<OwnerMobileNav labels={labels} hotels={hotels} />}
       >
+        <OwnerHotelToolbar hotels={hotels} labels={labels} />
         {children}
       </DashboardShell>
     </>

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Bell } from "lucide-react";
 import { BrandMark } from "@/components/brand/BrandMark";
-import { LocaleSwitcher } from "@/components/layout/LocaleSwitcher";
 import { AdminProfileMenu, type AdminProfileMenuLabels } from "@/components/admin/AdminProfileMenu";
 import type { Locale } from "@/lib/i18n/locale";
 
@@ -51,8 +50,6 @@ export function AdminHeader({
         </Link>
 
         <div className="admin-header__actions">
-          <LocaleSwitcher current={_locale} iconOnly className="admin-header__locale" />
-
           <Link href={notificationsHref} className="admin-header__icon-btn" aria-label={notificationsAria}>
             <Bell className="h-[18px] w-[18px]" aria-hidden />
             {unreadCount > 0 ? (

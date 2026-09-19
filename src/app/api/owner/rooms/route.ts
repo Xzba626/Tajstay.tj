@@ -11,7 +11,8 @@ import { createPhysicalRoomFromCategory } from "@/lib/pms/createPhysicalRoom";
 const slimCreateSchema = z.object({
   hotelId: z.number().int(),
   roomTypeId: z.number().int(),
-  roomNumber: z.string().min(1).max(32)
+  roomNumber: z.string().min(1).max(32),
+  customAmenities: z.array(z.string()).optional()
 });
 
 export async function POST(req: NextRequest) {
@@ -29,7 +30,8 @@ export async function POST(req: NextRequest) {
         hotelId: parsed.data.hotelId,
         ownerId: owner.id,
         roomTypeId: parsed.data.roomTypeId,
-        roomNumber: parsed.data.roomNumber
+        roomNumber: parsed.data.roomNumber,
+        customAmenities: parsed.data.customAmenities
       });
       return NextResponse.json({ ok: true, room });
     } catch (e) {

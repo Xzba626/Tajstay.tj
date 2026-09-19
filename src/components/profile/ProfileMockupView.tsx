@@ -36,10 +36,6 @@ type Props = {
   themePreference: ThemePreference;
 };
 
-function HubGroupLabel({ children }: { children: string }) {
-  return <p className="profile-hub__group-label">{children}</p>;
-}
-
 function HubNavBlock({
   href,
   icon: Icon,
@@ -100,14 +96,13 @@ export function ProfileMockupView({ locale, user, logoutLabel, unreadNotificatio
            * rows in an earlier pass, only the language selector was real). Removed as a
            * standalone nav entry now that both controls live here directly. */}
           <div className="profile-hub__compact-head-controls">
-            <LocaleSwitcher current={locale} iconOnly />
-            <ProfileThemeToggle current={themePreference} />
+            <LocaleSwitcher current={locale} iconOnly className="profile-hub__locale-brand" />
+            <ProfileThemeToggle current={themePreference} locale={locale} />
           </div>
         </div>
       </header>
 
       <div className="profile-hub__stack">
-        <HubGroupLabel>{m(locale, "profile.sectionAccount")}</HubGroupLabel>
         <div className="profile-hub__nav-group">
           <HubNavBlock
             href="/profile/personal"
@@ -130,30 +125,26 @@ export function ProfileMockupView({ locale, user, logoutLabel, unreadNotificatio
         </div>
 
         {user.role !== "GUEST" ? (
-          <>
-            <HubGroupLabel>{m(locale, "profile.sectionRole")}</HubGroupLabel>
-            <div className="profile-hub__nav-group">
-              {user.role === "OWNER" ? (
-                <HubNavBlock
-                  href="/dashboard/owner"
-                  icon={Building2}
-                  title={m(locale, "profile.navOwner")}
-                  summary={m(locale, "profile.navOwnerSubtitle")}
-                />
-              ) : null}
-              {user.role === "ADMIN" ? (
-                <HubNavBlock
-                  href="/dashboard/admin"
-                  icon={LayoutDashboard}
-                  title={m(locale, "profile.navAdmin")}
-                  summary={m(locale, "profile.navAdminSubtitle")}
-                />
-              ) : null}
-            </div>
-          </>
+          <div className="profile-hub__nav-group">
+            {user.role === "OWNER" ? (
+              <HubNavBlock
+                href="/dashboard/owner"
+                icon={Building2}
+                title={m(locale, "profile.navOwner")}
+                summary={m(locale, "profile.navOwnerSubtitle")}
+              />
+            ) : null}
+            {user.role === "ADMIN" ? (
+              <HubNavBlock
+                href="/dashboard/admin"
+                icon={LayoutDashboard}
+                title={m(locale, "profile.navAdmin")}
+                summary={m(locale, "profile.navAdminSubtitle")}
+              />
+            ) : null}
+          </div>
         ) : null}
 
-        <HubGroupLabel>{m(locale, "profile.sectionSupport")}</HubGroupLabel>
         <div className="profile-hub__nav-group">
           <HubNavBlock
             href="/profile/support"

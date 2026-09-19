@@ -674,6 +674,104 @@
   opacity: 0.6;
 }
 
+.profile-theme-toggle--compact {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+.profile-theme-toggle__btn--animated {
+  position: relative;
+  overflow: hidden;
+  transition: background-color 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.profile-theme-toggle__icon-swap {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 1rem;
+  height: 1rem;
+}
+
+.profile-theme-toggle__sun,
+.profile-theme-toggle__moon {
+  grid-area: 1 / 1;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.profile-theme-toggle__icon-swap[data-dark="0"] .profile-theme-toggle__sun {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+.profile-theme-toggle__icon-swap[data-dark="0"] .profile-theme-toggle__moon {
+  opacity: 0;
+  transform: rotate(-40deg) scale(0.6);
+}
+
+.profile-theme-toggle__icon-swap[data-dark="1"] .profile-theme-toggle__sun {
+  opacity: 0;
+  transform: rotate(40deg) scale(0.6);
+}
+
+.profile-theme-toggle__icon-swap[data-dark="1"] .profile-theme-toggle__moon {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+.profile-theme-toggle__auto {
+  border: none;
+  background: transparent;
+  color: var(--ts-brand-primary, #0f7a4d);
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.15rem 0.25rem;
+  min-height: 44px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .profile-theme-toggle__btn--animated,
+  .profile-theme-toggle__sun,
+  .profile-theme-toggle__moon {
+    transition: none;
+  }
+}
+
+.profile-hub__locale-brand .locale-switcher-trigger,
+.profile-hub__locale-brand button {
+  width: 2.25rem;
+  height: 2.25rem;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 0.625rem;
+  background: #0f7a4d !important;
+  color: #ffffff !important;
+  border: 1px solid #0c6a42 !important;
+}
+
+.profile-hub__locale-brand .locale-switcher-trigger svg,
+.profile-hub__locale-brand button svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+.profile-hub--compact .profile-hub__compact-head {
+  margin-bottom: 0.65rem;
+  padding-top: 0.15rem;
+}
+
+.profile-hub--compact .profile-hub__stack {
+  gap: 0.55rem;
+}
+
+.profile-hub--compact .profile-hub__nav-group {
+  gap: 0.25rem;
+}
+
 .profile-hub__identity-row {
   display: flex;
   align-items: flex-start;
@@ -1095,6 +1193,66 @@
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
+}
+
+/* Change Password / Sessions forms (ProfilePasswordChangeClient, ProfileSessionsClient) referenced
+   these classes with zero CSS anywhere in the codebase — inputs fell back to raw browser defaults,
+   disconnected from both the light and dark theme systems (confirmed via repo-wide grep before this
+   fix). Themed here using the same --ts-* tokens as the rest of Profile so Light/Dark both resolve
+   correctly. */
+.profile-subpage-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.profile-field__label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ts-text-secondary, #66756d);
+}
+
+.profile-input {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.6rem 0.85rem;
+  border-radius: 0.625rem;
+  border: 1px solid var(--ts-border-default, #dce7e1);
+  background: var(--ts-surface-primary, #ffffff);
+  color: var(--ts-text-title, #14231b);
+  font-size: 0.9375rem;
+}
+
+.profile-input::placeholder {
+  color: var(--ts-text-secondary, #66756d);
+}
+
+.profile-input:focus-visible {
+  outline: 2px solid var(--ts-brand-primary, #0f7a4d);
+  outline-offset: 1px;
+}
+
+.profile-input:disabled {
+  opacity: 0.6;
+}
+
+.profile-status {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.profile-status--danger {
+  color: var(--ts-semantic-danger, #dc2626);
+}
+
+.profile-status--success {
+  color: var(--ts-semantic-success, #0f7a4d);
 }
 
 .profile-panel {

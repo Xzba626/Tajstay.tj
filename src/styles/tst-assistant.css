@@ -33,7 +33,7 @@
   flex-direction: column;
   overflow: hidden;
   border: 1px solid var(--taj-border, #e4e4e7);
-  background: #ffffff;
+  background: var(--ts-surface-primary, #ffffff);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
   /* Mobile: bottom sheet above tab bar — not fullscreen trap */
   top: auto;
@@ -57,7 +57,7 @@
   gap: 0.75rem;
   padding: 0.7rem 0.9rem 0.35rem;
   border-bottom: 1px solid var(--taj-border, #e4e4e7);
-  background: #ffffff;
+  background: var(--ts-surface-primary, #ffffff);
 }
 
 .tst-assistant__toolbar-title {
@@ -75,7 +75,7 @@
   height: 2.75rem;
   border: 0;
   border-radius: 999px;
-  background: #f4f4f5;
+  background: var(--ts-surface-muted, #f4f4f5);
   color: var(--taj-text, #14231b);
   cursor: pointer;
   position: relative;
@@ -189,7 +189,7 @@
 .tst-assistant__action {
   border: 1px solid var(--taj-border, #e4e4e7);
   border-radius: 0.75rem;
-  background: #ffffff;
+  background: var(--ts-surface-primary, #ffffff);
   color: var(--taj-text, #14231b);
   font-size: 0.72rem;
   font-weight: 600;
@@ -253,7 +253,7 @@
   white-space: nowrap;
   border-radius: 999px;
   border: 1px solid var(--taj-border, #e4e4e7);
-  background: #ffffff;
+  background: var(--ts-surface-primary, #ffffff);
   color: var(--taj-text, #14231b);
   font-size: 0.68rem;
   font-weight: 600;
@@ -297,7 +297,7 @@
   width: 100%;
   border-radius: 0.55rem;
   border: 1px solid var(--taj-border, #e4e4e7);
-  background: #ffffff;
+  background: var(--ts-surface-primary, #ffffff);
   color: var(--taj-text, #14231b);
   font-size: 0.78rem;
   padding: 0.45rem 0.55rem;
@@ -320,7 +320,7 @@
   gap: 0.4rem;
   padding: 0.55rem 0.9rem calc(0.55rem + env(safe-area-inset-bottom, 0px));
   border-top: 1px solid var(--taj-border, #e4e4e7);
-  background: #ffffff;
+  background: var(--ts-surface-primary, #ffffff);
 }
 
 .tst-assistant__ask button {
@@ -375,7 +375,7 @@
   padding: 0.55rem;
   border-radius: 0.75rem;
   border: 1px solid var(--taj-border, #e4e4e7);
-  background: #ffffff;
+  background: var(--ts-surface-primary, #ffffff);
 }
 
 .tst-assistant__hotel {
@@ -419,7 +419,7 @@
 .tst-assistant__btn {
   border-radius: 0.55rem;
   border: 1px solid var(--taj-border, #e4e4e7);
-  background: #ffffff;
+  background: var(--ts-surface-primary, #ffffff);
   color: var(--taj-text, #14231b);
   font-size: 0.72rem;
   font-weight: 600;
@@ -447,7 +447,8 @@
   display: flex;
   align-items: flex-end;
   justify-content: flex-end;
-  bottom: calc(5.35rem + env(safe-area-inset-bottom, 0px));
+  /* One spacing unit above bottom nav (nav ~3.75rem + safe-area + 0.75rem gap) */
+  bottom: calc(var(--mobile-bottom-nav-height, 3.75rem) + env(safe-area-inset-bottom, 0px) + 0.75rem);
 }
 
 .tst-assistant__anchor.is-hidden {

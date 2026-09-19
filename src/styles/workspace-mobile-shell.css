@@ -134,7 +134,38 @@ body.app-shell--workspace .header-workspace-menu {
   text-overflow: ellipsis;
   white-space: nowrap;
   color: inherit !important;
-  stroke: currentColor;
+  stroke: currentColor !important;
+  stroke-width: 2.25;
+  fill: none;
+}
+
+/* Brand nav must stay green + readable in every theme (SS4-01) */
+:root[data-theme="dark"] .workspace-mobile-bottom-nav,
+:root[data-theme="dark"] .admin-mobile-bottom-nav,
+:root[data-theme="dark"] .owner-mobile-bottom-nav,
+:root:not([data-theme="light"]) .workspace-mobile-bottom-nav,
+:root:not([data-theme="light"]) .admin-mobile-bottom-nav,
+:root:not([data-theme="light"]) .owner-mobile-bottom-nav {
+  background: #0f7a4d !important;
+  border-top-color: rgba(255, 255, 255, 0.22) !important;
+}
+
+:root[data-theme="dark"] .workspace-mobile-bottom-nav__link,
+:root[data-theme="dark"] .admin-mobile-bottom-nav__link,
+:root[data-theme="dark"] .owner-mobile-bottom-nav__link,
+:root:not([data-theme="light"]) .workspace-mobile-bottom-nav__link,
+:root:not([data-theme="light"]) .admin-mobile-bottom-nav__link,
+:root:not([data-theme="light"]) .owner-mobile-bottom-nav__link {
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+:root[data-theme="dark"] .workspace-mobile-bottom-nav__link.is-active,
+:root[data-theme="dark"] .admin-mobile-bottom-nav__link.is-active,
+:root[data-theme="dark"] .owner-mobile-bottom-nav__link.is-active,
+:root:not([data-theme="light"]) .workspace-mobile-bottom-nav__link.is-active,
+:root:not([data-theme="light"]) .admin-mobile-bottom-nav__link.is-active,
+:root:not([data-theme="light"]) .owner-mobile-bottom-nav__link.is-active {
+  color: #ffffff !important;
 }
 
 .workspace-mobile-bottom-nav__link:active,

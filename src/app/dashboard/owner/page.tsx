@@ -477,11 +477,14 @@ export default async function OwnerDashboardPage({
   const hasHotels = hotels.length > 0;
   const totalRooms = hotels.reduce((acc, hotel) => acc + (hotel.rooms?.length ?? 0), 0);
   void totalRooms;
-  const aiPriceRecommendation =
-    pendingCount >= 5
+  const aiHotelRecommendations = buildOwnerPricingInsights(hotels, recentBookings);
+  const insightBookings = aiHotelRecommendations.reduce((acc, r) => acc + r.bookingsCount, 0);
+  const anyLowData = insightBookings < 3 || aiHotelRecommendations.every((r) => r.lowData);
+  const aiPriceRecommendation = anyLowData
+    ? m(locale, "owner.aiPricingLowData")
+    : pendingCount >= 5
       ? m(locale, "owner.aiPricingHighDemand")
       : m(locale, "owner.aiPricingStableDemand");
-  const aiHotelRecommendations = buildOwnerPricingInsights(hotels, recentBookings);
   const calendarDays =
     activeSection === "calendar" && calendarDaysFromService.length
       ? calendarDaysFromService
@@ -700,8 +703,14 @@ export default async function OwnerDashboardPage({
                 <ul className="owner-panel__list">
                   {aiHotelRecommendations.map((rec) => (
                     <li key={rec.hotelId}>
-                      {rec.hotelName}: {rec.suggestedDelta >= 0 ? "+" : ""}
-                      {rec.suggestedDelta}%
+                      {rec.hotelName}:{" "}
+                      {rec.lowData
+                        ? m(locale, "owner.aiPricingHold")
+                        : `${rec.suggestedDelta >= 0 ? "+" : ""}${rec.suggestedDelta}%`}
+                      <span className="owner-panel__meta">
+                        {" "}
+                        · {m(locale, "owner.aiPricingBasis", { bookings: rec.bookingsCount, rooms: rec.roomsCount })}
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -1134,7 +1143,6 @@ export default async function OwnerDashboardPage({
             <span className="h-8 w-1 rounded-full bg-orange-500" aria-hidden />
             <h2 className="owner-section-head__title">{m(locale, "owner.offline.title")}</h2>
           </div>
-          <p className="owner-section-lead">{m(locale, "owner.offline.hint")}</p>
           {offlineUpdated ? (
             <div className="owner-status-banner owner-status-banner--success" role="status">
               {m(locale, "owner.offline.updated")}
@@ -1199,104 +1207,24 @@ export default async function OwnerDashboardPage({
       )}
 
       {activeSection === "calendar" && (
-        <section id="calendar" className="scroll-mt-28 space-y-4">
+        <section id="calendar" className="scroll-mt-28 space-y-3">
           <div className="owner-section-head">
             <span className="owner-section-head__bar" aria-hidden />
             <h2 className="owner-section-head__title">{m(locale, "owner.calendarTitle")}</h2>
           </div>
-          <p className="owner-section-lead">{m(locale, "owner.calendarHint")}</p>
 
           {!rooms.length ? (
             <EmptyState title={m(locale, "owner.calendarEmpty")} />
           ) : (
-            <>
-              <form action="/api/owner/overrides" method="post" className="owner-form__section grid gap-3 md:grid-cols-5">
-                <select name="roomId" className="owner-input md:col-span-2">
-                  {rooms.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.hotel.name} · {r.title}
-                    </option>
-                  ))}
-                </select>
-                <input name="date" type="date" className="owner-input" required />
-                <label className="owner-field__label flex items-center gap-2 rounded-xl border border-[var(--owner-border)] px-3 py-2 md:col-span-1">
-                  <input type="checkbox" name="isBlocked" defaultChecked={false} />
-                  {m(locale, "owner.block")}
-                </label>
-                <input
-                  name="customPrice"
-                  type="number"
-                  min={0}
-                  step={1}
-                  placeholder={m(locale, "owner.priceIfOpen")}
-                  className="owner-input md:col-span-1"
-                />
-                <button type="submit" className="owner-btn owner-btn--primary md:col-span-5">
-                  {m(locale, "owner.saveOverride")}
-                </button>
-              </form>
-
-              <div className="owner-panel">
-                <div className="owner-panel__title">{m(locale, "owner.overridesTitle")}</div>
-                <div className="mt-3 space-y-2">
-                  {overrides.length ? (
-                    overrides.map((o) => (
-                      <div key={o.id} className="owner-record-card flex flex-wrap items-center justify-between gap-3 text-sm">
-                        <div>
-                          <div className="owner-record-card__title">{o.room.hotel.name}</div>
-                          <div className="owner-record-card__meta">{o.room.title}</div>
-                        </div>
-                        <div className="text-right">
-                          <div className="owner-record-card__title">{o.date.toISOString().slice(0, 10)}</div>
-                          <div className="owner-record-card__meta">
-                            {o.isBlocked ? m(locale, "owner.blocked") : `${m(locale, "owner.price")}: ${o.customPrice ?? "—"} TJS`}
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="owner-section-lead">{m(locale, "owner.overridesEmpty")}</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="owner-panel">
-                <div className="owner-panel__title">{m(locale, "owner.calendarOccupiedTitle")}</div>
-                <div className="mt-3 space-y-2">
-                  {calendarBookings.length ? (
-                    calendarBookings.map((b) => (
-                      <div key={b.id} className="owner-record-card flex flex-wrap items-center justify-between gap-3 text-sm">
-                        <div>
-                          <div className="owner-record-card__title">{b.room?.hotel?.name ?? "—"}</div>
-                          <div className="owner-record-card__meta">{b.room?.title ?? getBookingGuestLabel(b)}</div>
-                          <div className="owner-field__hint">{getBookingGuestLabel(b)} · {b.phone}</div>
-                        </div>
-                        <div className="text-right">
-                          <div className="owner-record-card__title">
-                            {b.checkIn.toISOString().slice(0, 10)} — {b.checkOut.toISOString().slice(0, 10)}
-                          </div>
-                          <div className="owner-record-card__meta">{tStatus(locale, b.status)}</div>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="owner-section-lead">{m(locale, "owner.calendarOccupiedEmpty")}</p>
-                  )}
-                </div>
-              </div>
-
-              <OwnerCalendar
-                locale={locale}
-                rooms={rooms}
-                typeRows={calendarTypeRows}
-                days={calendarDays}
-                cells={calendarCells}
-                cellMeta={calendarCellMeta}
-                hotels={hotels.map((h: { id: number; name: string }) => ({ id: h.id, name: h.name }))}
-                activeHotelId={hotelId}
-              />
-              <Pagination page={page} totalPages={totalPages} />
-            </>
+            <OwnerCalendar
+              locale={locale}
+              rooms={rooms}
+              days={calendarDays}
+              cells={calendarCells}
+              cellMeta={calendarCellMeta}
+              hotels={hotels.map((h: { id: number; name: string }) => ({ id: h.id, name: h.name }))}
+              activeHotelId={hotelId}
+            />
           )}
         </section>
       )}

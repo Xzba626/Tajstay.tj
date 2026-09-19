@@ -359,7 +359,8 @@ export async function findBookingsEligibleForChatArchive(daysAfterCheckout = 15)
 }
 
 export async function runChatArchiveJob(): Promise<{ processed: number; errors: string[] }> {
-  const ids = await findBookingsEligibleForChatArchive(15);
+  // Confirmed chats stay active until checkout + 5 days (not create+N).
+  const ids = await findBookingsEligibleForChatArchive(5);
   const errors: string[] = [];
   let processed = 0;
   for (const id of ids) {

@@ -4,7 +4,18 @@ Read this before anything else. Load only the skill matching NEXT (see `CLAUDE.m
 Do not re-read old audit reports unless the task needs them. Keep this file short — DONE/OPEN/BLOCKED/
 NEXT, not a diary. Detailed rationale for a fix belongs in its commit message, not here.
 
-## CURRENT — LOCAL VAULT PHASE 2B.2A OWNER ACTIVATION UI (LOCAL)
+## CURRENT — VISUAL/RUNTIME CORRECTIVE BLOCK V1 (LOCAL, UNCOMMITTED)
+
+- **BASE SHA:** `f07525cff3be7c25ea74235bf52ecc8414cba646`
+- **IMPLEMENTATION:** dirty working tree on BASE (no commit yet — await screenshot review)
+- **DONE:** Owner fixed shell (header/nav); brand-invariant header/nav/auth/forms; Profile sun↔moon + Автоматически; Login green card + forgot below password; remember-me removed (localStorage-only); Category JSON create; Room extras/media; Staff ERROR≠EMPTY; honest assistant low-data gate; i18n RU/TJ/EN
+- **LOCAL RUNTIME:** Staff GET/POST 200; Category JSON 200 @ `http://127.0.0.1:3000` hotelId=3
+- **PROD:** seed login 401 → Category/Staff on `tajstay.site` **NOT PROVEN**
+- **USER VISUAL:** PENDING screenshot review
+- **DO NOT START:** Local Vault · MASTER FINAL · monetization · P0-S2
+- **NEXT:** user screenshot review → commit if approved
+
+## PRIOR — LOCAL VAULT PHASE 2B.2A OWNER ACTIVATION UI (LOCAL)
 
 - **FINAL SHA:** `eb846e73b3ea54bde03c7c054c7537083de05589`
 - **BASE:** `6c23c8abf6a20500275d6cc92de40ec8b74654ef` (2B.1A)

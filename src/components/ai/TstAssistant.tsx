@@ -716,7 +716,6 @@ export function TstAssistant({ locale }: Props) {
 
                 {showHistoryQuick ? (
                   <div className="tst-assistant__history-quick">
-                    <p className="tst-assistant__label">{m(locale, "tstAssistant.history.filterTitle")}</p>
                     <div className="tst-assistant__chips">
                       {TST_HISTORY_QUICK.map((item) => (
                         <button

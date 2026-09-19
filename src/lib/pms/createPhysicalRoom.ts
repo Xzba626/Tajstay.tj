@@ -11,6 +11,7 @@ export async function createPhysicalRoomFromCategory(input: {
   ownerId: number;
   roomTypeId: number;
   roomNumber: string;
+  customAmenities?: string[];
 }) {
   const hotel = await prisma.hotel.findFirst({
     where: { id: input.hotelId, ownerId: input.ownerId },
@@ -26,6 +27,16 @@ export async function createPhysicalRoomFromCategory(input: {
   });
   if (!roomType) throw new Error("CATEGORY_NOT_FOUND");
 
+  let categoryAmenities: string[] = [];
+  try {
+    const parsed = JSON.parse(roomType.amenities || "[]");
+    categoryAmenities = Array.isArray(parsed) ? parsed.map(String) : [];
+  } catch {
+    categoryAmenities = [];
+  }
+  const extras = (input.customAmenities ?? []).map(String).filter(Boolean);
+  const effective = Array.from(new Set([...categoryAmenities, ...extras]));
+
   try {
     const room = await prisma.room.create({
       data: {
@@ -38,7 +49,8 @@ export async function createPhysicalRoomFromCategory(input: {
         minNights: roomType.minNights,
         extraGuestPrice: roomType.extraGuestPrice,
         capacity: roomType.maxGuests,
-        amenities: roomType.amenities,
+        amenities: JSON.stringify(effective),
+        customAmenities: JSON.stringify(extras),
         availability: true,
         status: "ACTIVE",
         housekeepingStatus: "CLEAN"
@@ -57,15 +69,38 @@ export async function createPhysicalRoomFromCategory(input: {
 export async function syncRoomsFromCategory(roomTypeId: number) {
   const rt = await prisma.roomType.findUnique({ where: { id: roomTypeId } });
   if (!rt) return;
-  await prisma.room.updateMany({
+  let categoryAmenities: string[] = [];
+  try {
+    const parsed = JSON.parse(rt.amenities || "[]");
+    categoryAmenities = Array.isArray(parsed) ? parsed.map(String) : [];
+  } catch {
+    categoryAmenities = [];
+  }
+
+  const rooms = await prisma.room.findMany({
     where: { roomTypeId, status: { not: "ARCHIVED" } },
-    data: {
-      price: rt.basePrice,
-      weekendPrice: rt.weekendPrice,
-      minNights: rt.minNights,
-      extraGuestPrice: rt.extraGuestPrice,
-      capacity: rt.maxGuests,
-      amenities: rt.amenities
-    }
+    select: { id: true, customAmenities: true }
   });
+
+  for (const room of rooms) {
+    let extras: string[] = [];
+    try {
+      const parsed = JSON.parse(room.customAmenities || "[]");
+      extras = Array.isArray(parsed) ? parsed.map(String) : [];
+    } catch {
+      extras = [];
+    }
+    const effective = Array.from(new Set([...categoryAmenities, ...extras]));
+    await prisma.room.update({
+      where: { id: room.id },
+      data: {
+        price: rt.basePrice,
+        weekendPrice: rt.weekendPrice,
+        minNights: rt.minNights,
+        extraGuestPrice: rt.extraGuestPrice,
+        capacity: rt.maxGuests,
+        amenities: JSON.stringify(effective)
+      }
+    });
+  }
 }

@@ -278,6 +278,10 @@ export async function assertDatesAvailable(params: {
               {
                 source: BOOKING_SOURCE.PLATFORM,
                 ...activeHoldCondition(now)
+              },
+              {
+                source: { in: [BOOKING_SOURCE.OWNER_MANUAL, BOOKING_SOURCE.MANAGER_MANUAL] },
+                offlineStatus: { in: [...PENDING_OFFLINE_STATUSES] }
               }
             ]
           : [])

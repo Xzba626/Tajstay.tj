@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { runChatArchiveJob } from "@/lib/chat/bookingChat";
 
 /**
- * Периодический перенос чатов в архив (30 дней после выезда, терминальные статусы).
+ * Периодический перенос чатов в архив (5 дней после выезда, терминальные статусы).
  * Вызов: GET /api/cron/archive-booking-chats
  * Заголовок: Authorization: Bearer <CRON_SECRET> (если CRON_SECRET задан в .env).
  */
