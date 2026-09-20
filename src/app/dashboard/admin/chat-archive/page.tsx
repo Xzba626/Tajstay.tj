@@ -18,12 +18,12 @@ export default async function AdminChatArchivePage() {
   return (
     <div className="admin-command-center mx-auto max-w-3xl px-4 py-8 sm:px-6">
       <AdminBackButton href="/dashboard/bookings" label={m(locale, "admin.backButtonDefault")} />
-      <h1 className="mt-4 text-2xl font-bold text-[var(--admin-text)] sm:text-3xl">Архив переписок</h1>
-      <p className="mt-2 text-sm text-[var(--admin-text-muted)]">
-        Выгрузка для налоговой и споров: сообщения из холодного архива и метаданные брони.
-      </p>
+      <h1 className="mt-4 text-2xl font-bold text-[var(--admin-text)] sm:text-3xl">
+        {m(locale, "admin.chatArchiveTitle")}
+      </h1>
+      <p className="mt-2 text-sm text-[var(--admin-text-muted)]">{m(locale, "admin.chatArchiveSubtitle")}</p>
       <div className="mt-8">
-        <ChatArchiveClient />
+        <ChatArchiveClient locale={locale} />
       </div>
     </div>
   );

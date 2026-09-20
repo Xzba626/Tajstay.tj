@@ -26,7 +26,11 @@ import { deriveEscrowState, getBookingGuestLabel } from "@/lib/domain/booking";
 import { bookingHotel } from "@/lib/pms/bookingContext";
 import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
 import { notificationText } from "@/lib/notifications/text";
-import { getAdminUnreadNotificationsCount } from "@/lib/notifications/unread";
+import {
+  adminNotificationWhere,
+  getAdminNotificationsCount,
+  getAdminUnreadNotificationsCount
+} from "@/lib/notifications/unread";
 import { AdminDashboardOverview } from "@/components/admin/AdminDashboardOverview";
 import { AdminFinanceSection } from "@/components/admin/AdminFinanceSection";
 import { AdminSectionHead } from "@/components/admin/AdminSectionHead";
@@ -364,10 +368,16 @@ export default async function AdminDashboardPage({
       })
     ]);
   } else if (activeSection === "notifications") {
+    // SECURITY: `count()`/`findMany()` here previously had NO `where` clause — the Admin
+    // Notifications UI listed, counted and paginated every user's notifications platform-wide,
+    // rendering other users' PII (guest name + phone through the `booking` include below).
+    // All three reads now build from the one `adminNotificationWhere` predicate, so the badge,
+    // the list and the pagination denominator can never diverge again.
     unreadCount = await getAdminUnreadNotificationsCount(admin.id);
-    totalRows = await prisma.notification.count();
+    totalRows = await getAdminNotificationsCount(admin.id);
     totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
     notes = await prisma.notification.findMany({
+      where: adminNotificationWhere(admin.id),
       include: {
         booking: { include: { user: true, room: { include: { hotel: true } } } },
         user: true
@@ -707,7 +717,7 @@ export default async function AdminDashboardPage({
               }
             >
               {hotel.coverImageUrl && !isBrandAssetUrl(hotel.coverImageUrl) ? (
-                <div className="relative mb-3 aspect-video w-full overflow-hidden rounded-xl bg-slate-100">
+                <div className="relative mb-3 aspect-video w-full overflow-hidden rounded-xl bg-[var(--admin-surface-muted)]">
                   {/* Admin's simplified verification (no KYC/passport) leans on seeing the
                       Owner's one submitted photo directly - object-contain, not cover, since a
                       cropped guess defeats the point of actually looking at it. */}
@@ -983,7 +993,7 @@ export default async function AdminDashboardPage({
                 <span className="admin-record-card__title">
                   {(() => {
                     const label = getBookingGuestLabel(b);
-                    return label === "—" ? "Гость без аккаунта" : label;
+                    return label === "—" ? m(locale, "admin.bookingGuestNoAccount") : label;
                   })()}
                 </span>
                 <StatusBadge variant={bookingStatusVariant(b.status)}>{tStatus(b.status)}</StatusBadge>
@@ -994,7 +1004,7 @@ export default async function AdminDashboardPage({
                   try {
                     return bookingHotel(b).name;
                   } catch {
-                    return "Отель не определён";
+                    return m(locale, "admin.bookingHotelUnknown");
                   }
                 })()}{" "}
                 · {b.checkIn.toISOString().slice(0, 10)} — {b.checkOut.toISOString().slice(0, 10)} · {b.phone}
@@ -1093,6 +1103,9 @@ export default async function AdminDashboardPage({
           <AdminSubmitButton variant="destructive" className="admin-btn--sm" loadingLabel={m(locale, "admin.processing")}>
             {m(locale, "admin.deleteOld")}
           </AdminSubmitButton>
+          {/* The destructive scope is stated inline: this button used to purge every user's
+              notifications platform-wide, so the copy must leave no doubt about what it removes. */}
+          <p className="w-full text-xs text-[var(--admin-text-muted)]">{m(locale, "admin.notificationsCleanupHint")}</p>
         </AdminNativeForm>
         <div className="admin-record-grid">
           {notes.map((n) => (

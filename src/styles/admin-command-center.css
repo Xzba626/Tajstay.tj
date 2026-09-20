@@ -1535,6 +1535,20 @@
   width: 2.75rem;
   height: 2.75rem;
   border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+/* Was the only interactive header control with no hover/focus affordance of its own — it relied
+   entirely on the avatar chip's static colors, so keyboard users got no visible focus target. */
+.admin-header__profile-trigger:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.admin-header__profile-trigger:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
 }
 
 .admin-header__avatar {

@@ -36,8 +36,12 @@ export function Pagination({
   const nextDisabled = page >= totalPages;
 
   return (
+    /* Was legacy dark-theme styling (`border-white/10 bg-white/5 text-slate-100`) — near-white
+       text on a near-transparent white surface, i.e. effectively invisible controls on the light
+       Admin/Owner workspaces that are this component's only two consumers. Rebuilt on the shared
+       --ts-* tokens so it reads correctly in both Light and Dark. */
     <nav className={cn("flex items-center justify-between gap-3", className)} aria-label="Pagination">
-      <div className="text-xs font-medium text-slate-400">
+      <div className="text-xs font-medium text-[var(--ts-text-secondary,#66756d)]">
         {page} / {totalPages}
       </div>
       <div className="flex items-center gap-2">
@@ -45,7 +49,7 @@ export function Pagination({
           aria-disabled={prevDisabled}
           tabIndex={prevDisabled ? -1 : 0}
           className={cn(
-            "rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold text-slate-100 shadow-sm transition hover:bg-white/10",
+            "rounded-xl border border-[var(--ts-border-default,#dce7e1)] bg-[var(--ts-surface-primary,#ffffff)] px-3 py-2 text-sm font-semibold text-[var(--ts-text-title,#14231b)] transition hover:bg-[var(--ts-surface-muted,#f4f4f5)]",
             prevDisabled && "pointer-events-none opacity-50"
           )}
           href={toHref(Math.max(1, page - 1))}
@@ -56,7 +60,7 @@ export function Pagination({
           aria-disabled={nextDisabled}
           tabIndex={nextDisabled ? -1 : 0}
           className={cn(
-            "rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold text-slate-100 shadow-sm transition hover:bg-white/10",
+            "rounded-xl border border-[var(--ts-border-default,#dce7e1)] bg-[var(--ts-surface-primary,#ffffff)] px-3 py-2 text-sm font-semibold text-[var(--ts-text-title,#14231b)] transition hover:bg-[var(--ts-surface-muted,#f4f4f5)]",
             nextDisabled && "pointer-events-none opacity-50"
           )}
           href={toHref(Math.min(totalPages, page + 1))}

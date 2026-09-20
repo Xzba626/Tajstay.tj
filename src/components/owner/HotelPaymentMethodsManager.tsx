@@ -275,7 +275,7 @@ function HotelPaymentMethodsEditor({ locale, hotel }: { locale: Locale; hotel: H
                   type="button"
                   disabled={busy}
                   onClick={() => void toggleActive(method)}
-                  className="rounded-lg border border-white/15 px-2.5 py-1 text-xs text-slate-200 disabled:opacity-50"
+                  className="owner-btn owner-btn--secondary owner-btn--sm disabled:opacity-50"
                 >
                   {method.isActive ? m(locale, "owner.paymentMethods.active") : m(locale, "owner.paymentMethods.inactive")}
                 </button>
@@ -283,7 +283,7 @@ function HotelPaymentMethodsEditor({ locale, hotel }: { locale: Locale; hotel: H
                   type="button"
                   disabled={busy}
                   onClick={() => void remove(method)}
-                  className="rounded-lg border border-red-400/30 px-2.5 py-1 text-xs text-red-200 disabled:opacity-50"
+                  className="owner-btn owner-btn--sm border border-[#dc2626] text-[#dc2626] disabled:opacity-50"
                 >
                   {m(locale, "owner.paymentMethods.remove")}
                 </button>
@@ -294,7 +294,11 @@ function HotelPaymentMethodsEditor({ locale, hotel }: { locale: Locale; hotel: H
       )}
 
       {adding ? (
-        <div className="space-y-2 rounded-xl border border-white/10 bg-black/10 p-3">
+        /* Whole add-method form was legacy dark theme (bg-black/10, bg-black/20, text-white,
+           border-white/15) rendering dark translucent boxes on the light Owner workspace.
+           Rebuilt on the owner-* primitives. Presentation only — no payment/accounting
+           semantics touched. */
+        <div className="space-y-2 rounded-xl border border-[var(--owner-border)] bg-[var(--owner-surface-muted)] p-3">
           <PaymentTypeSelect
             locale={locale}
             value={draft.type}
@@ -304,28 +308,28 @@ function HotelPaymentMethodsEditor({ locale, hotel }: { locale: Locale; hotel: H
             value={draft.displayLabel}
             onChange={(e) => setDraft((d) => ({ ...d, displayLabel: e.target.value }))}
             placeholder={fieldPlaceholder(locale, draft.type, "label")}
-            className="w-full rounded-lg border border-white/15 bg-black/20 px-3 py-2 text-sm text-white"
+            className="owner-input"
           />
           <input
             value={draft.recipientName}
             onChange={(e) => setDraft((d) => ({ ...d, recipientName: e.target.value }))}
             placeholder={fieldPlaceholder(locale, draft.type, "recipient")}
-            className="w-full rounded-lg border border-white/15 bg-black/20 px-3 py-2 text-sm text-white"
+            className="owner-input"
           />
           <input
             value={draft.paymentIdentifier}
             onChange={(e) => setDraft((d) => ({ ...d, paymentIdentifier: e.target.value }))}
             placeholder={fieldPlaceholder(locale, draft.type, "identifier")}
-            className="w-full rounded-lg border border-white/15 bg-black/20 px-3 py-2 text-sm text-white"
+            className="owner-input"
           />
           <textarea
             value={draft.instructions}
             onChange={(e) => setDraft((d) => ({ ...d, instructions: e.target.value }))}
             placeholder={m(locale, "owner.paymentMethods.instructionsPlaceholder")}
             rows={2}
-            className="w-full rounded-lg border border-white/15 bg-black/20 px-3 py-2 text-sm text-white"
+            className="owner-textarea"
           />
-          {error ? <p className="text-xs text-red-300">{error}</p> : null}
+          {error ? <p className="text-xs font-semibold text-[#dc2626]">{error}</p> : null}
           <div className="flex justify-end gap-2">
             <button
               type="button"
@@ -335,7 +339,7 @@ function HotelPaymentMethodsEditor({ locale, hotel }: { locale: Locale; hotel: H
                 setDraft(emptyDraft);
                 setError(null);
               }}
-              className="rounded-lg border border-white/15 px-3 py-1.5 text-xs text-slate-200"
+              className="owner-btn owner-btn--secondary owner-btn--sm"
             >
               {m(locale, "owner.paymentMethods.cancel")}
             </button>
@@ -353,7 +357,7 @@ function HotelPaymentMethodsEditor({ locale, hotel }: { locale: Locale; hotel: H
         <button
           type="button"
           onClick={() => setAdding(true)}
-          className="rounded-lg border border-white/15 px-3 py-1.5 text-xs font-semibold text-slate-200"
+          className="owner-btn owner-btn--secondary owner-btn--sm"
         >
           {m(locale, "owner.paymentMethods.add")}
         </button>

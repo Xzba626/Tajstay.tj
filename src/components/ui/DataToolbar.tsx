@@ -39,7 +39,11 @@ export function DataToolbar({
         }
         return (
           <label key={`${f.kind}:${f.name}`} className="md:col-span-3">
-            <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">{f.label}</span>
+            {/* `text-slate-400` was a leftover from the legacy dark theme — too low-contrast on
+                the light Owner workspace this renders in. Theme-aware secondary token instead. */}
+            <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-[var(--ts-text-secondary,#66756d)]">
+              {f.label}
+            </span>
             <select
               name={f.name}
               defaultValue={search.get(f.name) ?? ""}

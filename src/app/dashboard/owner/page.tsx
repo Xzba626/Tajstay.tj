@@ -520,7 +520,7 @@ export default async function OwnerDashboardPage({
               required
               accept="image/jpeg,image/png,image/webp"
               capture="environment"
-              className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm file:mr-3 file:rounded-lg file:border-0 file:owner-btn file:owner-btn--primary file:px-3 file:py-1.5 file:text-white"
+              className="w-full rounded-2xl border border-[var(--owner-border)] bg-[var(--owner-surface)] px-3 py-2 text-sm text-[var(--owner-text)] file:mr-3 file:rounded-lg file:border-0 file:owner-btn file:owner-btn--primary file:px-3 file:py-1.5 file:text-white"
             />
             <p className="owner-field__hint">{m(locale, "owner.coverImageHelp")}</p>
           </div>
@@ -545,7 +545,7 @@ export default async function OwnerDashboardPage({
               required
               rows={4}
               placeholder={m(locale, "owner.fieldDescriptionPh")}
-              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20"
+              className="w-full rounded-2xl border border-[var(--owner-border)] bg-[var(--owner-surface)] px-4 py-3 text-sm text-[var(--owner-text)] outline-none transition focus:border-[#0f7a4d] focus:ring-2 focus:ring-[#0f7a4d]/20"
             />
           </div>
           <div>
@@ -729,33 +729,33 @@ export default async function OwnerDashboardPage({
           <p className="owner-section-lead">{m(locale, "owner.propertiesHint")}</p>
 
           {ownerError === "hotel_limit" && (
-            <div className="rounded-xl border border-amber-400/40 bg-amber-500/15 px-4 py-3 text-sm text-amber-100" role="alert">
+            <div className="rounded-xl border border-[#d97706] bg-[#fffbeb] px-4 py-3 text-sm text-[#92400e]" role="alert">
               {m(locale, "owner.errHotelLimit")}
             </div>
           )}
           {ownerError === "hotel_cover" && (
-            <div className="rounded-xl border border-amber-400/40 bg-amber-500/15 px-4 py-3 text-sm text-amber-100" role="alert">
+            <div className="rounded-xl border border-[#d97706] bg-[#fffbeb] px-4 py-3 text-sm text-[#92400e]" role="alert">
               {m(locale, "owner.errHotelCover")}
             </div>
           )}
           {ownerError === "hotel_cover_storage" && (
-            <div className="rounded-xl border border-amber-400/40 bg-amber-500/15 px-4 py-3 text-sm text-amber-100" role="alert">
+            <div className="rounded-xl border border-[#d97706] bg-[#fffbeb] px-4 py-3 text-sm text-[#92400e]" role="alert">
               Не удалось сохранить фото на сервере. В Vercel подключите Storage → Blob и добавьте{" "}
               <code className="rounded bg-black/20 px-1">BLOB_READ_WRITE_TOKEN</code>, затем redeploy.
             </div>
           )}
           {ownerError === "hotel_cover_upload" && (
-            <div className="rounded-xl border border-amber-400/40 bg-amber-500/15 px-4 py-3 text-sm text-amber-100" role="alert">
+            <div className="rounded-xl border border-[#d97706] bg-[#fffbeb] px-4 py-3 text-sm text-[#92400e]" role="alert">
               Ошибка загрузки обложки. Попробуйте JPG/PNG/WebP до 5 МБ.
             </div>
           )}
           {ownerError === "hotel_server" && (
-            <div className="rounded-xl border border-red-400/40 bg-red-500/15 px-4 py-3 text-sm text-red-100" role="alert">
+            <div className="rounded-xl border border-[#dc2626] bg-[#fef2f2] px-4 py-3 text-sm text-[#991b1b]" role="alert">
               Ошибка сервера при сохранении объекта. Проверьте Vercel Logs для /api/owner/hotels.
             </div>
           )}
           {ownerError === "hotel" && (
-            <div className="rounded-xl border border-amber-400/40 bg-amber-500/15 px-4 py-3 text-sm text-amber-100" role="alert">
+            <div className="rounded-xl border border-[#d97706] bg-[#fffbeb] px-4 py-3 text-sm text-[#92400e]" role="alert">
               {m(locale, "owner.errHotel")}
             </div>
           )}
@@ -842,7 +842,7 @@ export default async function OwnerDashboardPage({
                             type="file"
                             accept="image/jpeg,image/png,image/webp"
                             capture="environment"
-                            className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm file:mr-3 file:rounded-lg file:border-0 file:owner-btn file:owner-btn--primary file:px-3 file:py-1.5 file:text-white"
+                            className="w-full rounded-2xl border border-[var(--owner-border)] bg-[var(--owner-surface)] px-3 py-2 text-sm text-[var(--owner-text)] file:mr-3 file:rounded-lg file:border-0 file:owner-btn file:owner-btn--primary file:px-3 file:py-1.5 file:text-white"
                           />
                           <div className="owner-field__hint">{m(locale, "owner.coverImageEditHelp")}</div>
                         </div>
@@ -871,7 +871,7 @@ export default async function OwnerDashboardPage({
                             placeholder={m(locale, "owner.fieldDescriptionPh")}
                             required
                             rows={4}
-                            className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-green-800 focus:ring-2 focus:ring-green-800/20"
+                            className="w-full rounded-2xl border border-[var(--owner-border)] bg-[var(--owner-surface)] px-4 py-3 text-sm text-[var(--owner-text)] outline-none transition focus:border-[#0f7a4d] focus:ring-2 focus:ring-[#0f7a4d]/20"
                           />
                           <div className="owner-field__hint">{m(locale, "owner.fieldDescriptionHelp")}</div>
                         </div>

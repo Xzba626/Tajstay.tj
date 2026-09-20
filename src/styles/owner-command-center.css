@@ -1241,14 +1241,14 @@
   min-height: 2.75rem;
   padding: 0.5rem 0.75rem;
   border-radius: 0.625rem;
-  border: 1px solid #e2e8f0;
-  background: #ffffff;
-  color: #14231b;
+  border: 1px solid var(--ts-border-default, #e2e8f0);
+  background: var(--ts-surface-primary, #ffffff);
+  color: var(--ts-text-body, #14231b);
   font-size: 0.875rem;
 }
 
 .owner-payment-type-trigger:hover {
-  background: #f8fafc;
+  background: var(--ts-surface-muted, #f8fafc);
 }
 
 .owner-payment-type-listbox {
@@ -1260,8 +1260,8 @@
   list-style: none;
   padding: 0.3rem;
   border-radius: 0.75rem;
-  border: 1px solid #e2e8f0;
-  background: #ffffff;
+  border: 1px solid var(--ts-border-default, #e2e8f0);
+  background: var(--ts-surface-primary, #ffffff);
   box-shadow: 0 12px 32px rgba(15, 23, 42, 0.16);
 }
 
@@ -1273,13 +1273,13 @@
   min-height: 2.75rem;
   padding: 0.5rem 0.6rem;
   border-radius: 0.5rem;
-  color: #14231b;
+  color: var(--ts-text-body, #14231b);
   font-size: 0.875rem;
   text-align: left;
 }
 
 .owner-payment-type-option:hover {
-  background: #f4f6f5;
+  background: var(--ts-surface-muted, #f4f6f5);
 }
 
 .owner-payment-type-option[aria-selected="true"] {
@@ -1595,8 +1595,22 @@
   cursor: pointer;
 }
 
+/* Was border-only: a white card with a greenish outline — literally the "белые формы с зелёной
+   рамкой" reported from runtime. Now a real brand-invariant green operational surface with white
+   text, matching .admin-kpi-card--brand. Only the Net Profit KPI carries this modifier, so the
+   grid keeps a clear primary/secondary hierarchy rather than going all-green. */
 .owner-analytics__kpi--brand {
-  border-color: color-mix(in srgb, #0f7a4d 35%, var(--ts-border-subtle, #e2e8f0));
+  background: #0f7a4d;
+  border-color: #0f7a4d;
+}
+
+.owner-analytics__kpi--brand .owner-analytics__kpi-value {
+  color: #ffffff;
+}
+
+.owner-analytics__kpi--brand .owner-analytics__kpi-label,
+.owner-analytics__kpi--brand .owner-analytics__kpi-meta {
+  color: rgba(255, 255, 255, 0.78);
 }
 
 .owner-analytics__kpi-label {
