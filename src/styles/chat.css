@@ -12,6 +12,44 @@
   color: var(--taj-color-text);
 }
 
+/* Mobile: lock the page to the viewport so the outer page never scrolls as a normal website -
+   only `.chat-messages` (inside .chat-page__thread) scrolls. Desktop is untouched (no max-height,
+   normal document flow, matches the existing two-column layout). */
+@media (max-width: 1023px) {
+  .chat-page {
+    max-height: calc(100dvh - 4rem);
+    overflow: hidden;
+  }
+}
+
+.chat-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 2.25rem;
+  padding: 0.4rem 0.75rem 0.4rem 0.6rem;
+  border-radius: var(--taj-radius-lg);
+  border: 1px solid var(--taj-color-border);
+  background: var(--taj-color-bg-card-solid);
+  color: var(--taj-color-text);
+  font-size: var(--taj-text-sm);
+  font-weight: 600;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.chat-back-btn:hover {
+  background: var(--taj-color-border);
+}
+
+.chat-back-btn:active {
+  transform: scale(0.98);
+}
+
+.chat-back-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(15, 122, 77, 0.28);
+}
+
 /* BLOCK 5.6A: compact collapsible "booking context" (header + dispute + review banners) —
    replaces the old always-expanded stack that pushed the thread below the fold on mobile. */
 .chat-page__context {

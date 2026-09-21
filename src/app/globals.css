@@ -1287,18 +1287,22 @@ header.site-header {
 }
 
 /* ---- City tag on card ---- */
+/* Sits on top of hotel photos of unpredictable brightness - at 0.7 alpha the background lets
+   enough of a dark photo region show through that it can visually merge with the light text,
+   collapsing contrast (reported: "almost-black text on an almost-black badge"). Raised to 0.88
+   so contrast holds regardless of what's underneath, instead of depending on photo content. */
 .city-tag {
   display: inline-flex;
   align-items: center;
   gap: 4px;
   padding: 4px 10px;
   border-radius: 999px;
-  background: rgba(2,6,23,0.7);
+  background: rgba(2,6,23,0.88);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.16);
   font-size: 0.7rem;
   font-weight: 600;
-  color: rgba(226,232,240,0.95);
+  color: #f1f5f9;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }

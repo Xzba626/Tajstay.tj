@@ -1363,7 +1363,8 @@ const ru: Tree = {
     header: {
       dates: "Даты",
       guests: "Гости",
-      payment: "Оплата"
+      payment: "Оплата",
+      info: "Информация о брони"
     },
     payment: {
       title: "Способы оплаты",
@@ -3768,7 +3769,8 @@ const tg: Tree = {
     header: {
       dates: "Санаҳо",
       guests: "Меҳмонон",
-      payment: "Пардохт"
+      payment: "Пардохт",
+      info: "Маълумоти брон"
     },
     payment: {
       title: "Усулҳои пардохт",
@@ -6140,7 +6142,8 @@ const en: Tree = {
     header: {
       dates: "Dates",
       guests: "Guests",
-      payment: "Payment"
+      payment: "Payment",
+      info: "Booking info"
     },
     payment: {
       title: "Payment methods",

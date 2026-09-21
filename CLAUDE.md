@@ -35,6 +35,17 @@ Canonical modules (do not duplicate): `src/lib/trips/classify.ts` (History class
 `src/components/trips/HistoryRecordCard.tsx`, `src/lib/domain/booking.ts` (`BOOKING_STATUS`), `src/lib/i18n/format.ts` / `plural.ts`.
 Full detail: `.cursor/rules/tajstay-explore-before-build.mdc`.
 
+## Change safety contract (MANDATORY, every change)
+
+Fixing one function ≠ finishing the task. A change is done only when the new behavior works **and**
+previously working related flows are proven not to have regressed. Before touching shared code:
+map callers/routes/jobs/tests and record a baseline. Classify the change (LOCAL / SHARED / CROSS-DOMAIN /
+DATABASE / AUTH / PROD-INFRA); anything beyond LOCAL requires a regression matrix for affected flows
+(Booking and Chat regression contracts). Never fix A by breaking B. Local PASS ≠ production PASS —
+production is the final acceptance target. Every BLOCK report must answer: "which previously working
+flows could this diff affect, and what evidence proves they still work?" — no evidence → NOT PROVEN.
+Full contract: `.agent/CHANGE_SAFETY_CONTRACT.md` (read it before any SHARED+ change).
+
 ## Evidence gates
 
 Statuses: `PASS | FAIL | BLOCKED | UNKNOWN`. `PASS` requires evidence beyond grep/build — runtime evidence for

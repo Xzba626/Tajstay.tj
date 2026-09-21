@@ -9,6 +9,7 @@ import type { ReactNode } from "react";
 import { headers } from "next/headers";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { FooterVisibility } from "@/components/layout/FooterVisibility";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { AppShell } from "@/components/navigation/AppShell";
 import { CookieConsent } from "@/components/layout/CookieConsent";
@@ -144,7 +145,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
                 <main className="flex-1">
                   {children}
                 </main>
-                <Footer />
+                <FooterVisibility>
+                  <Footer />
+                </FooterVisibility>
               </div>
               <MobileBottomNav
                 pendingBookingsCount={pendingTripsCount}

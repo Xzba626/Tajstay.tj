@@ -5,7 +5,6 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/requireAuth";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { m } from "@/lib/i18n/messages";
-import { getHotelPaymentMethods } from "@/lib/hotels/paymentMethods";
 import { Card } from "@/shared/ui";
 import { RoomPhotoCarousel } from "@/components/RoomPhotoCarousel";
 import { AppImage } from "@/components/ui/AppImage";
@@ -180,9 +179,6 @@ export default async function HotelDetailPage({
 
   const canReply =
     user?.role === "ADMIN" || (user?.role === "OWNER" && hotel.ownerId === user.id);
-  // Public page - only the method label is shown here, never the requisites (card/account number).
-  // Full requisites are only shown to the guest in their own booking chat payment step.
-  const acceptedPaymentMethods = (await getHotelPaymentMethods(hotel.id)).map((m) => m.displayLabel);
   const similarHotels = await prisma.hotel.findMany({
     where: { city: hotel.city, status: "APPROVED", id: { not: hotel.id } },
     take: 3,
@@ -336,26 +332,6 @@ export default async function HotelDetailPage({
           <p className="text-sm text-[var(--taj-color-text-secondary)]">{m(locale, "admin.emptyResults")}</p>
         )}
       </section>
-
-      {(acceptedPaymentMethods.length > 0) && (
-        <section className="space-y-3" data-reveal>
-          {acceptedPaymentMethods.length > 0 ? (
-            <Card className="space-y-2 p-5">
-              <div className="text-xs font-semibold uppercase tracking-wide text-[var(--taj-color-text-secondary)]">Accepted payment methods</div>
-              <div className="flex flex-wrap gap-2">
-                {acceptedPaymentMethods.map((method) => (
-                  <span
-                    key={method}
-                    className="rounded-full border border-brand-700 bg-brand-800 px-3 py-1 text-xs font-semibold text-brand-200"
-                  >
-                    {method}
-                  </span>
-                ))}
-              </div>
-            </Card>
-          ) : null}
-        </section>
-      )}
 
       {similarHotels.length > 0 && (
         <section className="space-y-3" data-reveal>

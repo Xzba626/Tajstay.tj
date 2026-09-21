@@ -88,6 +88,12 @@ type Props = {
    * (the backend re-derives and re-checks it from the authoritative Room/RoomType->Hotel chain on
    * submit) - this only controls whether the option is even offered in this UI. */
   acceptsPayAtCheckIn: boolean;
+  /** Consumer Mobile Corrective Pass: hotel/room context for the compact step-1-only summary
+   * line below. Previously rendered as a large card in the parent page.tsx (a server component
+   * with no notion of the wizard's internal step), so it repeated identically above every step
+   * instead of appearing once. Moved here, where `step` state actually lives. */
+  hotelName: string;
+  roomTitle: string;
 };
 
 type Step = 1 | 2 | 3;
@@ -134,7 +140,9 @@ export function BookingWizard({
   hotelId,
   paymentMethods,
   acceptsPayAtCheckIn,
-  errorMessages
+  errorMessages,
+  hotelName,
+  roomTitle
 }: Props) {
   const formRef = useRef<HTMLFormElement>(null);
   const submitInFlight = useRef(false);
@@ -287,6 +295,16 @@ export function BookingWizard({
       ) : null}
 
       <CheckoutSteps steps={[labels.stepCard1, labels.stepCard2, labels.stepCard3]} activeStep={step - 1} />
+
+      {step === 1 ? (
+        <div className="flex items-baseline justify-between gap-3 rounded-2xl border border-[var(--taj-color-border)] bg-[var(--taj-color-bg-card-solid)] px-4 py-2.5">
+          <div className="min-w-0 truncate text-sm font-semibold text-[var(--taj-color-text)]">{hotelName}</div>
+          <div className="shrink-0 text-xs text-[var(--taj-color-text-secondary)]">
+            {roomTitle} · {labels.pricePerNightLabel}:{" "}
+            <span className="font-semibold text-[var(--taj-color-text)]">{pricePerNight} TJS</span>
+          </div>
+        </div>
+      ) : null}
 
       <div className="flex items-baseline justify-between gap-3 border-b border-[var(--taj-color-border)] pb-2.5">
         <div className="text-[13px] font-medium tracking-wide text-[var(--taj-color-text)]">{stepTitle}</div>

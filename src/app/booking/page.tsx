@@ -99,20 +99,9 @@ export default async function BookingPage({
         </div>
       )}
 
-      <div className="rounded-2xl border border-[var(--taj-color-border)] bg-[var(--taj-color-bg-card-solid)] p-4 shadow-[var(--taj-shadow-sm)] sm:p-5">
-        <div className="flex gap-3 sm:gap-4">
-          <div className="min-w-0 flex-1 space-y-1">
-            <div className="text-lg font-semibold text-[var(--taj-color-text)] sm:text-xl">{hotelName}</div>
-            <div className="text-sm font-medium text-[var(--taj-color-text-secondary)]">{title}</div>
-            <div className="pt-1 text-sm text-[var(--taj-color-text-muted)]">
-              {m(locale, "owner.priceNight")}:{" "}
-              <span className="tabular-nums font-semibold text-[var(--taj-color-text)]">{pricePerNight} TJS</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <BookingWizard
+        hotelName={hotelName}
+        roomTitle={title}
         locale={locale}
         labels={{
           titleStep1: m(locale, "checkout.step1"),

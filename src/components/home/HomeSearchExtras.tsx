@@ -63,10 +63,16 @@ export function HomeSearchExtras({ locale, banner }: Props) {
 
       {banner.enabled ? (
         <section className="search-moved-block">
+          {/* Same #0F7A4D-on-#0F7A4D contrast bug already fixed once on the homepage's copy of
+              this banner (src/app/page.tsx): a repo-wide `h1..h6 { color: var(--ds-text-primary)
+              !important }` reset beats plain `text-white`/inline styles, and `taj-btn--primary`
+              renders green-on-green with no hierarchy on this already-green surface. Reusing the
+              same `.home-promo-title`/`.home-promo-subtitle` (!important) and `--on-brand` CTA
+              fix here instead of duplicating a second ad-hoc override. */}
           <div className="rounded-2xl border border-[#0F7A4D]/25 bg-[#0F7A4D] p-5">
-            <h2 className="text-lg font-bold text-white">{banner.title}</h2>
-            <p className="mt-2 text-sm text-white/90">{banner.subtitle}</p>
-            <Link href={banner.ctaHref} className="taj-btn taj-btn--primary mt-4 inline-flex">
+            <h2 className="home-promo-title text-lg font-bold">{banner.title}</h2>
+            <p className="home-promo-subtitle mt-2 text-sm">{banner.subtitle}</p>
+            <Link href={banner.ctaHref} className="taj-btn taj-btn--on-brand mt-4 inline-flex">
               {banner.ctaText}
             </Link>
           </div>

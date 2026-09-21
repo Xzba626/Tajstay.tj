@@ -100,7 +100,12 @@ export default async function SearchPage({ searchParams }: Props) {
           }}
         />
       </div>
-      <div className="search-moved-sections md:hidden">
+      {/* This landing/marketing content (destinations, trust points, promo banner) used to be
+          mobile-only (`md:hidden`), forcing every mobile search/results visit to scroll through
+          a long landing page after the hotel list - the app should feel like a focused app flow
+          here, not a homepage. Desktop keeps it (it's not shown anywhere else there); mobile no
+          longer gets it - bottom navigation is the primary mobile nav. */}
+      <div className="search-moved-sections hidden md:block">
         <HomeSearchExtras locale={locale} banner={content.homeBanner} />
       </div>
     </div>

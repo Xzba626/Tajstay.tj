@@ -686,21 +686,30 @@ body:not(.app-shell) .hotel-sticky-bar {
   padding: 0 0.7rem;
 }
 
-.mobile-search-bar__go {
+/* .home-search-submit (globals.css) sets width:100% for its desktop full-width use and loads
+   after this file in the cascade (premium-overhaul.css is @import-ed near the top of
+   globals.css) - at equal single-class specificity it was winning here, stretching this button
+   to swallow the row and squeezing the input to a sliver. The extra `.mobile-search-bar` ancestor
+   qualifier raises specificity so this compact sizing always wins, regardless of import order. */
+.mobile-search-bar .mobile-search-bar__go {
+  flex: 0 0 auto;
+  width: auto;
   height: 2.15rem;
-  padding: 0 0.7rem;
+  padding: 0 0.85rem;
   border: 0;
   border-radius: 0.75rem;
   background: #ffffff;
   color: #0f7a4d;
   font-size: 0.75rem;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .mobile-search-bar__filters {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex: 0 0 auto;
   width: 2.15rem;
   height: 2.15rem;
   border: 0;

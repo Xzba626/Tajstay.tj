@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect } from "react";
+import { ChevronLeft } from "lucide-react";
 import { BookingChatPanel } from "@/components/chat/BookingChatPanel";
 import { BookingChatHeader } from "@/components/chat/BookingChatHeader";
 import { PaymentMethodsBlock, type PaymentMethodDisplay, type PaymentMethodSnapshot } from "@/components/chat/PaymentMethodsBlock";
@@ -259,18 +260,35 @@ export function BookingRoom(props: BookingRoomProps) {
     </>
   );
 
+  // BLOCK: Consumer Mobile Corrective Pass — on mobile, BookingChatPanel's own embedded bar
+  // (`.chat-shell__bar`, rendered below via `embeddedInRoom`) already shows the compact
+  // hotel/room title + status pill, so a separate always-visible "hotel · dates" card here is
+  // redundant. `contextContent` (dates/dispute/review) and `asideContent` (payment/timeline) used
+  // to be TWO separate collapsible cards stacked above the thread - now one compact expandable
+  // info action, matching the requested "single action, not two big panels". All the underlying
+  // functionality (dispute actions, review form, payment methods, proof upload) is unchanged,
+  // just collapsed into one place. Desktop is untouched: same two-column layout as before.
+  const mobileInfoContent = (
+    <>
+      {contextContent}
+      {asideContent}
+    </>
+  );
+
   return (
     <div className="chat-page">
       <nav className="chat-page__nav" aria-label={m(locale, "bookingRoom.back")}>
-        <Link href={backHref}>← {m(locale, "bookingRoom.back")}</Link>
-        <Link href="/dashboard/messages">{m(locale, "bookingRoom.allMessages")}</Link>
+        <Link href={backHref} className="chat-back-btn">
+          <ChevronLeft size={18} aria-hidden />
+          {m(locale, "bookingRoom.back")}
+        </Link>
       </nav>
 
       <details className="chat-page__context lg:hidden" open={contextDefaultOpen}>
         <summary>
-          {hotelName} · {m(locale, "bookingRoom.header.dates")}
+          {hotelName} · {m(locale, "bookingRoom.header.info")}
         </summary>
-        <div className="chat-page__context-inner">{contextContent}</div>
+        <div className="chat-page__context-inner">{mobileInfoContent}</div>
       </details>
       <div className="hidden space-y-2 lg:block">{contextContent}</div>
 
@@ -299,13 +317,7 @@ export function BookingRoom(props: BookingRoomProps) {
           />
         </main>
 
-        <aside className="chat-page__aside chat-page__aside--collapsible lg:!block">
-          <details className="lg:hidden">
-            <summary>{m(locale, "bookingRoom.header.payment")} & {m(locale, "bookingRoom.header.dates")}</summary>
-            <div className="chat-page__aside-inner">{asideContent}</div>
-          </details>
-          <div className="hidden space-y-2 lg:block">{asideContent}</div>
-        </aside>
+        <aside className="chat-page__aside hidden lg:flex">{asideContent}</aside>
       </div>
     </div>
   );
