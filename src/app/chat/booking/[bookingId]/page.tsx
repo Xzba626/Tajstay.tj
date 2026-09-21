@@ -14,8 +14,9 @@ import { authorizeBookingAccess } from "@/lib/pms/bookingAuthorization";
 import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
 import { canLeaveReview } from "@/lib/trips/historyRecord";
 import { tripsHubPath } from "@/lib/trips/urls";
+import { canAccessBookingChatAsync } from "@/lib/chat/bookingAccess";
 
-export const dynamic = "force-dynamic";
+// import { canAccessBookingChatAsync } from "@/lib/chat/bookingAccess";
 
 export default async function BookingChatPage({
   params,
@@ -25,9 +26,12 @@ export default async function BookingChatPage({
   searchParams?: { proofSent?: string; review?: string };
 }) {
   const locale = getLocale();
+  // MANAGER staff members can view and interact with hotel bookings' chats (authorization
+  // checked in canAccessBookingChatAsync in the messages API). The page gate here is
+  // consistent with the full API-level check in messages/route.ts and stream/route.ts.
+  const user = await requireUser(["GUEST", "OWNER", "ADMIN", "MANAGER"]);
+  // consistent with the full API-level check in messages/route.ts and stream/route.ts.
   const user = await requireUser(["GUEST", "OWNER", "ADMIN"]);
-  if (!user) notFound();
-
   const bookingId = Number(params.bookingId || "");
   if (!bookingId) notFound();
 
@@ -46,7 +50,16 @@ export default async function BookingChatPage({
   const hotel = bookingHotel(booking);
   const guestLabel = getBookingGuestLabel(booking);
   const { isGuest, isOwner, isAdmin, allowed } = authorizeBookingAccess(booking, user);
-  if (!allowed) notFound();
+  
+  // MANAGER users are checked via the async staff permission gate (same as the API uses
+  // in canAccessBookingChatAsync). If the sync check passed (guest/owner/admin), or if
+  // the user is a MANAGER with the proper staff permission, they can proceed.
+  let isMgrAllowed = false;
+  if (!allowed && user.role === "MANAGER") {
+    isMgrAllowed = await canAccessBookingChatAsync(booking, user);
+  }
+  
+  if (!allowed && !isMgrAllowed) notFound();
 
   if (isOwner && (booking.status === "WAITING_PAYMENT" || booking.status === "WAIT_PROOF")) {
     return (
@@ -69,7 +82,8 @@ export default async function BookingChatPage({
   // query-param or client-controlled flag is introduced — this is purely a presentation-priority
   // fix over booleans the backend already computed authoritatively. An admin opening someone
   // else's booking (isGuest=false, isOwner=false) still correctly gets the ADMIN/moderation view,
-  // e.g. via the "Открыть переписку" link from Admin -> Жалобы и споры.
+  // e.g. via the "Открыть переписку" link from Admin -> Жалобы и споры. A MANAGER with staff
+  // permissions is treated as ADMIN (moderation view, not guest/owner view).
   const presentationRole: "GUEST" | "OWNER" | "ADMIN" = isGuest ? "GUEST" : isOwner ? "OWNER" : "ADMIN";
   const backHref = isAdmin || isGuest ? tripsHubPath("all") : "/dashboard/owner";
   const title =

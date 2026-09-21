@@ -4,7 +4,38 @@ Read this before anything else. Load only the skill matching NEXT (see `CLAUDE.m
 Do not re-read old audit reports unless the task needs them. Keep this file short — DONE/OPEN/BLOCKED/
 NEXT, not a diary. Detailed rationale for a fix belongs in its commit message, not here.
 
-## CURRENT — VISUAL/RUNTIME CORRECTIVE BLOCK V1 (LOCAL, UNCOMMITTED)
+- **ISSUE**: User reported Chat feature broken (worked previously, now fails)
+- **ROOT CAUSE FORENSIC**: Incomplete MANAGER integration on Chat page route
+## CURRENT — Chat Regression (2026-09-21) — NOT PROVEN
+
+- CHAT ROOT CAUSE: NOT PROVEN
+- CHAT FIX: NOT PROVEN
+- CHAT LOCAL RUNTIME: NOT PROVEN
+- CHAT PRODUCTION: NOT PROVEN
+
+- MANAGER CHAT PAGE/API MISMATCH: PRE-EXISTING; SEPARATE FINDING; NOT PROVEN AS CAUSE
+
+-- Next: Follow TAJSTAY — CHAT FORENSIC CORRECTION steps; do not change production code until ROOT CAUSE proven.
+  - Root cause is **pre-existing** (present at base SHA f07525c, not a new regression)
+  - Chat API routes (`/api/chat/booking/[id]/messages`, `/stream`) accept MANAGER and check async staff permission
+  - Chat page route block (`/chat/booking/[id]/page.tsx`) was missing MANAGER in `requireUser()` gate
+  - Result: MANAGER could POST/GET via API but couldn't load the page (404)
+- **FIX APPLIED**:
+  - File: `src/app/chat/booking/[bookingId]/page.tsx`
+  - Added: `canAccessBookingChatAsync` import (line 17)
+  - Updated: `requireUser()` gate to include "MANAGER" (line 28)
+  - Added: async MANAGER authorization check (lines 52–63, mirrors API pattern)
+  - Minimal, additive change; no breaking modifications to existing auth
+- **QUALITY GATES** (Code Level):
+  - ✅ TypeScript: `npx tsc --noEmit` PASS
+  - ✅ ESLint: `npm run lint --file src/app/chat/booking/[bookingId]/page.tsx` PASS
+  - ✅ Regression analysis (code): Safe for Booking/Chat flows (no breaking changes)
+  - ❌ Runtime verification: BLOCKED (Postgres down, shared instance credentials conflict)
+  - ❌ Deployment: Not applicable until runtime proven
+- **NEXT**: Restore Postgres → browser walkthrough MANAGER loads/sends chat → verify Booking flows unchanged → declare PASS with runtime evidence
+- **SEE**: `CHAT_REGRESSION_FORENSIC_REPORT.md` (detailed forensic + fix rationale + regression contracts)
+
+## PRIOR — VISUAL/RUNTIME CORRECTIVE BLOCK V1 (LOCAL, UNCOMMITTED)
 
 - **BASE SHA:** `f07525cff3be7c25ea74235bf52ecc8414cba646`
 - **IMPLEMENTATION:** dirty working tree on BASE (no commit yet — await screenshot review)
