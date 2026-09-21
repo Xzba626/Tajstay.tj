@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { DELIVERY_CHANGE, recordBookingDeliveryChangeById } from "@/lib/local-vault/bookingDelivery";
 import { prisma } from "@/lib/prisma";
 import { getOwnerUser } from "@/lib/auth/requireOwner";
 import { forbiddenJson } from "@/lib/auth/apiResponses";
@@ -24,12 +25,17 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     return NextResponse.json({ error: "Нельзя отклонить бронь без оплаты/чека" }, { status: 400 });
   }
 
-  await prisma.booking.update({
-    where: { id },
-    data: {
-      status: BOOKING_STATUS.REJECTED,
-      paymentStatus: booking.paymentStatus === "PAID" ? "REFUNDED" : booking.paymentStatus
-    }
+  // Rejection + its delivery event commit together; a rejected booking must not stay "active"
+  // on the reception desk because the change was lost between two independent writes.
+  await prisma.$transaction(async (tx) => {
+    await tx.booking.update({
+      where: { id },
+      data: {
+        status: BOOKING_STATUS.REJECTED,
+        paymentStatus: booking.paymentStatus === "PAID" ? "REFUNDED" : booking.paymentStatus
+      }
+    });
+    await recordBookingDeliveryChangeById(tx, id, DELIVERY_CHANGE.CANCELLED);
   });
 
   if (booking.userId != null) {

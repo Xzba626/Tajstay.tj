@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { DELIVERY_CHANGE, recordBookingDeliveryChangeById } from "@/lib/local-vault/bookingDelivery";
 import crypto from "crypto";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
@@ -362,7 +363,10 @@ export async function POST(req: NextRequest) {
             return own;
           }
           await assertDatesAvailable({ roomId: resolvedRoomId!, checkIn, checkOut, client: tx, includeActiveHolds: true });
-          return tx.booking.create({ data: bookingData });
+          const created = await tx.booking.create({ data: bookingData });
+          // Online bookings ride the SAME delivery channel as owner-manual ones — one protocol.
+          await recordBookingDeliveryChangeById(tx, created.id, DELIVERY_CHANGE.CREATED);
+          return created;
         });
       } else if (resolvedRoomTypeId) {
         booking = await withRoomTypeCapacityGuard(resolvedRoomTypeId, async (tx) => {
@@ -372,10 +376,16 @@ export async function POST(req: NextRequest) {
             return own;
           }
           await assertRoomTypeAvailable({ roomTypeId: resolvedRoomTypeId!, checkIn, checkOut, client: tx, includeActiveHolds: true });
-          return tx.booking.create({ data: bookingData });
+          const created = await tx.booking.create({ data: bookingData });
+          await recordBookingDeliveryChangeById(tx, created.id, DELIVERY_CHANGE.CREATED);
+          return created;
         });
       } else {
-        booking = await prisma.booking.create({ data: bookingData });
+        booking = await prisma.$transaction(async (tx) => {
+          const created = await tx.booking.create({ data: bookingData });
+          await recordBookingDeliveryChangeById(tx, created.id, DELIVERY_CHANGE.CREATED);
+          return created;
+        });
       }
     } catch (e) {
       if (e instanceof DatesUnavailableError || e instanceof RoomTypeUnavailableError) {

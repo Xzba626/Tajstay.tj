@@ -1,6 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { assertDatesAvailable, DatesUnavailableError, withRoomOverlapGuard } from "@/lib/booking/availability";
 import {
+  DELIVERY_CHANGE,
+  recordBookingDeliveryChange,
+  recordBookingDeliveryChangeById
+} from "@/lib/local-vault/bookingDelivery";
+import {
   assertRoomTypeAvailable,
   findAvailablePhysicalRoom,
   RoomTypeUnavailableError,
@@ -172,7 +177,19 @@ export async function createManualOfflineBooking(input: CreateManualOfflineBooki
         checkOut: input.checkOut,
         includeActiveHolds: true
       });
-      booking = await withRoomOverlapGuard(() => prisma.booking.create({ data: createData }));
+      // Booking + its Local Vault delivery event share one transaction: a crash between them
+      // would otherwise leave a Booking that no device can ever learn about.
+      booking = await withRoomOverlapGuard(() =>
+        prisma.$transaction(async (tx) => {
+          const created = await tx.booking.create({ data: createData });
+          await recordBookingDeliveryChange(tx, {
+            bookingId: created.id,
+            hotelId: input.hotelId,
+            changeType: DELIVERY_CHANGE.CREATED
+          });
+          return created;
+        })
+      );
     } else {
       booking = await withRoomTypeCapacityGuard(input.roomTypeId, async (tx) => {
         await assertRoomTypeAvailable({
@@ -181,7 +198,13 @@ export async function createManualOfflineBooking(input: CreateManualOfflineBooki
           checkOut: input.checkOut,
           client: tx
         });
-        return tx.booking.create({ data: createData });
+        const created = await tx.booking.create({ data: createData });
+        await recordBookingDeliveryChange(tx, {
+          bookingId: created.id,
+          hotelId: input.hotelId,
+          changeType: DELIVERY_CHANGE.CREATED
+        });
+        return created;
       });
     }
   } catch (e) {
@@ -360,17 +383,31 @@ export async function updateOwnerOfflineBooking(input: UpdateOfflineBookingInput
   } as const;
 
   try {
+    // Every edit branch appends an UPDATED delivery event in the same transaction, so a date or
+    // price change made at the desk is never silently missing from the Local Vault copy.
     if (physicalId) {
-      return await withRoomOverlapGuard(() => prisma.booking.update({ where: { id: existing.id }, data: updateData }));
+      return await withRoomOverlapGuard(() =>
+        prisma.$transaction(async (tx) => {
+          const updated = await tx.booking.update({ where: { id: existing.id }, data: updateData });
+          await recordBookingDeliveryChangeById(tx, existing.id, DELIVERY_CHANGE.UPDATED);
+          return updated;
+        })
+      );
     }
     if (existing.roomTypeId) {
       const roomTypeId = existing.roomTypeId;
       return await withRoomTypeCapacityGuard(roomTypeId, async (tx) => {
         await assertRoomTypeAvailable({ roomTypeId, checkIn, checkOut, excludeBookingId: existing.id, client: tx });
-        return tx.booking.update({ where: { id: existing.id }, data: updateData });
+        const updated = await tx.booking.update({ where: { id: existing.id }, data: updateData });
+        await recordBookingDeliveryChangeById(tx, existing.id, DELIVERY_CHANGE.UPDATED);
+        return updated;
       });
     }
-    return await prisma.booking.update({ where: { id: existing.id }, data: updateData });
+    return await prisma.$transaction(async (tx) => {
+      const updated = await tx.booking.update({ where: { id: existing.id }, data: updateData });
+      await recordBookingDeliveryChangeById(tx, existing.id, DELIVERY_CHANGE.UPDATED);
+      return updated;
+    });
   } catch (e) {
     if (e instanceof DatesUnavailableError || e instanceof RoomTypeUnavailableError) throw new Error("dates_unavailable");
     throw e;

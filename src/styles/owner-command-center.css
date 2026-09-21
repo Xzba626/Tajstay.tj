@@ -688,6 +688,47 @@
    `#ffffff` while `color` uses the theme-flipping `--owner-text` token — invisible text on a
    permanently-white field in Dark Mode, across every Owner form (Rooms, Categories, Staff, Offline
    Booking, ...). Paired with `--owner-surface` so both flip together. */
+/* Offline booking authoritative quote summary (price/night · nights · total). Sits inside the
+   green .owner-form-surface, so labels/values use the on-brand white pairing. */
+.owner-quote-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.5rem;
+  margin: 0;
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.owner-quote-summary > div {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+
+.owner-quote-summary dt {
+  margin: 0;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.owner-quote-summary dd {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.owner-quote-summary__total dd {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.owner-field__hint--error {
+  color: #fecaca;
+  font-weight: 600;
+}
+
 .owner-input {
   width: 100%;
   height: 2.75rem;

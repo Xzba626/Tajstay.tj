@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { DELIVERY_CHANGE, recordBookingDeliveryChangeById } from "@/lib/local-vault/bookingDelivery";
 import { prisma } from "@/lib/prisma";
 import { BOOKING_STATUS } from "@/lib/domain/booking";
 import { addBookingSystemEvent } from "@/lib/chat/systemEvents";
@@ -40,9 +41,16 @@ export async function POST(req: NextRequest) {
 
   const ids = expired.map((b) => b.id);
   if (ids.length) {
-    await prisma.booking.updateMany({
-      where: { id: { in: ids } },
-      data: { status: BOOKING_STATUS.EXPIRED, paymentStatus: "FAILED" }
+    // Expired holds are the most frequent way a booking leaves occupancy. Without an explicit
+    // delivery event an unpaid hold would stay "active" on the reception desk indefinitely.
+    await prisma.$transaction(async (tx) => {
+      await tx.booking.updateMany({
+        where: { id: { in: ids } },
+        data: { status: BOOKING_STATUS.EXPIRED, paymentStatus: "FAILED" }
+      });
+      for (const bookingId of ids) {
+        await recordBookingDeliveryChangeById(tx, bookingId, DELIVERY_CHANGE.CANCELLED);
+      }
     });
     // Notify owner that booking expired and is removed from active flow
     await prisma.notification.createMany({
@@ -67,9 +75,14 @@ export async function POST(req: NextRequest) {
 
   const reviewIds = reviewTimedOut.map((b) => b.id);
   if (reviewIds.length) {
-    await prisma.booking.updateMany({
-      where: { id: { in: reviewIds } },
-      data: { status: BOOKING_STATUS.REJECTED, paymentStatus: "FAILED", proofReviewedAt: now }
+    await prisma.$transaction(async (tx) => {
+      await tx.booking.updateMany({
+        where: { id: { in: reviewIds } },
+        data: { status: BOOKING_STATUS.REJECTED, paymentStatus: "FAILED", proofReviewedAt: now }
+      });
+      for (const bookingId of reviewIds) {
+        await recordBookingDeliveryChangeById(tx, bookingId, DELIVERY_CHANGE.CANCELLED);
+      }
     });
     const guestNotifications = reviewTimedOut
       .filter((b): b is typeof b & { userId: number } => b.userId != null)

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { DELIVERY_CHANGE, recordBookingDeliveryChangeById } from "@/lib/local-vault/bookingDelivery";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/requireAuth";
 import { BOOKING_STATUS } from "@/lib/domain/booking";
@@ -37,12 +38,15 @@ export async function POST(_: NextRequest, { params }: { params: { id: string } 
     return NextResponse.json({ error: "Бронь уже закрыта" }, { status: 400 });
   }
 
-  await prisma.booking.update({
-    where: { id },
-    data: {
-      status: BOOKING_STATUS.CANCELLED,
-      paymentStatus: booking.paymentStatus === "PAID" ? booking.paymentStatus : "FAILED"
-    }
+  await prisma.$transaction(async (tx) => {
+    await tx.booking.update({
+      where: { id },
+      data: {
+        status: BOOKING_STATUS.CANCELLED,
+        paymentStatus: booking.paymentStatus === "PAID" ? booking.paymentStatus : "FAILED"
+      }
+    });
+    await recordBookingDeliveryChangeById(tx, id, DELIVERY_CHANGE.CANCELLED);
   });
 
   if (booking.payment && booking.payment.status === "PENDING") {

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { DELIVERY_CHANGE, recordBookingDeliveryChangeById } from "@/lib/local-vault/bookingDelivery";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/requireAuth";
 import { BOOKING_STATUS } from "@/lib/domain/booking";
@@ -36,12 +37,15 @@ export async function POST(req: NextRequest) {
 
   const hotel = bookingHotel(booking);
 
-  await prisma.booking.update({
-    where: { id: booking.id },
-    data: {
-      status: BOOKING_STATUS.CANCELLED,
-      paymentStatus: booking.paymentStatus === "PAID" ? "REFUNDED" : booking.paymentStatus
-    }
+  await prisma.$transaction(async (tx) => {
+    await tx.booking.update({
+      where: { id: booking.id },
+      data: {
+        status: BOOKING_STATUS.CANCELLED,
+        paymentStatus: booking.paymentStatus === "PAID" ? "REFUNDED" : booking.paymentStatus
+      }
+    });
+    await recordBookingDeliveryChangeById(tx, booking.id, DELIVERY_CHANGE.CANCELLED);
   });
 
   await prisma.notification.create({

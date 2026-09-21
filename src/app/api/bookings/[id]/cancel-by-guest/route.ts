@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { DELIVERY_CHANGE, recordBookingDeliveryChangeById } from "@/lib/local-vault/bookingDelivery";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/requireAuth";
 import { addBookingSystemEvent } from "@/lib/chat/systemEvents";
@@ -53,6 +54,10 @@ export async function POST(_: NextRequest, { params }: { params: { id: string } 
       where: { id },
       data: { status: "CANCELLED_BY_GUEST", paymentStatus: booking.paymentStatus === "PAID" ? "REFUNDED" : booking.paymentStatus }
     });
+
+    // Explicit CANCELLED delivery event in the same transaction: the desktop must never infer a
+    // cancellation from a record's absence.
+    await recordBookingDeliveryChangeById(tx, id, DELIVERY_CHANGE.CANCELLED);
 
     // Remove/hide distracting notifications for owner/admin about this booking.
     const cleanupUserIds = [ownerId, adminId].filter((v): v is number => typeof v === "number");

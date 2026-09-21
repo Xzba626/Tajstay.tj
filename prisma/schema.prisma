@@ -145,6 +145,8 @@ model Hotel {
   // Local Vault (Phase 2B.1)
   localVaultActivationCodes LocalVaultActivationCode[]
   localVaultDevices         LocalVaultDeviceBinding[]
+  bookingDeliveryChanges    BookingDeliveryChange[]
+  deliveryCursor            HotelDeliveryCursor?
 }
 
 /// Per-Hotel TajStay subscription (canonical revenue: 0% booking commission, Hotel pays a
@@ -447,6 +449,7 @@ model Booking {
   disputes       Dispute[]
   logs           TransactionLog[]
   chatMessages   ChatMessage[]
+  deliveryChanges BookingDeliveryChange[]
   /// Когда true — активные сообщения выгружены в ChatArchive; новые сообщения запрещены.
   chatArchivedAt DateTime?
 
@@ -1045,6 +1048,48 @@ model LocalVaultRateBucket {
 }
 
 /// Append-only Local Vault security/ops events. No secrets / no plaintext codes.
+/// Append-only change log that makes a Booking deliverable to a hotel's Local Vault device.
+///
+/// Why a change log rather than `updatedAt > clientTimestamp`: a timestamp cursor silently drops
+/// rows that share a timestamp, and a row whose transaction started earlier can commit later than
+/// one with a newer timestamp — the client would advance past it and never see it again. `id` here
+/// is a monotonic sequence written INSIDE the same transaction as the Booking mutation, so a
+/// change is never visible before the Booking it describes (and never lost after it commits).
+///
+/// Residual boundary, documented rather than hidden: autoincrement ids are assigned at INSERT but
+/// become visible at COMMIT, so a lower id can appear after a higher one under concurrency. The
+/// snapshot endpoint re-reads the full operational window and is the reconciliation path that
+/// self-heals any such gap; incremental sync is the fast path, not the only path.
+model BookingDeliveryChange {
+  id         Int      @id @default(autoincrement())
+  booking    Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId  Int
+  hotel      Hotel    @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  hotelId    Int
+  /// Per-hotel monotonic cursor. Allocated by locking HotelDeliveryCursor inside the SAME
+  /// transaction as the Booking mutation, so a concurrent mutation for this hotel blocks until
+  /// this one commits. Commit order therefore equals revision order and no revision can become
+  /// visible out of sequence — this is what makes incremental sync gap-free (NOT `id`, which is
+  /// assigned at INSERT and can commit out of order).
+  revision   Int
+  /// CREATED | UPDATED | CANCELLED — an explicit event, so the device never infers deletion from absence.
+  changeType String
+  createdAt  DateTime @default(now())
+
+  @@unique([hotelId, revision])
+  @@index([hotelId, revision])
+  @@index([bookingId])
+}
+
+/// Per-hotel revision allocator. One row per hotel; the row lock taken by the allocating UPDATE
+/// is what serializes delivery-change creation for that hotel.
+model HotelDeliveryCursor {
+  hotelId      Int      @id
+  hotel        Hotel    @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  lastRevision Int      @default(0)
+  updatedAt    DateTime @updatedAt
+}
+
 model LocalVaultAuditEvent {
   id          String   @id @default(cuid())
   hotelId     Int?

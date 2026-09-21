@@ -9,6 +9,7 @@ import { assertDatesAvailable, DatesUnavailableError, withRoomOverlapGuard } fro
 import { autoAssignBookingIfPossible } from "@/lib/pms/assignment";
 import { assertRoomTypeAvailable, RoomTypeUnavailableError, withRoomTypeCapacityGuard } from "@/lib/pms/inventory";
 import { getBookingPhysicalRoomId } from "@/lib/pms/types";
+import { DELIVERY_CHANGE, recordBookingDeliveryChangeById } from "@/lib/local-vault/bookingDelivery";
 
 function wantsJson(req: NextRequest): boolean {
   const accept = req.headers.get("accept") ?? "";
@@ -52,7 +53,14 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         checkOut: booking.checkOut,
         excludeBookingId: id
       });
-      await withRoomOverlapGuard(() => prisma.booking.update({ where: { id }, data: confirmData }));
+      await withRoomOverlapGuard(() =>
+        prisma.$transaction(async (tx) => {
+          await tx.booking.update({ where: { id }, data: confirmData });
+          // Status change is delivered in the same transaction — confirmation must never depend
+          // on realtime being up, and must never commit without its delivery event.
+          await recordBookingDeliveryChangeById(tx, id, DELIVERY_CHANGE.UPDATED);
+        })
+      );
     } else {
       const roomTypeId = booking.roomTypeId!;
       await withRoomTypeCapacityGuard(roomTypeId, async (tx) => {
@@ -64,6 +72,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
           client: tx
         });
         await tx.booking.update({ where: { id }, data: confirmData });
+        await recordBookingDeliveryChangeById(tx, id, DELIVERY_CHANGE.UPDATED);
       });
     }
   } catch (e) {

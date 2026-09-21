@@ -1,9 +1,11 @@
 ﻿"use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
 import { OFFLINE_STATUS } from "@/lib/domain/booking";
+
+type Quote = { pricePerNight: number; nights: number; total: number; maxGuests: number };
 
 type RoomTypeOption = { id: number; name: string; hotel: { name: string } };
 type RoomOption = {
@@ -45,6 +47,70 @@ export function OfflineBookingForm({
     [rooms, roomTypeId]
   );
 
+  // Controlled roomId: an uncontrolled `defaultValue` select kept a stale roomId selected after a
+  // category switch (the option vanished from the DOM but the submitted value could survive).
+  const [roomId, setRoomId] = useState<string>(defaultRoomId ? String(defaultRoomId) : "");
+  const [checkIn, setCheckIn] = useState(defaultCheckIn ?? "");
+  const [checkOut, setCheckOut] = useState(defaultCheckOut ?? "");
+  const [guestCount, setGuestCount] = useState(1);
+  const [priceOverride, setPriceOverride] = useState("");
+  const [showOverride, setShowOverride] = useState(false);
+
+  const [quote, setQuote] = useState<Quote | null>(null);
+  const [quoteLoading, setQuoteLoading] = useState(false);
+  const [quoteFailed, setQuoteFailed] = useState(false);
+
+  // Clear a room that does not belong to the newly selected category.
+  useEffect(() => {
+    if (roomId && !roomsForType.some((r) => String(r.id) === roomId)) setRoomId("");
+  }, [roomsForType, roomId]);
+
+  // Authoritative quote from the server. Race-guarded: a slower earlier request must never
+  // overwrite the result of a newer one (§9).
+  const quoteSeq = useRef(0);
+  useEffect(() => {
+    if (!roomTypeId || !checkIn || !checkOut || checkOut <= checkIn) {
+      setQuote(null);
+      setQuoteFailed(false);
+      setQuoteLoading(false);
+      return;
+    }
+    const seq = ++quoteSeq.current;
+    setQuoteLoading(true);
+    setQuoteFailed(false);
+    const params = new URLSearchParams({ roomTypeId: String(roomTypeId), checkIn, checkOut });
+    if (roomId) params.set("roomId", roomId);
+    fetch(`/api/owner/offline-bookings/quote?${params.toString()}`, { credentials: "include" })
+      .then(async (res) => {
+        const json = (await res.json().catch(() => null)) as (Quote & { ok?: boolean }) | null;
+        if (seq !== quoteSeq.current) return; // stale response — a newer request already won
+        if (!res.ok || !json?.ok) {
+          setQuote(null);
+          setQuoteFailed(true);
+          return;
+        }
+        setQuote({
+          pricePerNight: json.pricePerNight,
+          nights: json.nights,
+          total: json.total,
+          maxGuests: json.maxGuests
+        });
+      })
+      .catch(() => {
+        if (seq !== quoteSeq.current) return;
+        setQuote(null);
+        setQuoteFailed(true);
+      })
+      .finally(() => {
+        if (seq === quoteSeq.current) setQuoteLoading(false);
+      });
+  }, [roomTypeId, roomId, checkIn, checkOut]);
+
+  const overCapacity = Boolean(quote && guestCount > quote.maxGuests);
+  // No silent 0: without an authoritative quote (and without an explicit override) submission is
+  // blocked rather than creating a booking at an invented price (§10).
+  const canSubmit = (quote !== null || priceOverride.trim() !== "") && !overCapacity;
+
   if (!roomTypes.length) return null;
 
   return (
@@ -84,7 +150,12 @@ export function OfflineBookingForm({
 
       <div className="md:col-span-2">
         <label className="owner-field__label">{m(locale, "owner.offline.room")}</label>
-        <select name="roomId" defaultValue={defaultRoomId ?? ""} className="owner-select">
+        <select
+          name="roomId"
+          value={roomId}
+          onChange={(e) => setRoomId(e.target.value)}
+          className="owner-select"
+        >
           <option value="">{m(locale, "owner.pms.unassigned")}</option>
           {roomsForType.map((r) => (
             <option key={r.id} value={r.id}>
@@ -93,7 +164,9 @@ export function OfflineBookingForm({
             </option>
           ))}
         </select>
-        <p className="owner-field__hint">{m(locale, "owner.pms.unassigned")} — можно назначить позже.</p>
+        {quote ? (
+          <p className="owner-field__hint">{m(locale, "owner.offline.capacityHint", { count: quote.maxGuests })}</p>
+        ) : null}
       </div>
 
       <div>
@@ -110,21 +183,95 @@ export function OfflineBookingForm({
       </div>
       <div>
         <label className="owner-field__label">{m(locale, "owner.offline.guestCount")}</label>
-        <input name="guestCount" type="number" min={1} defaultValue={1} className="owner-input" />
+        <input
+          name="guestCount"
+          type="number"
+          min={1}
+          max={quote?.maxGuests}
+          value={guestCount}
+          onChange={(e) => setGuestCount(Math.max(1, Number(e.target.value) || 1))}
+          className="owner-input"
+        />
+        {overCapacity && quote ? (
+          <p className="owner-field__hint owner-field__hint--error" role="alert">
+            {m(locale, "owner.offline.capacityExceeded", { count: quote.maxGuests })}
+          </p>
+        ) : null}
       </div>
 
       <div>
         <label className="owner-field__label">{m(locale, "owner.offline.checkIn")}</label>
-        <input name="checkIn" type="date" required defaultValue={defaultCheckIn} className="owner-input" />
+        <input
+          name="checkIn"
+          type="date"
+          required
+          value={checkIn}
+          onChange={(e) => setCheckIn(e.target.value)}
+          className="owner-input"
+        />
       </div>
       <div>
         <label className="owner-field__label">{m(locale, "owner.offline.checkOut")}</label>
-        <input name="checkOut" type="date" required defaultValue={defaultCheckOut} className="owner-input" />
+        <input
+          name="checkOut"
+          type="date"
+          required
+          value={checkOut}
+          onChange={(e) => setCheckOut(e.target.value)}
+          className="owner-input"
+        />
       </div>
 
-      <div>
-        <label className="owner-field__label">{m(locale, "owner.offline.total")}</label>
-        <input name="totalPrice" type="number" min={0} step={1} required className="owner-input" />
+      {/* Was a REQUIRED manual `totalPrice` input, which meant the server's authoritative quote
+          (category basePrice × nights) never ran. Now the quote is fetched and displayed, and a
+          manual value is an explicit, optional override. */}
+      <div className="md:col-span-2">
+        {quoteLoading ? (
+          <p className="owner-field__hint">{m(locale, "owner.offline.quoteLoading")}</p>
+        ) : quoteFailed ? (
+          <p className="owner-field__hint owner-field__hint--error" role="alert">
+            {m(locale, "owner.offline.quoteError")}
+          </p>
+        ) : quote ? (
+          <dl className="owner-quote-summary">
+            <div>
+              <dt>{m(locale, "owner.offline.pricePerNight")}</dt>
+              <dd>{quote.pricePerNight.toLocaleString()} TJS</dd>
+            </div>
+            <div>
+              <dt>{m(locale, "owner.offline.nights")}</dt>
+              <dd>{quote.nights}</dd>
+            </div>
+            <div className="owner-quote-summary__total">
+              <dt>{m(locale, "owner.offline.calculatedTotal")}</dt>
+              <dd>{quote.total.toLocaleString()} TJS</dd>
+            </div>
+          </dl>
+        ) : null}
+
+        {showOverride ? (
+          <div className="mt-2">
+            <label className="owner-field__label">{m(locale, "owner.offline.total")}</label>
+            <input
+              name="totalPrice"
+              type="number"
+              min={0}
+              step={1}
+              value={priceOverride}
+              onChange={(e) => setPriceOverride(e.target.value)}
+              className="owner-input"
+            />
+            <p className="owner-field__hint">{m(locale, "owner.offline.priceOverrideHint")}</p>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setShowOverride(true)}
+            className="owner-btn owner-btn--secondary owner-btn--sm mt-2"
+          >
+            {m(locale, "owner.offline.priceOverride")}
+          </button>
+        )}
       </div>
       <div>
         <label className="owner-field__label">{m(locale, "owner.offline.prepayment")}</label>
@@ -155,7 +302,7 @@ export function OfflineBookingForm({
       </div>
 
       <div className="md:col-span-2">
-        <button type="submit" className="owner-btn owner-btn--primary">
+        <button type="submit" disabled={!canSubmit} className="owner-btn owner-btn--primary disabled:opacity-60">
           {m(locale, "owner.offline.submit")}
         </button>
       </div>
