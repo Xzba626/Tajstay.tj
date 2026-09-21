@@ -518,7 +518,9 @@ body:has(.ts-workspace-light) .header-auth-signin-mobile {
   align-items: center;
   justify-content: center;
   border-radius: var(--taj-radius-lg);
-  background: rgba(34, 197, 94, 0.12);
+  /* Was rgba(34,197,94,.12) — Tailwind green-500, an off-brand green rendering on the public
+     home page (computed #22c55e, 2026-09-20 audit). Canonical #0F7A4D at the same 12% tint. */
+  background: rgba(15, 122, 77, 0.12);
   font-size: 1.125rem;
   color: var(--taj-icon-success);
 }

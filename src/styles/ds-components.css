@@ -135,6 +135,35 @@ a.taj-btn--secondary:active {
   transform: scale(0.98);
 }
 
+/* On-brand CTA: for buttons sitting ON a canonical-green surface (home promo banner), where
+   taj-btn--primary would paint #0f7a4d on #0f7a4d and disappear. Inverts the same two canonical
+   values rather than inventing a second brand green: white surface, canonical-green label. */
+button.taj-btn--on-brand,
+a.taj-btn--on-brand {
+  background: #ffffff !important;
+  color: var(--taj-btn-primary-bg, #0f7a4d) !important;
+  border-color: #ffffff !important;
+  font-weight: 700 !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12) !important;
+}
+
+button.taj-btn--on-brand:hover:not(:disabled):not(.is-loading),
+a.taj-btn--on-brand:hover {
+  background: rgba(255, 255, 255, 0.9) !important;
+  transform: translateY(-1px);
+}
+
+button.taj-btn--on-brand:active:not(:disabled),
+a.taj-btn--on-brand:active {
+  transform: scale(0.98);
+}
+
+button.taj-btn--on-brand:focus-visible,
+a.taj-btn--on-brand:focus-visible {
+  outline: 2px solid #ffffff !important;
+  outline-offset: 2px;
+}
+
 button.taj-btn--ghost,
 a.taj-btn--ghost {
   background: transparent !important;

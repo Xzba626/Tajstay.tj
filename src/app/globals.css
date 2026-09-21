@@ -1638,15 +1638,14 @@ footer.site-footer {
     @apply transition duration-300 ease-out;
   }
 
-  button[class*="border"],
-  a[class*="border"] {
-    @apply border-brand-700 text-brand-200 bg-transparent;
-  }
-
-  button[class*="border"]:hover,
-  a[class*="border"]:hover {
-    @apply bg-brand-800;
-  }
+  /* REMOVED — legacy dark-theme rule, root cause of the PWA "Позже" button rendering as a
+     disabled-looking control on the light install card (production screenshot, 2026-09-20).
+     It matched ANY button whose class merely *contains* the substring "border" (attribute
+     substring selector, not a border utility), then forced pale `text-brand-200` (#86c9a0 —
+     meant to sit on a dark surface) with a `bg-brand-800` (#012f1a) hover. On today's white
+     surfaces that reads as greyed-out/disabled, and it silently hijacked every bordered
+     secondary button across the public site — NotificationBell.tsx already carries a comment
+     documenting a workaround for this same rule. Each button now keeps its own declared colors. */
 
   /* Remove visual noise outside hero */
   .luxury-shine::before,

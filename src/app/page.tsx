@@ -103,7 +103,10 @@ export default async function HomePage() {
                   <h2 className="home-promo-title text-lg font-bold sm:text-xl">{content.homeBanner.title}</h2>
                   <p className="home-promo-subtitle mt-2 max-w-2xl text-sm">{content.homeBanner.subtitle}</p>
                 </div>
-                <Link href={content.homeBanner.ctaHref} className="taj-btn taj-btn--primary shrink-0">
+                {/* --on-brand, not --primary: this banner is already a canonical #0f7a4d
+                    surface, so a primary (green) CTA rendered green-on-green with no hierarchy
+                    (production screenshot, 2026-09-20). Inverted white/green keeps one brand green. */}
+                <Link href={content.homeBanner.ctaHref} className="taj-btn taj-btn--on-brand shrink-0">
                   {content.homeBanner.ctaText}
                 </Link>
               </div>

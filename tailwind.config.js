@@ -10,17 +10,23 @@ module.exports = {
         serif: ["Playfair Display", "Georgia", "serif"]
       },
       colors: {
+        /* Re-anchored on the canonical TajStay green #0F7A4D (2026-09-20 production screenshot:
+           header/CTA painted #0f7a4d while brand-* surfaces painted a different green family —
+           #006b38/#004724/#012f1a — producing the "green on green" mismatch). Every step is now
+           a tint/shade of the one canonical hue, so `brand-*` utilities can no longer introduce a
+           second brand green. 500 IS the canonical value; semantic success/warning/danger colors
+           are deliberately NOT touched. */
         brand: {
-          50: "#d8f1e2",
-          100: "#b7d8c4",
-          200: "#86c9a0",
-          300: "#4ade80",
-          400: "#22c55e",
-          500: "#006b38",
-          600: "#004724",
-          700: "#00351d",
-          800: "#012f1a",
-          900: "#012f1a"
+          50: "#e8f5ee",
+          100: "#c6e6d5",
+          200: "#93cfb0",
+          300: "#5cb68b",
+          400: "#2f9a6a",
+          500: "#0f7a4d",
+          600: "#0c6340",
+          700: "#0a5134",
+          800: "#073d27",
+          900: "#052b1b"
         }
       },
       boxShadow: {
@@ -42,8 +48,9 @@ module.exports = {
         "taj-page": "var(--taj-page-px)"
       },
       backgroundImage: {
-        "brand-gradient": "linear-gradient(135deg, #006B38 0%, #004724 45%, #012F1A 100%)",
-        "brand-gradient-soft": "linear-gradient(135deg, rgba(0,107,56,0.26) 0%, rgba(0,71,36,0.18) 100%)"
+        /* Same re-anchor as the brand scale above: was the old #006B38/#004724/#012F1A family. */
+        "brand-gradient": "linear-gradient(135deg, #0F7A4D 0%, #0C6340 45%, #073D27 100%)",
+        "brand-gradient-soft": "linear-gradient(135deg, rgba(15,122,77,0.26) 0%, rgba(12,99,64,0.18) 100%)"
       }
     }
   },
