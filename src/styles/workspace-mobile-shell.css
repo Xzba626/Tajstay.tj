@@ -36,7 +36,8 @@ body.app-shell--workspace .header-workspace-menu {
 /* Fixed Mobile Bottom Navigation — Admin + Owner share identical chrome */
 .workspace-mobile-bottom-nav,
 .admin-mobile-bottom-nav,
-.owner-mobile-bottom-nav {
+.owner-mobile-bottom-nav,
+.manager-mobile-bottom-nav {
   position: fixed !important;
   left: 0 !important;
   right: 0 !important;

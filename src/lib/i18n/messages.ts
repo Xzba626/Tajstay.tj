@@ -1880,6 +1880,7 @@ const ru: Tree = {
       },
       legend: {
         available: "Свободно",
+        occupied: "Занято",
         online: "Подтверждено",
         offline: "Офлайн-бронь",
         pending: "Ожидает подтверждения",
@@ -4285,6 +4286,7 @@ const tg: Tree = {
       },
       legend: {
         available: "Озод",
+        occupied: "Ишғол",
         online: "Тасдиқшуда",
         offline: "Брони офлайн",
         pending: "Интизори тасдиқ",
@@ -6657,6 +6659,7 @@ const en: Tree = {
       },
       legend: {
         available: "Available",
+        occupied: "Occupied",
         online: "Confirmed",
         offline: "Offline booking",
         pending: "Awaiting confirmation",

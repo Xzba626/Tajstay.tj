@@ -22,9 +22,20 @@ const ITEMS = [
 
 export function ManagerBottomNav({ labels }: { labels: ManagerNavLabels }) {
   const pathname = usePathname() ?? "";
+  // Use the shared workspace-mobile-bottom-nav class so this picks up the
+  // fixed-bottom-position + brand-green + dark-theme rules already defined in
+  // src/styles/workspace-mobile-shell.css. Previously the component used the
+  // unstyled `workspace-mobile-nav` class → rendered as an unpositioned inline
+  // list stacked at the top of the empty content area on mobile. The extra
+  // `manager-mobile-bottom-nav` class is used by the grid-template-columns
+  // override below so 4 Manager items aren't stretched by the shared 5-column
+  // grid intended for Owner/Admin.
   return (
-    <nav className="workspace-mobile-nav manager-mobile-nav" aria-label={labels.ariaLabel}>
-      <ul className="workspace-mobile-nav__list">
+    <nav
+      className="workspace-mobile-bottom-nav manager-mobile-bottom-nav"
+      aria-label={labels.ariaLabel}
+    >
+      <ul className="workspace-mobile-bottom-nav__list">
         {ITEMS.map((item) => {
           const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
           const Icon = item.Icon;
@@ -32,11 +43,11 @@ export function ManagerBottomNav({ labels }: { labels: ManagerNavLabels }) {
             <li key={item.href}>
               <Link
                 href={item.href}
-                className={cn("workspace-mobile-nav__link", active && "is-active")}
+                className={cn("workspace-mobile-bottom-nav__link", active && "is-active")}
                 aria-current={active ? "page" : undefined}
               >
-                <Icon className="workspace-mobile-nav__icon" aria-hidden />
-                <span className="workspace-mobile-nav__label">{labels[item.key]}</span>
+                <Icon className="workspace-mobile-bottom-nav__icon" aria-hidden />
+                <span className="workspace-mobile-bottom-nav__label">{labels[item.key]}</span>
               </Link>
             </li>
           );
