@@ -66,9 +66,27 @@ body.app-shell--workspace .header-workspace-menu {
 @media (min-width: 1024px) {
   .workspace-mobile-bottom-nav,
   .admin-mobile-bottom-nav,
-  .owner-mobile-bottom-nav {
+  .owner-mobile-bottom-nav,
+  .manager-mobile-bottom-nav {
     display: none;
   }
+}
+
+/* Manager has 4 primary nav items (New/Bookings/Today/Profile) instead of the
+   5 that Admin/Owner use — override just the column count so labels don't stretch. */
+.manager-mobile-bottom-nav {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+/* Manager's <nav> wraps items in a <ul><li> tree for a11y (Admin/Owner render
+   children directly in the <nav>). Flatten the wrapper so items participate
+   directly in the shared grid instead of collapsing into a single column. */
+.manager-mobile-bottom-nav > ul,
+.manager-mobile-bottom-nav > ul > li {
+  display: contents;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 .workspace-mobile-bottom-nav__link,
