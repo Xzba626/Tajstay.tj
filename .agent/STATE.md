@@ -4,7 +4,47 @@ Read this before anything else. Load only the skill matching NEXT (see `CLAUDE.m
 Do not re-read old audit reports unless the task needs them. Keep this file short — DONE/OPEN/BLOCKED/
 NEXT, not a diary. Detailed rationale for a fix belongs in its commit message, not here.
 
-## CURRENT (2026-09-21) — Chat regression forensic CLOSED, local runtime PASS
+## CURRENT (2026-09-22) — THEME+RESPONSIVE+UX CORRECTIVE BLOCK — screenshot defects FIXED, walkthrough IN PROGRESS
+
+**Branch**: `feature/tajstay-full-ui-ux-rebuild` | **HEAD**: `1f3f43d`
+
+### DONE this session (commit `1f3f43d`)
+- A: Home dark canvas: `.home-hero-bg { background: #ffffff }` → `var(--ts-surface-page, #ffffff)` — ROOT CAUSE FIXED, RUNTIME VERIFIED dark mode local dev
+- B: Hero title "Найдите жильё в Таджикистане" now visible dark mode — same fix as A (white overlay was burying it)
+- C: Home search form proportions: controls 3.375rem→2.875rem, submit 3.5rem→3rem — FIXED, RUNTIME VERIFIED 375/430/320px
+- D: Search results bar 320px: `[icon+input][Поиск][filter]` structure intact — VERIFIED PASS, no fix needed
+- E: Tours dark title — VERIFIED PASS on local HEAD (was stale deployment on user device)
+- F: History dark title — VERIFIED PASS on local HEAD
+- G/H: History card compact: padding/gap/media-size reduced for --history variant; status badge padding reduced — FIXED
+- I: History card action label "Открыть" → "Открыть чат" (ru/tg/en) — FIXED (correctly goes to /chat/booking/[id])
+- J/K: Auth modal clipping: max-height calc(100dvh - 2rem) + overflow-y auto added — FIXED
+- Booking 3 stages: Данные → Оплата → Подтверждение — VERIFIED
+- RBAC: Admin/Manager routes correctly redirect non-authorized QA OWNER account — VERIFIED
+- Profile Light+Dark 375px — VERIFIED PASS
+- Owner dashboard sections (Обзор/Брони/Календарь/Аналитика) dark 375px — VERIFIED PASS
+- Home 320px/430px Light+Dark — VERIFIED PASS
+- Search 320px dark — VERIFIED PASS
+- tsc --noEmit: PASS after all changes
+
+### STILL OPEN (continue same block)
+- History card compact visual — CODE FIXED, cannot verify (QA account has 0 bookings)
+- Auth panel fresh user acceptance test (item M) — need unauthenticated user flow
+- Login/register field contrast check (item L)
+- Full Owner walkthrough: Объект section, Ещё section, all controls opened
+- Full Admin walkthrough (need ADMIN-role account)
+- Full Manager walkthrough (need MANAGER-role account)
+- "Сдавайте жильё" flow from Home for unauthenticated guest
+- Photo upload all states (FileUploadCard)
+- Real Guest↔Owner Chat runtime exchange
+- Responsive matrix: 360/768/1024/1280/1440 not yet done
+- Nested UI: modals/drawers/popovers not yet opened and verified
+- Full theme regression: Hotel/Booking/Chat/Favorites/Notifications/History pages
+- Booking regression suites: must confirm still at baselines (not re-run this session)
+
+### NOT PROVEN (local dev PASS, production stale)
+- All fixes above: LOCAL DEV only — no production deployment this session
+
+## PRIOR (2026-09-21) — Chat regression forensic CLOSED, local runtime PASS
 
 - **ROOT CAUSE (proven, not guessed)**: `src/app/chat/booking/[bookingId]/page.tsx` had an uncommitted,
   broken edit (duplicate `const user` declaration, deleted `if (!user) notFound()` guard, deleted
