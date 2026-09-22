@@ -3728,6 +3728,47 @@ body.app-shell--hidden-nav .cookie-consent {
   color: #ffffff !important;
 }
 
+/* --- Dark-mode adaptation for Admin operational (theme) surfaces ---
+   The admin shell carries `.ts-workspace-light` to force light neutral surfaces
+   over the operational cards. That was appropriate when the whole Admin panel
+   was meant to be a fixed light workspace, but the user's real-device screenshots
+   showed white cards + light canvas persisting in Dark mode (Applications,
+   Complaints, Finance, etc.) — visibly broken. Split the surfaces cleanly:
+     BRAND (KPI green / attention green / sidebar green) — stay green in both modes.
+     THEME (page canvas / .admin-panel / .admin-record-card / .admin-filter-card /
+       .admin-empty-inline / neutral .admin-kpi-card) — flip to dark in Dark mode.
+   Guarded by [data-theme="dark"] so Light mode is 100% unchanged. */
+:root[data-theme="dark"] .admin-command-center-shell {
+  background: var(--ts-surface-page, #0f1713) !important;
+}
+:root[data-theme="dark"] .admin-command-center-shell .admin-panel,
+:root[data-theme="dark"] .admin-command-center-shell .admin-record-card,
+:root[data-theme="dark"] .admin-command-center-shell .admin-record-card__body,
+:root[data-theme="dark"] .admin-command-center-shell .admin-filter-card,
+:root[data-theme="dark"] .admin-command-center-shell .admin-empty-inline,
+:root[data-theme="dark"] .admin-command-center-shell .admin-kpi-card:not(.admin-kpi-card--brand) {
+  background: var(--ts-surface-primary, #16211c) !important;
+  border-color: var(--ts-border-subtle, #243d33) !important;
+}
+:root[data-theme="dark"] .admin-command-center-shell .admin-page-header__title,
+:root[data-theme="dark"] .admin-command-center-shell .admin-section-head__title,
+:root[data-theme="dark"] .admin-command-center-shell .admin-record-card__title,
+:root[data-theme="dark"] .admin-command-center-shell .admin-user-name,
+:root[data-theme="dark"] .admin-command-center-shell .admin-kpi-card:not(.admin-kpi-card--brand) .admin-kpi-card__value,
+:root[data-theme="dark"] .admin-command-center-shell .admin-empty-inline,
+:root[data-theme="dark"] .admin-command-center-shell .admin-panel h1,
+:root[data-theme="dark"] .admin-command-center-shell .admin-panel h2,
+:root[data-theme="dark"] .admin-command-center-shell .admin-panel h3 {
+  color: var(--ts-text-title, #f3f6f4) !important;
+}
+:root[data-theme="dark"] .admin-command-center-shell .admin-page-header__subtitle,
+:root[data-theme="dark"] .admin-command-center-shell .admin-section-head__desc,
+:root[data-theme="dark"] .admin-command-center-shell .admin-text-muted,
+:root[data-theme="dark"] .admin-command-center-shell .admin-kpi-card:not(.admin-kpi-card--brand) .admin-kpi-card__label,
+:root[data-theme="dark"] .admin-command-center-shell .admin-kpi-card:not(.admin-kpi-card--brand) .admin-kpi-card__hint {
+  color: var(--ts-text-secondary, #b0c4bc) !important;
+}
+
 /* Beat global button emerald lock on workspace bottom nav (More = <button>) */
 .workspace-mobile-bottom-nav__link,
 .admin-mobile-bottom-nav__link,

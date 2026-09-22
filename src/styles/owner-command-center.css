@@ -1910,13 +1910,26 @@ form.owner-form-surface {
   color: rgba(255, 255, 255, 0.95) !important;
 }
 
-.owner-form-surface .owner-input,
-.owner-form-surface input,
-.owner-form-surface select,
-.owner-form-surface textarea {
+/* Beat the winning dark-mode input override in globals.css
+   `:root[data-theme="dark"] .ts-workspace-light input:not([type=checkbox]):not(...)`
+   (specificity 0,0,7,1) by using both `input.owner-input` (element + extra class)
+   so this scoped rule for Owner staff/hotel forms sitting on the branded-green
+   .owner-form-surface wins. Without this, dark-mode fields became a dark-gray
+   rectangle on a green card and the border blended into the green — the reported
+   "invisible input" defect. */
+:root[data-theme] .ts-workspace-light .owner-form-surface input.owner-input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+:root[data-theme] .ts-workspace-light .owner-form-surface input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+:root[data-theme] .ts-workspace-light .owner-form-surface select,
+:root[data-theme] .ts-workspace-light .owner-form-surface textarea {
   background: #ffffff !important;
   color: #14231b !important;
-  border-color: rgba(15, 23, 42, 0.12) !important;
+  border-color: rgba(15, 23, 42, 0.18) !important;
+}
+
+:root[data-theme] .ts-workspace-light .owner-form-surface input.owner-input::placeholder,
+:root[data-theme] .ts-workspace-light .owner-form-surface input::placeholder,
+:root[data-theme] .ts-workspace-light .owner-form-surface textarea::placeholder {
+  color: rgba(20, 35, 27, 0.5) !important;
 }
 
 .owner-form-surface .owner-input:-webkit-autofill,
