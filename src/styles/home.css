@@ -129,21 +129,21 @@
 
   .home-search-control,
   .home-search-field {
-    height: 3.375rem;
+    height: 2.875rem;
     border-radius: 0.875rem;
     padding: 0 0.85rem;
   }
 
   .home-search-submit,
   .home-search-submit--mobile {
-    height: 3.5rem;
-    min-height: 3.5rem;
+    height: 3rem;
+    min-height: 3rem;
     border-radius: 0.875rem;
     font-size: 0.9375rem;
   }
 
   .home-search-mobile-submit {
-    margin-top: 0.875rem;
+    margin-top: 0.6rem;
   }
 
   .site-header__inner {

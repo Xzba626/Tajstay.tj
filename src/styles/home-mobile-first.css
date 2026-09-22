@@ -80,6 +80,9 @@
   top: 50%;
   z-index: 301;
   width: min(22rem, calc(100vw - 2rem));
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   transform: translate(-50%, -50%);
   padding: 1.5rem 1.25rem;
   border-radius: 1.25rem;

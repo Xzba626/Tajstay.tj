@@ -213,13 +213,13 @@
 .home-hero-bg {
   position: absolute;
   inset: 0;
-  background: #ffffff;
+  background: var(--ts-surface-page, #ffffff);
   opacity: 1;
   pointer-events: none;
 }
 
 .home-hero-bg-fallback {
-  background: #ffffff;
+  background: var(--ts-surface-page, #ffffff);
 }
 
 /* Horizontal hotel scroll */
