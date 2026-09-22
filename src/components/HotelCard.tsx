@@ -177,9 +177,13 @@ export function HotelCard({ hotel, locale = "ru", variant = "accent", hrefQuery 
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-60" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-brand-500" />
             </span>
-            <span className="text-xs font-medium text-brand-100">
+            {/* A <div>, not <span>: a separate globals.css rule force-colors bare span/small/
+                label/li inside .hotel-card-premium to a muted marketing-canvas tone
+                (!important), written for dark card contexts - it was silently overriding this
+                text's own (now-correct) text-brand-100 color despite the token-level fix. */}
+            <div className="text-xs font-medium text-brand-100">
               {availableRooms} {availableRooms === 1 ? "номер" : "номера"} свободно
-            </span>
+            </div>
           </div>
         )}
 

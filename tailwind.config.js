@@ -18,8 +18,15 @@ module.exports = {
            are deliberately NOT touched. */
         brand: {
           50: "#e8f5ee",
-          100: "#c6e6d5",
-          200: "#93cfb0",
+          /* 100/200 were still pale-mint tints left over from the pre-white-canvas era (readable
+             on a dark/green surface, not on white) - confirmed used ONLY as text color, in 18
+             consumer files (search/booking/chat/hotel/payment/auth/trips), zero as background or
+             border, so re-anchoring these two values here fixes every one of those call sites at
+             once instead of patching each label - the near-invisible "Найдено: N" / availability
+             text on Search results was this, not a one-off. 300+ were already fixed in the prior
+             #0F7A4D re-anchor pass and are untouched. */
+          100: "#3f7256",
+          200: "#2f5c44",
           300: "#5cb68b",
           400: "#2f9a6a",
           500: "#0f7a4d",

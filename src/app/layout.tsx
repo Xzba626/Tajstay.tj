@@ -140,7 +140,13 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
                   unsupported: m(locale, "pwa.pushUnsupported")
                 }}
               />
-              <div className="flex min-h-screen flex-col">
+              {/* ts-consumer-shell: opts the whole consumer app into the same theme-aware
+                  design tokens already proven on Profile/Admin/Owner (tajstay-design-system.css
+                  plus the "MOBILE UI FOUNDATION" block in globals.css) - previously
+                  Search/Hotel/Booking/Chat/History/Tours had no dark-mode tokens at all.
+                  Header stays brand green regardless (its own hardcoded styling, untouched);
+                  only surfaces/text/borders that read these tokens flip. */}
+              <div className="ts-consumer-shell flex min-h-screen flex-col">
                 <Header />
                 <main className="flex-1">
                   {children}

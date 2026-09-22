@@ -741,8 +741,13 @@
   }
 }
 
-.profile-hub__locale-brand .locale-switcher-trigger,
-.profile-hub__locale-brand button {
+/* Scoped to the actual trigger class (.locale-switcher-trigger--icon, see LocaleSwitcher.tsx) -
+   was a bare "button" descendant selector, which also matched every dropdown row <button> once
+   the popover started rendering real <button role="menuitemradio"> rows: every language row got
+   forced to this trigger's fixed 44px square + brand-green !important background, squashing
+   "Русский"/"Тоҷикӣ"/"English" down to invisible slivers. The stale ".locale-switcher-trigger"
+   (no "--icon") selector never matched anything current - dropped rather than carried forward. */
+.profile-hub__locale-brand .locale-switcher-trigger--icon {
   width: 2.25rem;
   height: 2.25rem;
   min-width: 44px;
@@ -753,8 +758,7 @@
   border: 1px solid #0c6a42 !important;
 }
 
-.profile-hub__locale-brand .locale-switcher-trigger svg,
-.profile-hub__locale-brand button svg {
+.profile-hub__locale-brand .locale-switcher-trigger--icon svg {
   color: #ffffff !important;
   stroke: #ffffff !important;
 }

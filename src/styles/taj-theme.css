@@ -231,6 +231,15 @@
   color: #0f7a4d;
 }
 
+/* Fixed-width so toggling opacity (not display) never shifts the label next to it. */
+.locale-switcher-check {
+  display: inline-block;
+  width: 0.85rem;
+  flex-shrink: 0;
+  font-weight: 700;
+  color: #0f7a4d;
+}
+
 /* ---- Icons (utility) ---- */
 .taj-icon {
   color: var(--taj-icon);

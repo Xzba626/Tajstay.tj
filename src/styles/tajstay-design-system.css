@@ -81,6 +81,7 @@
 
 /* Light workspace — isolates readable UI from global dark marketing canvas */
 .ts-workspace-light,
+.ts-consumer-shell,
 .profile-page-light,
 .profile-center,
 .admin-command-center-shell,
@@ -131,6 +132,7 @@
    ================================================================ */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .ts-workspace-light,
+  :root:not([data-theme="light"]) .ts-consumer-shell,
   :root:not([data-theme="light"]) .profile-page-light,
   :root:not([data-theme="light"]) .profile-center,
   :root:not([data-theme="light"]) .admin-command-center-shell,
@@ -193,6 +195,7 @@
 }
 
 :root[data-theme="dark"] .ts-workspace-light,
+:root[data-theme="dark"] .ts-consumer-shell,
 :root[data-theme="dark"] .profile-page-light,
 :root[data-theme="dark"] .profile-center,
 :root[data-theme="dark"] .admin-command-center-shell,
@@ -347,6 +350,7 @@
    corresponding guard for anything that might match :root[data-theme="dark"] AND a stale/cached
    light explicit value in the same cascade — defensive, cheap, matches the standard contract). */
 :root[data-theme="light"] .ts-workspace-light,
+:root[data-theme="light"] .ts-consumer-shell,
 :root[data-theme="light"] .profile-page-light,
 :root[data-theme="light"] .profile-center,
 :root[data-theme="light"] .admin-command-center-shell,

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Building2, Mountain } from "lucide-react";
 import { AppImage } from "@/components/ui/AppImage";
 import { isBrandAssetUrl } from "@/lib/brand";
 import { normalizePaymentBadge } from "@/lib/trips/classify";
@@ -11,7 +12,6 @@ import {
   formatTourDate,
   formatTourStayMeta,
   mapBookingToHistoryRecord,
-  recordKindIcon,
   type HistoryRecord
 } from "@/lib/trips/historyRecord";
 import type { Locale } from "@/lib/i18n/locale";
@@ -82,7 +82,7 @@ function HistoryRecordCardInner({ locale, record }: { locale: Locale; record: Hi
   const location = record.location;
   const dates = record.kind === "hotel" ? formatHotelDates(locale, record) : formatTourDate(locale, record);
   const stayMeta = record.kind === "hotel" ? formatHotelStayMeta(locale, record) : formatTourStayMeta(locale, record);
-  const icon = recordKindIcon(record.kind);
+  const Icon = record.kind === "tour" ? Mountain : Building2;
   const cover = record.coverImageUrl && !isBrandAssetUrl(record.coverImageUrl) ? record.coverImageUrl : null;
 
   return (
@@ -91,13 +91,15 @@ function HistoryRecordCardInner({ locale, record }: { locale: Locale; record: Hi
         {cover ? (
           <AppImage src={cover} alt={title} fill className="object-cover" sizes="88px" />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-2xl opacity-30">{icon}</div>
+          <div className="flex h-full w-full items-center justify-center opacity-30">
+            <Icon size={24} strokeWidth={1.5} aria-hidden />
+          </div>
         )}
       </div>
       <div className="mockup-list-card__body">
         <div className="mockup-list-card__title line-clamp-2">
-          <span aria-hidden className="mr-1">
-            {icon}
+          <span aria-hidden className="mr-1 inline-flex align-middle">
+            <Icon size={14} strokeWidth={2} />
           </span>
           {title}
         </div>
@@ -109,12 +111,12 @@ function HistoryRecordCardInner({ locale, record }: { locale: Locale; record: Hi
         ) : null}
         <div className="mockup-list-card__badges">
           <span className={`mockup-status ${bookingStatusClass(record.status)}`}>
-            <span aria-hidden>{prefixes.booking} </span>
-            {bookingStatusLabel(locale, record.status)}
+            <span aria-hidden>{prefixes.booking}</span>
+            <span>{bookingStatusLabel(locale, record.status)}</span>
           </span>
           <span className={`mockup-status ${paymentStatusClass(payBadge)}`}>
-            <span aria-hidden>{prefixes.payment} </span>
-            {paymentStatusLabel(locale, record.paymentStatus)}
+            <span aria-hidden>{prefixes.payment}</span>
+            <span>{paymentStatusLabel(locale, record.paymentStatus)}</span>
           </span>
         </div>
         <div className="mockup-list-card__actions">

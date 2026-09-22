@@ -452,6 +452,41 @@
   color: var(--taj-color-text);
 }
 
+/* Was a bare text link with a literal "▾" character appended - read as an unstyled native
+   <select> trigger, not an intentional control. A real chip + rotating icon instead. */
+.chat-quick-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 2rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 9999px;
+  border: 1px solid var(--taj-color-border);
+  background: var(--taj-color-bg-card-solid);
+  color: var(--taj-color-text-secondary);
+  font-size: 0.6875rem;
+  font-weight: 600;
+}
+
+.chat-quick-toggle-btn:hover {
+  border-color: rgba(15, 122, 77, 0.3);
+  background: rgba(15, 122, 77, 0.08);
+  color: var(--taj-color-text);
+}
+
+.chat-quick-toggle-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(15, 122, 77, 0.28);
+}
+
+.chat-quick-toggle-btn__chevron {
+  transition: transform 0.15s ease;
+}
+
+.chat-quick-toggle-btn__chevron--open {
+  transform: rotate(180deg);
+}
+
 .chat-compose__row {
   display: flex;
   align-items: flex-end;

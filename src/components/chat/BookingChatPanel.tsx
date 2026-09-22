@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { ChevronDown } from "lucide-react";
 import { isSyntheticArchiveChatMessageId } from "@/lib/chat/archiveMessageIds";
 import { groupChatMessages } from "@/lib/chat/groupMessages";
 import type { Locale } from "@/lib/i18n/locale";
@@ -974,11 +975,16 @@ export function BookingChatPanel({
             <button
               type="button"
               onClick={() => setQuickRepliesOpen((v) => !v)}
-              className="text-[11px] font-semibold text-[var(--taj-color-text-muted)] hover:text-[var(--taj-color-text)]"
+              className="chat-quick-toggle-btn"
               aria-expanded={quickRepliesOpen}
               aria-controls="chat-quick-replies-panel"
             >
               {quickRepliesOpen ? m(locale, "chat.quickRepliesHide") : m(locale, "chat.quickRepliesShow")}
+              <ChevronDown
+                size={14}
+                aria-hidden
+                className={`chat-quick-toggle-btn__chevron ${quickRepliesOpen ? "chat-quick-toggle-btn__chevron--open" : ""}`}
+              />
             </button>
             {quickRepliesOpen ? (
               <div id="chat-quick-replies-panel" className="mt-2 flex flex-wrap gap-2">

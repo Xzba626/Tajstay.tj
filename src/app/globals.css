@@ -912,8 +912,8 @@ h1, h2 {
   position: relative;
   overflow: hidden;
   border-radius: 1.25rem;
-  border: 1px solid #e4e4e7;
-  background: #ffffff;
+  border: 1px solid var(--taj-color-border, #e4e4e7);
+  background: var(--taj-color-bg-card-solid, #ffffff);
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   will-change: auto;
@@ -1809,10 +1809,15 @@ textarea::placeholder {
 
 /* Marketing-canvas text lock — DO NOT target bare `span`/`label`/`li` globally.
    That rule was the Profile/Settings/Security contrast FAIL: every list label
-   became mint-on-white via --ds-text-secondary (#d8f1e2). */
+   became mint-on-white via --ds-text-secondary (#d8f1e2).
+   text-brand-100/200 REMOVED from this list (2026-09-22): this same mint-on-white mechanism was
+   still forcing those two classes to --ds-text-secondary regardless of their own Tailwind value,
+   which is exactly what made "Найдено: N" / "N номера свободно" on Search results unreadable -
+   the tailwind.config.js re-anchor of those two shades to readable values (see that file's
+   comment) was being silently overridden here. They're deliberately-set brand tints now, not
+   stray copy-pasted colors like the slate/blue/cyan/sky/emerald/amber ones below, which still
+   need this guard. */
 p,
-.text-brand-100,
-.text-brand-200,
 [class*="text-slate-"],
 [class*="text-blue-"],
 [class*="text-cyan-"],
@@ -1822,11 +1827,17 @@ p,
   color: var(--ds-text-secondary) !important;
 }
 
-/* Dark marketing surfaces may still need muted copy on spans */
-body:not(.app-shell--workspace) :where(.glass-panel, .quiet-card, .surface-1, .liquid-glass, .hotel-card-premium) span,
-body:not(.app-shell--workspace) :where(.glass-panel, .quiet-card, .surface-1, .liquid-glass, .hotel-card-premium) small,
-body:not(.app-shell--workspace) :where(.glass-panel, .quiet-card, .surface-1, .liquid-glass, .hotel-card-premium) label,
-body:not(.app-shell--workspace) :where(.glass-panel, .quiet-card, .surface-1, .liquid-glass, .hotel-card-premium) li {
+/* Dark marketing surfaces may still need muted copy on spans.
+   .hotel-card-premium REMOVED (2026-09-22): its own rule (`background: #ffffff`, no dark
+   variant, see above) proves it's a white-canvas card, not a dark marketing surface - every text
+   element inside it already specifies its own color (taj-color-* tokens or the re-anchored
+   brand-100/200), so this lock was only ever overriding those correct colors with mint
+   (--ds-text-secondary) on a white background, e.g. the "N комнат свободно" availability line
+   and the "ОТ / price / TJS" row on Search result cards. */
+body:not(.app-shell--workspace) :where(.glass-panel, .quiet-card, .surface-1, .liquid-glass) span,
+body:not(.app-shell--workspace) :where(.glass-panel, .quiet-card, .surface-1, .liquid-glass) small,
+body:not(.app-shell--workspace) :where(.glass-panel, .quiet-card, .surface-1, .liquid-glass) label,
+body:not(.app-shell--workspace) :where(.glass-panel, .quiet-card, .surface-1, .liquid-glass) li {
   color: var(--ds-text-secondary) !important;
 }
 
@@ -2914,13 +2925,15 @@ body.app-shell--hidden-nav .cookie-consent {
   gap: 0.35rem;
   padding: 1.25rem;
   text-align: center;
-  background: #f4f4f5;
-  border: 1px dashed #d4d4d8;
-  color: #52525b;
+  background: var(--taj-color-bg-card, #f4f4f5);
+  border: 1px dashed var(--taj-color-border, #d4d4d8);
+  color: var(--taj-color-text-secondary, #52525b);
 }
 
 .photo-placeholder__icon {
-  font-size: 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   opacity: 0.35;
   line-height: 1;
 }
@@ -2929,7 +2942,7 @@ body.app-shell--hidden-nav .cookie-consent {
   margin: 0;
   font-size: 0.8125rem;
   font-weight: 650;
-  color: #52525b;
+  color: var(--taj-color-text-secondary, #52525b);
 }
 
 .photo-placeholder__hint {
@@ -2937,7 +2950,7 @@ body.app-shell--hidden-nav .cookie-consent {
   max-width: 22ch;
   font-size: 0.6875rem;
   line-height: 1.45;
-  color: #71717a;
+  color: var(--taj-color-text-muted, #71717a);
 }
 
 .photo-placeholder--room {
@@ -3302,12 +3315,13 @@ body.app-shell--hidden-nav .cookie-consent {
    BLOCK 1 architectural correction: previously this forced HARD light semantic
    values with !important (always), which created a specificity war against Dark
    Mode counter-blocks. It now reads theme-aware `--ts-*` tokens set on the same
-   shells (light defaults in :root/.ts-workspace-light; dark overrides under
+   shells (light defaults in :root/.ts-workspace-light/.ts-consumer-shell; dark overrides under
    [data-theme="dark"] / prefers-color-scheme). Page canvas flips; brand green
    chrome and Profile functional forms stay #0F7A4D via their own rules.
    ========================================================================== */
 
 .ts-workspace-light,
+.ts-consumer-shell,
 .profile-page-light,
 .profile-center,
 .admin-command-center-shell,
@@ -3327,6 +3341,27 @@ body.app-shell--hidden-nav .cookie-consent {
   --taj-input: var(--ts-surface-primary, #ffffff) !important;
   --taj-input-border: var(--ts-border-default, #dce7e1) !important;
   --taj-card: var(--ts-surface-primary, #ffffff) !important;
+  --taj-card-border: var(--ts-border-subtle, #dce7e1) !important;
+  --taj-card-strong: var(--ts-surface-elevated, #ffffff) !important;
+  --taj-card-strong-border: var(--ts-border-strong, #dce7e1) !important;
+  /* Chat (tokens.css defines these with no dark variant at all - the received-message bubble
+     stayed hardcoded white while its own text correctly went light via --taj-color-text, making
+     Owner/Guest replies unreadable in Dark Mode). --taj-chat-bubble-guest (brand green) is
+     untouched on purpose - green stays green in both themes. */
+  --taj-chat-bg: var(--ts-surface-page, #f7fcf9) !important;
+  --taj-chat-bubble-host: var(--ts-surface-elevated, #ffffff) !important;
+  --taj-chat-input-bg: var(--ts-surface-primary, #ffffff) !important;
+  --taj-public-surface: var(--ts-surface-primary, #ffffff) !important;
+  --taj-public-surface-strong: var(--ts-surface-elevated, #ffffff) !important;
+  --taj-color-bg-card: var(--ts-surface-primary, #ffffff) !important;
+  --taj-color-bg-card-solid: var(--ts-surface-primary, #ffffff) !important;
+  --taj-color-border: var(--ts-border-subtle, #dce7e1) !important;
+  --taj-color-border-strong: var(--ts-border-strong, #dce7e1) !important;
+  --taj-dropdown-bg: var(--ts-surface-elevated, #ffffff) !important;
+  --taj-dropdown-border: var(--ts-border-subtle, #dce7e1) !important;
+  --taj-dropdown-item: var(--ts-text-body, #14231b) !important;
+  --taj-dropdown-item-hover-bg: var(--ts-surface-muted, #f4f4f5) !important;
+  --taj-dropdown-item-hover-text: var(--ts-text-title, #14231b) !important;
   --bg-card: var(--ts-surface-primary, #ffffff) !important;
   --bg-elevated: var(--ts-surface-muted, #f7faf8) !important;
   --border: var(--ts-border-subtle, #dce7e1) !important;
@@ -3368,6 +3403,7 @@ body.app-shell--hidden-nav .cookie-consent {
 
 .profile-page-light .text-muted,
 .profile-center .text-muted,
+.ts-consumer-shell .text-muted ,
 .ts-workspace-light .text-muted {
   color: var(--ts-text-muted, #66756d) !important;
 }
@@ -3376,6 +3412,7 @@ body.app-shell--hidden-nav .cookie-consent {
 .profile-page-light [class*="bg-white"],
 .profile-center [class*="bg-white"],
 .ts-workspace-light [class*="bg-white"],
+.ts-consumer-shell [class*="bg-white"],
 .admin-command-center-shell [class*="bg-white"],
 .owner-command-center-shell [class*="bg-white"] {
   background-color: var(--ts-surface-primary, #ffffff) !important;
@@ -3390,7 +3427,10 @@ body.app-shell--hidden-nav .cookie-consent {
 .profile-center .profile-subpage-group__body,
 .profile-center .profile-panel,
 .ts-workspace-light .profile-hub__nav-block,
+.ts-consumer-shell .profile-hub__nav-block,
 .ts-workspace-light .profile-subpage-group__body,
+.ts-consumer-shell .profile-subpage-group__body,
+.ts-consumer-shell .profile-panel ,
 .ts-workspace-light .profile-panel {
   background: #0f7a4d !important;
   border-color: #0f7a4d !important;
@@ -3408,6 +3448,8 @@ body.app-shell--hidden-nav .cookie-consent {
 .profile-center .profile-hub__nav-block-title,
 .profile-center .profile-subpage-row__label,
 .ts-workspace-light .profile-hub__nav-block-title,
+.ts-consumer-shell .profile-hub__nav-block-title,
+.ts-consumer-shell .profile-subpage-row__label ,
 .ts-workspace-light .profile-subpage-row__label {
   color: #ffffff !important;
 }
@@ -3417,6 +3459,7 @@ body.app-shell--hidden-nav .cookie-consent {
 .profile-page-light .profile-info-row__label,
 .profile-page-light .profile-info-row__hint,
 .profile-center .profile-hub__nav-block-summary,
+.ts-consumer-shell .profile-hub__nav-block-summary ,
 .ts-workspace-light .profile-hub__nav-block-summary {
   color: rgba(255, 255, 255, 0.82) !important;
 }
@@ -3429,7 +3472,10 @@ body.app-shell--hidden-nav .cookie-consent {
 .profile-center textarea,
 .profile-center select,
 .ts-workspace-light input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+.ts-consumer-shell input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
 .ts-workspace-light textarea,
+.ts-consumer-shell textarea,
+.ts-consumer-shell select ,
 .ts-workspace-light select {
   background: var(--surface, #ffffff) !important;
   border: 1px solid var(--border-semantic, #dce7e1) !important;
@@ -3441,6 +3487,8 @@ body.app-shell--hidden-nav .cookie-consent {
 .profile-center input::placeholder,
 .profile-center textarea::placeholder,
 .ts-workspace-light input::placeholder,
+.ts-consumer-shell input::placeholder,
+.ts-consumer-shell textarea::placeholder ,
 .ts-workspace-light textarea::placeholder {
   color: var(--text-muted-semantic, #66756d) !important;
 }
@@ -3451,6 +3499,8 @@ body.app-shell--hidden-nav .cookie-consent {
 .profile-center .btn-ts-primary,
 .profile-center .btn-primary,
 .ts-workspace-light .btn-ts-primary,
+.ts-consumer-shell .btn-ts-primary,
+.ts-consumer-shell .btn-primary ,
 .ts-workspace-light .btn-primary {
   background: var(--brand-primary, #0f7a4d) !important;
   color: var(--text-on-brand, #ffffff) !important;
@@ -3491,13 +3541,18 @@ body.app-shell--hidden-nav .cookie-consent {
 .profile-center .profile-info-row__label,
 .profile-center .profile-info-row__value,
 .ts-workspace-light .profile-subpage-row__label,
+.ts-consumer-shell .profile-subpage-row__label,
 .ts-workspace-light .profile-subpage-row__value,
+.ts-consumer-shell .profile-subpage-row__value,
 .ts-workspace-light .profile-info-row__label,
+.ts-consumer-shell .profile-info-row__label,
+.ts-consumer-shell .profile-info-row__value ,
 .ts-workspace-light .profile-info-row__value {
   color: #ffffff !important;
 }
 
 .profile-page-light .profile-subpage-group__title,
+.ts-consumer-shell .profile-subpage-group__title ,
 .ts-workspace-light .profile-subpage-group__title {
   color: var(--ts-text-muted, #66756d) !important;
 }
@@ -3508,7 +3563,10 @@ body.app-shell--hidden-nav .cookie-consent {
 .profile-page-light .profile-subpage-row__chevron,
 .profile-page-light .profile-subpage-row__badge,
 .ts-workspace-light .profile-subpage-row__value,
+.ts-consumer-shell .profile-subpage-row__value,
 .ts-workspace-light .profile-info-row__label,
+.ts-consumer-shell .profile-info-row__label,
+.ts-consumer-shell .profile-info-row__hint ,
 .ts-workspace-light .profile-info-row__hint {
   color: rgba(255, 255, 255, 0.82) !important;
 }
@@ -3516,23 +3574,29 @@ body.app-shell--hidden-nav .cookie-consent {
 .profile-page-light .profile-subpage-row__icon,
 .profile-page-light .profile-subpage-row__chevron,
 .ts-workspace-light .profile-subpage-row__icon,
+.ts-consumer-shell .profile-subpage-row__icon,
+.ts-consumer-shell .profile-subpage-row__chevron ,
 .ts-workspace-light .profile-subpage-row__chevron {
   color: #ffffff !important;
 }
 
 .profile-page-light a.profile-subpage-row,
+.ts-consumer-shell a.profile-subpage-row ,
 .ts-workspace-light a.profile-subpage-row {
   color: #ffffff !important;
 }
 
 .profile-page-light .profile-subpage-lang__item,
+.ts-consumer-shell .profile-subpage-lang__item ,
 .ts-workspace-light .profile-subpage-lang__item {
   color: var(--ts-text-title, #14231b) !important;
 }
 
 .profile-page-light .profile-subpage__back,
 .ts-workspace-light .profile-subpage__back,
+.ts-consumer-shell .profile-subpage__back,
 .profile-page-light .profile-back-button,
+.ts-consumer-shell .profile-back-button ,
 .ts-workspace-light .profile-back-button {
   color: var(--brand-primary, #0f7a4d) !important;
 }
@@ -3541,6 +3605,7 @@ body.app-shell--hidden-nav .cookie-consent {
    Inside light workspaces it must stay transparent on the light canvas. */
 .profile-page-light .app-screen-header,
 .ts-workspace-light .app-screen-header,
+.ts-consumer-shell .app-screen-header,
 .admin-command-center-shell .app-screen-header,
 .owner-command-center-shell .app-screen-header {
   background: transparent !important;
@@ -3550,17 +3615,20 @@ body.app-shell--hidden-nav .cookie-consent {
 }
 
 .profile-page-light .app-screen-header__title,
+.ts-consumer-shell .app-screen-header__title ,
 .ts-workspace-light .app-screen-header__title {
   color: var(--text-primary-semantic, #14231b) !important;
 }
 
 .profile-page-light .app-screen-header__subtitle,
+.ts-consumer-shell .app-screen-header__subtitle ,
 .ts-workspace-light .app-screen-header__subtitle {
   color: var(--text-secondary-semantic, #66756d) !important;
 }
 
 /* Language rows: undo global `button { emerald fill }` lock */
 .profile-page-light .profile-subpage-lang__item,
+.ts-consumer-shell .profile-subpage-lang__item ,
 .ts-workspace-light .profile-subpage-lang__item {
   background: var(--surface, #ffffff) !important;
   color: var(--text-primary-semantic, #14231b) !important;
@@ -3571,21 +3639,26 @@ body.app-shell--hidden-nav .cookie-consent {
 }
 
 .profile-page-light .profile-subpage-lang__item.is-active,
+.ts-consumer-shell .profile-subpage-lang__item.is-active ,
 .ts-workspace-light .profile-subpage-lang__item.is-active {
   background: var(--brand-soft, #e8f4ee) !important;
   color: var(--brand-primary, #0f7a4d) !important;
 }
 
 .profile-page-light .profile-subpage-lang__check,
+.ts-consumer-shell .profile-subpage-lang__check ,
 .ts-workspace-light .profile-subpage-lang__check {
   color: var(--brand-primary, #0f7a4d) !important;
 }
 
 .profile-page-light .profile-subpage-group__body,
 .ts-workspace-light .profile-subpage-group__body,
+.ts-consumer-shell .profile-subpage-group__body,
 .profile-page-light .profile-panel,
 .ts-workspace-light .profile-panel,
+.ts-consumer-shell .profile-panel,
 .profile-page-light .profile-hub__nav-block,
+.ts-consumer-shell .profile-hub__nav-block ,
 .ts-workspace-light .profile-hub__nav-block {
   background: #0f7a4d !important;
   border-color: #0f7a4d !important;

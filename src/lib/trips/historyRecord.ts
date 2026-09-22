@@ -152,6 +152,3 @@ export function formatTourStayMeta(locale: Locale, record: HistoryTourRecord): s
   return `${daysLabel} · ${peopleLabel}`;
 }
 
-export function recordKindIcon(kind: HistoryRecordKind): string {
-  return kind === "tour" ? "🏔" : "🏨";
-}

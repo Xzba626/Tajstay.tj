@@ -66,7 +66,10 @@ export function LocaleSwitcher({ current, className, iconOnly = false }: Props) 
   }
 
   return (
-    <div className={cn("relative flex items-center gap-2", className)} ref={ref}>
+    <div
+      className={cn("relative flex items-center gap-2", iconOnly && "locale-switcher--icon-only", className)}
+      ref={ref}
+    >
       <button
         type="button"
         disabled={pending}
@@ -99,25 +102,39 @@ export function LocaleSwitcher({ current, className, iconOnly = false }: Props) 
 
       <div
         className={cn(
-          "taj-dropdown absolute right-0 top-full z-[120] mt-2 w-44 origin-top-right p-1 transition-all duration-150",
+          "taj-dropdown absolute right-0 top-full z-[120] mt-2 w-52 origin-top-right p-1 transition-all duration-150",
           open ? "pointer-events-auto translate-y-0 scale-100 opacity-100" : "pointer-events-none -translate-y-1 scale-[0.98] opacity-0"
         )}
         style={{ visibility: open ? "visible" : "hidden" }}
         role="menu"
       >
-        {locales.map((loc) => (
-          <button
-            key={loc}
-            type="button"
-            disabled={pending}
-            onClick={() => void change(loc)}
-            className={cn("taj-dropdown__item disabled:opacity-50", loc === current && "is-active")}
-            role="menuitem"
-          >
-            <span>{localeLabels[loc]}</span>
-            <span className="text-xs font-extrabold tracking-wide text-slate-500">{localeShort[loc]}</span>
-          </button>
-        ))}
+        {locales.map((loc) => {
+          const active = loc === current;
+          return (
+            <button
+              key={loc}
+              type="button"
+              disabled={pending}
+              onClick={() => void change(loc)}
+              className={cn("taj-dropdown__item disabled:opacity-50", active && "is-active")}
+              role="menuitemradio"
+              aria-checked={active}
+            >
+              <span className="flex min-w-0 items-center gap-1.5">
+                <span
+                  className={cn("locale-switcher-check", active ? "opacity-100" : "opacity-0")}
+                  aria-hidden
+                >
+                  ✓
+                </span>
+                <span className="truncate">{localeLabels[loc]}</span>
+              </span>
+              <span className="shrink-0 text-xs font-extrabold tracking-wide text-[var(--taj-color-text-muted)]">
+                {localeShort[loc]}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {err ? <span className="sr-only">{err}</span> : null}
