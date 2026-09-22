@@ -509,7 +509,11 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.78);
+  /* User-reported production defect: group/section labels almost disappeared on green.
+     0.78 alpha on saturated green fell below usable contrast for uppercase 11px text.
+     Bumped to 0.95 — still visibly muted vs. active/hover white text (which is 100%),
+     but clearly readable. Same applied to __group-label below. */
+  color: rgba(255, 255, 255, 0.95);
 }
 
 .admin-sidebar__nav {
@@ -540,7 +544,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.78);
+  color: rgba(255, 255, 255, 0.95);
 }
 
 .admin-sidebar__link {
@@ -551,7 +555,7 @@
   padding: 0.5rem 0.55rem;
   font-size: 0.8125rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.98);
   text-decoration: none;
   transition: background 0.15s ease, color 0.15s ease;
 }

@@ -486,9 +486,15 @@ a.taj-btn--icon {
   color: var(--taj-text, #14231b);
   flex: 1;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  /* Was: white-space: nowrap + text-overflow: ellipsis — that produced the reported
+     "одоб... / ожид... / подт..." clipping on narrow KPI-card-width legends where
+     the donut takes 7.5rem and only a few characters were left for the label.
+     Allowing wrap keeps the full Russian/Tajik/English label readable in the same
+     footprint; value ("2 · 50%") stays on its own flex item and never wraps. */
+  overflow: visible;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.2;
 }
 
 .analytics-legend__value {
