@@ -3700,6 +3700,34 @@ body.app-shell--hidden-nav .cookie-consent {
   color: var(--text-primary-semantic, #14231b) !important;
 }
 
+/* Runtime defect confirmed after admin login: the two `!important` rules directly above
+   force dark ink on every .admin-kpi-card__label/__value in the admin shell — right for
+   the neutral operational cards but destroys the branded green KPI cards
+   (Отели / Пользователи / Бронирования / Оборот) where text must be white on green.
+   Same for the branded green attention panel. Scoped white override with matching
+   !important so operational cards remain unaffected. */
+.admin-command-center-shell .admin-kpi-card--brand,
+.admin-command-center-shell .admin-kpi-card--brand .admin-kpi-card__label,
+.admin-command-center-shell .admin-kpi-card--brand .admin-kpi-card__value,
+.admin-command-center-shell .admin-kpi-card--brand .admin-kpi-card__value-sub,
+.admin-command-center-shell .admin-kpi-card--brand .admin-kpi-card__meta,
+.admin-command-center-shell .admin-kpi-card--brand .admin-kpi-card__hint,
+.admin-command-center-shell .admin-kpi-card--brand .analytics-donut__center strong,
+.admin-command-center-shell .admin-kpi-card--brand .analytics-donut__center span,
+.admin-command-center-shell .admin-kpi-card--brand .analytics-legend__label,
+.admin-command-center-shell .admin-kpi-card--brand .analytics-legend__value,
+.admin-command-center-shell .admin-kpi-card--brand .analytics-legend__value em {
+  color: #ffffff !important;
+}
+.admin-command-center-shell .admin-attention-panel,
+.admin-command-center-shell .admin-attention-panel__title,
+.admin-command-center-shell .admin-attention-item__label,
+.admin-command-center-shell .admin-attention-item__hint,
+.admin-command-center-shell .admin-attention-item__action,
+.admin-command-center-shell .admin-attention-empty {
+  color: #ffffff !important;
+}
+
 /* Beat global button emerald lock on workspace bottom nav (More = <button>) */
 .workspace-mobile-bottom-nav__link,
 .admin-mobile-bottom-nav__link,

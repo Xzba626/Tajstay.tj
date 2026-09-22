@@ -156,7 +156,16 @@
 }
 
 .admin-kpi-card--brand {
-  background: var(--admin-accent);
+  /* Real root cause found at runtime after admin login: a global reset in
+     src/app/globals.css around line 1758 sets
+     `main, section, article { background-color: transparent !important }`.
+     Our KPI cards render as <article>, so that !important reset was defeating
+     every brand-background rule below — computed bg came back as rgba(0,0,0,0)
+     though the class was on the element. Border still resolved to green because
+     the reset only targets background-color. Fix is scoped to admin brand cards
+     only (`!important` here matches the reset) so non-brand admin KPI cards,
+     other <article>s, and unrelated shells are unaffected. */
+  background: var(--admin-accent) !important;
   border-color: var(--admin-accent);
 }
 
