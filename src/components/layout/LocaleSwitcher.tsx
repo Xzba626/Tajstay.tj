@@ -102,7 +102,8 @@ export function LocaleSwitcher({ current, className, iconOnly = false }: Props) 
 
       <div
         className={cn(
-          "taj-dropdown absolute right-0 top-full z-[120] mt-2 w-52 origin-top-right p-1 transition-all duration-150",
+          "taj-dropdown absolute top-full z-[120] mt-2 w-52 p-1 transition-all duration-150",
+          iconOnly ? "left-0 origin-top-left" : "right-0 origin-top-right",
           open ? "pointer-events-auto translate-y-0 scale-100 opacity-100" : "pointer-events-none -translate-y-1 scale-[0.98] opacity-0"
         )}
         style={{ visibility: open ? "visible" : "hidden" }}

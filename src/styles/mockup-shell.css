@@ -10,7 +10,7 @@
   font-family: var(--taj-font-display);
   font-size: 1.75rem;
   font-weight: 700;
-  color: #14231b;
+  color: var(--text-primary, #14231b);
   line-height: 1.15;
 }
 
@@ -32,8 +32,8 @@
   gap: 0.35rem;
   padding: 0.25rem;
   border-radius: var(--radius-md);
-  background: #ffffff;
-  border: 1px solid #e4e4e7;
+  background: var(--ts-surface-primary, #ffffff);
+  border: 1px solid var(--ts-border-default, #e4e4e7);
   overflow-x: auto;
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -48,7 +48,7 @@
   border-radius: calc(var(--radius-md) - 4px);
   font-size: 0.8125rem;
   font-weight: 600;
-  color: #52525b;
+  color: var(--text-secondary, #52525b);
   text-decoration: none;
   text-align: center;
   white-space: nowrap;

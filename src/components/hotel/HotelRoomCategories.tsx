@@ -63,7 +63,7 @@ function AmenityList({
 
 function BookButton({ href, locale }: { href: string; locale: Locale }) {
   return (
-    <Link href={href} className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white">
+    <Link href={href} className="w-full rounded-lg bg-brand-500 px-4 py-2 text-center text-sm font-medium text-white sm:w-auto">
       {m(locale, "search.bookNow")}
     </Link>
   );

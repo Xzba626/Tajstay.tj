@@ -76,7 +76,7 @@ export function RoomTypeCards({
                 </div>
                 <Link
                   href={`/booking?roomTypeId=${rt.id}${qs}`}
-                  className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white"
+                  className="w-full rounded-lg bg-brand-500 px-4 py-2 text-center text-sm font-medium text-white sm:w-auto"
                 >
                   {m(locale, "search.bookNow")}
                 </Link>
