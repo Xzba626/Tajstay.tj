@@ -4,6 +4,7 @@ import { addBookingSystemEvent } from "@/lib/chat/systemEvents";
 import { assertDatesAvailable, DatesUnavailableError, withRoomOverlapGuard } from "@/lib/booking/availability";
 import { assertRoomTypeAvailable, RoomTypeUnavailableError, withRoomTypeCapacityGuard } from "@/lib/pms/inventory";
 import { bookingHotel } from "@/lib/pms/bookingContext";
+import { DELIVERY_CHANGE, recordBookingDeliveryChangeById } from "@/lib/local-vault/bookingDelivery";
 
 type ActorRole = "OWNER" | "ADMIN";
 
@@ -97,7 +98,14 @@ export async function confirmBookingPayment({ bookingId, actorId, actorRole, rea
         checkOut: booking.checkOut,
         excludeBookingId: bookingId
       });
-      await withRoomOverlapGuard(() => prisma.booking.update({ where: { id: bookingId }, data: confirmData }));
+      // Delivery event is committed with the status change (same contract as owner confirm):
+      // without it the Local Vault desk never learns the booking became CONFIRMED/PAID.
+      await withRoomOverlapGuard(() =>
+        prisma.$transaction(async (tx) => {
+          await tx.booking.update({ where: { id: bookingId }, data: confirmData });
+          await recordBookingDeliveryChangeById(tx, bookingId, DELIVERY_CHANGE.UPDATED);
+        })
+      );
     } else if (booking.roomTypeId) {
       const roomTypeId = booking.roomTypeId;
       await withRoomTypeCapacityGuard(roomTypeId, async (tx) => {
@@ -109,9 +117,13 @@ export async function confirmBookingPayment({ bookingId, actorId, actorRole, rea
           client: tx
         });
         await tx.booking.update({ where: { id: bookingId }, data: confirmData });
+        await recordBookingDeliveryChangeById(tx, bookingId, DELIVERY_CHANGE.UPDATED);
       });
     } else {
-      await prisma.booking.update({ where: { id: bookingId }, data: confirmData });
+      await prisma.$transaction(async (tx) => {
+        await tx.booking.update({ where: { id: bookingId }, data: confirmData });
+        await recordBookingDeliveryChangeById(tx, bookingId, DELIVERY_CHANGE.UPDATED);
+      });
     }
   } catch (e) {
     if (e instanceof DatesUnavailableError || e instanceof RoomTypeUnavailableError) {
@@ -183,19 +195,22 @@ export async function rejectBookingPayment({ bookingId, actorId, actorRole, reas
   // status, so the guest can simply submit a corrected proof through the normal flow. A genuine
   // booking cancellation is a separate, distinct action - not a side effect of a bad receipt.
   const retryWindowMs = 15 * 60 * 1000;
-  await prisma.booking.update({
-    where: { id: bookingId },
-    data: {
-      status: BOOKING_STATUS.WAITING_PAYMENT,
-      paymentProofUrl: null,
-      proofSubmittedAt: null,
-      proofReviewDeadlineAt: null,
-      paymentTimerPaused: false,
-      expiresAt: new Date(Date.now() + retryWindowMs),
-      proofReviewedAt: new Date(),
-      proofReviewedById: actorId,
-      paymentReviewNote: trimmedReason
-    }
+  await prisma.$transaction(async (tx) => {
+    await tx.booking.update({
+      where: { id: bookingId },
+      data: {
+        status: BOOKING_STATUS.WAITING_PAYMENT,
+        paymentProofUrl: null,
+        proofSubmittedAt: null,
+        proofReviewDeadlineAt: null,
+        paymentTimerPaused: false,
+        expiresAt: new Date(Date.now() + retryWindowMs),
+        proofReviewedAt: new Date(),
+        proofReviewedById: actorId,
+        paymentReviewNote: trimmedReason
+      }
+    });
+    await recordBookingDeliveryChangeById(tx, bookingId, DELIVERY_CHANGE.UPDATED);
   });
 
   await prisma.transactionLog.create({

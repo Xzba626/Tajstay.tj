@@ -91,11 +91,11 @@ export function MobileSearchPanel({
           onKeyDown={(e) => {
             if (e.key === "Enter") applyQuery();
           }}
-          className="home-search-input mobile-search-bar__input"
+          className="mobile-search-bar__input"
           placeholder={m(locale, "search.placeholderQuery")}
           aria-label={m(locale, "search.search")}
         />
-        <button type="button" className="home-search-submit mobile-search-bar__go" onClick={applyQuery}>
+        <button type="button" className="mobile-search-bar__go" onClick={applyQuery}>
           {m(locale, "search.search")}
         </button>
         <button

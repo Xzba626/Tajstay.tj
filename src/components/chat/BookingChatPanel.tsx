@@ -24,6 +24,8 @@ function mapChatApiError(raw: string | undefined): string {
   if (v === "Forbidden") return "Нет доступа к этому чату.";
   if (lower === "not found") return "Бронирование не найдено.";
   if (lower === "admin not configured") return "Поддержка временно недоступна. Напишите через страницу «Контакты».";
+  if (lower === "send_failed") return "Сообщение не отправлено. Попробуйте ещё раз.";
+  if (lower === "read_failed") return "Нет связи с сервером. Повторяем попытку…";
   return v || "";
 }
 
@@ -291,19 +293,28 @@ export function BookingChatPanel({
       es = null;
     };
 
+    // Background refresh failures are counted, not shown immediately: one transient poll
+    // failure used to paint the same banner as a failed send, so users read it as
+    // "my message was not delivered" even when nothing was being sent.
+    let pullFailures = 0;
     const runPull = () => {
       if (!mounted || stopped) return;
-      pull().catch((e) => {
-        if (!mounted) return;
-        const message = e instanceof Error ? e.message : "Не удалось загрузить чат";
-        // A 401 means the session is gone for good — retrying every few seconds forever
-        // just repeats the same failure silently. Stop the loop instead of spinning on it.
-        if (e && typeof e === "object" && "authExpired" in e) {
-          stopPolling(message);
-          return;
-        }
-        setError(message);
-      });
+      pull()
+        .then(() => {
+          pullFailures = 0;
+        })
+        .catch((e) => {
+          if (!mounted) return;
+          const message = e instanceof Error ? e.message : "Не удалось загрузить чат";
+          // A 401 means the session is gone for good — retrying every few seconds forever
+          // just repeats the same failure silently. Stop the loop instead of spinning on it.
+          if (e && typeof e === "object" && "authExpired" in e) {
+            stopPolling(message);
+            return;
+          }
+          pullFailures += 1;
+          if (pullFailures >= 3) setError("Нет связи с сервером. Повторяем попытку…");
+        });
     };
 
     runPull();
@@ -499,9 +510,11 @@ export function BookingChatPanel({
         chatArchived?: boolean;
         canSend?: boolean;
         booking?: LiveBookingSnap;
+        saved?: boolean;
       };
       if (!res.ok) throw new Error(messageFromChatResponse(res, json as { error?: string }));
-      applyMessagesPayload(json);
+      if (json.messages) applyMessagesPayload(json);
+      else if (json.saved) void pull().catch(() => undefined);
       setText("");
       setFile(null);
       if (fileRef.current) fileRef.current.value = "";

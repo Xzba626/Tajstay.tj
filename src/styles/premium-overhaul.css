@@ -686,12 +686,18 @@ body:not(.app-shell) .hotel-sticky-bar {
   padding: 0 0.7rem;
 }
 
-/* .home-search-submit (globals.css) sets width:100% for its desktop full-width use and loads
-   after this file in the cascade (premium-overhaul.css is @import-ed near the top of
-   globals.css) - at equal single-class specificity it was winning here, stretching this button
-   to swallow the row and squeezing the input to a sliver. The extra `.mobile-search-bar` ancestor
-   qualifier raises specificity so this compact sizing always wins, regardless of import order. */
+.mobile-search-bar__input::placeholder {
+  color: #71717a;
+}
+
+/* This bar used to also carry the Home form classes (.home-search-input / .home-search-submit).
+   Their mobile sizing — `height:100%` on the input and `min-height:3rem` on the button — leaked
+   here and produced a 19px input next to a 48px button. The markup no longer borrows those
+   classes; this block owns all of the bar's geometry and states. */
 .mobile-search-bar .mobile-search-bar__go {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex: 0 0 auto;
   width: auto;
   height: 2.15rem;
@@ -703,6 +709,16 @@ body:not(.app-shell) .hotel-sticky-bar {
   font-size: 0.75rem;
   font-weight: 700;
   white-space: nowrap;
+}
+
+.mobile-search-bar .mobile-search-bar__go:active {
+  transform: scale(0.98);
+}
+
+.mobile-search-bar .mobile-search-bar__go:focus-visible,
+.mobile-search-bar__input:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
 }
 
 .mobile-search-bar__filters {

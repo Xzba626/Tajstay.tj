@@ -62,6 +62,23 @@ export async function GET(_: NextRequest, { params }: { params: { bookingId: str
     return NextResponse.json({ error: "Invalid bookingId" }, { status: 400 });
   }
 
+  try {
+    return await readBookingChat(bookingId, user);
+  } catch (e) {
+    // Previously unguarded: any DB error here became Next's HTML 500, which the client can only
+    // render as the generic "Сервер временно недоступен". The client polls this route every few
+    // seconds, so a single transient DB failure surfaced as a send-looking error banner.
+    console.error("[chat.messages.GET] read failed", {
+      bookingId,
+      userId: user.id,
+      role: user.role,
+      error: e instanceof Error ? (e.stack ?? e.message) : String(e)
+    });
+    return NextResponse.json({ error: "read_failed" }, { status: 503 });
+  }
+}
+
+async function readBookingChat(bookingId: number, user: { id: number; role: string }) {
   const booking = await ensureAccess(bookingId, user.id);
   if (!booking) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
@@ -71,7 +88,16 @@ export async function GET(_: NextRequest, { params }: { params: { bookingId: str
   const locked = isBookingChatLocked(booking, hasOpenDispute);
   const archivedFlag = Boolean(booking.chatArchivedAt);
 
-  await markBookingChatMessagesRead(bookingId, user.id);
+  try {
+    await markBookingChatMessagesRead(bookingId, user.id);
+  } catch (e) {
+    // Read receipts are best-effort; never fail the history read because of them.
+    console.error("[chat.messages.GET] mark-read failed", {
+      bookingId,
+      userId: user.id,
+      error: e instanceof Error ? e.message : String(e)
+    });
+  }
 
   // BLOCK 5.6D — cold-archive history is readable by the original guest/owner/admin (accepted
   // Option B): archived rows have `isArchived: true`, which `getBookingChatMessages` filters OUT,
@@ -101,7 +127,21 @@ export async function GET(_: NextRequest, { params }: { params: { bookingId: str
   );
 }
 
-export async function POST(req: NextRequest, { params }: { params: { bookingId: string } }) {
+export async function POST(req: NextRequest, ctx: { params: { bookingId: string } }) {
+  try {
+    return await handlePost(req, ctx);
+  } catch (e) {
+    // Last-resort guard for the pre-write stages (auth, booking lookup, access, dispute check,
+    // attachment save). Nothing was persisted if we get here, so a retry is safe.
+    console.error("[chat.messages.POST] pre-write stage failed", {
+      bookingId: ctx.params?.bookingId,
+      error: e instanceof Error ? (e.stack ?? e.message) : String(e)
+    });
+    return NextResponse.json({ error: "send_failed" }, { status: 503 });
+  }
+}
+
+async function handlePost(req: NextRequest, { params }: { params: { bookingId: string } }) {
   const user = await requireUser(["GUEST", "OWNER", "ADMIN", "MANAGER"]);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -298,6 +338,8 @@ export async function POST(req: NextRequest, { params }: { params: { bookingId: 
       userId: user.id,
       error: e instanceof Error ? (e.stack ?? e.message) : String(e)
     });
-    return NextResponse.json({ error: "send_failed" }, { status: 500 });
+    // The message IS committed. Returning 500 here told the user "not sent" and invited a retry
+    // that created a duplicate. Report success; the client re-pulls history on `saved`.
+    return NextResponse.json({ ok: true, saved: true }, { status: 200 });
   }
 }

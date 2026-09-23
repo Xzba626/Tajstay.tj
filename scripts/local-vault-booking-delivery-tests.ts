@@ -102,7 +102,8 @@ function staticGates() {
     ["src/app/api/bookings/[id]/cancel-by-guest/route.ts", "guest cancel"],
     ["src/app/api/bookings/cancel/route.ts", "legacy guest cancel"],
     ["src/app/api/admin/bookings/[id]/cancel/route.ts", "admin cancel"],
-    ["src/app/api/jobs/expire-bookings/route.ts", "expiry + review timeout"]
+    ["src/app/api/jobs/expire-bookings/route.ts", "expiry + review timeout"],
+    ["src/lib/bookings/paymentReviewActions.ts", "payment review confirm + reject"]
   ];
   for (const [f, what] of wired) {
     const src = fs.readFileSync(path.join(process.cwd(), f), "utf8");
@@ -238,6 +239,41 @@ async function main() {
     const st = inc5.body?.items?.find((i: any) => i.bookingId === offline.id);
     const offlineRow = await prisma.booking.findUnique({ where: { id: offline.id }, select: { offlineStatus: true } });
     check("8.status_transition_delivered", st?.changeType === DELIVERY_CHANGE.UPDATED && offlineRow?.offlineStatus === "CHECKED_IN", `change=${st?.changeType} dbOfflineStatus=${offlineRow?.offlineStatus}`);
+
+    // PAYMENT REVIEW — the path that actually turns an online booking into CONFIRMED (owner or admin
+    // approves the guest's payment proof). It must reach the device feed like every other mutation;
+    // otherwise the desk keeps the stale WAITING/ON_REVIEW copy forever while sync reports success.
+    const { confirmBookingPayment, rejectBookingPayment } = await import("../src/lib/bookings/paymentReviewActions");
+    const mkOnReview = async (d0: number, phone: string) => {
+      const b = await prisma.booking.create({
+        data: {
+          checkIn: day(d0), checkOut: day(d0 + 2), totalPrice: 600, commission: 60, phone,
+          guestName: "Proof Guest", guestCount: 1, source: "PLATFORM",
+          status: BOOKING_STATUS.ON_REVIEW, roomId: roomA2.id, roomTypeId: typeA.id,
+          paymentProofUrl: "private/test-proof.jpg", proofSubmittedAt: new Date()
+        }
+      });
+      await prisma.payment.create({ data: { bookingId: b.id, userId: owner.id, amount: 600, status: "PENDING" } });
+      return b;
+    };
+    const proofOk = await mkOnReview(40, "+992900200601");
+    const proofBad = await mkOnReview(44, "+992900200602");
+    const beforeReview = inc5.body.nextCursor;
+    await confirmBookingPayment({ bookingId: proofOk.id, actorId: owner.id, actorRole: "OWNER" });
+    await rejectBookingPayment({ bookingId: proofBad.id, actorId: owner.id, actorRole: "OWNER", reason: "blurry receipt" });
+    const incReview = await sync(devA, { mode: "incremental", cursor: beforeReview, limit: 500 });
+    const conf = incReview.body?.items?.find((i: any) => i.bookingId === proofOk.id);
+    const rej = incReview.body?.items?.find((i: any) => i.bookingId === proofBad.id);
+    check(
+      "8b.payment_confirm_delivered",
+      conf?.changeType === DELIVERY_CHANGE.UPDATED && conf?.booking?.status === BOOKING_STATUS.CONFIRMED && conf?.booking?.paymentStatus === "PAID",
+      `change=${conf?.changeType ?? "MISSING"} status=${conf?.booking?.status} pay=${conf?.booking?.paymentStatus}`
+    );
+    check(
+      "8c.payment_reject_delivered",
+      rej?.changeType === DELIVERY_CHANGE.UPDATED && rej?.booking?.status === BOOKING_STATUS.WAITING_PAYMENT,
+      `change=${rej?.changeType ?? "MISSING"} status=${rej?.booking?.status}`
+    );
 
     // CANCELLATION — the exact transaction the cancel routes (guest/admin/legacy/reject) run:
     // status change + explicit CANCELLED delivery event, committed together. The routes themselves
@@ -413,6 +449,18 @@ async function main() {
     check("suite", false, e instanceof Error ? `${e.message}\n${e.stack}` : String(e));
   } finally {
     if (hotels.length) {
+      const fixtureBookingIds = (
+        await prisma.booking.findMany({
+          where: { OR: [{ roomType: { hotelId: { in: hotels } } }, { room: { hotelId: { in: hotels } } }] },
+          select: { id: true }
+        })
+      ).map((b) => b.id);
+      if (fixtureBookingIds.length) {
+        await prisma.transactionLog.deleteMany({ where: { bookingId: { in: fixtureBookingIds } } });
+        await prisma.payment.deleteMany({ where: { bookingId: { in: fixtureBookingIds } } });
+        await prisma.chatMessage.deleteMany({ where: { bookingId: { in: fixtureBookingIds } } });
+        await prisma.notification.deleteMany({ where: { bookingId: { in: fixtureBookingIds } } });
+      }
       await prisma.bookingDeliveryChange.deleteMany({ where: { hotelId: { in: hotels } } });
       await prisma.hotelDeliveryCursor.deleteMany({ where: { hotelId: { in: hotels } } });
       await prisma.booking.deleteMany({ where: { roomType: { hotelId: { in: hotels } } } });
