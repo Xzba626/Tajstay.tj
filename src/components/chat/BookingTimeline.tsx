@@ -2,6 +2,7 @@
 
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
+import { intlLocale } from "@/lib/i18n/format";
 import type { BookingTimelineEvent } from "@/lib/chat/bookingTimeline";
 
 const DOT: Record<string, string> = {
@@ -44,12 +45,16 @@ export function BookingTimeline({
               {ev.kind === "SYSTEM" && ev.detail ? ev.detail : m(locale, ev.labelKey)}
             </div>
             <div className="text-[10px] text-[var(--taj-color-text-muted)]">
-              {new Date(ev.at).toLocaleString(undefined, {
+              {/* Explicit locale + platform business zone: `toLocaleString(undefined)` used the
+                  runtime default, so server (Node, UTC on Vercel) and browser rendered different
+                  text — a hydration error that forced the whole booking room to client-render. */}
+              {new Intl.DateTimeFormat(intlLocale(locale), {
                 day: "2-digit",
                 month: "short",
                 hour: "2-digit",
-                minute: "2-digit"
-              })}
+                minute: "2-digit",
+                timeZone: "Asia/Dushanbe"
+              }).format(new Date(ev.at))}
             </div>
           </li>
         );

@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth/requireAuth";
 import { prisma } from "@/lib/prisma";
@@ -128,20 +129,24 @@ async function readBookingChat(bookingId: number, user: { id: number; role: stri
 }
 
 export async function POST(req: NextRequest, ctx: { params: { bookingId: string } }) {
+  // Short correlation id: logged at every failure stage and returned to the client on errors, so a
+  // user-reported failed send can be matched to exactly one server log line.
+  const requestId = randomUUID().slice(0, 8);
   try {
-    return await handlePost(req, ctx);
+    return await handlePost(req, ctx, requestId);
   } catch (e) {
     // Last-resort guard for the pre-write stages (auth, booking lookup, access, dispute check,
     // attachment save). Nothing was persisted if we get here, so a retry is safe.
     console.error("[chat.messages.POST] pre-write stage failed", {
+      requestId,
       bookingId: ctx.params?.bookingId,
       error: e instanceof Error ? (e.stack ?? e.message) : String(e)
     });
-    return NextResponse.json({ error: "send_failed" }, { status: 503 });
+    return NextResponse.json({ error: "send_failed", requestId }, { status: 503 });
   }
 }
 
-async function handlePost(req: NextRequest, { params }: { params: { bookingId: string } }) {
+async function handlePost(req: NextRequest, { params }: { params: { bookingId: string } }, requestId: string) {
   const user = await requireUser(["GUEST", "OWNER", "ADMIN", "MANAGER"]);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -266,12 +271,13 @@ async function handlePost(req: NextRequest, { params }: { params: { bookingId: s
     });
   } catch (e) {
     console.error("[chat.messages.POST] message write failed", {
+      requestId,
       bookingId,
       userId: user.id,
       role: user.role,
       error: e instanceof Error ? (e.stack ?? e.message) : String(e)
     });
-    return NextResponse.json({ error: "send_failed" }, { status: 500 });
+    return NextResponse.json({ error: "send_failed", requestId }, { status: 500 });
   }
 
   // Best-effort fan-out: the guest/owner/admin message was already durably saved above. A
@@ -298,6 +304,7 @@ async function handlePost(req: NextRequest, { params }: { params: { bookingId: s
     }
   } catch (e) {
     console.error("[chat.messages.POST] notification side-effect failed (message already saved)", {
+      requestId,
       bookingId,
       userId: user.id,
       error: e instanceof Error ? (e.stack ?? e.message) : String(e)
@@ -309,7 +316,8 @@ async function handlePost(req: NextRequest, { params }: { params: { bookingId: s
       where: { id: bookingId },
       include: { room: { include: { hotel: true } } }
     });
-    if (!finalBooking) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    // The message is already committed; a vanished booking on re-read must not look like a failed send.
+    if (!finalBooking) return NextResponse.json({ ok: true, saved: true }, { status: 200 });
 
     const locked = isBookingChatLocked(finalBooking, hasOpenDisputeForPost);
     let messages = await getBookingChatMessages(bookingId, 200);
@@ -334,6 +342,7 @@ async function handlePost(req: NextRequest, { params }: { params: { bookingId: s
     // is only the response-rebuild step failing. Logged distinctly from a real write failure so
     // production logs don't conflate "nothing was saved" with "it was saved, replying failed".
     console.error("[chat.messages.POST] response rebuild failed after successful save", {
+      requestId,
       bookingId,
       userId: user.id,
       error: e instanceof Error ? (e.stack ?? e.message) : String(e)

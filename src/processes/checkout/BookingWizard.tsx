@@ -7,6 +7,7 @@ import { LocaleDateInput } from "@/components/ui/LocaleDateInput";
 import { CheckoutSteps } from "@/processes/checkout/CheckoutSteps";
 import type { Locale } from "@/lib/i18n/locale";
 import { m } from "@/lib/i18n/messages";
+import { formatStayDateRange } from "@/lib/i18n/format";
 
 /** A hotel's own active payment method (see `getHotelPaymentMethods`) - the ONLY source of
  * payment requisites shown here. Never a hardcoded fallback account. */
@@ -557,6 +558,31 @@ export function BookingWizard({
 
             {step === 3 && (
               <div className="wizard-step wizard-in space-y-4">
+                {/* Final review: the confirmation step previously showed only the payment method,
+                    so the guest confirmed without seeing dates, room or the amount. Same values as
+                    step 2; nothing is recomputed here. */}
+                <div className="rounded-2xl border border-[var(--taj-color-border)] bg-[var(--taj-color-bg-card-solid)] p-4 text-sm">
+                  <div className="truncate font-semibold text-[var(--taj-color-text)]">{hotelName}</div>
+                  <div className="truncate text-xs text-[var(--taj-color-text-muted)]">{roomTitle}</div>
+                  {checkIn && checkOut ? (
+                    <div className="mt-3 flex justify-between gap-3 text-[var(--taj-color-text-secondary)]">
+                      <span>
+                        {labels.checkIn} — {labels.checkOut}
+                      </span>
+                      <span className="text-right font-medium text-[var(--taj-color-text)]">
+                        {formatStayDateRange(locale, new Date(`${checkIn}T00:00:00`), new Date(`${checkOut}T00:00:00`))}
+                      </span>
+                    </div>
+                  ) : null}
+                  <div className="mt-2 flex justify-between text-[var(--taj-color-text-secondary)]">
+                    <span>{labels.nights}</span>
+                    <span>{nights ?? "—"}</span>
+                  </div>
+                  <div className="mt-3 flex justify-between border-t border-[var(--taj-color-border)] pt-3 text-base font-semibold text-[var(--taj-color-text)]">
+                    <span>{labels.totalCharge}</span>
+                    <span>{totalByDates ?? finance.totalToCharge} TJS</span>
+                  </div>
+                </div>
                 {/* BLOCK V1: this card used to render unconditionally, claiming "escrow
                     protection... paid only after check-in" even for Pay-at-check-in bookings,
                     where TajStay never holds any money at all - a false backend-semantics claim.

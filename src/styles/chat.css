@@ -15,11 +15,33 @@
 /* Mobile: lock the page to the viewport so the outer page never scrolls as a normal website -
    only `.chat-messages` (inside .chat-page__thread) scrolls. Desktop is untouched (no max-height,
    normal document flow, matches the existing two-column layout). */
-@media (max-width: 1023px) {
-  .chat-page {
-    max-height: calc(100dvh - 4rem);
-    overflow: hidden;
-  }
+/* Messenger layout at every width: the shell is exactly one dynamic viewport, the header keeps
+   its natural size and the chat fills the rest, so only `.chat-messages` scrolls.
+   - Mobile: the old `calc(100dvh - 4rem)` assumed a 64px header (real one is ~73px) and the page
+     overshot by ~9px, scrolling on top of the message list.
+   - Desktop: nothing bounded the thread, so a long conversation grew the page (≈2100px at 1280)
+     and pushed the composer below the fold, with the site footer underneath.
+   No header-height constant is involved, so nothing can drift again. */
+.ts-consumer-shell:has(.chat-page) {
+  height: 100dvh;
+  min-height: 0;
+}
+
+.ts-consumer-shell:has(.chat-page) > main {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.ts-consumer-shell:has(.chat-page) .site-footer {
+  display: none;
+}
+
+.chat-page {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .chat-back-btn {
@@ -115,14 +137,20 @@
   .chat-page__layout {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 17.5rem;
+    grid-template-rows: minmax(0, 1fr);
     gap: 1rem;
     align-items: stretch;
+  }
+
+  .chat-page__aside {
+    min-height: 0;
+    overflow-y: auto;
   }
 }
 
 .chat-page__thread {
   display: flex;
-  min-height: min(72dvh, 640px);
+  min-height: 0;
   flex: 1;
   flex-direction: column;
   overflow: hidden;
@@ -133,9 +161,12 @@
 }
 
 @media (max-width: 1023px) {
+  /* Was pinned to `100dvh - 11rem`, a guess at the chrome above it; with the real header/back/
+     context heights that overshot and pushed the composer ~14px below the screen. Fill the space
+     the flex column actually leaves instead. */
   .chat-page__thread {
-    min-height: calc(100dvh - 11rem);
-    max-height: calc(100dvh - 11rem);
+    min-height: 0;
+    max-height: none;
   }
 }
 
@@ -288,7 +319,7 @@
 
 .chat-shell__bar {
   display: flex;
-  shrink: 0;
+  flex-shrink: 0;
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
@@ -306,6 +337,14 @@
 .chat-shell__bar-sub {
   font-size: 0.625rem;
   color: var(--taj-color-text-muted);
+}
+
+/* On phones the three counterpart trust chips took ~70px above every conversation. The booking
+   context stays one tap away; the chat bar keeps only title + status there. */
+@media (max-width: 767px) {
+  .chat-shell__bar .chat-shell__trust {
+    display: none;
+  }
 }
 
 .chat-messages {

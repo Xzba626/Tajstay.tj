@@ -8,7 +8,10 @@
   --workspace-header-height: 4.5rem;
   --workspace-bottom-nav-height: 3.75rem;
   /* Consumer app tab bar clearance (premium-shell.css). One token — no scattered 76/88/92px. */
-  --mobile-bottom-nav-height: 4.5rem;
+  /* Single source of truth for the consumer tab bar height (.app-tab-bar is pinned to it in
+     premium-shell.css). It was 4.5rem while the bar rendered at ~62px, so every reserve built on
+     it (main padding, assistant offset, profile height) carried 10px of empty scroll. */
+  --mobile-bottom-nav-height: 3.875rem;
   --app-tab-bar-height: var(--mobile-bottom-nav-height);
 
   /* Brand — single TajStay green via semantic foundation */

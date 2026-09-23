@@ -29,9 +29,9 @@ function mapChatApiError(raw: string | undefined): string {
   return v || "";
 }
 
-function messageFromChatResponse(res: Response, json: { error?: string }): string {
+function messageFromChatResponse(res: Response, json: { error?: string; requestId?: string }): string {
   const mapped = mapChatApiError(json.error);
-  if (mapped) return mapped;
+  if (mapped) return json.requestId ? `${mapped} (код ${json.requestId})` : mapped;
   if (res.status === 401) return "Сессия истекла — войдите снова.";
   if (res.status === 404) return "Бронирование не найдено.";
   if (res.status === 403) return "Нет доступа к этому чату.";
@@ -646,7 +646,7 @@ export function BookingChatPanel({
               <div className="chat-shell__bar-sub truncate">{headerSubtitle}</div>
             ) : null}
             {counterpartTrustBadges.length ? (
-              <TrustBadges locale={locale} badges={counterpartTrustBadges} size="sm" className="mt-1.5" />
+              <TrustBadges locale={locale} badges={counterpartTrustBadges} size="sm" className="mt-1.5 chat-shell__trust" />
             ) : null}
           </div>
           <span className={`shrink-0 ${statusPillClass(statusForPill)}`}>
@@ -956,29 +956,16 @@ export function BookingChatPanel({
 
         {isGuest && canSend && (effectiveStatus === "WAITING_PAYMENT" || effectiveStatus === "WAIT_PROOF") ? (
           <div className="chat-compose__quick">
+            {/* One contextual action instead of three always-on text replies. "Загрузить чек" used
+                to only SEND that text; the real proof path is an image attachment (the server moves
+                the booking to ON_REVIEW when a guest attaches one), so open the picker directly. */}
             <button
               type="button"
               disabled={sending}
-              onClick={() => void sendQuickReply(m(locale, "chat.quickPaidBtn"))}
-              className="rounded-full border border-[#0f7a4d]/25 bg-[#0f7a4d]/10 px-3 py-2 text-[11px] font-semibold text-[#d1fae5] disabled:opacity-50"
+              onClick={() => fileRef.current?.click()}
+              className="rounded-full border border-[#0f7a4d]/30 bg-[#0f7a4d]/10 px-3 py-2 text-[11px] font-semibold text-[#0f7a4d] disabled:opacity-50"
             >
-              {m(locale, "chat.quickPaidBtn")}
-            </button>
-            <button
-              type="button"
-              disabled={sending}
-              onClick={() => void sendQuickReply(m(locale, "chat.quickUploadReceipt"))}
-              className="rounded-full border border-[var(--taj-color-border)] bg-[var(--taj-color-bg-card-solid)] px-3 py-2 text-[11px] font-semibold text-[var(--taj-color-text-secondary)] disabled:opacity-50"
-            >
-              {m(locale, "chat.quickUploadReceipt")}
-            </button>
-            <button
-              type="button"
-              disabled={sending}
-              onClick={() => void sendQuickReply(m(locale, "chat.quickAlmostThere"))}
-              className="rounded-full border border-[var(--taj-color-border)] bg-[var(--taj-color-bg-card-solid)] px-3 py-2 text-[11px] font-semibold text-[var(--taj-color-text-secondary)] disabled:opacity-50"
-            >
-              {m(locale, "chat.quickAlmostThere")}
+              📎 {m(locale, "chat.attachReceiptCta")}
             </button>
           </div>
         ) : null}
