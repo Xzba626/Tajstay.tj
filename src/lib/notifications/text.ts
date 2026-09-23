@@ -13,7 +13,11 @@ export function notificationText(
     if (bookingCode) return `${base} · ${bookingCode}`;
     return base;
   }
-  const base = m(locale, `notifications.${type}`) || m(locale, "notifications.unknown");
+  // Some types are templated at write time (`RISK_FLAG_HOTEL:<hotelId>:<score>`), so look up the
+  // label by the type name alone — otherwise the whole raw enum string was shown to the admin.
+  const typeKey = type.split(":")[0];
+  const looked = m(locale, `notifications.${typeKey}`);
+  const base = looked && looked !== `notifications.${typeKey}` ? looked : m(locale, "notifications.unknown");
   if (bookingCode) return `${base} · ${bookingCode}`;
   return base;
 }

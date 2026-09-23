@@ -54,7 +54,17 @@ export function OwnerActivityLogPanel({ locale, hotelId }: { locale: Locale; hot
     const keyMap: Record<string, string> = {
       "expense.created": "owner.activity.action.expenseCreated",
       "expense.amount_changed": "owner.activity.action.expenseAmountChanged",
-      "expense.stopped": "owner.activity.action.expenseStopped"
+      "expense.stopped": "owner.activity.action.expenseStopped",
+      // Everything writeOwnerHotelAudit() can record. Anything missing here fell through to the
+      // raw action string, so the owner saw internal identifiers like `offline_booking.created`.
+      "offline_booking.created": "owner.activity.action.offlineBookingCreated",
+      "payment.recorded": "owner.activity.action.paymentRecorded",
+      "staff.invited": "owner.activity.action.staffInvited",
+      "staff.activated": "owner.activity.action.staffActivated",
+      "staff.suspended": "owner.activity.action.staffSuspended",
+      "staff.reactivated": "owner.activity.action.staffReactivated",
+      "staff.access_removed": "owner.activity.action.staffAccessRemoved",
+      "staff.password_reset": "owner.activity.action.staffPasswordReset"
     };
     const path = keyMap[action];
     if (!path) return action;
@@ -81,7 +91,17 @@ export function OwnerActivityLogPanel({ locale, hotelId }: { locale: Locale; hot
     if (a?.stopAt) {
       return String(a.stopAt).slice(0, 10);
     }
-    return [before, after].filter(Boolean).join(" → ").slice(0, 120);
+    // Summarise the few fields worth showing. The previous fallback printed the stored JSON
+    // verbatim, so the owner saw things like {"publicCode":"TS-...","source":"OWNER_MANUAL"}.
+    const src = a ?? b;
+    if (src) {
+      const bits: string[] = [];
+      if (src.publicCode) bits.push(String(src.publicCode));
+      if (src.totalPrice != null) bits.push(`${src.totalPrice} TJS`);
+      if (src.name) bits.push(String(src.name));
+      return bits.join(" · ");
+    }
+    return "";
   }
 
   return (
@@ -100,7 +120,7 @@ export function OwnerActivityLogPanel({ locale, hotelId }: { locale: Locale; hot
                 {new Date(e.createdAt).toLocaleString()} · {e.actorRole ?? "—"}
                 {e.entityType ? ` · ${e.entityType} #${e.entityId}` : ""}
               </div>
-              {e.beforeState || e.afterState ? (
+              {formatState(e.beforeState, e.afterState) ? (
                 <div className="owner-record-card__meta truncate">
                   {formatState(e.beforeState, e.afterState)}
                 </div>

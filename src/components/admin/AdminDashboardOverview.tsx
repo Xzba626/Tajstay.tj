@@ -233,7 +233,18 @@ export function AdminDashboardOverview({ locale, stats, riskNotes, basePath }: P
           <ul className="admin-risk-list">
             {riskNotes.map((note) => (
               <li key={note.id} className="admin-risk-list__item">
-                {note.type} · {formatDateTimeShort(locale, note.createdAt)}
+                {/* Stored type is templated (`RISK_FLAG_HOTEL:<hotelId>:<score>`) and used to be
+                    printed verbatim, so the admin saw a raw enum. Show the localized label and
+                    the parsed hotel/score instead. */}
+                {(() => {
+                  const [kind, hotelId, score] = note.type.split(":");
+                  const label = m(locale, `notifications.${kind}`);
+                  const parts = [label && label !== `notifications.${kind}` ? label : kind];
+                  if (hotelId) parts.push(`#${hotelId}`);
+                  if (score) parts.push(`${m(locale, "admin.riskScoreShort")} ${score}`);
+                  parts.push(formatDateTimeShort(locale, note.createdAt));
+                  return parts.join(" · ");
+                })()}
               </li>
             ))}
           </ul>

@@ -1017,6 +1017,8 @@ const ru: Tree = {
     BOOKING_CHECKED_IN: "Гость заселён",
     BOOKING_CHAT_NEW: "Новое сообщение в чате",
     BOOKING_CHAT_CREATED: "Чат по брони создан",
+    HOTEL_PENDING_REVIEW: "Отель ожидает проверки",
+    RISK_FLAG_HOTEL: "Отель отмечен как рискованный",
     BOOKING_CREATED: "Бронь создана",
     BOOKING_CANCELLED: "Бронь отменена",
     BOOKING_CANCELLED_BY_GUEST: "Гость отменил бронь",
@@ -1519,6 +1521,7 @@ const ru: Tree = {
     payTimer: "Таймер",
     escrowLabel: "Escrow",
     riskLevel: "Риск {level} ({score})",
+    riskScoreShort: "риск",
     riskSignals: "Сигналы",
     riskAutoFlag: "Авто-флаг: нужна ручная проверка",
     financeSection: "Финансы",
@@ -2177,7 +2180,15 @@ const ru: Tree = {
       action: {
         expenseCreated: "Расход создан",
         expenseAmountChanged: "Расход изменён",
-        expenseStopped: "Расход остановлен"
+        expenseStopped: "Расход остановлен",
+        offlineBookingCreated: "Офлайн-бронь создана",
+        paymentRecorded: "Платёж записан",
+        staffInvited: "Сотрудник приглашён",
+        staffActivated: "Доступ сотрудника активирован",
+        staffSuspended: "Сотрудник приостановлен",
+        staffReactivated: "Сотрудник восстановлен",
+        staffAccessRemoved: "Доступ сотрудника удалён",
+        staffPasswordReset: "Пароль сотрудника сброшен"
       }
     },
     roomsInv: {
@@ -3431,6 +3442,8 @@ const tg: Tree = {
     BOOKING_CHECKED_IN: "Меҳмон ҷойгир шуд",
     BOOKING_CHAT_NEW: "Паёми нав дар чат",
     BOOKING_CHAT_CREATED: "Чати брон эҷод шуд",
+    HOTEL_PENDING_REVIEW: "Меҳмонхона интизори тафтиш аст",
+    RISK_FLAG_HOTEL: "Меҳмонхона хавфнок нишон дода шуд",
     BOOKING_CREATED: "Брон эҷод шуд",
     BOOKING_CANCELLED: "Брон бекор шуд",
     BOOKING_CANCELLED_BY_GUEST: "Меҳмон бронро бекор кард",
@@ -3928,6 +3941,7 @@ const tg: Tree = {
     payTimer: "Таймер",
     escrowLabel: "Escrow",
     riskLevel: "Хатари {level} ({score})",
+    riskScoreShort: "хавф",
     riskSignals: "Сигналҳо",
     riskAutoFlag: "Авто-flag: санҷиши дастӣ лозим",
     financeSection: "Молия",
@@ -4560,7 +4574,15 @@ const tg: Tree = {
       action: {
         expenseCreated: "Хароҷот эҷод шуд",
         expenseAmountChanged: "Хароҷот тағйир ёфт",
-        expenseStopped: "Хароҷот қатъ шуд"
+        expenseStopped: "Хароҷот қатъ шуд",
+        offlineBookingCreated: "Брони офлайн эҷод шуд",
+        paymentRecorded: "Пардохт сабт шуд",
+        staffInvited: "Корманд даъват шуд",
+        staffActivated: "Дастрасии корманд фаъол шуд",
+        staffSuspended: "Корманд боздошта шуд",
+        staffReactivated: "Корманд барқарор шуд",
+        staffAccessRemoved: "Дастрасии корманд нест карда шуд",
+        staffPasswordReset: "Рамзи корманд аз нав гузошта шуд"
       }
     },
     roomsInv: {
@@ -5807,6 +5829,8 @@ const en: Tree = {
     BOOKING_CHECKED_IN: "Guest checked in",
     BOOKING_CHAT_NEW: "New chat message",
     BOOKING_CHAT_CREATED: "Booking chat created",
+    HOTEL_PENDING_REVIEW: "Hotel awaiting review",
+    RISK_FLAG_HOTEL: "Hotel flagged as risky",
     BOOKING_CREATED: "Booking created",
     BOOKING_CANCELLED: "Booking cancelled",
     BOOKING_CANCELLED_BY_GUEST: "Guest cancelled booking",
@@ -6304,6 +6328,7 @@ const en: Tree = {
     payTimer: "Timer",
     escrowLabel: "Escrow",
     riskLevel: "Risk {level} ({score})",
+    riskScoreShort: "risk",
     riskSignals: "Signals",
     riskAutoFlag: "Auto-flagged for manual review",
     financeSection: "Finance",
@@ -6935,7 +6960,15 @@ const en: Tree = {
       action: {
         expenseCreated: "Expense created",
         expenseAmountChanged: "Expense changed",
-        expenseStopped: "Expense stopped"
+        expenseStopped: "Expense stopped",
+        offlineBookingCreated: "Offline booking created",
+        paymentRecorded: "Payment recorded",
+        staffInvited: "Staff invited",
+        staffActivated: "Staff access activated",
+        staffSuspended: "Staff suspended",
+        staffReactivated: "Staff reactivated",
+        staffAccessRemoved: "Staff access removed",
+        staffPasswordReset: "Staff password reset"
       }
     },
     roomsInv: {
