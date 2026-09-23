@@ -31,7 +31,7 @@ function mapChatApiError(raw: string | undefined): string {
 
 function messageFromChatResponse(res: Response, json: { error?: string; requestId?: string }): string {
   const mapped = mapChatApiError(json.error);
-  if (mapped) return json.requestId ? `${mapped} (код ${json.requestId})` : mapped;
+  if (mapped) return mapped;
   if (res.status === 401) return "Сессия истекла — войдите снова.";
   if (res.status === 404) return "Бронирование не найдено.";
   if (res.status === 403) return "Нет доступа к этому чату.";
@@ -188,6 +188,8 @@ export function BookingChatPanel({
   const [file, setFile] = useState<File | null>(null);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /** Incident id from the server, shown as a muted secondary line for support - never as the message itself. */
+  const [errorCode, setErrorCode] = useState<string | null>(null);
   const [actionBusy, setActionBusy] = useState(false);
   const [uiStatus, setUiStatus] = useState<string>(bookingStatus);
   const [liveBooking, setLiveBooking] = useState<LiveBookingSnap | null>(null);
@@ -229,6 +231,7 @@ export function BookingChatPanel({
       chatArchived?: boolean;
       canSend?: boolean;
       booking?: LiveBookingSnap;
+        requestId?: string;
     };
     if (!res.ok) {
       if (res.status === 401) {
@@ -394,6 +397,7 @@ export function BookingChatPanel({
     if (!t || !canSend || sending || chatArchived) return;
     setSending(true);
     setError(null);
+    setErrorCode(null);
     try {
       const res = await fetch(`/api/chat/booking/${bookingId}/messages`, {
         method: "POST",
@@ -407,8 +411,9 @@ export function BookingChatPanel({
         canSend?: boolean;
         chatArchived?: boolean;
         booking?: LiveBookingSnap;
+        requestId?: string;
       };
-      if (!res.ok) throw new Error(messageFromChatResponse(res, json));
+      if (!res.ok) { setErrorCode(json.requestId ?? null); throw new Error(messageFromChatResponse(res, json)); }
       applyMessagesPayload(json);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Ошибка отправки");
@@ -509,6 +514,7 @@ export function BookingChatPanel({
     if (!canSubmit) return;
     setSending(true);
     setError(null);
+    setErrorCode(null);
     try {
       let res: Response;
       if (file) {
@@ -535,8 +541,9 @@ export function BookingChatPanel({
         canSend?: boolean;
         booking?: LiveBookingSnap;
         saved?: boolean;
+        requestId?: string;
       };
-      if (!res.ok) throw new Error(messageFromChatResponse(res, json as { error?: string }));
+      if (!res.ok) { setErrorCode((json as { requestId?: string }).requestId ?? null); throw new Error(messageFromChatResponse(res, json as { error?: string })); }
       if (json.messages) applyMessagesPayload(json);
       else if (json.saved) void pull().catch(() => undefined);
       setText("");
@@ -580,8 +587,8 @@ export function BookingChatPanel({
         credentials: "include",
         headers: { accept: "application/json" }
       });
-      const json = (await res.json().catch(() => ({}))) as { messages?: ChatMessage[]; error?: string };
-      if (!res.ok) throw new Error(messageFromChatResponse(res, json));
+      const json = (await res.json().catch(() => ({}))) as { messages?: ChatMessage[]; error?: string; requestId?: string };
+      if (!res.ok) { setErrorCode(json.requestId ?? null); throw new Error(messageFromChatResponse(res, json)); }
       setItems(Array.isArray(json.messages) ? json.messages : []);
       setToast("Переписка скрыта");
     } catch (e) {
@@ -1092,7 +1099,18 @@ export function BookingChatPanel({
             {sending ? "…" : "Отпр."}
           </button>
         </div>
-        {error && !authExpired ? <div className="text-xs text-[#b91c1c]">{error}</div> : null}
+        {error && !authExpired ? (
+          <div className="text-xs text-[#b91c1c]">
+            <div>{error}</div>
+            {/* Support/debug handle only — the readable sentence stays primary, the incident id is
+                secondary and muted so it never reads as the error itself. */}
+            {errorCode ? (
+              <div className="mt-0.5 text-[10px] text-[var(--taj-color-text-muted)]">
+                {m(locale, "chat.errorCodeLabel")}: {errorCode}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
       </div>
 
       <ChatConfirmDialog

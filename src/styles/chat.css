@@ -341,10 +341,12 @@
 
 /* On phones the three counterpart trust chips took ~70px above every conversation. The booking
    context stays one tap away; the chat bar keeps only title + status there. */
-@media (max-width: 767px) {
-  .chat-shell__bar .chat-shell__trust {
-    display: none;
-  }
+/* Counterpart verification is a one-time trust signal, not per-message context, so it does not
+   belong in the bar that sits above every conversation. Hidden at all widths (it was already
+   hidden on phones) to keep the messenger surface to header + messages + composer; the booking
+   context panel remains the place for who-you-are-talking-to detail. */
+.chat-shell__bar .chat-shell__trust {
+  display: none;
 }
 
 .chat-messages {
