@@ -170,6 +170,7 @@ async function fetchMyBookings(): Promise<MyBookingsPayload | null> {
 
 export function TstAssistant({ locale }: Props) {
   const pathname = usePathname() ?? "/";
+  const isHomeRoute = pathname === "/";
   const rawSearch = useSearchParams()?.toString() ?? "";
   const router = useRouter();
   const pageContext = useMemo(() => parsePageContext(pathname, rawSearch), [pathname, rawSearch]);
@@ -200,6 +201,15 @@ export function TstAssistant({ locale }: Props) {
   const [notice, setNotice] = useState<Notice | null>(null);
   const [bookConfirm, setBookConfirm] = useState<BookConfirm | null>(null);
   const [mySummary, setMySummary] = useState<MyBookingsPayload | null>(null);
+  /**
+   * On a short phone the Home search card (~333px) cannot fit in the space above the FAB
+   * (~369px between header and FAB), so a permanently floating FAB sits on top of the form and
+   * its submit button. Park it while the form is at rest and bring it back once the user has
+   * scrolled past — the assistant stays reachable, unlike simply hiding it on small screens
+   * (the bottom tab bar has no assistant entry). Only Home, only short viewports; the CSS
+   * media query decides whether `is-parked` actually hides anything.
+   */
+  const [fabParked, setFabParked] = useState(false);
 
   const hidden = isShellHiddenRoute(pathname);
   const ctxHint = contextHintKey(pageContext);
@@ -216,6 +226,18 @@ export function TstAssistant({ locale }: Props) {
     if (hidden) return;
     setShowHint(false);
   }, [hidden]);
+
+  useEffect(() => {
+    if (!isHomeRoute) {
+      setFabParked(false);
+      return;
+    }
+    const PARK_BELOW = 80;
+    const sync = () => setFabParked(window.scrollY < PARK_BELOW);
+    sync();
+    window.addEventListener("scroll", sync, { passive: true });
+    return () => window.removeEventListener("scroll", sync);
+  }, [isHomeRoute]);
 
   useEffect(() => {
     if (!open) return;
@@ -999,7 +1021,7 @@ export function TstAssistant({ locale }: Props) {
         </div>
       ) : null}
 
-      <div className={`tst-assistant__anchor${open ? " is-hidden" : ""}`}>
+      <div className={`tst-assistant__anchor${open ? " is-hidden" : ""}${fabParked ? " is-parked" : ""}`}>
         {false && showHint && !open ? (
           <button type="button" className="tst-assistant__hint" onClick={openPanel}>
             {m(locale, "tstAssistant.hint")}

@@ -125,6 +125,15 @@
   .home-page .home-section--hero.home-chapter {
     padding-bottom: 0 !important;
   }
+
+  /* On a 320x568-class screen the hero genuinely does not fit above the assistant FAB:
+     usable height between header and FAB top is ~369px, the title + search card need ~400px.
+     Squeezing further would push controls below a usable tap size, so the page scrolls instead —
+     and this reserve guarantees that at the bottom of that scroll the submit button clears both
+     the FAB and the tab bar, rather than sitting underneath them. */
+  .ts-consumer-shell:has(.home-page) .home-page.home-chapters {
+    padding-bottom: calc(var(--mobile-bottom-nav-height) + 4.25rem);
+  }
 }
 
 /* Auth entry modal */

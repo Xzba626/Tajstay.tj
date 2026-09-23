@@ -455,6 +455,16 @@
   display: none;
 }
 
+/* Short phones on Home only: the search card is taller than the space above the FAB, so a
+   resting FAB covers the form and its submit button. Park it until the user scrolls past the
+   form (see `fabParked` in TstAssistant.tsx) instead of dropping the assistant entirely — the
+   bottom tab bar has no assistant entry, so hiding it outright would make it unreachable. */
+@media (max-width: 767px) and (max-height: 700px) {
+  .tst-assistant__anchor.is-parked {
+    display: none;
+  }
+}
+
 .tst-assistant__fab {
   display: grid;
   place-items: center;
