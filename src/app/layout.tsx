@@ -64,9 +64,23 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+/**
+ * App-like mobile scaling. `maximumScale`/`userScalable` are a product decision: on a phone the
+ * shells are laid out for the device width, and an accidental pinch turned Home into a zoomed,
+ * pannable canvas. The layout is correct without this (the responsive defects were fixed
+ * separately) — this is not a cover for overflow bugs.
+ *
+ * Accessibility trade-off, stated plainly: this asks the browser not to allow pinch-zoom, which
+ * works against WCAG 1.4.4. It is a request, not a guarantee — iOS Safari 10+ deliberately ignores
+ * it, and Android honours it only while "Force enable zoom" is off. Desktop is unaffected: the
+ * viewport meta applies to mobile viewports only. No JS gesture blocking and no touch
+ * preventDefault is used, so keyboard navigation and browser-level zoom stay intact.
+ */
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
   viewportFit: "cover",
   themeColor: "#0F7A4D"
 };
