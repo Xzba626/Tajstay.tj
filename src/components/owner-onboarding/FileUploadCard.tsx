@@ -17,6 +17,7 @@ type Props = {
 };
 
 const ACCEPT = "image/jpeg,image/png,image/webp";
+const MAX_BYTES = 5 * 1024 * 1024;
 
 export function FileUploadCard({
   name,
@@ -35,6 +36,8 @@ export function FileUploadCard({
   const inputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
+  /** Set when a picked file fails the type/size contract the card advertises. */
+  const [rejected, setRejected] = useState(false);
 
   function pick() {
     inputRef.current?.click();
@@ -43,6 +46,18 @@ export function FileUploadCard({
   function onChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] ?? null;
     if (preview) URL.revokeObjectURL(preview);
+    // `accept` only filters the OS picker — a drag-drop or a picker that ignores it could still
+    // hand us a .txt or an oversized photo, and the card would render it as a valid "preview"
+    // while promising "JPG, PNG · 5MB". Enforce the same contract the label states.
+    if (file && (!ACCEPT.split(",").includes(file.type) || file.size > MAX_BYTES)) {
+      if (inputRef.current) inputRef.current.value = "";
+      setPreview(null);
+      setFileName(null);
+      setRejected(true);
+      onFileChange(null);
+      return;
+    }
+    setRejected(false);
     if (file) {
       setPreview(URL.createObjectURL(file));
       setFileName(file.name);
@@ -54,6 +69,7 @@ export function FileUploadCard({
   }
 
   function clear() {
+    setRejected(false);
     if (inputRef.current) inputRef.current.value = "";
     if (preview) URL.revokeObjectURL(preview);
     setPreview(null);
@@ -109,6 +125,12 @@ export function FileUploadCard({
           <span className="mt-2 text-sm font-semibold text-slate-200">{chooseLabel}</span>
         </button>
       )}
+
+      {rejected ? (
+        <p className="mt-2 text-xs font-medium text-red-300" role="alert">
+          {reqLabel}
+        </p>
+      ) : null}
 
       {error ? (
         <p id={`${id}-err`} className="mt-2 text-xs font-medium text-red-300" role="alert">
