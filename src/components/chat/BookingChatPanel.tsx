@@ -289,6 +289,7 @@ export function BookingChatPanel({
         setAuthExpired(true);
       }
       window.clearInterval(t);
+      window.clearTimeout(reconnectTimer);
       es?.close();
       es = null;
     };
@@ -319,9 +320,25 @@ export function BookingChatPanel({
 
     runPull();
 
+    // The server ends each stream after ~55s so an open chat tab cannot hold a serverless
+    // invocation (and its DB polling loop) open indefinitely. That normal rotation reaches the
+    // browser as an `error` event, so this must RECONNECT — the previous `es.close(); es = null`
+    // killed realtime permanently after the first rotation and silently degraded every chat to
+    // interval polling. Reconnecting also closes the gap window: `runPull()` on each new stream
+    // re-reads history, so a message that arrived while the stream was down is still shown.
     let es: EventSource | null = null;
-    if (typeof EventSource !== "undefined") {
+    let reconnectTimer = 0;
+    let attempts = 0;
+    const supportsSse = typeof EventSource !== "undefined";
+
+    const openStream = () => {
+      if (!mounted || stopped || !supportsSse) return;
       es = new EventSource(`/api/chat/booking/${bookingId}/stream`);
+      es.onopen = () => {
+        attempts = 0;
+        // Recover anything published while the previous stream was down.
+        runPull();
+      };
       es.onmessage = () => {
         if (!mounted || stopped) return;
         runPull();
@@ -329,14 +346,21 @@ export function BookingChatPanel({
       es.onerror = () => {
         es?.close();
         es = null;
+        if (!mounted || stopped) return;
+        // Backoff so a genuinely unreachable stream endpoint does not spin: 1s, 2s, 4s… max 30s.
+        attempts += 1;
+        const delay = Math.min(1000 * 2 ** (attempts - 1), 30_000);
+        reconnectTimer = window.setTimeout(openStream, delay);
       };
-    }
+    };
+    openStream();
 
-    const t = window.setInterval(runPull, es ? 8000 : 3500);
+    const t = window.setInterval(runPull, supportsSse ? 8000 : 3500);
 
     return () => {
       mounted = false;
       window.clearInterval(t);
+      window.clearTimeout(reconnectTimer);
       es?.close();
     };
   }, [pull, bookingId]);

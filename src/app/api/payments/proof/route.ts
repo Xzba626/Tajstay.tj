@@ -9,6 +9,7 @@ import { clientIp, rateLimit } from "@/lib/security/rateLimit";
 import { isSafePublicHttpsUrl } from "@/lib/security/safeUrl";
 import { addBookingSystemEvent } from "@/lib/chat/systemEvents";
 import { bookingHotel } from "@/lib/pms/bookingContext";
+import { DELIVERY_CHANGE, mutateBookingWithDelivery } from "@/lib/local-vault/bookingDelivery";
 
 const MAX_FILE_BYTES = 4 * 1024 * 1024;
 
@@ -106,7 +107,9 @@ export async function POST(req: NextRequest) {
     booking.expiresAt &&
     booking.expiresAt.getTime() < Date.now();
   if (payWindowExpired) {
-    await prisma.booking.update({ where: { id: booking.id }, data: { status: BOOKING_STATUS.EXPIRED } }).catch(() => undefined);
+    await mutateBookingWithDelivery(booking.id, DELIVERY_CHANGE.CANCELLED, (tx) =>
+      tx.booking.update({ where: { id: booking.id }, data: { status: BOOKING_STATUS.EXPIRED } })
+    ).catch(() => undefined);
     if (wantsJson) return NextResponse.json({ error: "expired" }, { status: 400 });
     return NextResponse.redirect(publicUrl(req, `/chat/booking/${booking.id}?expired=1`));
   }
@@ -146,7 +149,8 @@ export async function POST(req: NextRequest) {
   }
 
   const proofReviewDeadlineAt = new Date(Date.now() + 5 * 60 * 1000);
-  const transitioned = await prisma.booking.updateMany({
+  const transitioned = await mutateBookingWithDelivery(booking.id, DELIVERY_CHANGE.UPDATED, (tx) =>
+    tx.booking.updateMany({
     where: {
       id: booking.id,
       userId: user.id,
@@ -167,7 +171,8 @@ export async function POST(req: NextRequest) {
           }
         : {})
     }
-  });
+    })
+  );
 
   if (transitioned.count > 0) {
     await prisma.notification.create({

@@ -5,6 +5,7 @@ import { forbiddenJson } from "@/lib/auth/apiResponses";
 import { BOOKING_STATUS } from "@/lib/domain/booking";
 import { bookingHotel } from "@/lib/pms/bookingContext";
 import { publicUrl } from "@/lib/http/publicOrigin";
+import { DELIVERY_CHANGE, mutateBookingWithDelivery } from "@/lib/local-vault/bookingDelivery";
 
 /** BLOCK 5.5B P1-4: "checkout has been reached" - the same boundary already used elsewhere in this
  * codebase for the identical concept (the review-eligibility check this project already had used
@@ -59,10 +60,12 @@ export async function POST(req: NextRequest) {
     // Atomic, WHERE-guarded exactly like confirm-arrival-payment/route.ts - a genuinely
     // simultaneous second completion request resolves to count:0 (someone else already won)
     // rather than a duplicate TransactionLog.
-    const result = await prisma.booking.updateMany({
-      where: { id, status: BOOKING_STATUS.CHECKED_IN, paymentStatus: "PAID", payOnArrival: true },
-      data: { status: BOOKING_STATUS.COMPLETED }
-    });
+    const result = await mutateBookingWithDelivery(id, DELIVERY_CHANGE.UPDATED, (tx) =>
+      tx.booking.updateMany({
+        where: { id, status: BOOKING_STATUS.CHECKED_IN, paymentStatus: "PAID", payOnArrival: true },
+        data: { status: BOOKING_STATUS.COMPLETED }
+      })
+    );
     if (result.count === 0) {
       return NextResponse.redirect(publicUrl(req, "/dashboard/admin?error=complete_requires_paid"));
     }
@@ -93,10 +96,12 @@ export async function POST(req: NextRequest) {
   // Atomic, WHERE-guarded on the exact preconditions just checked - a genuinely simultaneous
   // second completion request for the same booking resolves to count:0 rather than a second
   // Payout/TransactionLog.
-  const result = await prisma.booking.updateMany({
-    where: { id, status: BOOKING_STATUS.CHECKED_IN, paymentStatus: "PAID", payOnArrival: false },
-    data: { status: BOOKING_STATUS.COMPLETED }
-  });
+  const result = await mutateBookingWithDelivery(id, DELIVERY_CHANGE.UPDATED, (tx) =>
+    tx.booking.updateMany({
+      where: { id, status: BOOKING_STATUS.CHECKED_IN, paymentStatus: "PAID", payOnArrival: false },
+      data: { status: BOOKING_STATUS.COMPLETED }
+    })
+  );
   if (result.count === 0) {
     return NextResponse.redirect(publicUrl(req, "/dashboard/admin?error=complete_requires_paid"));
   }

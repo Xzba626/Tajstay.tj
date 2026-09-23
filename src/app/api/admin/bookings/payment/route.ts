@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getAdminUser } from "@/lib/auth/requireAdmin";
 import { forbiddenJson } from "@/lib/auth/apiResponses";
 import { publicUrl } from "@/lib/http/publicOrigin";
+import { DELIVERY_CHANGE, mutateBookingWithDelivery } from "@/lib/local-vault/bookingDelivery";
 
 export async function POST(req: NextRequest) {
   const admin = await getAdminUser();
@@ -30,10 +31,12 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  await prisma.booking.update({
-    where: { id },
-    data: { paymentStatus: paymentStatus as "PENDING" | "PAID" | "FAILED" | "REFUNDED" }
-  });
+  await mutateBookingWithDelivery(id, DELIVERY_CHANGE.UPDATED, (tx) =>
+    tx.booking.update({
+      where: { id },
+      data: { paymentStatus: paymentStatus as "PENDING" | "PAID" | "FAILED" | "REFUNDED" }
+    })
+  );
 
   const payment = booking.payment;
   if (payment) {

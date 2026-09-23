@@ -11,6 +11,7 @@ import { canAccessBookingChatAsync } from "@/lib/chat/bookingAccess";
 import { bookingHotel } from "@/lib/pms/bookingContext";
 import { authorizeBookingAccess } from "@/lib/pms/bookingAuthorization";
 import { bookingWithHotelInclude } from "@/lib/pms/prismaIncludes";
+import { DELIVERY_CHANGE, recordBookingDeliveryChangeById } from "@/lib/local-vault/bookingDelivery";
 
 /** Chat attachments are stored privately (see saveChatAttachment.ts) - never return the raw
  * pathname to a client; only the authenticated proxy route may resolve it to bytes. */
@@ -225,6 +226,12 @@ async function handlePost(req: NextRequest, { params }: { params: { bookingId: s
           }
         });
         proofJustSubmitted = transitioned.count > 0;
+        // Guest proof moves the booking to ON_REVIEW — a status the Local Vault desk receives, so
+        // it needs a delivery revision. Recorded with the raw writer (not
+        // mutateBookingWithDelivery) because we are already inside this transaction.
+        if (proofJustSubmitted) {
+          await recordBookingDeliveryChangeById(tx, bookingId, DELIVERY_CHANGE.UPDATED);
+        }
       }
 
       await tx.chatMessage.create({

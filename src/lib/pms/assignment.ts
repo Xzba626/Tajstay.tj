@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { assertDatesAvailable, DatesUnavailableError, withRoomOverlapGuard } from "@/lib/booking/availability";
 import { findAvailablePhysicalRoom } from "@/lib/pms/inventory";
 import { getBookingPhysicalRoomId } from "@/lib/pms/types";
+import { DELIVERY_CHANGE, mutateBookingWithDelivery } from "@/lib/local-vault/bookingDelivery";
 
 export async function assignBookingToRoom(params: {
   bookingId: number;
@@ -40,14 +41,16 @@ export async function assignBookingToRoom(params: {
     // (DB EXCLUDE constraint) is the actual backstop against a concurrent assignment/confirmation
     // claiming the same physical room for overlapping dates.
     await withRoomOverlapGuard(() =>
-      prisma.booking.update({
-        where: { id: booking.id },
-        data: {
-          assignedRoomId: room.id,
-          roomId: room.id,
-          roomTypeId: room.roomTypeId ?? booking.roomTypeId
-        }
-      })
+      mutateBookingWithDelivery(booking.id, DELIVERY_CHANGE.UPDATED, (tx) =>
+        tx.booking.update({
+          where: { id: booking.id },
+          data: {
+            assignedRoomId: room.id,
+            roomId: room.id,
+            roomTypeId: room.roomTypeId ?? booking.roomTypeId
+          }
+        })
+      )
     );
   } catch (e) {
     if (e instanceof DatesUnavailableError) {
@@ -80,10 +83,12 @@ export async function autoAssignBookingIfPossible(bookingId: number): Promise<nu
     // protection. On conflict, fail safe: leave the booking room-type-only (unassigned) rather
     // than incorrectly claiming a room another concurrent request just took.
     await withRoomOverlapGuard(() =>
-      prisma.booking.update({
-        where: { id: bookingId },
-        data: { assignedRoomId: roomId, roomId }
-      })
+      mutateBookingWithDelivery(bookingId, DELIVERY_CHANGE.UPDATED, (tx) =>
+        tx.booking.update({
+          where: { id: bookingId },
+          data: { assignedRoomId: roomId, roomId }
+        })
+      )
     );
   } catch (e) {
     if (e instanceof DatesUnavailableError) return null;

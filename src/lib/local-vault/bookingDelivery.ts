@@ -85,6 +85,36 @@ export async function recordBookingDeliveryChangeById(
   return recordBookingDeliveryChange(db, { bookingId, hotelId, changeType });
 }
 
+/**
+ * Run a delivery-relevant Booking mutation and its delivery revision inside ONE transaction.
+ *
+ * Use this for any write that changes a column the desk actually receives (see
+ * `deliveryBookingSelect` below): status, paymentStatus, dates, guest, room/roomType, total.
+ * A write that only touches undelivered columns (payment timer, chat archive flag, guest
+ * document, analytics settlement) must NOT use it — a revision there would make every device
+ * re-fetch an unchanged booking.
+ *
+ * Why a helper rather than a second call at each site: the invariant is "booking state and its
+ * revision commit together". Leaving that to `booking.update(...)` followed by a separate
+ * `recordBookingDeliveryChangeById(...)` is what let payment review, check-in, arrival payment,
+ * admin complete/payment, proof upload, room assignment and hotel-payment recording all ship
+ * without a revision — the desk kept a stale copy while sync reported success.
+ */
+export async function mutateBookingWithDelivery<T>(
+  bookingId: number,
+  changeType: DeliveryChangeType,
+  mutate: (tx: Prisma.TransactionClient) => Promise<T>
+): Promise<T> {
+  return prisma.$transaction(async (tx) => {
+    const result = await mutate(tx);
+    // A WHERE-guarded updateMany that matched nothing (lost race / already applied) changed no
+    // delivered state, so it must not burn a revision.
+    if ((result as { count?: number } | null)?.count === 0) return result;
+    await recordBookingDeliveryChangeById(tx, bookingId, changeType);
+    return result;
+  });
+}
+
 /** Fields the reception desk needs — deliberately excludes credentials, payment secrets, passport. */
 export const deliveryBookingSelect = {
   id: true,

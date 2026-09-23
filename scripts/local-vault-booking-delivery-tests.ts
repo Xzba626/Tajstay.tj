@@ -103,11 +103,34 @@ function staticGates() {
     ["src/app/api/bookings/cancel/route.ts", "legacy guest cancel"],
     ["src/app/api/admin/bookings/[id]/cancel/route.ts", "admin cancel"],
     ["src/app/api/jobs/expire-bookings/route.ts", "expiry + review timeout"],
-    ["src/lib/bookings/paymentReviewActions.ts", "payment review confirm + reject"]
+    ["src/lib/bookings/paymentReviewActions.ts", "payment review confirm + reject"],
+    // Wired in the delivery-contract audit: each of these writes a column the desk receives
+    // (status / paymentStatus / room / roomType) and previously shipped with no revision.
+    ["src/app/api/admin/bookings/complete/route.ts", "admin complete"],
+    ["src/app/api/admin/bookings/payment/route.ts", "admin payment status"],
+    ["src/app/api/owner/bookings/[id]/check-in/route.ts", "owner check-in"],
+    ["src/app/api/owner/bookings/[id]/confirm-arrival-payment/route.ts", "arrival payment"],
+    ["src/app/api/payments/proof/route.ts", "guest proof upload"],
+    ["src/app/api/chat/booking/[bookingId]/messages/route.ts", "proof via chat attachment"],
+    ["src/lib/pms/assignment.ts", "room assignment"],
+    ["src/lib/services/recordHotelPayment.ts", "hotel payment recording"]
   ];
   for (const [f, what] of wired) {
     const src = fs.readFileSync(path.join(process.cwd(), f), "utf8");
-    check(`wired.${what}`, /recordBookingDeliveryChange/.test(src), f);
+    check(`wired.${what}`, /recordBookingDeliveryChange|mutateBookingWithDelivery/.test(src), f);
+  }
+  // Writes that only touch columns the DTO does not carry (payment timer, chat archive flag,
+  // guest document, analytics settlement) must stay unwired — a revision there would make every
+  // device re-fetch an unchanged booking.
+  const irrelevant: Array<[string, string]> = [
+    ["src/app/api/admin/bookings/[id]/payment-timer/route.ts", "payment timer"],
+    ["src/lib/chat/bookingChat.ts", "chat archive flag"],
+    ["src/app/api/bookings/document/route.ts", "guest document"],
+    ["src/lib/owner/analytics/getHotelAnalytics.ts", "revenue recognition"]
+  ];
+  for (const [f, what] of irrelevant) {
+    const src = fs.readFileSync(path.join(process.cwd(), f), "utf8");
+    check(`unwired.${what}`, !/recordBookingDeliveryChange|mutateBookingWithDelivery/.test(src), `${f} (no delivered column)`);
   }
   const online = fs.readFileSync(path.join(process.cwd(), "src/app/api/bookings/route.ts"), "utf8");
   check("wired.online_no_bare_create", !/booking = await prisma\.booking\.create\(/.test(online), "no non-transactional online create remains");
@@ -273,6 +296,55 @@ async function main() {
       "8c.payment_reject_delivered",
       rej?.changeType === DELIVERY_CHANGE.UPDATED && rej?.booking?.status === BOOKING_STATUS.WAITING_PAYMENT,
       `change=${rej?.changeType ?? "MISSING"} status=${rej?.booking?.status}`
+    );
+
+    // ROOM ASSIGNMENT + HOTEL PAYMENT — two service-level writes found unwired by the delivery
+    // audit. Both change delivered columns (room/roomType, status/paymentStatus) and are callable
+    // directly, unlike the route-level ones which need a session.
+    const { assignBookingToRoom } = await import("../src/lib/pms/assignment");
+    const beforeAssign = (await prisma.hotelDeliveryCursor.findUnique({ where: { hotelId: hotelA.id } }))!.lastRevision;
+    const assignTarget = await createManualOfflineBooking({
+      hotelId: hotelA.id, roomTypeId: typeA.id, roomId: roomA1.id,
+      actorUserId: owner.id, actorRole: "OWNER",
+      guestName: "Assign Guest", guestPhone: "+992900200701",
+      guestCount: 1, checkIn: day(2), checkOut: day(4), totalPrice: null
+    } as any);
+    const afterAssignCreate = await sync(devA, { mode: "incremental", cursor: beforeAssign, limit: 500 });
+    await assignBookingToRoom({ bookingId: assignTarget.id, roomId: roomA2.id, ownerId: owner.id } as any);
+    const incAssign = await sync(devA, { mode: "incremental", cursor: afterAssignCreate.body.nextCursor, limit: 500 });
+    const assignItem = incAssign.body?.items?.find((i: any) => i.bookingId === assignTarget.id);
+    check(
+      "8d.room_assignment_delivered",
+      assignItem?.changeType === DELIVERY_CHANGE.UPDATED && assignItem?.booking?.room?.id === roomA2.id,
+      `change=${assignItem?.changeType ?? "MISSING"} room=${assignItem?.booking?.room?.id} (expected ${roomA2.id})`
+    );
+
+    const { recordHotelBookingPayment } = await import("../src/lib/services/recordHotelPayment");
+    const payTarget = await createManualOfflineBooking({
+      hotelId: hotelA.id, roomTypeId: typeA.id, roomId: roomA1.id,
+      actorUserId: owner.id, actorRole: "OWNER",
+      guestName: "HotelPay Guest", guestPhone: "+992900200702",
+      guestCount: 1, checkIn: day(6), checkOut: day(8), totalPrice: 500
+    } as any);
+    const beforePay = (await sync(devA, { mode: "incremental", cursor: incAssign.body.nextCursor, limit: 500 })).body.nextCursor;
+    await recordHotelBookingPayment({ bookingId: payTarget.id, hotelId: hotelA.id, actorUserId: owner.id, actorRole: "OWNER", settlement: "CASH" });
+    const incPay = await sync(devA, { mode: "incremental", cursor: beforePay, limit: 500 });
+    const payItem = incPay.body?.items?.find((i: any) => i.bookingId === payTarget.id);
+    check(
+      "8e.hotel_payment_delivered",
+      payItem?.changeType === DELIVERY_CHANGE.UPDATED && payItem?.booking?.paymentStatus === "PAID",
+      `change=${payItem?.changeType ?? "MISSING"} pay=${payItem?.booking?.paymentStatus}`
+    );
+
+    // A lost-race updateMany (count:0) must NOT burn a revision — the mutateBookingWithDelivery
+    // contract. Re-running the same already-applied payment is exactly that case.
+    const headBeforeNoop = (await prisma.hotelDeliveryCursor.findUnique({ where: { hotelId: hotelA.id } }))!.lastRevision;
+    await recordHotelBookingPayment({ bookingId: payTarget.id, hotelId: hotelA.id, actorUserId: owner.id, actorRole: "OWNER", settlement: "CASH" }).catch(() => undefined);
+    const headAfterNoop = (await prisma.hotelDeliveryCursor.findUnique({ where: { hotelId: hotelA.id } }))!.lastRevision;
+    check(
+      "8f.noop_mutation_burns_no_revision",
+      headAfterNoop === headBeforeNoop,
+      `head ${headBeforeNoop} -> ${headAfterNoop} (already-PAID re-run must not advance)`
     );
 
     // CANCELLATION — the exact transaction the cancel routes (guest/admin/legacy/reject) run:

@@ -5,6 +5,7 @@ import { normalizeSettlementChannel, SETTLEMENT_CHANNEL } from "@/lib/owner/anal
 import { markBookingRevenueRecognized } from "@/lib/owner/analytics/getHotelAnalytics";
 import { writeOwnerHotelAudit } from "@/lib/owner/analytics/audit";
 import { addBookingSystemEvent } from "@/lib/chat/systemEvents";
+import { DELIVERY_CHANGE, mutateBookingWithDelivery } from "@/lib/local-vault/bookingDelivery";
 
 function isSameLocalDayOrLater(now: Date, checkIn: Date): boolean {
   const nowDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -47,20 +48,22 @@ export async function recordHotelBookingPayment(input: {
   ) {
     if (!isSameLocalDayOrLater(new Date(), booking.checkIn)) throw new Error("too_early");
 
-    const result = await prisma.booking.updateMany({
-      where: {
-        id: booking.id,
-        status: BOOKING_STATUS.CONFIRMED,
-        paymentStatus: "PENDING",
-        payOnArrival: true
-      },
-      data: {
-        status: BOOKING_STATUS.CHECKED_IN,
-        paymentStatus: "PAID",
-        settlementChannel: settlement,
-        offlinePaymentType: settlement
-      }
-    });
+    const result = await mutateBookingWithDelivery(booking.id, DELIVERY_CHANGE.UPDATED, (tx) =>
+      tx.booking.updateMany({
+        where: {
+          id: booking.id,
+          status: BOOKING_STATUS.CONFIRMED,
+          paymentStatus: "PENDING",
+          payOnArrival: true
+        },
+        data: {
+          status: BOOKING_STATUS.CHECKED_IN,
+          paymentStatus: "PAID",
+          settlementChannel: settlement,
+          offlinePaymentType: settlement
+        }
+      })
+    );
     if (result.count === 0) {
       const current = await prisma.booking.findUnique({
         where: { id: booking.id },
@@ -121,17 +124,19 @@ export async function recordHotelBookingPayment(input: {
       ? { offlineStatus: OFFLINE_STATUS.CHECKED_IN }
       : {};
 
-  const result = await prisma.booking.updateMany({
-    where: { id: booking.id, paymentStatus: "PENDING" },
-    data: {
-      paymentStatus: "PAID",
-      settlementChannel: settlement,
-      offlinePaymentType: settlement,
-      remainingAmount: 0,
-      prepayment: booking.totalPrice,
-      ...offlinePatch
-    }
-  });
+  const result = await mutateBookingWithDelivery(booking.id, DELIVERY_CHANGE.UPDATED, (tx) =>
+    tx.booking.updateMany({
+      where: { id: booking.id, paymentStatus: "PENDING" },
+      data: {
+        paymentStatus: "PAID",
+        settlementChannel: settlement,
+        offlinePaymentType: settlement,
+        remainingAmount: 0,
+        prepayment: booking.totalPrice,
+        ...offlinePatch
+      }
+    })
+  );
   if (result.count === 0) {
     const current = await prisma.booking.findUnique({
       where: { id: booking.id },

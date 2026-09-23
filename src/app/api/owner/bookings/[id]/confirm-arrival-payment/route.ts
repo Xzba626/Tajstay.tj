@@ -5,6 +5,7 @@ import { forbiddenJson } from "@/lib/auth/apiResponses";
 import { getBookingForOwner } from "@/lib/auth/ownerBooking";
 import { BOOKING_STATUS } from "@/lib/domain/booking";
 import { addBookingSystemEvent } from "@/lib/chat/systemEvents";
+import { DELIVERY_CHANGE, mutateBookingWithDelivery } from "@/lib/local-vault/bookingDelivery";
 
 function isSameLocalDayOrLater(now: Date, checkIn: Date): boolean {
   const nowDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -53,10 +54,12 @@ export async function POST(_req: NextRequest, { params }: { params: { id: string
   // Atomic, and guarded by a WHERE clause on the exact preconditions just checked - a genuinely
   // simultaneous duplicate click resolves to `count: 0` here (someone else's request already won
   // the race) rather than a second real transition or a duplicate TransactionLog/chat message.
-  const result = await prisma.booking.updateMany({
-    where: { id, status: BOOKING_STATUS.CONFIRMED, paymentStatus: "PENDING", payOnArrival: true },
-    data: { status: BOOKING_STATUS.CHECKED_IN, paymentStatus: "PAID" }
-  });
+  const result = await mutateBookingWithDelivery(id, DELIVERY_CHANGE.UPDATED, (tx) =>
+    tx.booking.updateMany({
+      where: { id, status: BOOKING_STATUS.CONFIRMED, paymentStatus: "PENDING", payOnArrival: true },
+      data: { status: BOOKING_STATUS.CHECKED_IN, paymentStatus: "PAID" }
+    })
+  );
 
   if (result.count === 0) {
     // Lost a genuine race against another request for the same booking (double-click, retried

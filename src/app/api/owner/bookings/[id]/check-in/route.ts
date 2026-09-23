@@ -5,6 +5,7 @@ import { forbiddenJson } from "@/lib/auth/apiResponses";
 import { getBookingForOwner } from "@/lib/auth/ownerBooking";
 import { BOOKING_STATUS } from "@/lib/domain/booking";
 import { addBookingSystemEvent } from "@/lib/chat/systemEvents";
+import { DELIVERY_CHANGE, mutateBookingWithDelivery } from "@/lib/local-vault/bookingDelivery";
 
 function isSameLocalDay(a: Date, b: Date): boolean {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
@@ -39,7 +40,9 @@ export async function POST(_: NextRequest, { params }: { params: { id: string } 
     return NextResponse.json({ error: "Подтверждение заселения доступно только в день заезда" }, { status: 400 });
   }
 
-  await prisma.booking.update({ where: { id }, data: { status: BOOKING_STATUS.CHECKED_IN } });
+  await mutateBookingWithDelivery(id, DELIVERY_CHANGE.UPDATED, (tx) =>
+    tx.booking.update({ where: { id }, data: { status: BOOKING_STATUS.CHECKED_IN } })
+  );
 
   await addBookingSystemEvent({
     bookingId: id,
